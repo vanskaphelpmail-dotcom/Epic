@@ -63,8 +63,8 @@ const InlineMark: React.FC<{ mark: LeagueCatalogItem['mark'] }> = ({ mark }) => 
     default:
       return (
         <svg viewBox="0 0 64 64" className="w-full h-full" aria-hidden>
-          <rect width="64" height="64" rx="12" fill="#064e3b" />
-          <circle cx="32" cy="32" r="14" fill="#10b981" />
+          <rect width="64" height="64" rx="12" fill="#450a0a" />
+          <circle cx="32" cy="32" r="14" fill="#e10600" />
         </svg>
       );
   }

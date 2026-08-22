@@ -94,7 +94,7 @@ export const ProductCard: React.FC<ProductCardProps> = ({
           </button>
 
           {product.isPreOrder && (
-            <span className="absolute top-1.5 left-1.5 sm:top-2 sm:left-2 lg:top-3 lg:left-3 z-20 bg-zinc-900 text-white text-[8px] lg:text-[9px] font-black uppercase tracking-wider px-1.5 py-0.5 lg:px-2.5 lg:py-1 rounded-full shadow-sm">
+            <span className="absolute top-2.5 left-2.5 sm:top-3 sm:left-3 z-20 bg-zinc-900 text-white text-[9px] font-black uppercase tracking-wider px-2.5 py-1 rounded-full shadow-sm">
               Pre-Order
             </span>
           )}
@@ -115,8 +115,8 @@ export const ProductCard: React.FC<ProductCardProps> = ({
         <button
           onClick={handleSeeMore}
           type="button"
-          className="w-full bg-black hover:bg-zinc-800 text-white border border-black py-1.5 sm:py-2 lg:py-3 px-2 lg:px-3 rounded-lg lg:rounded-xl text-[9px] sm:text-[10px] lg:text-[11px] font-black uppercase tracking-wider flex items-center justify-center gap-1 lg:gap-2 transition-all cursor-pointer font-sans"
-          title={product.name || 'View product details'}
+          className="w-full bg-black hover:bg-zinc-800 text-white border border-black py-2.5 sm:py-3 px-3 rounded-xl text-[10px] sm:text-[11px] font-black uppercase tracking-wider flex items-center justify-center gap-2 transition-all cursor-pointer font-sans"
+          title="View product details"
           id={`see-more-${product.id}`}
         >
           <span>See More</span>

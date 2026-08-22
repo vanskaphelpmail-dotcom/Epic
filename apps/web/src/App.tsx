@@ -2257,12 +2257,12 @@ export default function App() {
         
         {/* Secret admin portal — login or panel only (no storefront UI) */}
         {isAdminShell && (
-          <div className="min-h-screen bg-zinc-950/95 flex flex-col">
-            <div className="px-4 py-5 border-b border-zinc-900/60 flex items-center justify-between">
+          <div className="min-h-screen bg-red-950 flex flex-col">
+            <div className="px-4 py-5 border-b border-red-900/80 flex items-center justify-between bg-black">
               <div className="flex items-center gap-2">
                 <BrandMark imgClassName="w-7 h-7" />
                 <span className="text-white font-black text-sm tracking-widest uppercase">Epic Vanskap</span>
-                <span className="text-zinc-400/80 text-[10px] font-mono uppercase tracking-wider ml-1">Admin Portal</span>
+                <span className="text-red-400/90 text-[10px] font-mono uppercase tracking-wider ml-1">Admin Portal</span>
               </div>
               {currentUser && canUseAdminPanel(currentUser.role, !!getToken(), isApiEnabled()) && (
                 <button
@@ -2280,7 +2280,7 @@ export default function App() {
                 </button>
               )}
             </div>
-            <div className="flex-1 bg-zinc-50/95">
+            <div className="flex-1 bg-white">
               {currentPage === 'auth' && (
                 <AuthScreen
                   onLoginSuccess={handleLoginSuccess}
@@ -2657,7 +2657,7 @@ export default function App() {
                     <BrandMark className="p-1 rounded-xl" imgClassName="w-8 h-8" />
                     <div className="flex flex-col">
                       <div className="flex items-center gap-1.5">
-                        <span className="text-zinc-600 font-sans font-black text-sm md:text-base tracking-tight leading-none uppercase">
+                        <span className="text-red-600 font-sans font-black text-sm md:text-base tracking-tight leading-none uppercase">
                           Epic
                         </span>
                         <span className="text-black font-sans font-black text-sm md:text-base tracking-tight leading-none uppercase">

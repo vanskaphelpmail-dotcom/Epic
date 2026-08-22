@@ -56,7 +56,7 @@ export const MobileBottomNav: React.FC<MobileBottomNavProps> = ({
 
   const itemClass = (tab: MobileTab) =>
     `flex flex-1 flex-col items-center justify-center gap-0.5 py-1.5 min-w-0 transition-colors cursor-pointer ${
-      active === tab ? 'text-zinc-800' : 'text-zinc-600'
+      active === tab ? 'text-red-600' : 'text-zinc-500'
     }`;
 
   const go = (tab: MobileTab, action: () => void) => {
@@ -67,7 +67,7 @@ export const MobileBottomNav: React.FC<MobileBottomNavProps> = ({
   return (
     <nav
       aria-label="Mobile primary"
-      className="lg:hidden fixed inset-x-0 bottom-0 z-[45] bg-white border-t border-zinc-100/90 shadow-[0_-4px_20px_rgba(4,36,22,0.06)]"
+      className="lg:hidden fixed inset-x-0 bottom-0 z-[45] bg-white border-t border-zinc-100 shadow-[0_-4px_20px_rgba(225,6,0,0.08)]"
       style={{ paddingBottom: 'env(safe-area-inset-bottom, 0px)' }}
     >
       <div className="flex items-stretch justify-between px-1 pt-1 max-w-lg mx-auto">

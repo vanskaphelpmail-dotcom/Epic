@@ -74,7 +74,7 @@ export const Footer: React.FC<FooterProps> = ({ currentPage, setCurrentPage, app
           <div className="flex items-center gap-3">
             <BrandMark className="p-1 rounded-lg" imgClassName="w-7 h-7" />
             <div className="flex items-center gap-1.5">
-              <span className="text-zinc-600 font-sans font-black text-sm uppercase">
+              <span className="text-red-600 font-sans font-black text-sm uppercase">
                 Epic
               </span>
               <span className="text-zinc-950 font-sans font-black text-sm uppercase">
