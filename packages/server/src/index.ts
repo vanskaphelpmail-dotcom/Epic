@@ -12,5 +12,5 @@ const port = Number(process.env.API_PORT || 4000);
 const app = createApp();
 
 app.listen(port, () => {
-  console.log(`Jersey Addicts standalone API on http://localhost:${port}`);
+  console.log(`Epic Vanskap standalone API on http://localhost:${port}`);
 });

@@ -92,7 +92,7 @@ export const InfoPages: React.FC<InfoPagesProps> = ({ pageType, onBack }) => {
           </div>
 
           <p>
-            Jersey Addicts BD was founded in 2026 by a collective of passionate historians, football culture enthusiasts, and obsessive kit archivists. We grew tired of modern low-quality replica remakes flooded across the internet and set out to preserve authentic jersey design.
+            Epic Vanskap BD was founded in 2026 by a collective of passionate historians, football culture enthusiasts, and obsessive kit archivists. We grew tired of modern low-quality replica remakes flooded across the internet and set out to preserve authentic jersey design.
           </p>
           <div className="bg-emerald-50/40 border border-emerald-100 p-6 rounded-2xl my-6 flex items-start gap-4">
             <ShieldCheck size={28} className="text-emerald-700 flex-shrink-0" />
@@ -104,7 +104,7 @@ export const InfoPages: React.FC<InfoPagesProps> = ({ pageType, onBack }) => {
             </div>
           </div>
           <p>
-            Operating physical verification laboratories in Dhaka, London, and Manchester, we work closely with retired players, club kit men, and global suppliers to procure genuine museum-grade jerseys from the 1970s, 80s, 90s, and 2000s. Secure footballing legacy at Jersey Addicts BD.
+            Operating physical verification laboratories in Dhaka, London, and Manchester, we work closely with retired players, club kit men, and global suppliers to procure genuine museum-grade jerseys from the 1970s, 80s, 90s, and 2000s. Secure footballing legacy at Epic Vanskap BD.
           </p>
         </div>
       )}
@@ -235,7 +235,7 @@ export const InfoPages: React.FC<InfoPagesProps> = ({ pageType, onBack }) => {
           </div>
 
           <p>
-            Jersey Addicts BD is strictly dedicated to safeguarding data privacy, secure SSL token transactions, and legal consumer transparency.
+            Epic Vanskap BD is strictly dedicated to safeguarding data privacy, secure SSL token transactions, and legal consumer transparency.
           </p>
           <div className="bg-emerald-50 p-5 rounded-xl border border-emerald-100 text-[11px] space-y-2 font-mono">
             <p className="text-emerald-950 font-bold">[SECTION A: SOURCE TRANSPAREIVITY]</p>

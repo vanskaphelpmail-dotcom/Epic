@@ -215,7 +215,7 @@ export const BiddingSection: React.FC<BiddingSectionProps> = ({ onAddToCart, set
           {/* Banner Details (Left) */}
           <div className="space-y-3.5 max-w-2xl text-left">
             <span className="inline-block bg-emerald-700/60 backdrop-blur-sm border border-emerald-500/20 text-white font-mono font-black text-[9px] md:text-[10px] tracking-widest uppercase px-3 py-1 rounded-full">
-              JERSEY ADDICTS BD
+              Epic Vanskap BD
             </span>
             <h1 className="text-3xl sm:text-4xl md:text-5xl font-extrabold tracking-tight leading-tight uppercase font-sans text-white">
               Club Jersey Heritage, Live from Fanatics Fest
@@ -240,7 +240,7 @@ export const BiddingSection: React.FC<BiddingSectionProps> = ({ onAddToCart, set
               </span>
             </div>
             <p className="text-[10px] font-bold text-gray-400 uppercase tracking-widest">
-              EXCLUSIVE JERSEY ADDICTS BD DROP CLOSES IN
+              EXCLUSIVE Epic Vanskap BD DROP CLOSES IN
             </p>
             <div className="font-mono text-xl sm:text-2xl font-black text-white tracking-wider flex items-center gap-1 mt-1">
               <span>{timer.days}d</span>

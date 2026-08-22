@@ -2,7 +2,7 @@
   "name": "jersey-addicts-bd",
   "private": true,
   "version": "1.0.0",
-  "description": "Jersey Addicts BD monorepo — Next.js web + Prisma DB + API server packages",
+  "description": "Epic Vanskap BD monorepo — Next.js web + Prisma DB + API server packages",
   "workspaces": [
     "apps/*",
     "packages/*"

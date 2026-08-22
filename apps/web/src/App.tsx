@@ -703,7 +703,7 @@ export default function App() {
         const parsed = JSON.parse(stored);
         if (
           parsed.logoText === 'THE VAULT BD' ||
-          parsed.logoText === 'Jersey Addicts BD' ||
+          parsed.logoText === 'Epic Vanskap BD' ||
           parsed.logoText === 'Epic Vanskap'
         ) {
           parsed.logoText = 'Epic Vanskap';
@@ -1092,7 +1092,7 @@ export default function App() {
               if (settings) {
                 const rawLogo = settings.logoText || prev.logoText;
                 next.logoText =
-                  rawLogo === 'THE VAULT BD' || rawLogo === 'Jersey Addicts BD'
+                  rawLogo === 'THE VAULT BD' || rawLogo === 'Epic Vanskap BD'
                     ? 'Epic Vanskap'
                     : rawLogo;
                 next.logoSubtext = settings.logoSubtext || prev.logoSubtext;
@@ -2910,7 +2910,7 @@ export default function App() {
                 {/* Vault Stamp / Guarantee */}
                 <div className="border-4 border-double border-zinc-400 rounded-full px-5 py-2 text-center text-zinc-500 select-none scale-90 rotate-[-2deg]">
                   <p className="text-[8px] font-black tracking-widest uppercase">OFFICIAL SEAL</p>
-                  <p className="text-[11px] font-black tracking-tight text-zinc-800 uppercase">JERSEY ADDICTS BD AUTHENTIC</p>
+                  <p className="text-[11px] font-black tracking-tight text-zinc-800 uppercase">Epic Vanskap BD AUTHENTIC</p>
                   <p className="text-[8px] font-mono tracking-widest uppercase font-bold">100% DEADSTOCK CO.</p>
                 </div>
               </div>

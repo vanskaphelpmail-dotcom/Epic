@@ -273,7 +273,7 @@ export const Hero: React.FC<HeroProps> = ({
               {/* Bottom-Left content */}
               <div className="space-y-2 md:space-y-3 animate-fadeIn text-left max-w-2xl">
                 <span className="bg-emerald-600 text-white font-mono font-black text-[9px] md:text-[10px] tracking-widest uppercase px-2.5 py-1 rounded inline-block">
-                  {currentSlide.badge || 'JERSEY ADDICTS BD ORIGINAL'}
+                  {currentSlide.badge || 'Epic Vanskap BD ORIGINAL'}
                 </span>
                 <h1 className="text-3xl sm:text-4xl md:text-5xl lg:text-6xl font-black tracking-tight leading-none uppercase">
                   {currentSlide.title || 'World Cup Classic Clearance'}

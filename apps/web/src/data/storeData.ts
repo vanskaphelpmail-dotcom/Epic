@@ -101,7 +101,7 @@ export const BLOG_POSTS: BlogPost[] = [
     content: `
       As the market for rare football shirts has surged, so too has the sophistication of bootleg manufacturers. For the modern jersey investor, protecting your collection starts with knowing exactly what to look for. 
 
-      At Jersey Addicts BD, our in-house verification experts examine hundreds of shirts daily. Here is our essential checklist to keep your wardrobe authentic.
+      At Epic Vanskap BD, our in-house verification experts examine hundreds of shirts daily. Here is our essential checklist to keep your wardrobe authentic.
 
       ### 1. The Internal Wash Tags
       Genuine vintage jerseys always feature high-quality internal tags, often with batch numbers, barcodes, or specific licensing details. Counterfeits frequently use generic white tags with blurry fonts or incorrect country-of-origin details.

@@ -1004,7 +1004,7 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({
       {
         id: 'slide-5',
         title: 'DHAKA HUB FAN WEAR',
-        subtitle: 'Exclusive Jersey Addicts BD Capsule',
+        subtitle: 'Exclusive Epic Vanskap BD Capsule',
         description: 'Engineered for maximum breathable comfort under Dhaka summers. Express your sheer addiction to the beautiful game.',
         badge: 'LOCAL DHAKA RELEASES',
         primaryColor: 'from-[#065f46] to-[#022c22]',
@@ -2422,7 +2422,7 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({
               <div className="border-b border-emerald-50 pb-4 mb-6">
                 <h3 className="text-sm font-black uppercase text-emerald-950 flex items-center gap-2">
                   <UserCheck size={16} className="text-emerald-800" />
-                  Jersey Addicts BD Customer Directory & CRM Room
+                  Epic Vanskap BD Customer Directory & CRM Room
                 </h3>
                 <p className="text-[10px] text-emerald-700 font-mono">Manage persistent customer portfolios and save collectors profiles</p>
               </div>

@@ -1,5 +1,5 @@
 // =============================================================================
-// Jersey Addicts BD — Enterprise Prisma Schema (Neon PostgreSQL)
+// Epic Vanskap BD — Enterprise Prisma Schema (Neon PostgreSQL)
 // =============================================================================
 // Neon setup:
 //   DATABASE_URL       = pooled connection string (runtime / Prisma Client)
@@ -732,7 +732,7 @@ model PageSection {
 
 model StoreSettings {
   id                 String   @id @default("default")
-  logoText           String   @default("Jersey Addicts BD")
+  logoText           String   @default("Epic Vanskap BD")
   logoSubtext        String   @default("")
   theme              String   @default("bengal")
   footerAbout        String   @db.Text

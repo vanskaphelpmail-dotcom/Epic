@@ -476,7 +476,7 @@ export const CustomerDashboard: React.FC<CustomerDashboardProps> = ({
               {wishlist.length === 0 ? (
                 <div className="bg-emerald-50/40 border border-emerald-100 p-10 text-center rounded-2xl space-y-4">
                   <p className="text-xs text-emerald-800 leading-relaxed">
-                    No historical jerseys saved in your wishlist folder yet. Explore the Jersey Addicts BD catalog to favorite some classic models.
+                    No historical jerseys saved in your wishlist folder yet. Explore the Epic Vanskap BD catalog to favorite some classic models.
                   </p>
                   <button onClick={() => setCurrentPage('listing')} className="bg-emerald-800 text-white text-[10px] uppercase font-black tracking-widest px-6 py-2.5 rounded-full cursor-pointer">
                     Browse Catalogue

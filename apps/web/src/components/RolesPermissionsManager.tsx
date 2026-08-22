@@ -1566,7 +1566,7 @@ export const RolesPermissionsManager: React.FC<RolesPermissionsManagerProps> = (
                   Create New Staff Account
                 </h3>
                 <p className="text-xs text-emerald-800 font-mono">
-                  Grant authorized operational access to Jersey Addicts BD team members
+                  Grant authorized operational access to Epic Vanskap BD team members
                 </p>
               </div>
 

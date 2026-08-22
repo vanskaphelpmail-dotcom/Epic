@@ -490,7 +490,7 @@ CREATE TABLE "page_sections" (
 -- CreateTable
 CREATE TABLE "store_settings" (
     "id" TEXT NOT NULL DEFAULT 'default',
-    "logoText" TEXT NOT NULL DEFAULT 'Jersey Addicts BD',
+    "logoText" TEXT NOT NULL DEFAULT 'Epic Vanskap BD',
     "logoSubtext" TEXT NOT NULL DEFAULT '',
     "theme" TEXT NOT NULL DEFAULT 'bengal',
     "footerAbout" TEXT NOT NULL,
