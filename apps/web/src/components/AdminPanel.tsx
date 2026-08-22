@@ -1553,7 +1553,7 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({
           <div className="flex items-start justify-between gap-2">
             <div className="space-y-1.5">
               <h4 className="text-xs font-mono font-black text-emerald-950 uppercase tracking-widest">
-                JERSEY ADDICTS CMS
+                Epic Vanskap CMS
               </h4>
               <p className="text-[10px] text-emerald-800 font-mono">Select a module to manage live Dhaka platform data.</p>
             </div>
