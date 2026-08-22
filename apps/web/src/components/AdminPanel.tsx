@@ -5883,9 +5883,15 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({
                 <div className="pt-2 border-t border-emerald-100">
                   <p className="text-[10px] text-emerald-700 font-mono mb-2">Live premium logo preview:</p>
                   <div className="brand-logo-lockup inline-flex items-center gap-2">
-                    <span className="brand-word brand-word-jersey">Jersey</span>
-                    <span className="brand-word brand-word-addicts">Addicts</span>
-                    <span className="brand-badge-bd"><span>BD</span></span>
+                    <img
+                      src="/epic-vanskap-logo.png?v=1"
+                      alt=""
+                      className="w-7 h-7 rounded-lg object-contain bg-black"
+                      width={28}
+                      height={28}
+                    />
+                    <span className="brand-word brand-word-jersey">Epic</span>
+                    <span className="brand-word brand-word-addicts">Vanskap</span>
                   </div>
                 </div>
               </div>

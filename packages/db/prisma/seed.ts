@@ -38,15 +38,17 @@ async function main() {
   await prisma.storeSettings.upsert({
     where: { id: "default" },
     update: {
+      logoText: "Epic Vanskap",
+      footerCopyright: `© ${new Date().getFullYear()} Epic Vanskap`,
       bkashPersonalNumber: "01840990700",
       bkashEnabled: true,
     },
     create: {
       id: "default",
-      logoText: "Jersey Addicts BD",
+      logoText: "Epic Vanskap",
       footerAbout:
         "Authentic classic and modern football jerseys for collectors in Bangladesh.",
-      footerCopyright: `© ${new Date().getFullYear()} Jersey Addicts BD`,
+      footerCopyright: `© ${new Date().getFullYear()} Epic Vanskap`,
       currencySymbol: "৳",
       currencyCode: "BDT",
       exchangeRate: 115,

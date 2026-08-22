@@ -13,6 +13,7 @@ import {
   suggestProductsForQuery,
 } from '../lib/catalogSearch';
 import { isStorefrontNavActive } from '../lib/storefrontPages';
+import { BrandMark } from './BrandMark';
 
 interface HeaderProps {
   currentPage: string;
@@ -291,20 +292,12 @@ export const Header: React.FC<HeaderProps> = ({
           className="flex items-center gap-2 sm:gap-3 cursor-pointer group min-w-0 flex-1 overflow-visible py-0.5 pr-1 lg:max-w-none"
           id="brand-logo"
         >
-          {/* Custom Jersey Addicts Logo Graphic */}
-          <div className="flex-shrink-0 bg-emerald-50 p-1.5 rounded-xl border border-emerald-100 group-hover:border-emerald-500 transition-all">
-            <svg viewBox="0 0 100 100" className="w-8 h-8 sm:w-9 sm:h-9" aria-hidden="true">
-              <path d="M 8 44 L 26 44 L 17 60 Z" fill="#059669" />
-              <path d="M 28 76 L 46 24" stroke="#059669" strokeWidth="12" strokeLinecap="round" />
-              <path d="M 48 76 L 66 24" stroke="#10b981" strokeWidth="12" strokeLinecap="round" />
-              <path d="M 74 56 L 92 56 L 83 40 Z" fill="#10b981" />
-            </svg>
-          </div>
+          <BrandMark className="group-hover:border-red-600 transition-all" />
           
           <div className="flex flex-col min-w-0 overflow-visible">
             <div className="brand-logo-lockup flex items-center flex-nowrap gap-1.5 sm:gap-2 md:gap-2.5 min-w-0">
               {(() => {
-                const brand = (appConfig.logoText || 'Jersey Addicts BD').trim();
+                const brand = (appConfig.logoText || 'Epic Vanskap').trim();
                 const parts = brand.split(/\s+/);
                 const badge = parts.length > 1 && parts[parts.length - 1].length <= 3 ? parts[parts.length - 1] : null;
                 const words = badge ? parts.slice(0, -1) : parts;

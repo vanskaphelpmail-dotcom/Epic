@@ -52,6 +52,7 @@ import {
 } from './lib/storefrontPages';
 import { productMatchesSearchQuery } from './lib/catalogSearch';
 import { Header } from './components/Header';
+import { BrandMark } from './components/BrandMark';
 import { MobileBottomNav } from './components/MobileBottomNav';
 import { Hero } from './components/Hero';
 import { ProductCard } from './components/ProductCard';
@@ -229,7 +230,7 @@ const INITIAL_USERS: User[] = [
 ];
 
 const DEFAULT_APP_CONFIG: AppConfig = {
-  logoText: 'Jersey Addicts BD',
+  logoText: 'Epic Vanskap',
   logoSubtext: '',
   theme: 'bengal',
   footerAbout: "The world's premium destination for verified original vintage football jerseys. Founded by obsessive collectors, for obsessive collectors. Every kit undergoes a rigorous 12-point authentication process in our physical workshops in Dhaka, Bangladesh.",
@@ -237,7 +238,7 @@ const DEFAULT_APP_CONFIG: AppConfig = {
     { city: 'Dhaka HQ', address: 'Shop No. 8, 3rd Floor, AQP Shopping Mall, 143/2 New Bailey Road, Dhaka 1217, Bangladesh', phone: '+880 1840-990700' },
     { city: 'Savar Outlet', address: 'B-1, Talbag Thana Road, Savar, Dhaka (Near Chakladar Mahila College)', phone: '+880 1862-252232' },
   ],
-  footerCopyright: '© 2026 Jersey Addicts BD. All rights reserved. Registered trademark. Crafted for Bangladeshi Fans.',
+  footerCopyright: '© 2026 Epic Vanskap. All rights reserved.',
   currencySymbol: '৳',
   currencyCode: 'BDT',
   exchangeRate: 115,
@@ -583,7 +584,7 @@ const DEFAULT_APP_CONFIG: AppConfig = {
     // Footer Menu Items
     { id: 'nav-footer-1', name: 'Sell Your Shirts', placement: 'Footer Menu', parentId: null, icon: 'ShieldCheck', order: 1, url: 'seller', status: 'Active' },
     { id: 'nav-footer-2', name: 'Frequently Asked Questions', placement: 'Footer Menu', parentId: null, icon: 'HelpCircle', order: 2, url: 'faq', status: 'Active' },
-    { id: 'nav-footer-3', name: 'About Jersey Addicts BD', placement: 'Footer Menu', parentId: null, icon: 'Globe', order: 3, url: 'about', status: 'Active' },
+    { id: 'nav-footer-3', name: 'About Epic Vanskap', placement: 'Footer Menu', parentId: null, icon: 'Globe', order: 3, url: 'about', status: 'Active' },
     { id: 'nav-footer-4', name: 'Contact Dhaka Store', placement: 'Footer Menu', parentId: null, icon: 'Phone', order: 4, url: 'contact', status: 'Active' },
     { id: 'nav-footer-5', name: 'Customer Authenticity Guarantee', placement: 'Footer Menu', parentId: null, icon: 'Award', order: 5, url: 'authenticity', status: 'Active' },
     { id: 'nav-footer-6', name: 'My Wishlist', placement: 'Footer Menu', parentId: null, icon: 'Heart', order: 6, url: 'dashboard', status: 'Active' },
@@ -700,8 +701,12 @@ export default function App() {
     if (stored) {
       try {
         const parsed = JSON.parse(stored);
-        if (parsed.logoText === 'THE VAULT BD' || parsed.logoText === 'Jersey Addicts BD') {
-          parsed.logoText = 'Jersey Addicts BD';
+        if (
+          parsed.logoText === 'THE VAULT BD' ||
+          parsed.logoText === 'Jersey Addicts BD' ||
+          parsed.logoText === 'Epic Vanskap'
+        ) {
+          parsed.logoText = 'Epic Vanskap';
         }
         parsed.logoSubtext = '';
         parsed.footerLocations = [
@@ -1085,7 +1090,11 @@ export default function App() {
               const next = { ...prev };
               const settings = cms.settings;
               if (settings) {
-                next.logoText = settings.logoText || prev.logoText;
+                const rawLogo = settings.logoText || prev.logoText;
+                next.logoText =
+                  rawLogo === 'THE VAULT BD' || rawLogo === 'Jersey Addicts BD'
+                    ? 'Epic Vanskap'
+                    : rawLogo;
                 next.logoSubtext = settings.logoSubtext || prev.logoSubtext;
                 next.theme = (settings.theme as AppConfig['theme']) || prev.theme;
                 next.footerAbout = settings.footerAbout || prev.footerAbout;
@@ -2281,8 +2290,8 @@ export default function App() {
           <div className="min-h-screen bg-emerald-950/95 flex flex-col">
             <div className="px-4 py-5 border-b border-emerald-800/60 flex items-center justify-between">
               <div className="flex items-center gap-2">
-                <span className="text-white font-black text-sm tracking-widest uppercase">Jersey Addicts</span>
-                <span className="brand-badge-bd"><span>BD</span></span>
+                <BrandMark imgClassName="w-7 h-7" />
+                <span className="text-white font-black text-sm tracking-widest uppercase">Epic Vanskap</span>
                 <span className="text-emerald-400/80 text-[10px] font-mono uppercase tracking-wider ml-1">Admin Portal</span>
               </div>
               {currentUser && canUseAdminPanel(currentUser.role, !!getToken(), isApiEnabled()) && (
@@ -2688,30 +2697,14 @@ export default function App() {
               <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 border-b-2 border-zinc-200 pb-6">
                 <div>
                   <div className="flex items-center gap-2">
-                    {/* Custom Jersey Addicts Logo Graphic */}
-                    <div className="flex-shrink-0 bg-emerald-50 p-1 rounded-xl border border-emerald-200">
-                      <svg viewBox="0 0 100 100" className="w-8 h-8">
-                        {/* Leftmost green triangle pointing down-left */}
-                        <path d="M 8 44 L 26 44 L 17 60 Z" fill="#059669" />
-                        {/* Green slanted bar */}
-                        <path d="M 28 76 L 46 24" stroke="#059669" strokeWidth="12" strokeLinecap="round" />
-                        {/* Navy slanted bar */}
-                        <path d="M 48 76 L 66 24" stroke="#10b981" strokeWidth="12" strokeLinecap="round" />
-                        {/* Navy right triangle pointing up-right */}
-                        <path d="M 74 56 L 92 56 L 83 40 Z" fill="#10b981" />
-                      </svg>
-                    </div>
-                    
+                    <BrandMark className="p-1 rounded-xl" imgClassName="w-8 h-8" />
                     <div className="flex flex-col">
                       <div className="flex items-center gap-1.5">
                         <span className="text-emerald-600 font-sans font-black text-sm md:text-base tracking-tight leading-none uppercase">
-                          Jersey
+                          Epic
                         </span>
                         <span className="text-black font-sans font-black text-sm md:text-base tracking-tight leading-none uppercase">
-                          Addicts
-                        </span>
-                        <span className="brand-badge-bd">
-                          <span>BD</span>
+                          Vanskap
                         </span>
                       </div>
                     </div>

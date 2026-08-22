@@ -389,7 +389,7 @@ cmsRouter.put("/homepage-sections", requirePermission("can_manage_content"), asy
             create: {
               id: "default",
               footerAbout: "",
-              footerCopyright: `© ${new Date().getFullYear()} Jersey Addicts BD`,
+              footerCopyright: `© ${new Date().getFullYear()} Epic Vanskap`,
               dailyDealEnabled: isDailyDealSectionLive(dailyDealsSection),
             },
           });
@@ -402,7 +402,7 @@ cmsRouter.put("/homepage-sections", requirePermission("can_manage_content"), asy
             create: {
               id: "default",
               footerAbout: "",
-              footerCopyright: `© ${new Date().getFullYear()} Jersey Addicts BD`,
+              footerCopyright: `© ${new Date().getFullYear()} Epic Vanskap`,
               categoryItems,
             },
           });
@@ -527,10 +527,10 @@ cmsRouter.put("/settings", requirePermission("can_manage_system_settings"), asyn
       update: updateData,
       create: {
         id: "default",
-        logoText: body.logoText || "Jersey Addicts BD",
+        logoText: body.logoText || "Epic Vanskap",
         footerAbout: body.footerAbout || "",
         footerCopyright:
-          body.footerCopyright || `© ${new Date().getFullYear()} Jersey Addicts BD`,
+          body.footerCopyright || `© ${new Date().getFullYear()} Epic Vanskap`,
         ...updateData,
       } as Parameters<typeof prisma.storeSettings.create>[0]["data"],
     });

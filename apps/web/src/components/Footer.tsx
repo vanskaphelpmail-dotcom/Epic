@@ -2,6 +2,7 @@ import React from 'react';
 import { ShieldCheck, HelpCircle, Phone, Globe, Instagram, Twitter, Facebook, Shirt, Trophy, Star, Flame, Sparkles, Tag, Box, Award, ShoppingBag, Compass, Heart, MapPin } from 'lucide-react';
 import { STORE_LOCATIONS } from '../data/storeData';
 import { AppConfig } from '../types';
+import { BrandMark } from './BrandMark';
 
 interface FooterProps {
   currentPage: string;
@@ -71,27 +72,13 @@ export const Footer: React.FC<FooterProps> = ({ currentPage, setCurrentPage, app
         {/* Brand Information Column */}
         <div className="space-y-4">
           <div className="flex items-center gap-3">
-            <div className="flex-shrink-0 bg-emerald-50 p-1 rounded-lg border border-emerald-100">
-              <svg viewBox="0 0 100 100" className="w-7 h-7">
-                {/* Leftmost green triangle pointing down-left */}
-                <path d="M 8 44 L 26 44 L 17 60 Z" fill="#059669" />
-                {/* Green slanted bar */}
-                <path d="M 28 76 L 46 24" stroke="#059669" strokeWidth="12" strokeLinecap="round" />
-                {/* Navy slanted bar */}
-                <path d="M 48 76 L 66 24" stroke="#10b981" strokeWidth="12" strokeLinecap="round" />
-                {/* Navy right triangle pointing up-right */}
-                <path d="M 74 56 L 92 56 L 83 40 Z" fill="#10b981" />
-              </svg>
-            </div>
-            <div className="flex items-center gap-1">
+            <BrandMark className="p-1 rounded-lg" imgClassName="w-7 h-7" />
+            <div className="flex items-center gap-1.5">
               <span className="text-emerald-600 font-sans font-black text-sm uppercase">
-                Jersey
+                Epic
               </span>
               <span className="text-emerald-950 font-sans font-black text-sm uppercase">
-                Addicts
-              </span>
-              <span className="brand-badge-bd ml-1.5">
-                <span>BD</span>
+                Vanskap
               </span>
             </div>
           </div>
@@ -158,7 +145,7 @@ export const Footer: React.FC<FooterProps> = ({ currentPage, setCurrentPage, app
                 </li>
                 <li>
                   <button onClick={() => setCurrentPage('about')} className="hover:text-emerald-700 text-left transition-colors hover:underline">
-                    About Jersey Addicts BD / Sourcing Story
+                    About Epic Vanskap / Sourcing Story
                   </button>
                 </li>
                 <li>

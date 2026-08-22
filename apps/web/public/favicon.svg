@@ -1,7 +1,5 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100" role="img" aria-label="Jersey Addicts BD">
-  <rect width="100" height="100" rx="22" fill="#ecfdf5"/>
-  <path d="M 8 44 L 26 44 L 17 60 Z" fill="#059669"/>
-  <path d="M 28 76 L 46 24" stroke="#059669" stroke-width="12" stroke-linecap="round"/>
-  <path d="M 48 76 L 66 24" stroke="#10b981" stroke-width="12" stroke-linecap="round"/>
-  <path d="M 74 56 L 92 56 L 83 40 Z" fill="#10b981"/>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100" role="img" aria-label="Epic Vanskap">
+  <rect width="100" height="100" fill="#000"/>
+  <path d="M18 28 L78 22 L72 38 L28 42 Z" fill="#e10600"/>
+  <path d="M22 48 L70 44 L82 58 L58 78 L42 62 L28 72 Z" fill="#e10600"/>
 </svg>

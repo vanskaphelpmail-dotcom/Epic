@@ -3,11 +3,11 @@ import { GoogleAnalytics } from "@/src/components/GoogleAnalytics";
 import "./globals.css";
 
 export const metadata: Metadata = {
-  title: "Jersey Addicts BD",
-  description: "Authentic classic & modern football jerseys — collectors vault for Bangladesh.",
+  title: "Epic Vanskap",
+  description: "Authentic classic & modern football jerseys — collectors vault.",
   icons: {
-    icon: "/favicon.svg",
-    apple: "/apple-touch-icon.svg",
+    icon: [{ url: "/epic-vanskap-logo.png?v=1", type: "image/png" }],
+    apple: [{ url: "/epic-vanskap-logo.png?v=1" }],
   },
 };
 
