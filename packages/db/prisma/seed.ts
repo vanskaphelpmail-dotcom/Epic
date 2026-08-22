@@ -126,6 +126,9 @@ async function main() {
     });
   }
 
+  console.log(`[seed] Super admin ready: ${adminEmail}`);
+  console.log(`[seed] Staff admins: rokib@admin.com, sabbir@admin.com, akib@admin.com (password: Admin@018)`);
+
   const staffPassword = await hash("Admin@018", 12);
   const staffAdmins = [
     { email: "rokib@admin.com", fullName: "Rokib Admin" },
