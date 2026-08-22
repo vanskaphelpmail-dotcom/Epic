@@ -49,6 +49,7 @@ import {
   productMatchesBrand,
   productMatchesCondition,
   resolveStorefrontPage,
+  storefrontLabelsMatch,
 } from './lib/storefrontPages';
 import { productMatchesSearchQuery } from './lib/catalogSearch';
 import { Header } from './components/Header';
@@ -258,12 +259,15 @@ const DEFAULT_APP_CONFIG: AppConfig = {
   bkashPartialAmountBdt: 300,
   leagues: DEFAULT_LEAGUES,
   pages: [
-    { id: 'World Cup', name: 'World Cup Vault', slug: 'world-cup', isCustom: false, visible: true, sections: [] },
-    { id: 'England', name: 'Bangladesh Classic', slug: 'bangladesh', isCustom: false, visible: true, sections: [] },
-    { id: 'Legends', name: 'Retro Store', slug: 'retro-store', isCustom: false, visible: true, sections: [] },
-    { id: 'Current Season', name: 'Current Season', slug: 'current-season', isCustom: false, visible: true, sections: [] },
-    { id: 'Clearance', name: 'Clearance', slug: 'clearance', isCustom: false, visible: true, sections: [] },
-    { id: 'Classic', name: 'Club Classic', slug: 'classic', isCustom: false, visible: true, sections: [] }
+    { id: 'Premier League', name: 'Premier League', slug: 'premier-league', isCustom: false, visible: true, sections: [] },
+    { id: 'La Liga', name: 'LALIGA', slug: 'laliga', isCustom: false, visible: true, sections: [] },
+    { id: 'Ligue 1', name: 'Ligue 1', slug: 'ligue-1', isCustom: false, visible: true, sections: [] },
+    { id: 'Serie A', name: 'Serie A', slug: 'serie-a', isCustom: false, visible: true, sections: [] },
+    { id: 'Bundesliga', name: 'Bundesliga', slug: 'bundesliga', isCustom: false, visible: true, sections: [] },
+    { id: 'MLS', name: 'MLS', slug: 'mls', isCustom: false, visible: true, sections: [] },
+    { id: 'Other Leagues', name: 'Other Leagues', slug: 'other-leagues', isCustom: false, visible: true, sections: [] },
+    { id: 'International Teams', name: 'International Teams', slug: 'international-teams', isCustom: false, visible: true, sections: [] },
+    { id: 'Clearance', name: 'Outlet', slug: 'outlet', isCustom: false, visible: true, sections: [] },
   ],
   homepageSections: [
     { id: 'hero-slider', name: 'Hero Banner Slider', visible: true, bgColor: 'bg-white', padding: 'py-0', margin: 'my-0', title: 'WORLD CUP 2026 EDITION', subtitle: 'The Grandest Stage of Football', status: 'active' },
@@ -272,11 +276,8 @@ const DEFAULT_APP_CONFIG: AppConfig = {
     { id: 'daily-deals', name: 'Daily Deals Countdown', visible: false, bgColor: 'bg-amber-500/10', padding: 'py-12', margin: 'my-4', title: 'LIMITED DAILY DEAL DECK', subtitle: '24-hour flash sale on ultra rare collectibles', status: 'inactive' },
     { id: 'featured-collection', name: 'Featured Collection Row', visible: true, bgColor: 'bg-white', padding: 'py-12', margin: 'my-0', title: 'VERIFIED FEATURED CLASSICS', subtitle: 'Curated 1-of-1 historic collectibles', status: 'active', sectionType: 'product-row', productCategory: 'Featured', buttonText: 'VIEW ALL', buttonUrl: 'listing', maxProducts: 4 },
     { id: 'latest-products', name: 'Latest Products Row', visible: true, bgColor: 'bg-white', padding: 'py-12', margin: 'my-0', title: 'LATEST WORKSHOP DROPS', subtitle: 'Freshly authenticated physical catalog arrivals', status: 'active', sectionType: 'product-row', productCategory: 'New In', buttonText: '', maxProducts: 4 },
-    { id: 'shop-by-league', name: 'Shop by League badges', visible: true, bgColor: 'bg-white', padding: 'py-10', margin: 'my-0', title: 'SHOP BY FOOTBALL LEAGUE', subtitle: 'Sourced kits from leagues worldwide', status: 'active' },
     { id: 'retro-collection', name: 'Retro Collection Row', visible: true, bgColor: 'bg-zinc-50/25', padding: 'py-12', margin: 'my-0', title: 'RETRO', subtitle: 'Rare 80s, 90s & 2000s vintage reissues', status: 'active', sectionType: 'product-row', productCategory: 'Retro', buttonText: 'VIEW ALL', buttonUrl: 'listing', maxProducts: 4 },
-    { id: 'shop-by-club', name: 'Shop by Club', visible: true, bgColor: 'bg-white', padding: 'py-10', margin: 'my-0', title: 'SHOP BY CLUB', subtitle: 'Authentic retro & modern club matchwear', status: 'active' },
     { id: 'product-row-la-liga', name: 'La Liga Row', visible: true, bgColor: 'bg-white', padding: 'py-12', margin: 'my-0', title: 'LA LIGA', subtitle: 'Shop La Liga — curated picks for collectors', status: 'active', sectionType: 'product-row', productCategory: 'La Liga', buttonText: 'VIEW ALL', buttonUrl: 'listing', maxProducts: 4 },
-    { id: 'shop-by-international-team', name: 'Shop by International Team', visible: true, bgColor: 'bg-white', padding: 'py-10', margin: 'my-0', title: 'SHOP BY INTERNATIONAL TEAM', subtitle: 'National team kits from around the world', status: 'active' },
     { id: 'product-row-world-cup', name: 'World Cup Row', visible: true, bgColor: 'bg-zinc-50/25', padding: 'py-12', margin: 'my-0', title: 'WORLD CUP', subtitle: 'National team World Cup kits & vault classics', status: 'active', sectionType: 'product-row', productCategory: 'World Cup', buttonText: 'VIEW ALL', buttonUrl: 'listing', maxProducts: 4 },
     { id: 'player-edition', name: 'Player Edition Row', visible: true, bgColor: 'bg-white', padding: 'py-12', margin: 'my-0', title: 'PLAYER EDITION', subtitle: 'Slim-fit match issue quality kits', status: 'active', sectionType: 'product-row', productCategory: 'Player Edition', buttonText: 'VIEW ALL', buttonUrl: 'listing', maxProducts: 4 },
     { id: 'kids-collection', name: 'Kids Collection Row', visible: true, bgColor: 'bg-white', padding: 'py-12', margin: 'my-0', title: 'KIDS', subtitle: 'Junior kits sized for ages 1–14', status: 'active', sectionType: 'product-row', productCategory: 'Kids', buttonText: 'VIEW ALL', buttonUrl: 'listing', maxProducts: 4 },
@@ -556,35 +557,37 @@ const DEFAULT_APP_CONFIG: AppConfig = {
     }
   ],
   menuItems: [
-    // Main Menu Items
-    { id: 'nav-main-1', name: 'All Jerseys', placement: 'Main Menu', parentId: null, icon: 'Shirt', order: 1, url: 'All', status: 'Active' },
-    { id: 'nav-main-2', name: 'World Cup Vault', placement: 'Main Menu', parentId: null, icon: 'Trophy', order: 2, url: 'World Cup', status: 'Active', badgeText: 'RARE' },
-    { id: 'nav-main-3', name: 'Bangladesh Classic', placement: 'Main Menu', parentId: null, icon: 'Flame', order: 3, url: 'England', status: 'Active' },
-    { id: 'nav-main-4', name: 'Retro Store', placement: 'Main Menu', parentId: null, icon: 'Star', order: 4, url: 'Legends', status: 'Active', badgeText: 'HOT' },
-    { id: 'nav-main-5', name: 'Current Season', placement: 'Main Menu', parentId: null, icon: 'Sparkles', order: 5, url: 'Current Season', status: 'Active' },
-    { id: 'nav-main-6', name: 'Club Classic', placement: 'Main Menu', parentId: null, icon: 'Award', order: 6, url: 'Classic', status: 'Active' },
-    { id: 'nav-main-7', name: 'Clearance', placement: 'Main Menu', parentId: null, icon: 'Tag', order: 7, url: 'Clearance', status: 'Active' },
+    // Main Menu — league storefront pages
+    { id: 'nav-main-1', name: 'Premier League', placement: 'Main Menu', parentId: null, icon: 'Trophy', order: 1, url: 'Premier League', status: 'Active' },
+    { id: 'nav-main-2', name: 'LALIGA', placement: 'Main Menu', parentId: null, icon: 'Award', order: 2, url: 'La Liga', status: 'Active' },
+    { id: 'nav-main-3', name: 'Ligue 1', placement: 'Main Menu', parentId: null, icon: 'Shirt', order: 3, url: 'Ligue 1', status: 'Active' },
+    { id: 'nav-main-4', name: 'Serie A', placement: 'Main Menu', parentId: null, icon: 'ShieldCheck', order: 4, url: 'Serie A', status: 'Active' },
+    { id: 'nav-main-5', name: 'Bundesliga', placement: 'Main Menu', parentId: null, icon: 'Flame', order: 5, url: 'Bundesliga', status: 'Active' },
+    { id: 'nav-main-6', name: 'MLS', placement: 'Main Menu', parentId: null, icon: 'Star', order: 6, url: 'MLS', status: 'Active' },
+    { id: 'nav-main-7', name: 'Other Leagues', placement: 'Main Menu', parentId: null, icon: 'Globe', order: 7, url: 'Other Leagues', status: 'Active' },
+    { id: 'nav-main-8', name: 'International Teams', placement: 'Main Menu', parentId: null, icon: 'Globe', order: 8, url: 'International Teams', status: 'Active' },
+    { id: 'nav-main-9', name: 'Outlet', placement: 'Main Menu', parentId: null, icon: 'Tag', order: 9, url: 'Clearance', status: 'Active' },
 
-    // Mega Menu Parent Columns & Children
-    { id: 'nav-mega-cat-1', name: 'Top League Classics', placement: 'Mega Menu', parentId: null, icon: 'Trophy', order: 1, url: '#listing', status: 'Active' },
-    { id: 'nav-mega-item-1', name: 'Premier League Retros', placement: 'Mega Menu', parentId: 'nav-mega-cat-1', icon: 'Shirt', order: 1, url: 'Premier League', status: 'Active' },
-    { id: 'nav-mega-item-2', name: 'La Liga Legends', placement: 'Mega Menu', parentId: 'nav-mega-cat-1', icon: 'Award', order: 2, url: 'La Liga', status: 'Active' },
-    { id: 'nav-mega-item-3', name: 'Serie A Golden Era', placement: 'Mega Menu', parentId: 'nav-mega-cat-1', icon: 'ShieldCheck', order: 3, url: 'Serie A', status: 'Active' },
+    // Mega Menu (opened via MORE)
+    { id: 'nav-mega-cat-1', name: 'Top Clubs', placement: 'Mega Menu', parentId: null, icon: 'Trophy', order: 1, url: '#listing', status: 'Active' },
+    { id: 'nav-mega-item-1', name: 'Real Madrid', placement: 'Mega Menu', parentId: 'nav-mega-cat-1', icon: 'Shirt', order: 1, url: 'Real Madrid', status: 'Active' },
+    { id: 'nav-mega-item-2', name: 'FC Barcelona', placement: 'Mega Menu', parentId: 'nav-mega-cat-1', icon: 'Award', order: 2, url: 'Barcelona', status: 'Active' },
+    { id: 'nav-mega-item-3', name: 'Manchester United', placement: 'Mega Menu', parentId: 'nav-mega-cat-1', icon: 'ShieldCheck', order: 3, url: 'Manchester United', status: 'Active' },
 
-    { id: 'nav-mega-cat-2', name: 'Legendary Player Drops', placement: 'Mega Menu', parentId: null, icon: 'Star', order: 2, url: '#listing', status: 'Active' },
-    { id: 'nav-mega-item-4', name: 'Messi No. 10 Re-issues', placement: 'Mega Menu', parentId: 'nav-mega-cat-2', icon: 'Sparkles', order: 1, url: 'Messi', status: 'Active', badgeText: 'HOT' },
-    { id: 'nav-mega-item-5', name: 'Maradona World Cup 86', placement: 'Mega Menu', parentId: 'nav-mega-cat-2', icon: 'Flame', order: 2, url: 'Maradona', status: 'Active', badgeText: 'VAULT' },
-    { id: 'nav-mega-item-6', name: 'Ronaldo CR7 Deadstock', placement: 'Mega Menu', parentId: 'nav-mega-cat-2', icon: 'Trophy', order: 3, url: 'Ronaldo', status: 'Active' },
+    { id: 'nav-mega-cat-2', name: 'Player Editions', placement: 'Mega Menu', parentId: null, icon: 'Star', order: 2, url: '#listing', status: 'Active' },
+    { id: 'nav-mega-item-4', name: 'Messi', placement: 'Mega Menu', parentId: 'nav-mega-cat-2', icon: 'Sparkles', order: 1, url: 'Messi', status: 'Active' },
+    { id: 'nav-mega-item-5', name: 'Ronaldo', placement: 'Mega Menu', parentId: 'nav-mega-cat-2', icon: 'Flame', order: 2, url: 'Ronaldo', status: 'Active' },
+    { id: 'nav-mega-item-6', name: 'Retro Classics', placement: 'Mega Menu', parentId: 'nav-mega-cat-2', icon: 'Trophy', order: 3, url: 'Retro', status: 'Active' },
 
-    { id: 'nav-mega-cat-3', name: 'National Teams', placement: 'Mega Menu', parentId: null, icon: 'Globe', order: 3, url: '#listing', status: 'Active' },
-    { id: 'nav-mega-item-7', name: 'Argentina Albiceleste', placement: 'Mega Menu', parentId: 'nav-mega-cat-3', icon: 'Globe', order: 1, url: 'Argentina', status: 'Active' },
-    { id: 'nav-mega-item-8', name: 'Brazil Seleção Classics', placement: 'Mega Menu', parentId: 'nav-mega-cat-3', icon: 'Globe', order: 2, url: 'Brazil', status: 'Active' },
+    { id: 'nav-mega-cat-3', name: 'National Teams', placement: 'Mega Menu', parentId: null, icon: 'Globe', order: 3, url: 'International Teams', status: 'Active' },
+    { id: 'nav-mega-item-7', name: 'Argentina', placement: 'Mega Menu', parentId: 'nav-mega-cat-3', icon: 'Globe', order: 1, url: 'Argentina', status: 'Active' },
+    { id: 'nav-mega-item-8', name: 'Brazil', placement: 'Mega Menu', parentId: 'nav-mega-cat-3', icon: 'Globe', order: 2, url: 'Brazil', status: 'Active' },
 
     // Footer Menu Items
     { id: 'nav-footer-1', name: 'Sell Your Shirts', placement: 'Footer Menu', parentId: null, icon: 'ShieldCheck', order: 1, url: 'seller', status: 'Active' },
     { id: 'nav-footer-2', name: 'Frequently Asked Questions', placement: 'Footer Menu', parentId: null, icon: 'HelpCircle', order: 2, url: 'faq', status: 'Active' },
     { id: 'nav-footer-3', name: 'About Epic Vanskap', placement: 'Footer Menu', parentId: null, icon: 'Globe', order: 3, url: 'about', status: 'Active' },
-    { id: 'nav-footer-4', name: 'Contact Dhaka Store', placement: 'Footer Menu', parentId: null, icon: 'Phone', order: 4, url: 'contact', status: 'Active' },
+    { id: 'nav-footer-4', name: 'Contact Store', placement: 'Footer Menu', parentId: null, icon: 'Phone', order: 4, url: 'contact', status: 'Active' },
     { id: 'nav-footer-5', name: 'Customer Authenticity Guarantee', placement: 'Footer Menu', parentId: null, icon: 'Award', order: 5, url: 'authenticity', status: 'Active' },
     { id: 'nav-footer-6', name: 'My Wishlist', placement: 'Footer Menu', parentId: null, icon: 'Heart', order: 6, url: 'dashboard', status: 'Active' },
   ]
@@ -711,9 +714,8 @@ export default function App() {
         parsed.footerLocations = [
           { city: 'Feni', address: 'Shop no: B: 67-68, 1st Floor, Feni Garden City Market, Feni, 3900', phone: '' },
         ];
-        if (!parsed.menuItems || !Array.isArray(parsed.menuItems) || parsed.menuItems.length === 0) {
-          parsed.menuItems = DEFAULT_APP_CONFIG.menuItems;
-        }
+        parsed.menuItems = DEFAULT_APP_CONFIG.menuItems;
+        parsed.pages = DEFAULT_APP_CONFIG.pages;
         if (!parsed.banners || !Array.isArray(parsed.banners) || parsed.banners.length === 0) {
           parsed.banners = DEFAULT_APP_CONFIG.banners;
         } else {
@@ -783,29 +785,9 @@ export default function App() {
           });
         }
         if (parsed.homepageSections && Array.isArray(parsed.homepageSections)) {
-          const hideIds = new Set(['mystery-box', 'instagram-feed', 'video-banner', 'worldcup-collection', 'live-auction', 'shop-by-legends']);
+          const hideIds = new Set(['mystery-box', 'instagram-feed', 'video-banner', 'worldcup-collection', 'live-auction', 'shop-by-legends', 'shop-by-league', 'shop-by-club', 'shop-by-international-team']);
           parsed.homepageSections = parsed.homepageSections.map((s: any) => {
             if (hideIds.has(s.id)) return { ...s, visible: false, status: 'inactive' };
-            if (s.id === 'shop-by-club') {
-              return {
-                ...s,
-                name: 'Shop by Club',
-                title: 'SHOP BY CLUB',
-                subtitle: 'Authentic retro & modern club matchwear',
-                bgColor: 'bg-white',
-                visible: true,
-                status: 'active',
-              };
-            }
-            if (s.id === 'shop-by-league') {
-              return {
-                ...s,
-                title: 'SHOP BY FOOTBALL LEAGUE',
-                subtitle: 'Sourced kits from leagues worldwide',
-                visible: true,
-                status: 'active',
-              };
-            }
             if (s.id === 'best-sellers') return { ...s, title: 'BEST SELLERS', visible: true, status: 'active', sectionType: 'product-row', productCategory: s.productCategory || 'Best Sellers', buttonText: s.buttonText ?? 'VIEW ALL', buttonUrl: s.buttonUrl || 'listing', maxProducts: s.maxProducts ?? 4 };
             if (s.id === 'featured-collection') return { ...s, sectionType: 'product-row', productCategory: s.productCategory || 'Featured', buttonText: s.buttonText ?? 'VIEW ALL', buttonUrl: s.buttonUrl || 'listing', maxProducts: s.maxProducts ?? 4 };
             if (s.id === 'player-edition') return { ...s, visible: true, status: 'active', sectionType: 'product-row', productCategory: s.productCategory || 'Player Edition', buttonText: s.buttonText ?? 'VIEW ALL', buttonUrl: s.buttonUrl || 'listing', maxProducts: s.maxProducts ?? 4 };
@@ -1139,6 +1121,9 @@ export default function App() {
                 if (Array.isArray((settings as any).menuItems) && (settings as any).menuItems.length) {
                   next.menuItems = (settings as any).menuItems;
                 }
+                // Always use league page nav names on the storefront
+                next.menuItems = DEFAULT_APP_CONFIG.menuItems;
+                next.pages = DEFAULT_APP_CONFIG.pages;
                 if (Array.isArray((settings as any).footerLocations) && (settings as any).footerLocations.length) {
                   next.footerLocations = (settings as any).footerLocations;
                 }
@@ -1191,25 +1176,12 @@ export default function App() {
               }
               if (Array.isArray(cms.homepageSections) && cms.homepageSections.length > 0) {
                 let sections = normalizeHomepageSections(cms.homepageSections).map((s) => {
-                  if (s.id === 'shop-by-club') {
-                    return {
-                      ...s,
-                      name: 'Shop by Club',
-                      title: 'SHOP BY CLUB',
-                      subtitle: 'Authentic retro & modern club matchwear',
-                      bgColor: 'bg-white',
-                      visible: true,
-                      status: 'active' as const,
-                    };
-                  }
-                  if (s.id === 'shop-by-league') {
-                    return {
-                      ...s,
-                      title: 'SHOP BY FOOTBALL LEAGUE',
-                      subtitle: 'Sourced kits from leagues worldwide',
-                      visible: true,
-                      status: 'active' as const,
-                    };
+                  if (
+                    s.id === 'shop-by-club' ||
+                    s.id === 'shop-by-league' ||
+                    s.id === 'shop-by-international-team'
+                  ) {
+                    return { ...s, visible: false, status: 'inactive' as const };
                   }
                   return s;
                 });
@@ -2488,23 +2460,10 @@ export default function App() {
                   <span className="text-[10px] text-zinc-800 font-mono font-bold uppercase tracking-wider block">Category:</span>
                   <div className="space-y-1.5 max-h-56 overflow-y-auto pr-1">
                     {listingFilterOptions.categories.map((cat) => {
-                      const label =
-                        cat === 'Legends' || cat === 'Retro'
-                          ? cat === 'Retro'
-                            ? 'Retro'
-                            : 'Retro Store'
-                          : cat === 'Classic'
-                            ? 'Club Classic'
-                            : cat === 'England'
-                              ? 'Bangladesh Classic'
-                              : cat;
+                      const label = canonicalTargetPageName(cat) || cat;
                       const selected =
                         selectedCategory === cat ||
-                        (cat === 'Legends' &&
-                          (selectedCategory === 'Retro Store' || selectedCategory === 'Retro')) ||
-                        (cat === 'Retro' &&
-                          (selectedCategory === 'Legends' || selectedCategory === 'Retro Store')) ||
-                        (cat === 'Classic' && selectedCategory === 'Club Jerseys');
+                        storefrontLabelsMatch(selectedCategory, cat);
                       return (
                         <button
                           type="button"

@@ -204,46 +204,37 @@ export const Header: React.FC<HeaderProps> = ({
     .sort((a, b) => a.order - b.order);
 
   const DEFAULT_MAIN_MENU: MenuItem[] = [
-    { id: 'nav-main-1', name: 'All Jerseys', placement: 'Main Menu', order: 1, url: 'All', status: 'Active', icon: 'Shirt' },
-    { id: 'nav-main-2', name: 'World Cup Vault', placement: 'Main Menu', order: 2, url: 'World Cup', status: 'Active', icon: 'Trophy', badgeText: 'RARE' },
-    { id: 'nav-main-3', name: 'Bangladesh Classic', placement: 'Main Menu', order: 3, url: 'England', status: 'Active', icon: 'Flame' },
-    { id: 'nav-main-4', name: 'Retro Store', placement: 'Main Menu', order: 4, url: 'Legends', status: 'Active', icon: 'Star', badgeText: 'HOT' },
-    { id: 'nav-main-5', name: 'Current Season', placement: 'Main Menu', order: 5, url: 'Current Season', status: 'Active', icon: 'Sparkles' },
-    { id: 'nav-main-6', name: 'Club Classic', placement: 'Main Menu', order: 6, url: 'Classic', status: 'Active', icon: 'Award' },
-    { id: 'nav-main-7', name: 'Clearance', placement: 'Main Menu', order: 7, url: 'Clearance', status: 'Active', icon: 'Tag' },
+    { id: 'nav-main-1', name: 'Premier League', placement: 'Main Menu', order: 1, url: 'Premier League', status: 'Active', icon: 'Trophy' },
+    { id: 'nav-main-2', name: 'LALIGA', placement: 'Main Menu', order: 2, url: 'La Liga', status: 'Active', icon: 'Award' },
+    { id: 'nav-main-3', name: 'Ligue 1', placement: 'Main Menu', order: 3, url: 'Ligue 1', status: 'Active', icon: 'Shirt' },
+    { id: 'nav-main-4', name: 'Serie A', placement: 'Main Menu', order: 4, url: 'Serie A', status: 'Active', icon: 'ShieldCheck' },
+    { id: 'nav-main-5', name: 'Bundesliga', placement: 'Main Menu', order: 5, url: 'Bundesliga', status: 'Active', icon: 'Flame' },
+    { id: 'nav-main-6', name: 'MLS', placement: 'Main Menu', order: 6, url: 'MLS', status: 'Active', icon: 'Star' },
+    { id: 'nav-main-7', name: 'Other Leagues', placement: 'Main Menu', order: 7, url: 'Other Leagues', status: 'Active', icon: 'Globe' },
+    { id: 'nav-main-8', name: 'International Teams', placement: 'Main Menu', order: 8, url: 'International Teams', status: 'Active', icon: 'Globe' },
+    { id: 'nav-main-9', name: 'Outlet', placement: 'Main Menu', order: 9, url: 'Clearance', status: 'Active', icon: 'Tag' },
   ];
 
   const mainNavItems = (rawMainNavItems.length > 0 ? rawMainNavItems : DEFAULT_MAIN_MENU).filter(
     (m) => !/mystery/i.test(m.name) && m.url !== 'Mystery'
-  ).map((m) => {
-    if (m.url === 'England' || /england classic/i.test(m.name)) {
-      return { ...m, name: 'Bangladesh Classic' };
-    }
-    if (m.url === 'Legends' || /legends store/i.test(m.name)) {
-      return { ...m, name: 'Retro Store' };
-    }
-    if (/clearance vault/i.test(m.name)) {
-      return { ...m, name: 'Clearance' };
-    }
-    return m;
-  });
+  );
 
   const rawMegaNavItems = activeMenuItems
     .filter(m => m.placement === 'Mega Menu')
     .sort((a, b) => a.order - b.order);
 
   const DEFAULT_MEGA_MENU: MenuItem[] = [
-    { id: 'nav-mega-cat-1', name: 'Top European Leagues', placement: 'Mega Menu', parentId: null, icon: 'Trophy', order: 1, url: '#listing', status: 'Active' },
-    { id: 'nav-mega-item-1', name: 'Premier League Legends', placement: 'Mega Menu', parentId: 'nav-mega-cat-1', icon: 'Shirt', order: 1, url: 'Premier League', status: 'Active' },
-    { id: 'nav-mega-item-2', name: 'La Liga Timeless Kits', placement: 'Mega Menu', parentId: 'nav-mega-cat-1', icon: 'Tag', order: 2, url: 'La Liga', status: 'Active' },
-    { id: 'nav-mega-item-3', name: 'Serie A Golden Era', placement: 'Mega Menu', parentId: 'nav-mega-cat-1', icon: 'ShieldCheck', order: 3, url: 'Serie A', status: 'Active' },
-    { id: 'nav-mega-cat-2', name: 'Legendary Player Drops', placement: 'Mega Menu', parentId: null, icon: 'Star', order: 2, url: '#listing', status: 'Active' },
-    { id: 'nav-mega-item-4', name: 'Messi No. 10 Re-issues', placement: 'Mega Menu', parentId: 'nav-mega-cat-2', icon: 'Sparkles', order: 1, url: 'Messi', status: 'Active', badgeText: 'HOT' },
-    { id: 'nav-mega-item-5', name: 'Maradona World Cup 86', placement: 'Mega Menu', parentId: 'nav-mega-cat-2', icon: 'Flame', order: 2, url: 'Maradona', status: 'Active', badgeText: 'VAULT' },
-    { id: 'nav-mega-item-6', name: 'Ronaldo CR7 Deadstock', placement: 'Mega Menu', parentId: 'nav-mega-cat-2', icon: 'Trophy', order: 3, url: 'Ronaldo', status: 'Active' },
-    { id: 'nav-mega-cat-3', name: 'National Teams', placement: 'Mega Menu', parentId: null, icon: 'Globe', order: 3, url: '#listing', status: 'Active' },
-    { id: 'nav-mega-item-7', name: 'Argentina Albiceleste', placement: 'Mega Menu', parentId: 'nav-mega-cat-3', icon: 'Globe', order: 1, url: 'Argentina', status: 'Active' },
-    { id: 'nav-mega-item-8', name: 'Brazil Seleção Classics', placement: 'Mega Menu', parentId: 'nav-mega-cat-3', icon: 'Globe', order: 2, url: 'Brazil', status: 'Active' },
+    { id: 'nav-mega-cat-1', name: 'Top Clubs', placement: 'Mega Menu', parentId: null, icon: 'Trophy', order: 1, url: '#listing', status: 'Active' },
+    { id: 'nav-mega-item-1', name: 'Real Madrid', placement: 'Mega Menu', parentId: 'nav-mega-cat-1', icon: 'Shirt', order: 1, url: 'Real Madrid', status: 'Active' },
+    { id: 'nav-mega-item-2', name: 'FC Barcelona', placement: 'Mega Menu', parentId: 'nav-mega-cat-1', icon: 'Tag', order: 2, url: 'Barcelona', status: 'Active' },
+    { id: 'nav-mega-item-3', name: 'Manchester United', placement: 'Mega Menu', parentId: 'nav-mega-cat-1', icon: 'ShieldCheck', order: 3, url: 'Manchester United', status: 'Active' },
+    { id: 'nav-mega-cat-2', name: 'Player Editions', placement: 'Mega Menu', parentId: null, icon: 'Star', order: 2, url: '#listing', status: 'Active' },
+    { id: 'nav-mega-item-4', name: 'Messi', placement: 'Mega Menu', parentId: 'nav-mega-cat-2', icon: 'Sparkles', order: 1, url: 'Messi', status: 'Active' },
+    { id: 'nav-mega-item-5', name: 'Ronaldo', placement: 'Mega Menu', parentId: 'nav-mega-cat-2', icon: 'Flame', order: 2, url: 'Ronaldo', status: 'Active' },
+    { id: 'nav-mega-item-6', name: 'Retro Classics', placement: 'Mega Menu', parentId: 'nav-mega-cat-2', icon: 'Trophy', order: 3, url: 'Retro', status: 'Active' },
+    { id: 'nav-mega-cat-3', name: 'National Teams', placement: 'Mega Menu', parentId: null, icon: 'Globe', order: 3, url: 'International Teams', status: 'Active' },
+    { id: 'nav-mega-item-7', name: 'Argentina', placement: 'Mega Menu', parentId: 'nav-mega-cat-3', icon: 'Globe', order: 1, url: 'Argentina', status: 'Active' },
+    { id: 'nav-mega-item-8', name: 'Brazil', placement: 'Mega Menu', parentId: 'nav-mega-cat-3', icon: 'Globe', order: 2, url: 'Brazil', status: 'Active' },
   ];
 
   const megaNavItems = rawMegaNavItems.length > 0 ? rawMegaNavItems : DEFAULT_MEGA_MENU;
@@ -653,7 +644,6 @@ export const Header: React.FC<HeaderProps> = ({
                   : 'text-zinc-950 hover:text-zinc-700 hover:bg-zinc-100/70'
               }`}
             >
-              {renderNavIcon(item.icon, 14)}
               <span>{item.name}</span>
               {item.badgeText && (
                 <span
@@ -677,14 +667,13 @@ export const Header: React.FC<HeaderProps> = ({
           >
             <button
               type="button"
-              className={`text-xs font-sans tracking-widest font-extrabold uppercase relative px-3.5 py-1.5 rounded-full transition-all cursor-pointer flex items-center gap-1.5 border-2 shadow-sm ${
+              className={`text-xs font-sans tracking-widest font-bold uppercase relative py-1.5 px-2.5 rounded-full transition-all cursor-pointer flex items-center gap-1.5 ${
                 showMegaMenuDropdown
-                  ? 'bg-teal-700 border-teal-700 text-white'
-                  : 'bg-teal-50 border-teal-300 text-teal-900 hover:bg-teal-100 hover:border-teal-400'
+                  ? 'bg-black text-white shadow-sm'
+                  : 'text-zinc-950 hover:text-zinc-700 hover:bg-zinc-100/70'
               }`}
             >
-              <Grid size={14} />
-              <span>MEGA VAULT CATALOG</span>
+              <span>More</span>
               <ChevronDown size={14} className={`transition-transform duration-200 ${showMegaMenuDropdown ? 'rotate-180' : ''}`} />
             </button>
 
@@ -951,7 +940,7 @@ export const Header: React.FC<HeaderProps> = ({
           {megaParents.length > 0 && (
             <div className="space-y-3 border-t border-zinc-100 pt-3">
               <span className="text-[10px] font-mono tracking-widest text-zinc-700 font-bold uppercase block text-left">
-                Mega Menu Vault Collections
+                More
               </span>
               <div className="space-y-3">
                 {megaParents.map((parent) => {

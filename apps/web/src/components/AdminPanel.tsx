@@ -814,8 +814,8 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({
     const nextVisible = !dailyDealVisible;
     let sections = homepageSections;
     if (!sections.some((s) => s.id === 'daily-deals') && dailyDealSection) {
-      const clubIdx = sections.findIndex((s) => s.id === 'shop-by-club');
-      const insertAt = clubIdx >= 0 ? clubIdx + 1 : sections.length;
+      const featuredIdx = sections.findIndex((s) => s.id === 'featured-collection');
+      const insertAt = featuredIdx >= 0 ? featuredIdx + 1 : sections.length;
       sections = [...sections.slice(0, insertAt), dailyDealSection, ...sections.slice(insertAt)];
     }
     const updated = sections.map((s) =>

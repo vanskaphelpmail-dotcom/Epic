@@ -10,6 +10,9 @@ export const REMOVED_HOMEPAGE_SECTION_IDS = new Set([
   'live-auction',
   'popular-teams',
   'shop-by-legends',
+  'shop-by-league',
+  'shop-by-club',
+  'shop-by-international-team',
 ]);
 
 export function normalizeHomepageSections(sections: PageSection[]): PageSection[] {
@@ -39,18 +42,6 @@ const LATEST_PRODUCTS_SECTION: PageSection = {
   maxProducts: 4,
 };
 
-const SHOP_BY_LEAGUE_SECTION: PageSection = {
-  id: 'shop-by-league',
-  name: 'Shop by League badges',
-  visible: true,
-  bgColor: 'bg-white',
-  padding: 'py-10',
-  margin: 'my-0',
-  title: 'SHOP BY FOOTBALL LEAGUE',
-  subtitle: 'Sourced kits from leagues worldwide',
-  status: 'active',
-};
-
 const RETRO_SECTION: PageSection = {
   id: 'retro-collection',
   name: 'Retro Collection Row',
@@ -66,18 +57,6 @@ const RETRO_SECTION: PageSection = {
   buttonText: 'VIEW ALL',
   buttonUrl: 'listing',
   maxProducts: 4,
-};
-
-const SHOP_BY_CLUB_SECTION: PageSection = {
-  id: 'shop-by-club',
-  name: 'Shop by Club',
-  visible: true,
-  bgColor: 'bg-white',
-  padding: 'py-10',
-  margin: 'my-0',
-  title: 'SHOP BY CLUB',
-  subtitle: 'Authentic retro & modern club matchwear',
-  status: 'active',
 };
 
 const LA_LIGA_SECTION: PageSection = {
@@ -96,18 +75,6 @@ const LA_LIGA_SECTION: PageSection = {
   buttonText: 'VIEW ALL',
   buttonUrl: 'listing',
   maxProducts: 4,
-};
-
-const INTERNATIONAL_TEAM_SECTION: PageSection = {
-  id: 'shop-by-international-team',
-  name: 'Shop by International Team',
-  visible: true,
-  bgColor: 'bg-white',
-  padding: 'py-10',
-  margin: 'my-0',
-  title: 'SHOP BY INTERNATIONAL TEAM',
-  subtitle: 'National team kits from around the world',
-  status: 'active',
 };
 
 const WORLD_CUP_SECTION: PageSection = {
@@ -148,22 +115,16 @@ const PLAYER_EDITION_SECTION: PageSection = {
 /** Canonical jersey browsing block order on the homepage. */
 export const JERSEY_HOMEPAGE_SECTION_IDS = [
   'latest-products',
-  'shop-by-league',
   'retro-collection',
-  'shop-by-club',
   'product-row-la-liga',
-  'shop-by-international-team',
   'product-row-world-cup',
   'player-edition',
 ] as const;
 
 const JERSEY_SECTION_DEFAULTS: Record<string, PageSection> = {
   'latest-products': LATEST_PRODUCTS_SECTION,
-  'shop-by-league': SHOP_BY_LEAGUE_SECTION,
   'retro-collection': RETRO_SECTION,
-  'shop-by-club': SHOP_BY_CLUB_SECTION,
   'product-row-la-liga': LA_LIGA_SECTION,
-  'shop-by-international-team': INTERNATIONAL_TEAM_SECTION,
   'product-row-world-cup': WORLD_CUP_SECTION,
   'player-edition': PLAYER_EDITION_SECTION,
 };
@@ -218,7 +179,7 @@ function pickJerseySection(sections: PageSection[], id: string): PageSection {
 
 /**
  * Keep the main jersey sections in this fixed order after hero / trending / featured:
- * Latest → League → Retro → Club → La Liga → International → World Cup → Player Edition
+ * Latest → Retro → La Liga → World Cup → Player Edition
  */
 export function ensureJerseyHomepageOrder(sections: PageSection[]): PageSection[] {
   const jerseyIds = new Set<string>(JERSEY_HOMEPAGE_SECTION_IDS);

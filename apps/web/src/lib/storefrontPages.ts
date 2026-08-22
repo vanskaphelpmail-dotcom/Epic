@@ -12,56 +12,85 @@ export type StorefrontPageDef = {
 
 export const STOREFRONT_PAGES: StorefrontPageDef[] = [
   {
-    id: 'World Cup',
-    name: 'World Cup Vault',
+    id: 'Premier League',
+    name: 'Premier League',
     pageNumber: 1,
-    slug: 'world-cup',
-    aliases: ['World Cup Vault', 'world-cup', 'WorldCup'],
+    slug: 'premier-league',
+    aliases: ['PREMIER LEAGUE', 'EPL', 'premier'],
   },
   {
-    id: 'England',
-    name: 'Bangladesh Classic',
+    id: 'La Liga',
+    name: 'LALIGA',
     pageNumber: 1,
-    slug: 'bangladesh',
-    // Do NOT alias plain "Bangladesh" — that matches product.country for the whole catalog
-    aliases: ['Bangladesh Classic', 'england', 'England Classic'],
+    slug: 'laliga',
+    aliases: ['LALIGA', 'LaLiga', 'la liga', 'laliga'],
   },
   {
-    id: 'Legends',
-    name: 'Retro Store',
-    pageNumber: 2,
-    slug: 'retro-store',
-    aliases: ['Retro Store', 'Retro', 'Legends Tribute', 'retro-store', 'Legends Store'],
+    id: 'Ligue 1',
+    name: 'Ligue 1',
+    pageNumber: 1,
+    slug: 'ligue-1',
+    aliases: ['LIGUE 1', 'Ligue1'],
   },
   {
-    id: 'Current Season',
-    name: 'Current Season',
+    id: 'Serie A',
+    name: 'Serie A',
+    pageNumber: 1,
+    slug: 'serie-a',
+    aliases: ['SERIE A', 'SerieA'],
+  },
+  {
+    id: 'Bundesliga',
+    name: 'Bundesliga',
+    pageNumber: 1,
+    slug: 'bundesliga',
+    aliases: ['BUNDESLIGA'],
+  },
+  {
+    id: 'MLS',
+    name: 'MLS',
+    pageNumber: 1,
+    slug: 'mls',
+    aliases: ['Major League Soccer'],
+  },
+  {
+    id: 'Other Leagues',
+    name: 'Other Leagues',
     pageNumber: 2,
-    slug: 'current-season',
-    aliases: ['current-season'],
+    slug: 'other-leagues',
+    aliases: ['OTHER LEAGUES', 'Other League'],
+  },
+  {
+    id: 'International Teams',
+    name: 'International Teams',
+    pageNumber: 2,
+    slug: 'international-teams',
+    aliases: [
+      'INTERNATIONAL TEAMS',
+      'International',
+      'World Cup',
+      'World Cup Vault',
+      'National Teams',
+    ],
   },
   {
     id: 'Clearance',
-    name: 'Clearance',
+    name: 'Outlet',
     pageNumber: 3,
-    slug: 'clearance',
-    aliases: ['Outlet', 'Sale', 'Clearance Vault'],
-  },
-  {
-    id: 'Classic',
-    name: 'Club Classic',
-    pageNumber: 4,
-    slug: 'classic',
-    aliases: ['Club Classic', 'club-classic', 'Club Classics'],
-  },
-  {
-    id: 'Accessories',
-    name: 'Accessories',
-    pageNumber: 3,
-    slug: 'accessories',
-    aliases: [],
+    slug: 'outlet',
+    aliases: ['OUTLET', 'Outlet', 'Sale', 'Clearance Vault', 'Clearance'],
   },
 ];
+
+/** Top leagues shown as dedicated nav pages — everything else falls under Other Leagues. */
+export const PRIMARY_LEAGUE_IDS = [
+  'Premier League',
+  'La Liga',
+  'Ligue 1',
+  'Serie A',
+  'Bundesliga',
+  'MLS',
+] as const;
 
 function norm(s: string): string {
   return String(s || '')
@@ -117,10 +146,21 @@ export function storefrontLabelsMatch(a: string, b: string): boolean {
   return false;
 }
 
+function productLeagueLabel(product: Product): string {
+  return String(product.league || product.category || '').trim();
+}
+
+function isPrimaryLeagueLabel(value: string): boolean {
+  const resolved = resolveStorefrontPage(value);
+  if (resolved && (PRIMARY_LEAGUE_IDS as readonly string[]).includes(resolved.id)) {
+    return true;
+  }
+  return (PRIMARY_LEAGUE_IDS as readonly string[]).some((id) => storefrontLabelsMatch(id, value));
+}
+
 /**
  * Product belongs on a nav / listing destination.
- * Explicit Target Page / pageName wins; category is fallback only.
- * Never uses country, name, brand, or club (those caused Bangladesh Classic ↔ Retro bleed).
+ * Explicit Target Page / pageName wins; league / category is fallback.
  */
 export function productMatchesStorefrontFilter(
   product: Product,
@@ -142,6 +182,39 @@ export function productMatchesStorefrontFilter(
       norm(explicit.id) === filterKey ||
       norm(explicit.name) === filterKey
     );
+  }
+
+  if (filterPage?.id === 'Other Leagues') {
+    const league = productLeagueLabel(product);
+    if (!league) return false;
+    if (resolveStorefrontPage(league)?.id === 'International Teams') return false;
+    if (isPrimaryLeagueLabel(league)) return false;
+    if (/world\s*cup|international|national/i.test(league)) return false;
+    return Boolean(league);
+  }
+
+  if (filterPage?.id === 'International Teams') {
+    const fields = [
+      product.league,
+      product.category,
+      product.country,
+      product.club,
+    ]
+      .map((v) => String(v || '').trim())
+      .filter(Boolean);
+    return fields.some(
+      (f) =>
+        storefrontLabelsMatch(f, 'International Teams') ||
+        /world\s*cup|international|national team/i.test(f),
+    );
+  }
+
+  if (filterPage && (PRIMARY_LEAGUE_IDS as readonly string[]).includes(filterPage.id)) {
+    const league = productLeagueLabel(product);
+    if (league && storefrontLabelsMatch(league, filterPage.id)) return true;
+    const cat = String(product.category || '').trim();
+    if (cat && storefrontLabelsMatch(cat, filterPage.id)) return true;
+    return false;
   }
 
   // No Target Page set — match category only (exact / alias)
@@ -175,15 +248,23 @@ export function isStorefrontNavActive(
 const LISTING_CATEGORY_ALIASES: Record<string, string[]> = {
   'club jerseys': ['classic', 'club classic', 'club jerseys', 'club', 'club classics'],
   legends: ['legends', 'retro', 'retro store', 'legends tribute', 'legends store'],
-  international: ['international', 'world cup', 'world cup vault', 'national'],
+  international: [
+    'international',
+    'international teams',
+    'world cup',
+    'world cup vault',
+    'national',
+  ],
   training: ['training', 'pre match', 'pre-match', 'warmup'],
   retro: ['retro', 'legends', 'retro store'],
   'retro store': ['retro', 'legends', 'retro store'],
+  outlet: ['outlet', 'clearance', 'sale'],
+  clearance: ['outlet', 'clearance', 'sale'],
 };
 
 /**
- * Listing sidebar / All Jerseys filter.
- * Storefront nav pages (England, Legends, …) use target-page rules;
+ * Listing sidebar / nav page filter.
+ * Storefront nav pages use target-page + league rules;
  * other labels match category / categoryRow with aliases.
  */
 export function productMatchesListingCategory(
@@ -192,7 +273,7 @@ export function productMatchesListingCategory(
 ): boolean {
   if (!filter || filter === 'All') return true;
 
-  // Nav destination pages — strict target-page matching
+  // Nav destination pages — target-page + league matching
   if (resolveStorefrontPage(filter)) {
     return productMatchesStorefrontFilter(product, filter);
   }
@@ -204,6 +285,7 @@ export function productMatchesListingCategory(
     product.category,
     product.pageName,
     product.targetPage,
+    product.league,
   ]
     .map((v) => norm(String(v || '')))
     .filter(Boolean);
@@ -250,6 +332,12 @@ export function homepageRowCategoryCandidates(products: Product[]): string[] {
     'Clearance',
     'Best Sellers',
     'New In',
+    'Premier League',
+    'La Liga',
+    'Ligue 1',
+    'Serie A',
+    'Bundesliga',
+    'MLS',
   ]) {
     names.add(core);
   }
