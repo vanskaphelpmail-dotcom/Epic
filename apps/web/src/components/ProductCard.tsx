@@ -53,7 +53,7 @@ export const ProductCard: React.FC<ProductCardProps> = ({
       id={`product-card-${product.id}`}
       title={product.name}
     >
-      <div className="min-w-0 flex flex-col">
+      <div className="min-w-0 flex flex-col flex-1">
         <div className="relative mb-1.5 sm:mb-2 lg:mb-4 w-full aspect-square shrink-0 overflow-hidden rounded-lg lg:rounded-2xl bg-zinc-50 ring-1 ring-zinc-100">
           <div className="absolute inset-0 pointer-events-none bg-[radial-gradient(circle_at_50%_40%,rgba(0,0,0,0.03),transparent_62%)]" />
 
@@ -94,28 +94,28 @@ export const ProductCard: React.FC<ProductCardProps> = ({
           </button>
 
           {product.isPreOrder && (
-            <span className="absolute top-2.5 left-2.5 sm:top-3 sm:left-3 z-20 bg-zinc-900 text-white text-[9px] font-black uppercase tracking-wider px-2.5 py-1 rounded-full shadow-sm">
+            <span className="absolute top-2.5 left-2.5 sm:top-3 sm:left-3 z-20 bg-red-600 text-white text-[9px] font-black uppercase tracking-wider px-2.5 py-1 rounded-full shadow-sm">
               Pre-Order
             </span>
           )}
         </div>
 
-        {/* Brand + title: desktop only — hidden on mobile/tablet for denser catalog */}
-        <div className="hidden lg:block space-y-1 mb-0">
-          <span className="text-[10px] font-mono uppercase tracking-widest text-zinc-500 font-bold">
+        {/* Fixed 2-line title height keeps SEE MORE buttons aligned across the row */}
+        <div className="hidden lg:flex flex-col gap-1 mb-0">
+          <span className="text-[10px] font-mono uppercase tracking-widest text-zinc-500 font-bold truncate">
             {brandLine}
           </span>
-          <h3 className="text-zinc-950 text-sm font-black tracking-tight line-clamp-2 group-hover:text-black transition-colors text-left">
+          <h3 className="text-zinc-950 text-sm font-black tracking-tight line-clamp-2 min-h-[2.5rem] group-hover:text-black transition-colors text-left">
             {product.name}
           </h3>
         </div>
       </div>
 
-      <div className="mt-0 lg:mt-3 lg:pt-3 lg:border-t lg:border-zinc-100">
+      <div className="mt-auto pt-0 lg:mt-3 lg:pt-3 lg:border-t lg:border-zinc-100 shrink-0">
         <button
           onClick={handleSeeMore}
           type="button"
-          className="w-full bg-black hover:bg-zinc-800 text-white border border-black py-2.5 sm:py-3 px-3 rounded-xl text-[10px] sm:text-[11px] font-black uppercase tracking-wider flex items-center justify-center gap-2 transition-all cursor-pointer font-sans"
+          className="w-full bg-red-600 hover:bg-red-700 text-white border border-red-700 py-2.5 sm:py-3 px-3 rounded-xl text-[10px] sm:text-[11px] font-black uppercase tracking-wider flex items-center justify-center gap-2 transition-all cursor-pointer font-sans"
           title="View product details"
           id={`see-more-${product.id}`}
         >
