@@ -25,7 +25,7 @@ import {
 import { 
   Star, ArrowRight, Sparkles, Flame, Percent, Trophy, RefreshCw, 
   Layers, Eye, ShieldCheck, Mail, MapPin, HelpCircle, 
-  ChevronRight, ChevronLeft, Calendar, UserCheck, AlertCircle, ShoppingBag, BadgeCheck, X, ShoppingCart 
+  ChevronRight, ChevronLeft, Calendar, UserCheck, AlertCircle, ShoppingBag, BadgeCheck, X
 } from 'lucide-react';
 import type { BannerConfig } from '../types';
 
@@ -110,35 +110,35 @@ interface DynamicPageRendererProps {
 
 export const DEFAULT_HOMEPAGE_SECTIONS: PageSection[] = [
   { id: 'hero-slider', name: 'Hero Banner Slider', visible: true, bgColor: 'bg-white', padding: 'py-0', margin: 'my-0', title: 'WORLD CUP 2026 EDITION', subtitle: 'The Grandest Stage of Football', status: 'active' },
-  { id: 'trending-searches', name: 'Trending Searches bar', visible: true, bgColor: 'bg-emerald-50/50', padding: 'py-3.5', margin: 'my-2', status: 'active' },
+  { id: 'trending-searches', name: 'Trending Searches bar', visible: true, bgColor: 'bg-zinc-50', padding: 'py-3.5', margin: 'my-2', status: 'active' },
   { id: 'live-auction', name: 'Bidding & Live Auctions', visible: false, bgColor: 'bg-white', padding: 'py-12', margin: 'my-0', status: 'inactive' },
   { id: 'daily-deals', name: 'Daily Deals Countdown', visible: false, bgColor: 'bg-amber-500/10', padding: 'py-12', margin: 'my-4', title: 'LIMITED DAILY DEAL DECK', subtitle: '24-hour flash sale on ultra rare collectibles', status: 'inactive' },
   { id: 'featured-collection', name: 'Featured Collection Row', visible: true, bgColor: 'bg-white', padding: 'py-12', margin: 'my-0', title: 'VERIFIED FEATURED CLASSICS', subtitle: 'Curated 1-of-1 historic collectibles', status: 'active', sectionType: 'product-row', productCategory: 'Featured', buttonText: 'VIEW ALL', buttonUrl: 'listing', maxProducts: 4 },
   { id: 'latest-products', name: 'Latest Products Row', visible: true, bgColor: 'bg-white', padding: 'py-12', margin: 'my-0', title: 'LATEST WORKSHOP DROPS', subtitle: 'Freshly authenticated physical catalog arrivals', status: 'active', sectionType: 'product-row', productCategory: 'New In', buttonText: '', maxProducts: 4 },
   { id: 'shop-by-league', name: 'Shop by League badges', visible: true, bgColor: 'bg-white', padding: 'py-10', margin: 'my-0', title: 'SHOP BY FOOTBALL LEAGUE', subtitle: 'Sourced kits from leagues worldwide', status: 'active' },
-  { id: 'retro-collection', name: 'Retro Collection Row', visible: true, bgColor: 'bg-emerald-50/25', padding: 'py-12', margin: 'my-0', title: 'RETRO', subtitle: 'Rare 80s, 90s & 2000s vintage reissues', status: 'active', sectionType: 'product-row', productCategory: 'Retro', buttonText: 'VIEW ALL', buttonUrl: 'listing', maxProducts: 4 },
+  { id: 'retro-collection', name: 'Retro Collection Row', visible: true, bgColor: 'bg-zinc-50/25', padding: 'py-12', margin: 'my-0', title: 'RETRO', subtitle: 'Rare 80s, 90s & 2000s vintage reissues', status: 'active', sectionType: 'product-row', productCategory: 'Retro', buttonText: 'VIEW ALL', buttonUrl: 'listing', maxProducts: 4 },
   { id: 'shop-by-club', name: 'Shop by Club', visible: true, bgColor: 'bg-white', padding: 'py-10', margin: 'my-0', title: 'SHOP BY CLUB', subtitle: 'Authentic retro & modern club matchwear', status: 'active' },
   { id: 'product-row-la-liga', name: 'La Liga Row', visible: true, bgColor: 'bg-white', padding: 'py-12', margin: 'my-0', title: 'LA LIGA', subtitle: 'Shop La Liga — curated picks for collectors', status: 'active', sectionType: 'product-row', productCategory: 'La Liga', buttonText: 'VIEW ALL', buttonUrl: 'listing', maxProducts: 4 },
   { id: 'shop-by-international-team', name: 'Shop by International Team', visible: true, bgColor: 'bg-white', padding: 'py-10', margin: 'my-0', title: 'SHOP BY INTERNATIONAL TEAM', subtitle: 'National team kits from around the world', status: 'active' },
-  { id: 'product-row-world-cup', name: 'World Cup Row', visible: true, bgColor: 'bg-emerald-50/25', padding: 'py-12', margin: 'my-0', title: 'WORLD CUP', subtitle: 'National team World Cup kits & vault classics', status: 'active', sectionType: 'product-row', productCategory: 'World Cup', buttonText: 'VIEW ALL', buttonUrl: 'listing', maxProducts: 4 },
+  { id: 'product-row-world-cup', name: 'World Cup Row', visible: true, bgColor: 'bg-zinc-50/25', padding: 'py-12', margin: 'my-0', title: 'WORLD CUP', subtitle: 'National team World Cup kits & vault classics', status: 'active', sectionType: 'product-row', productCategory: 'World Cup', buttonText: 'VIEW ALL', buttonUrl: 'listing', maxProducts: 4 },
   { id: 'player-edition', name: 'Player Edition Row', visible: true, bgColor: 'bg-white', padding: 'py-12', margin: 'my-0', title: 'PLAYER EDITION', subtitle: 'Slim-fit match issue quality kits', status: 'active', sectionType: 'product-row', productCategory: 'Player Edition', buttonText: 'VIEW ALL', buttonUrl: 'listing', maxProducts: 4 },
   { id: 'kids-collection', name: 'Kids Collection Row', visible: true, bgColor: 'bg-white', padding: 'py-12', margin: 'my-0', title: 'KIDS', subtitle: 'Junior kits sized for ages 1–14', status: 'active', sectionType: 'product-row', productCategory: 'Kids', buttonText: 'VIEW ALL', buttonUrl: 'listing', maxProducts: 4 },
-  { id: 'customised-kit', name: 'Customised Kit Row', visible: true, bgColor: 'bg-emerald-50/25', padding: 'py-12', margin: 'my-0', title: 'CUSTOMISED KIT', subtitle: 'Custom printed kits with full size guide', status: 'active', sectionType: 'product-row', productCategory: 'Customised Kit', buttonText: 'VIEW ALL', buttonUrl: 'listing', maxProducts: 4 },
+  { id: 'customised-kit', name: 'Customised Kit Row', visible: true, bgColor: 'bg-zinc-50/25', padding: 'py-12', margin: 'my-0', title: 'CUSTOMISED KIT', subtitle: 'Custom printed kits with full size guide', status: 'active', sectionType: 'product-row', productCategory: 'Customised Kit', buttonText: 'VIEW ALL', buttonUrl: 'listing', maxProducts: 4 },
   { id: 'fan-edition', name: 'Fan Edition Row', visible: true, bgColor: 'bg-white', padding: 'py-12', margin: 'my-0', title: 'FAN EDITION', subtitle: 'Comfortable stadium fan-fit replicas', status: 'active', sectionType: 'product-row', productCategory: 'Fan Edition', buttonText: 'VIEW ALL', buttonUrl: 'listing', maxProducts: 4 },
   { id: 'preorder-jacket', name: 'Pre-Order Jacket Row', visible: true, bgColor: 'bg-amber-50/40', padding: 'py-12', margin: 'my-0', title: 'PRE-ORDER · JACKET', subtitle: 'Reserve jackets before they land in Dhaka', status: 'active', sectionType: 'product-row', productCategory: 'Jacket', buttonText: 'VIEW ALL', buttonUrl: 'listing', maxProducts: 4 },
   { id: 'preorder-track-suit', name: 'Pre-Order Track Suit Row', visible: true, bgColor: 'bg-white', padding: 'py-12', margin: 'my-0', title: 'PRE-ORDER · TRACK SUIT', subtitle: 'Upcoming track suit drops — reserve yours', status: 'active', sectionType: 'product-row', productCategory: 'Track Suit', buttonText: 'VIEW ALL', buttonUrl: 'listing', maxProducts: 4 },
   { id: 'preorder-badminton', name: 'Pre-Order Badminton Row', visible: true, bgColor: 'bg-amber-50/40', padding: 'py-12', margin: 'my-0', title: 'PRE-ORDER · BADMINTON RACKET', subtitle: 'Badminton rackets available for pre-order', status: 'active', sectionType: 'product-row', productCategory: 'Badminton Racket', buttonText: 'VIEW ALL', buttonUrl: 'listing', maxProducts: 4 },
-  { id: 'worldcup-collection', name: 'World Cup Vault Section', visible: false, bgColor: 'bg-emerald-900/5', padding: 'py-12', margin: 'my-0', title: 'WORLD CUP HERITAGE VAULT', subtitle: 'Historical match issue kits from 1970 to 2026', status: 'inactive' },
+  { id: 'worldcup-collection', name: 'World Cup Vault Section', visible: false, bgColor: 'bg-zinc-900/5', padding: 'py-12', margin: 'my-0', title: 'WORLD CUP HERITAGE VAULT', subtitle: 'Historical match issue kits from 1970 to 2026', status: 'inactive' },
   { id: 'current-season', name: 'Current Season Row', visible: true, bgColor: 'bg-white', padding: 'py-12', margin: 'my-0', title: 'CURRENT SEASON STOCK', subtitle: 'Direct from authorized team supplier docks', status: 'active', sectionType: 'product-row', productCategory: 'Current Season', buttonText: 'EXPLORE MODERN', buttonUrl: 'listing', maxProducts: 4 },
   { id: 'mystery-box', name: 'Mystery Box Challenge', visible: false, bgColor: 'bg-gradient-to-r from-purple-950 to-indigo-950', padding: 'py-14', margin: 'my-6', title: 'THE VAULT MYSTERY BOX', subtitle: 'Receive one random 100% authentic retro or modern kit with premium certificates', status: 'inactive' },
   { id: 'clearance', name: 'Clearance & Sale Rack', visible: true, bgColor: 'bg-white', padding: 'py-12', margin: 'my-0', title: 'OUTLET CLEARANCE SALE', subtitle: 'End of collection deadstock at cost prices', status: 'active', sectionType: 'product-row', productCategory: 'Clearance', buttonText: 'EXPLORE OUTLET', buttonUrl: 'listing', maxProducts: 4 },
-  { id: 'best-sellers', name: 'Best Sellers Grid', visible: true, bgColor: 'bg-emerald-50/25', padding: 'py-12', margin: 'my-0', title: 'BEST SELLERS', subtitle: 'Most reviewed and requested reissues', status: 'active', sectionType: 'product-row', productCategory: 'Best Sellers', buttonText: 'VIEW ALL', buttonUrl: 'listing', maxProducts: 4 },
+  { id: 'best-sellers', name: 'Best Sellers Grid', visible: true, bgColor: 'bg-zinc-50/25', padding: 'py-12', margin: 'my-0', title: 'BEST SELLERS', subtitle: 'Most reviewed and requested reissues', status: 'active', sectionType: 'product-row', productCategory: 'Best Sellers', buttonText: 'VIEW ALL', buttonUrl: 'listing', maxProducts: 4 },
   { id: 'shop-by-legends', name: 'Shop by Legends portraits', visible: false, bgColor: 'bg-white', padding: 'py-12', margin: 'my-0', title: 'THE LEGENDS STORE', subtitle: 'Embroidered match prints of historical deities', status: 'inactive' },
-  { id: 'community-gallery', name: 'Dhaka Fan Community Gallery', visible: true, bgColor: 'bg-emerald-50/30', padding: 'py-12', margin: 'my-0', title: 'COLLECTORS IN DHAKA', subtitle: 'Fan gallery sharing local unboxings on Bailey Road', status: 'active' },
+  { id: 'community-gallery', name: 'Dhaka Fan Community Gallery', visible: true, bgColor: 'bg-zinc-50', padding: 'py-12', margin: 'my-0', title: 'COLLECTORS IN DHAKA', subtitle: 'Fan gallery sharing local unboxings on Bailey Road', status: 'active' },
   { id: 'testimonials', name: 'Testimonials Deck', visible: true, bgColor: 'bg-white', padding: 'py-12', margin: 'my-0', title: 'WHAT COLLECTORS DECLARE', subtitle: 'Genuine reviews from verified buyers', status: 'active' },
-  { id: 'video-banner', name: 'Video Feature Banner', visible: false, bgColor: 'bg-emerald-950', padding: 'py-16', margin: 'my-0', title: 'THE ART OF AUTHENTICATION', subtitle: 'A look inside our 12-point micro-fabric check laboratory in Dhaka', status: 'inactive' },
+  { id: 'video-banner', name: 'Video Feature Banner', visible: false, bgColor: 'bg-zinc-950', padding: 'py-16', margin: 'my-0', title: 'THE ART OF AUTHENTICATION', subtitle: 'A look inside our 12-point micro-fabric check laboratory in Dhaka', status: 'inactive' },
   { id: 'instagram-feed', name: 'Instagram Feed Mockup', visible: false, bgColor: 'bg-white', padding: 'py-12', margin: 'my-0', title: 'FOLLOW @JERSEYADDICTS_BD', subtitle: 'Daily vintage drops, buyer photos, and restocks', status: 'inactive' },
-  { id: 'newsletter', name: 'Newsletter Subscription', visible: true, bgColor: 'bg-emerald-900', padding: 'py-12', margin: 'my-4', title: 'JOIN THE EXCLUSIVE CIRCLE', subtitle: 'Be first to receive physical workshop inventory arrivals', status: 'active' },
+  { id: 'newsletter', name: 'Newsletter Subscription', visible: true, bgColor: 'bg-zinc-900', padding: 'py-12', margin: 'my-4', title: 'JOIN THE EXCLUSIVE CIRCLE', subtitle: 'Be first to receive physical workshop inventory arrivals', status: 'active' },
   { id: 'store-locations', name: 'Physical Store Maps', visible: true, bgColor: 'bg-white', padding: 'py-12', margin: 'my-0', title: 'PHYSICAL OUTLET POINTS', subtitle: 'Visit us for physical sizing and authentications', status: 'active' },
 ];
 
@@ -335,8 +335,8 @@ export const DynamicPageRenderer: React.FC<DynamicPageRendererProps> = ({
               : compactShopIds.has(section.id)
                 ? `bg-white pt-3 pb-5 sm:pt-8 sm:pb-10 lg:py-10 my-0 ${getAnimationClass(section.animation)} transition-all duration-300 relative`
                 : `${section.bgColor} ${section.padding} ${section.margin} ${getAnimationClass(section.animation)} transition-all duration-300 relative`;
-        const headingColor = section.bgColor.includes('emerald-9') || section.bgColor.includes('purple') || section.bgColor.includes('indigo') ? 'text-white' : 'text-emerald-950';
-        const subColor = section.bgColor.includes('emerald-9') || section.bgColor.includes('purple') || section.bgColor.includes('indigo') ? 'text-emerald-300' : 'text-emerald-800';
+        const headingColor = section.bgColor.includes('emerald-9') || section.bgColor.includes('purple') || section.bgColor.includes('indigo') ? 'text-white' : 'text-zinc-950';
+        const subColor = section.bgColor.includes('emerald-9') || section.bgColor.includes('purple') || section.bgColor.includes('indigo') ? 'text-zinc-300' : 'text-zinc-800';
 
         return (
           <div key={`${section.id}-${idx}`} className={containerStyle} id={`section-${section.id}`}>
@@ -347,7 +347,7 @@ export const DynamicPageRenderer: React.FC<DynamicPageRendererProps> = ({
             {section.id === 'hero-slider' && activeHeroBanners.length > 0 && (
               <div className="w-full max-w-[1440px] mx-auto px-3 sm:px-4 md:px-5 lg:px-6">
                 <div
-                  className={`relative w-full overflow-hidden rounded-xl sm:rounded-2xl lg:rounded-3xl border border-emerald-900/10 shadow-md sm:shadow-lg bg-transparent sm:bg-emerald-950 ${HERO_BANNER_FRAME}`}
+                  className={`relative w-full overflow-hidden rounded-xl sm:rounded-2xl lg:rounded-3xl border border-zinc-200 shadow-md sm:shadow-lg bg-transparent sm:bg-zinc-950 ${HERO_BANNER_FRAME}`}
                 >
                 {(() => {
                     const currentSlide = activeHeroBanners[heroSlideIndex % activeHeroBanners.length];
@@ -367,14 +367,14 @@ export const DynamicPageRenderer: React.FC<DynamicPageRendererProps> = ({
                         <HeroCoverImage src={coverSrc} slideKey={currentSlide.id} />
 
                         {hasOverlay && (
-                          <div className="absolute inset-0 z-10 bg-gradient-to-t from-emerald-950/75 via-emerald-950/35 to-emerald-950/10 pointer-events-none" />
+                          <div className="absolute inset-0 z-10 bg-gradient-to-t from-zinc-950/75 via-zinc-900/40 to-zinc-950/10 pointer-events-none" />
                         )}
 
                         {hasOverlay && (
                           <div className="absolute inset-0 z-20 flex flex-col items-center justify-center px-4 py-8 text-center text-white sm:px-8 sm:py-12 md:px-10">
                             <div className="flex max-w-4xl flex-col items-center justify-center space-y-3 sm:space-y-4 md:space-y-6">
                             {subtitleText && (
-                              <span className="bg-emerald-500 text-emerald-950 text-[9px] sm:text-[10px] font-mono tracking-widest px-3 py-1 sm:px-4 sm:py-1.5 rounded-full font-black uppercase">
+                              <span className="bg-zinc-500 text-zinc-950 text-[9px] sm:text-[10px] font-mono tracking-widest px-3 py-1 sm:px-4 sm:py-1.5 rounded-full font-black uppercase">
                                 {subtitleText}
                               </span>
                             )}
@@ -384,7 +384,7 @@ export const DynamicPageRenderer: React.FC<DynamicPageRendererProps> = ({
                               </h1>
                             )}
                             {descriptionText && (
-                              <p className="text-[11px] sm:text-xs md:text-base text-emerald-100 max-w-2xl leading-relaxed drop-shadow px-2">
+                              <p className="text-[11px] sm:text-xs md:text-base text-zinc-100 max-w-2xl leading-relaxed drop-shadow px-2">
                                 {descriptionText}
                               </p>
                             )}
@@ -404,7 +404,7 @@ export const DynamicPageRenderer: React.FC<DynamicPageRendererProps> = ({
                                       openNewTab: currentSlide.openNewTab,
                                     });
                                   }}
-                                  className="bg-emerald-500 hover:bg-emerald-600 text-emerald-950 font-extrabold text-[10px] sm:text-xs uppercase tracking-widest px-5 py-3 sm:px-8 sm:py-4 rounded-xl cursor-pointer transition-all hover:scale-105 shadow-lg"
+                                  className="bg-zinc-500 hover:bg-zinc-800 text-zinc-950 font-extrabold text-[10px] sm:text-xs uppercase tracking-widest px-5 py-3 sm:px-8 sm:py-4 rounded-xl cursor-pointer transition-all hover:scale-105 shadow-lg"
                                 >
                                   {ctaLabel}
                                 </button>
@@ -438,7 +438,7 @@ export const DynamicPageRenderer: React.FC<DynamicPageRendererProps> = ({
                                   key={dotIdx}
                                   onClick={() => setHeroSlideIndex(dotIdx)}
                                   className={`h-2 sm:h-2.5 rounded-full transition-all cursor-pointer ${
-                                    heroSlideIndex % activeHeroBanners.length === dotIdx ? 'w-6 sm:w-8 bg-emerald-400' : 'w-2 sm:w-2.5 bg-white/50'
+                                    heroSlideIndex % activeHeroBanners.length === dotIdx ? 'w-6 sm:w-8 bg-zinc-200' : 'w-2 sm:w-2.5 bg-white/50'
                                   }`}
                                 />
                               ))}
@@ -455,7 +455,7 @@ export const DynamicPageRenderer: React.FC<DynamicPageRendererProps> = ({
             {/* 2. TRENDING SEARCHES BAR — desktop only (outer wrapper also hidden) */}
             {section.id === 'trending-searches' && (
               <div className="max-w-7xl mx-auto px-4 sm:px-6 flex flex-wrap items-center justify-center gap-3 md:gap-4">
-                <span className="text-[10px] font-mono font-black text-emerald-900 flex items-center gap-1.5 uppercase">
+                <span className="text-[10px] font-mono font-black text-zinc-900 flex items-center gap-1.5 uppercase">
                   <Flame size={12} className="text-amber-500 animate-pulse" />
                   Trending searches BD:
                 </span>
@@ -467,7 +467,7 @@ export const DynamicPageRenderer: React.FC<DynamicPageRendererProps> = ({
                       if (onSearch) onSearch(kw);
                       setCurrentPage('listing');
                     }}
-                    className="bg-white hover:bg-emerald-100/50 text-[10.5px] font-sans font-bold border border-emerald-100 text-emerald-900 px-3.5 py-1.5 rounded-full cursor-pointer transition-all"
+                    className="bg-white hover:bg-zinc-100/50 text-[10.5px] font-sans font-bold border border-zinc-100 text-zinc-900 px-3.5 py-1.5 rounded-full cursor-pointer transition-all"
                   >
                     {kw}
                   </button>
@@ -497,14 +497,14 @@ export const DynamicPageRenderer: React.FC<DynamicPageRendererProps> = ({
                         if (onSearch) onSearch(league.searchQuery || league.name);
                         else setCurrentPage('listing');
                       }}
-                      className="bg-white hover:bg-emerald-50/80 border border-emerald-100 rounded-lg sm:rounded-2xl p-1.5 sm:p-5 text-center cursor-pointer transition-all duration-300 group hover:scale-[1.02] flex flex-col items-center justify-between min-h-[78px] sm:min-h-[160px]"
+                      className="bg-white hover:bg-zinc-50/80 border border-zinc-100 rounded-lg sm:rounded-2xl p-1.5 sm:p-5 text-center cursor-pointer transition-all duration-300 group hover:scale-[1.02] flex flex-col items-center justify-between min-h-[78px] sm:min-h-[160px]"
                     >
                       <div className="h-8 w-8 sm:h-16 sm:w-16 mb-1 sm:mb-3 flex items-center justify-center overflow-hidden rounded-md bg-white">
                         <LeagueLogo league={league} className="h-8 w-8 sm:h-16 sm:w-16 group-hover:scale-105 transition-transform duration-300" />
                       </div>
                       <div className="min-w-0 w-full px-0.5">
-                        <h4 className="text-[8px] sm:text-xs font-black text-emerald-950 uppercase leading-tight line-clamp-2">{league.name}</h4>
-                        <span className="text-[7px] sm:text-[10px] text-emerald-700 font-mono font-bold mt-0.5 block">
+                        <h4 className="text-[8px] sm:text-xs font-black text-zinc-950 uppercase leading-tight line-clamp-2">{league.name}</h4>
+                        <span className="text-[7px] sm:text-[10px] text-zinc-700 font-mono font-bold mt-0.5 block">
                           <span className="sm:hidden">{displayCount}</span>
                           <span className="hidden sm:inline">{displayCount} verified jerseys</span>
                         </span>
@@ -540,7 +540,7 @@ export const DynamicPageRenderer: React.FC<DynamicPageRendererProps> = ({
                           if (onSearch) onSearch(club.searchQuery || club.name);
                           else setCurrentPage('listing');
                         }}
-                        className="bg-white hover:bg-emerald-50/80 border border-emerald-100 rounded-lg sm:rounded-2xl p-1.5 sm:p-5 text-center cursor-pointer transition-all duration-300 group hover:scale-[1.02] flex flex-col items-center justify-between min-h-[78px] sm:min-h-[160px]"
+                        className="bg-white hover:bg-zinc-50/80 border border-zinc-100 rounded-lg sm:rounded-2xl p-1.5 sm:p-5 text-center cursor-pointer transition-all duration-300 group hover:scale-[1.02] flex flex-col items-center justify-between min-h-[78px] sm:min-h-[160px]"
                       >
                         <div className="h-8 w-8 sm:h-16 sm:w-16 mb-1 sm:mb-3 flex items-center justify-center overflow-hidden rounded-md bg-white">
                           <img
@@ -552,10 +552,10 @@ export const DynamicPageRenderer: React.FC<DynamicPageRendererProps> = ({
                           />
                         </div>
                         <div className="min-w-0 w-full px-0.5">
-                          <h4 className="text-[8px] sm:text-xs font-black text-emerald-950 uppercase leading-tight line-clamp-2">
+                          <h4 className="text-[8px] sm:text-xs font-black text-zinc-950 uppercase leading-tight line-clamp-2">
                             {club.name}
                           </h4>
-                          <span className="text-[7px] sm:text-[10px] text-emerald-700 font-mono font-bold mt-0.5 block">
+                          <span className="text-[7px] sm:text-[10px] text-zinc-700 font-mono font-bold mt-0.5 block">
                             <span className="sm:hidden">{count}</span>
                             <span className="hidden sm:inline">{count} verified jerseys</span>
                           </span>
@@ -576,33 +576,33 @@ export const DynamicPageRenderer: React.FC<DynamicPageRendererProps> = ({
                   </div>
                   
                   {/* Countdown Timer Visual */}
-                  <div className="space-y-4 md:border-r border-emerald-100 pr-0 md:pr-10 shrink-0">
+                  <div className="space-y-4 md:border-r border-zinc-100 pr-0 md:pr-10 shrink-0">
                     <span className="bg-amber-100 text-amber-800 text-[10px] font-mono tracking-widest px-3 py-1 rounded-full font-extrabold uppercase">
                       {activeFlashDeal.deal.isHotDeal ? '🔥 HOT DEAL' : 'HURRY! LIMITED OFFER'}
                     </span>
-                    <h3 className="text-2xl font-black text-emerald-950 uppercase leading-tight font-display">
+                    <h3 className="text-2xl font-black text-zinc-950 uppercase leading-tight font-display">
                       {section.title || 'HOT DEALS'}
                     </h3>
-                    <p className="text-xs text-emerald-800 leading-relaxed max-w-sm">
+                    <p className="text-xs text-zinc-800 leading-relaxed max-w-sm">
                       {flashDeals.length > 1
                         ? `Admin-picked hot deals — ${flashDeals.length} kits with fixed flash prices. Switch kits below to claim yours.`
                         : 'Admin-picked flash price on a coveted kit. Once the timer hits zero, this offer can change.'}
                     </p>
                     
                     <div className="flex gap-2 font-mono text-center">
-                      <div className="bg-emerald-950 text-white p-2.5 rounded-lg min-w-[50px]">
+                      <div className="bg-zinc-950 text-white p-2.5 rounded-lg min-w-[50px]">
                         <span className="block font-black text-base">{String(dealTimeLeft.hrs).padStart(2, '0')}</span>
-                        <span className="text-[8px] text-emerald-400">HRS</span>
+                        <span className="text-[8px] text-zinc-400">HRS</span>
                       </div>
-                      <span className="text-emerald-950 font-black self-center text-lg">:</span>
-                      <div className="bg-emerald-950 text-white p-2.5 rounded-lg min-w-[50px]">
+                      <span className="text-zinc-950 font-black self-center text-lg">:</span>
+                      <div className="bg-zinc-950 text-white p-2.5 rounded-lg min-w-[50px]">
                         <span className="block font-black text-base">{String(dealTimeLeft.mins).padStart(2, '0')}</span>
-                        <span className="text-[8px] text-emerald-400">MINS</span>
+                        <span className="text-[8px] text-zinc-400">MINS</span>
                       </div>
-                      <span className="text-emerald-950 font-black self-center text-lg">:</span>
-                      <div className="bg-emerald-950 text-white p-2.5 rounded-lg min-w-[50px]">
+                      <span className="text-zinc-950 font-black self-center text-lg">:</span>
+                      <div className="bg-zinc-950 text-white p-2.5 rounded-lg min-w-[50px]">
                         <span className="block font-black text-base">{String(dealTimeLeft.secs).padStart(2, '0')}</span>
-                        <span className="text-[8px] text-emerald-400">SECS</span>
+                        <span className="text-[8px] text-zinc-400">SECS</span>
                       </div>
                     </div>
                   </div>
@@ -621,10 +621,10 @@ export const DynamicPageRenderer: React.FC<DynamicPageRendererProps> = ({
                               className={`shrink-0 flex items-center gap-2 rounded-xl border px-2.5 py-1.5 cursor-pointer transition-colors ${
                                 selected
                                   ? 'border-amber-500 bg-amber-50'
-                                  : 'border-emerald-100 bg-white hover:bg-emerald-50/60'
+                                  : 'border-zinc-100 bg-white hover:bg-zinc-50/60'
                               }`}
                             >
-                              <div className="h-10 w-8 rounded-md bg-emerald-50 overflow-hidden flex items-center justify-center">
+                              <div className="h-10 w-8 rounded-md bg-zinc-50 overflow-hidden flex items-center justify-center">
                                 <JerseyRenderer
                                   productId={product.id}
                                   uploadedImage={product.uploadedImage}
@@ -632,7 +632,7 @@ export const DynamicPageRenderer: React.FC<DynamicPageRendererProps> = ({
                                 />
                               </div>
                               <div className="text-left max-w-[120px]">
-                                <p className="text-[9px] font-black text-emerald-950 uppercase truncate leading-tight">
+                                <p className="text-[9px] font-black text-zinc-950 uppercase truncate leading-tight">
                                   {deal.isHotDeal ? 'HOT · ' : ''}
                                   {product.name}
                                 </p>
@@ -647,7 +647,7 @@ export const DynamicPageRenderer: React.FC<DynamicPageRendererProps> = ({
                     )}
 
                     <div className="flex flex-col sm:flex-row items-center gap-6">
-                      <div className="h-44 w-36 rounded-xl bg-emerald-50/50 p-2 border border-emerald-100 flex items-center justify-center relative">
+                      <div className="h-44 w-36 rounded-xl bg-zinc-50 p-2 border border-zinc-100 flex items-center justify-center relative">
                         {activeFlashDeal.deal.isHotDeal && (
                           <span className="absolute -top-2 -left-2 z-10 bg-amber-500 text-white text-[8px] font-black uppercase tracking-wider px-2 py-0.5 rounded-full flex items-center gap-0.5 shadow">
                             <Flame size={10} /> Hot Deal
@@ -673,10 +673,10 @@ export const DynamicPageRenderer: React.FC<DynamicPageRendererProps> = ({
                             />
                           ))}
                         </div>
-                        <h4 className="text-base font-extrabold text-emerald-950 uppercase leading-snug">
+                        <h4 className="text-base font-extrabold text-zinc-950 uppercase leading-snug">
                           {activeFlashDeal.product.name}
                         </h4>
-                        <p className="text-[10px] text-emerald-700 font-mono">
+                        <p className="text-[10px] text-zinc-700 font-mono">
                           Size Available:{' '}
                           {(activeFlashDeal.product.sizes || []).join(', ') || 'M, L'} •{' '}
                           {activeFlashDeal.product.condition} Condition
@@ -689,8 +689,8 @@ export const DynamicPageRenderer: React.FC<DynamicPageRendererProps> = ({
                               onClick={() => setDealSize(sz)}
                               className={`h-8 w-8 rounded-lg text-[10px] font-black border cursor-pointer ${
                                 dealSize === sz
-                                  ? 'bg-emerald-800 border-emerald-800 text-white'
-                                  : 'bg-white border-emerald-200 text-emerald-900'
+                                  ? 'bg-black border-zinc-900 text-white'
+                                  : 'bg-white border-zinc-200 text-zinc-900'
                               }`}
                             >
                               {sz}
@@ -726,7 +726,7 @@ export const DynamicPageRenderer: React.FC<DynamicPageRendererProps> = ({
                                   {formatPrice(dealPrice)}
                                 </span>
                                 {compareAt > dealPrice && (
-                                  <span className="text-xs text-emerald-700 line-through font-bold">
+                                  <span className="text-xs text-zinc-700 line-through font-bold">
                                     {formatPrice(compareAt)}
                                   </span>
                                 )}
@@ -736,32 +736,23 @@ export const DynamicPageRenderer: React.FC<DynamicPageRendererProps> = ({
                                   </span>
                                 )}
                               </div>
-                              <div className="w-full bg-emerald-100 rounded-full h-1.5 overflow-hidden">
+                              <div className="w-full bg-zinc-100 rounded-full h-1.5 overflow-hidden">
                                 <div
                                   className="bg-amber-500 h-full transition-all"
                                   style={{ width: `${claimed}%` }}
                                 />
                               </div>
-                              <div className="flex justify-between text-[9px] font-mono text-emerald-800">
-                                <span>Only {stockLeft} items left in Bailey Road store</span>
+                              <div className="flex justify-between text-[9px] font-mono text-zinc-700">
+                                <span>Limited stock — claim while available</span>
                                 <span className="font-bold">{claimed}% Claimed</span>
                               </div>
-                              <div className="grid grid-cols-2 gap-2">
-                                <button
-                                  type="button"
-                                  onClick={() => handleQuickAdd(pricedProduct, dealSize, 1)}
-                                  className="bg-emerald-50 hover:bg-emerald-100 text-emerald-800 border border-emerald-200 font-extrabold text-xs uppercase tracking-widest px-4 py-2.5 rounded-xl cursor-pointer w-full transition-all flex items-center justify-center gap-1.5"
-                                >
-                                  <ShoppingCart size={13} /> ADD TO CART
-                                </button>
-                                <button
-                                  type="button"
-                                  onClick={() => handleCheckoutDirectly(pricedProduct, dealSize, 1)}
-                                  className="bg-emerald-800 hover:bg-emerald-900 text-white font-extrabold text-xs uppercase tracking-widest px-4 py-2.5 rounded-xl cursor-pointer w-full transition-all"
-                                >
-                                  CLAIM DEAL
-                                </button>
-                              </div>
+                              <button
+                                type="button"
+                                onClick={() => onSelectProduct?.(pricedProduct)}
+                                className="bg-black hover:bg-zinc-800 text-white font-extrabold text-xs uppercase tracking-widest px-4 py-2.5 rounded-xl cursor-pointer w-full transition-all flex items-center justify-center gap-1.5"
+                              >
+                                See More
+                              </button>
                             </>
                           );
                         })()}
@@ -779,7 +770,7 @@ export const DynamicPageRenderer: React.FC<DynamicPageRendererProps> = ({
               const ctaLabel = section.buttonText || 'VIEW ALL';
               return (
                 <div className="max-w-7xl mx-auto px-4 sm:px-6 space-y-6">
-                  <div className="flex justify-between items-end border-b border-emerald-100 pb-3">
+                  <div className="flex justify-between items-end border-b border-zinc-100 pb-3">
                     <div>
                       <h2 className={`text-xl md:text-2xl font-black uppercase tracking-tight ${headingColor}`}>
                         {section.title || section.name}
@@ -795,7 +786,7 @@ export const DynamicPageRenderer: React.FC<DynamicPageRendererProps> = ({
                           if (category) setCurrentPage(category);
                           else setCurrentPage(section.buttonUrl || 'listing');
                         }}
-                        className="text-xs font-bold font-mono text-emerald-800 hover:text-emerald-900 flex items-center gap-1 cursor-pointer"
+                        className="text-xs font-bold font-mono text-zinc-800 hover:text-black flex items-center gap-1 cursor-pointer"
                       >
                         {ctaLabel} <ArrowRight size={12} />
                       </button>
@@ -845,19 +836,19 @@ export const DynamicPageRenderer: React.FC<DynamicPageRendererProps> = ({
                       key={prod.id}
                       type="button"
                       onClick={() => onSelectProduct(prod)}
-                      className="bg-white border border-emerald-100 rounded-2xl overflow-hidden relative group shadow-sm text-left cursor-pointer hover:border-emerald-400 hover:-translate-y-1 transition-all"
+                      className="bg-white border border-zinc-100 rounded-2xl overflow-hidden relative group shadow-sm text-left cursor-pointer hover:border-zinc-900 hover:-translate-y-1 transition-all"
                     >
-                      <div className="h-48 w-full bg-gradient-to-b from-emerald-50 to-white flex items-center justify-center p-4 relative overflow-hidden">
+                      <div className="h-48 w-full bg-gradient-to-b from-zinc-800 to-white flex items-center justify-center p-4 relative overflow-hidden">
                         <div className="absolute inset-0 opacity-30 bg-[radial-gradient(circle_at_30%_20%,rgba(16,185,129,0.35),transparent_55%)]" />
                         <div className="relative z-10 w-full max-w-[140px] transform group-hover:scale-105 transition-transform duration-300">
                           <JerseyRenderer productId={prod.id} uploadedImage={prod.uploadedImage} imageKey={prod.image} />
                         </div>
                       </div>
-                      <div className="px-3 py-3 border-t border-emerald-50 space-y-1">
-                        <span className="text-[9px] font-mono font-black text-emerald-700 uppercase tracking-wider">
+                      <div className="px-3 py-3 border-t border-zinc-50 space-y-1">
+                        <span className="text-[9px] font-mono font-black text-zinc-700 uppercase tracking-wider">
                           {prod.brand} • Bailey Road #{idx + 1}
                         </span>
-                        <h4 className="text-[11px] font-black text-emerald-950 uppercase leading-snug line-clamp-2">
+                        <h4 className="text-[11px] font-black text-zinc-950 uppercase leading-snug line-clamp-2">
                           {prod.name}
                         </h4>
                       </div>
@@ -880,14 +871,14 @@ export const DynamicPageRenderer: React.FC<DynamicPageRendererProps> = ({
                     { id: 2, name: 'Fahim Chowdhury', quote: 'Been looking for the Spain 2026 Yamal jersey for literal years. Finally secured it at Epic Vanskap BD with custom physics certificates. Unrivaled experience.', rating: 5, date: '2026-07-08' },
                     { id: 3, name: 'Anika Bushra', quote: 'Extremely fast delivery inside Dhaka (secured within 24 hours). The vacuum packaging smelled wonderful, complete with care instructions.', rating: 5, date: '2026-07-05' }
                   ].map((t) => (
-                    <div key={t.id} className="bg-white border border-emerald-100 p-5 rounded-2xl space-y-3 relative shadow-sm">
+                    <div key={t.id} className="bg-white border border-zinc-100 p-5 rounded-2xl space-y-3 relative shadow-sm">
                       <div className="flex gap-1 text-amber-500">
                         {[...Array(t.rating)].map((_, i) => <Star key={i} size={11} className="fill-amber-500 text-amber-500" />)}
                       </div>
-                      <p className="text-emerald-800 text-[11.5px] italic leading-relaxed">"{t.quote}"</p>
-                      <div className="border-t border-emerald-100 pt-2 flex justify-between items-center text-[10px] font-mono">
-                        <span className="text-emerald-950 font-bold">{t.name.toUpperCase()}</span>
-                        <span className="text-emerald-700 font-bold">✓ VERIFIED COLLECTOR</span>
+                      <p className="text-zinc-800 text-[11.5px] italic leading-relaxed">"{t.quote}"</p>
+                      <div className="border-t border-zinc-100 pt-2 flex justify-between items-center text-[10px] font-mono">
+                        <span className="text-zinc-950 font-bold">{t.name.toUpperCase()}</span>
+                        <span className="text-zinc-700 font-bold">✓ VERIFIED COLLECTOR</span>
                       </div>
                     </div>
                   ))}
@@ -920,9 +911,9 @@ export const DynamicPageRenderer: React.FC<DynamicPageRendererProps> = ({
                           if (onSearch) onSearch(team.searchQuery || team.name);
                           else setCurrentPage('listing');
                         }}
-                        className="bg-white hover:bg-emerald-50/80 border border-emerald-100 rounded-md sm:rounded-2xl p-1 sm:p-5 text-center cursor-pointer transition-all duration-300 group hover:scale-[1.02] flex flex-col items-center justify-between min-h-[68px] sm:min-h-[160px]"
+                        className="bg-white hover:bg-zinc-50/80 border border-zinc-100 rounded-md sm:rounded-2xl p-1 sm:p-5 text-center cursor-pointer transition-all duration-300 group hover:scale-[1.02] flex flex-col items-center justify-between min-h-[68px] sm:min-h-[160px]"
                       >
-                        <div className="h-6 w-9 sm:h-12 sm:w-[5rem] mb-0.5 sm:mb-3 flex items-center justify-center overflow-hidden rounded bg-white border border-emerald-100 shrink-0">
+                        <div className="h-6 w-9 sm:h-12 sm:w-[5rem] mb-0.5 sm:mb-3 flex items-center justify-center overflow-hidden rounded bg-white border border-zinc-100 shrink-0">
                           <img
                             src={team.flagUrl}
                             alt={`${team.name} flag`}
@@ -932,10 +923,10 @@ export const DynamicPageRenderer: React.FC<DynamicPageRendererProps> = ({
                           />
                         </div>
                         <div className="min-w-0 w-full px-0.5">
-                          <h4 className="text-[7px] sm:text-xs font-black text-emerald-950 uppercase leading-tight line-clamp-2">
+                          <h4 className="text-[7px] sm:text-xs font-black text-zinc-950 uppercase leading-tight line-clamp-2">
                             {team.name}
                           </h4>
-                          <span className="text-[6px] sm:text-[10px] text-emerald-700 font-mono font-bold mt-0.5 block">
+                          <span className="text-[6px] sm:text-[10px] text-zinc-700 font-mono font-bold mt-0.5 block">
                             <span className="sm:hidden">{count}</span>
                             <span className="hidden sm:inline">{count} verified jerseys</span>
                           </span>
@@ -980,11 +971,11 @@ export const DynamicPageRenderer: React.FC<DynamicPageRendererProps> = ({
                         },
                       ]
                   ).map((loc) => (
-                    <div key={loc.city} className="bg-white border border-emerald-100 p-6 rounded-2xl space-y-3 shadow-sm relative">
-                      <span className="absolute top-4 right-4 text-emerald-800"><MapPin size={20} /></span>
-                      <h4 className="text-xs font-black text-emerald-950 uppercase">{loc.city}</h4>
-                      <p className="text-[11px] text-emerald-800 leading-relaxed font-sans">{loc.address}</p>
-                      <div className="text-[9px] font-mono text-emerald-700 space-y-1 pt-2 border-t border-emerald-50">
+                    <div key={loc.city} className="bg-white border border-zinc-100 p-6 rounded-2xl space-y-3 shadow-sm relative">
+                      <span className="absolute top-4 right-4 text-zinc-800"><MapPin size={20} /></span>
+                      <h4 className="text-xs font-black text-zinc-950 uppercase">{loc.city}</h4>
+                      <p className="text-[11px] text-zinc-800 leading-relaxed font-sans">{loc.address}</p>
+                      <div className="text-[9px] font-mono text-zinc-700 space-y-1 pt-2 border-t border-zinc-50">
                         <span className="block">HOURS: {loc.hours}</span>
                         <span className="block">TELEPHONE: {loc.phone}</span>
                       </div>
@@ -1000,8 +991,8 @@ export const DynamicPageRenderer: React.FC<DynamicPageRendererProps> = ({
 
       {/* DYNAMIC POPUP BANNER MODAL OVERLAY */}
       {showPopupBanner && activePopupBanner && (
-        <div className="fixed inset-0 z-50 bg-emerald-950/85 backdrop-blur-md flex items-center justify-center p-4 animate-in fade-in duration-300">
-          <div className="bg-white border border-emerald-100 rounded-3xl max-w-lg w-full overflow-hidden shadow-2xl relative my-auto">
+        <div className="fixed inset-0 z-50 bg-zinc-950/85 backdrop-blur-md flex items-center justify-center p-4 animate-in fade-in duration-300">
+          <div className="bg-white border border-zinc-100 rounded-3xl max-w-lg w-full overflow-hidden shadow-2xl relative my-auto">
             <button
               onClick={() => setShowPopupBanner(false)}
               className="absolute top-4 right-4 z-20 bg-black/60 hover:bg-black text-white p-2 rounded-full backdrop-blur-md transition-all cursor-pointer"
@@ -1010,7 +1001,7 @@ export const DynamicPageRenderer: React.FC<DynamicPageRendererProps> = ({
               <X size={16} />
             </button>
 
-            <div className="relative h-56 bg-emerald-950 overflow-hidden">
+            <div className="relative h-56 bg-zinc-950 overflow-hidden">
               <picture className="w-full h-full">
                 {activePopupBanner.desktopImage && <source media="(min-width: 1024px)" srcSet={activePopupBanner.desktopImage} />}
                 {activePopupBanner.tabletImage && <source media="(min-width: 640px)" srcSet={activePopupBanner.tabletImage} />}
@@ -1025,8 +1016,8 @@ export const DynamicPageRenderer: React.FC<DynamicPageRendererProps> = ({
                   className="w-full h-full object-cover opacity-80"
                 />
               </picture>
-              <div className="absolute inset-0 bg-gradient-to-t from-emerald-950 via-emerald-950/30 to-transparent p-6 flex flex-col justify-end">
-                <span className="bg-emerald-500 text-emerald-950 text-[9px] font-mono tracking-widest px-3 py-1 rounded-full font-black uppercase w-max mb-1">
+              <div className="absolute inset-0 bg-gradient-to-t from-zinc-950 via-zinc-900/40 to-transparent p-6 flex flex-col justify-end">
+                <span className="bg-zinc-500 text-zinc-950 text-[9px] font-mono tracking-widest px-3 py-1 rounded-full font-black uppercase w-max mb-1">
                   {activePopupBanner.subtitle || 'LIMITED EDITION PROMO'}
                 </span>
                 <h3 className="text-2xl font-black text-white uppercase tracking-tight font-display">
@@ -1036,7 +1027,7 @@ export const DynamicPageRenderer: React.FC<DynamicPageRendererProps> = ({
             </div>
 
             <div className="p-6 space-y-4 text-center">
-              <p className="text-xs text-emerald-800 leading-relaxed font-sans">
+              <p className="text-xs text-zinc-800 leading-relaxed font-sans">
                 {activePopupBanner.description || 'Exclusive deal offer available now for vault members.'}
               </p>
 
@@ -1057,13 +1048,13 @@ export const DynamicPageRenderer: React.FC<DynamicPageRendererProps> = ({
                       openNewTab: activePopupBanner.openNewTab,
                     });
                   }}
-                  className="bg-emerald-800 hover:bg-emerald-900 text-white font-extrabold text-xs uppercase tracking-widest py-3.5 px-6 rounded-xl transition-all cursor-pointer shadow-md hover:scale-[1.02]"
+                  className="bg-black hover:bg-zinc-800 text-white font-extrabold text-xs uppercase tracking-widest py-3.5 px-6 rounded-xl transition-all cursor-pointer shadow-md hover:scale-[1.02]"
                 >
                   {activePopupBanner.cta || activePopupBanner.ctaText || 'CLAIM EXCLUSIVE ACCESS'}
                 </button>
                 <button
                   onClick={() => setShowPopupBanner(false)}
-                  className="text-[10px] font-mono text-emerald-700 hover:underline uppercase py-1"
+                  className="text-[10px] font-mono text-zinc-700 hover:underline uppercase py-1"
                 >
                   No thanks, continue browsing
                 </button>

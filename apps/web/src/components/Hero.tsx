@@ -204,7 +204,7 @@ export const Hero: React.FC<HeroProps> = ({
       default:
         return (
           <svg viewBox="0 0 100 120" className="w-16 h-20 md:w-20 md:h-24 filter drop-shadow-md mx-auto">
-            <path d="M 50 15 Q 40 5, 25 15 L 10 35 L 20 45 L 30 38 L 30 110 Q 50 115, 70 110 L 70 38 L 80 45 L 90 35 L 75 15 Q 60 5, 50 15 Z" fill="#047857" />
+            <path d="M 50 15 Q 40 5, 25 15 L 10 35 L 20 45 L 30 38 L 30 110 Q 50 115, 70 110 L 70 38 L 80 45 L 90 35 L 75 15 Q 60 5, 50 15 Z" fill="#18181b" />
           </svg>
         );
     }
@@ -215,36 +215,36 @@ export const Hero: React.FC<HeroProps> = ({
       
       {/* COUNTDOWN TIMER BAR ABOVE SLIDER */}
       {(appConfig?.timerEnabled !== false) && (
-        <div className="w-full bg-slate-50/50 border-b border-emerald-100/50 py-3 px-2 sm:px-4 flex justify-center items-center">
-          <div className="inline-flex items-center justify-center gap-1 sm:gap-2.5 bg-white border-2 border-emerald-600/90 text-[9px] min-[480px]:text-[10px] sm:text-xs font-bold text-emerald-950 px-3 py-1.5 sm:px-6 sm:py-2.5 rounded-full shadow-md animate-fadeIn max-w-full">
-            <span className="text-emerald-700 font-mono flex items-center gap-0.5 sm:gap-1 flex-shrink-0">
+        <div className="w-full bg-slate-50/50 border-b border-zinc-100 py-3 px-2 sm:px-4 flex justify-center items-center">
+          <div className="inline-flex items-center justify-center gap-1 sm:gap-2.5 bg-white border-2 border-zinc-900/90 text-[9px] min-[480px]:text-[10px] sm:text-xs font-bold text-zinc-950 px-3 py-1.5 sm:px-6 sm:py-2.5 rounded-full shadow-md animate-fadeIn max-w-full">
+            <span className="text-zinc-700 font-mono flex items-center gap-0.5 sm:gap-1 flex-shrink-0">
               <span className="text-xs sm:text-sm leading-none">{team1Emoji}</span> <span className="uppercase tracking-tight">{team1}</span>
             </span>
-            <span className="text-emerald-200 font-light mx-0.5 sm:mx-1.5">|</span>
-            <span className="text-emerald-800 font-black tracking-wider uppercase text-[8px] sm:text-[10px] truncate max-w-[80px] min-[480px]:max-w-none">
+            <span className="text-zinc-300 font-light mx-0.5 sm:mx-1.5">|</span>
+            <span className="text-zinc-800 font-black tracking-wider uppercase text-[8px] sm:text-[10px] truncate max-w-[80px] min-[480px]:max-w-none">
               {timerLabel}
             </span>
-            <span className="text-emerald-200 font-light mx-0.5 sm:mx-1.5">|</span>
-            <span className="font-mono text-emerald-950 tracking-tight sm:tracking-wider text-[10px] sm:text-xs font-black flex items-center gap-0.5 sm:gap-1 justify-center">
+            <span className="text-zinc-300 font-light mx-0.5 sm:mx-1.5">|</span>
+            <span className="font-mono text-zinc-950 tracking-tight sm:tracking-wider text-[10px] sm:text-xs font-black flex items-center gap-0.5 sm:gap-1 justify-center">
               <span>{pad(timer.days)}</span>
-              <span className="text-[8px] sm:text-[9px] text-emerald-600 font-mono font-bold lowercase mr-0.5 sm:mr-1">
+              <span className="text-[8px] sm:text-[9px] text-zinc-600 font-mono font-bold lowercase mr-0.5 sm:mr-1">
                 <span className="hidden min-[480px]:inline">days</span><span className="min-[480px]:hidden">d</span>
               </span>
               <span>{pad(timer.hours)}</span>
-              <span className="text-[8px] sm:text-[9px] text-emerald-600 font-mono font-bold lowercase mr-0.5 sm:mr-1">
+              <span className="text-[8px] sm:text-[9px] text-zinc-600 font-mono font-bold lowercase mr-0.5 sm:mr-1">
                 <span className="hidden min-[480px]:inline">hours</span><span className="min-[480px]:hidden">h</span>
               </span>
               <span>{pad(timer.minutes)}</span>
-              <span className="text-[8px] sm:text-[9px] text-emerald-600 font-mono font-bold lowercase mr-0.5 sm:mr-1">
+              <span className="text-[8px] sm:text-[9px] text-zinc-600 font-mono font-bold lowercase mr-0.5 sm:mr-1">
                 <span className="hidden min-[480px]:inline">mins</span><span className="min-[480px]:hidden">m</span>
               </span>
               <span>{pad(timer.seconds)}</span>
-              <span className="text-[8px] sm:text-[9px] text-emerald-600 font-mono font-bold lowercase">
+              <span className="text-[8px] sm:text-[9px] text-zinc-600 font-mono font-bold lowercase">
                 <span className="hidden min-[480px]:inline">secs</span><span className="min-[480px]:hidden">s</span>
               </span>
             </span>
-            <span className="text-emerald-200 font-light mx-0.5 sm:mx-1.5">|</span>
-            <span className="text-emerald-700 font-mono flex items-center gap-0.5 sm:gap-1 flex-shrink-0">
+            <span className="text-zinc-300 font-light mx-0.5 sm:mx-1.5">|</span>
+            <span className="text-zinc-700 font-mono flex items-center gap-0.5 sm:gap-1 flex-shrink-0">
               <span className="uppercase tracking-tight">{team2}</span> <span className="text-xs sm:text-sm leading-none">{team2Emoji}</span>
             </span>
           </div>
@@ -272,7 +272,7 @@ export const Hero: React.FC<HeroProps> = ({
               
               {/* Bottom-Left content */}
               <div className="space-y-2 md:space-y-3 animate-fadeIn text-left max-w-2xl">
-                <span className="bg-emerald-600 text-white font-mono font-black text-[9px] md:text-[10px] tracking-widest uppercase px-2.5 py-1 rounded inline-block">
+                <span className="bg-zinc-800 text-white font-mono font-black text-[9px] md:text-[10px] tracking-widest uppercase px-2.5 py-1 rounded inline-block">
                   {currentSlide.badge || 'Epic Vanskap BD ORIGINAL'}
                 </span>
                 <h1 className="text-3xl sm:text-4xl md:text-5xl lg:text-6xl font-black tracking-tight leading-none uppercase">
@@ -335,34 +335,34 @@ export const Hero: React.FC<HeroProps> = ({
       </section>
 
       {/* 2. VALUE PROPS RIBBON (CFS BRAND GREEN BAR) */}
-      <section className="bg-emerald-900 border-t border-b border-emerald-800 py-3 text-white text-[11px] md:text-xs font-extrabold uppercase tracking-widest shadow-inner">
-        <div className="max-w-7xl mx-auto px-6 md:px-12 flex flex-col md:flex-row justify-between items-center gap-2 text-center text-emerald-100">
+      <section className="bg-zinc-900 border-t border-b border-zinc-900 py-3 text-white text-[11px] md:text-xs font-extrabold uppercase tracking-widest shadow-inner">
+        <div className="max-w-7xl mx-auto px-6 md:px-12 flex flex-col md:flex-row justify-between items-center gap-2 text-center text-zinc-100">
           <div className="flex items-center gap-2">
             <Star className="w-3.5 h-3.5 text-amber-400 fill-amber-400" />
             <span>Rated Excellent on Trustpilot</span>
           </div>
-          <span className="hidden md:inline text-emerald-800">•</span>
+          <span className="hidden md:inline text-zinc-800">•</span>
           <div className="flex items-center gap-2">
-            <Users className="w-3.5 h-3.5 text-emerald-300" />
+            <Users className="w-3.5 h-3.5 text-zinc-300" />
             <span>A community of over 2 million</span>
           </div>
-          <span className="hidden md:inline text-emerald-800">•</span>
+          <span className="hidden md:inline text-zinc-800">•</span>
           <div className="flex items-center gap-2">
-            <Truck className="w-3.5 h-3.5 text-emerald-300" />
+            <Truck className="w-3.5 h-3.5 text-zinc-300" />
             <span>Free domestic shipping on orders over £50</span>
           </div>
         </div>
       </section>
 
       {/* 3. TOP SELLING CLUB JERSEYS HORIZONTAL SELECTOR ROW */}
-      <section className="bg-white py-12 border-b border-emerald-100">
+      <section className="bg-white py-12 border-b border-zinc-100">
         <div className="max-w-7xl mx-auto px-6 md:px-12 space-y-8">
           
-          <div className="text-center md:text-left border-b border-emerald-100 pb-4">
-            <h2 className="text-2xl font-black uppercase tracking-tight text-emerald-950 font-sans">
+          <div className="text-center md:text-left border-b border-zinc-100 pb-4">
+            <h2 className="text-2xl font-black uppercase tracking-tight text-zinc-950 font-sans">
               Top Selling Club Jerseys
             </h2>
-            <div className="h-1 w-16 bg-emerald-800 mt-2 mx-auto md:mx-0" />
+            <div className="h-1 w-16 bg-black mt-2 mx-auto md:mx-0" />
           </div>
 
           {/* Horizontally aligned elegant club kit columns */}
@@ -378,10 +378,10 @@ export const Hero: React.FC<HeroProps> = ({
               <div
                 key={idx}
                 onClick={() => onExplore(team.cat)}
-                className="group flex flex-col items-center justify-center space-y-3 cursor-pointer p-4 rounded-2xl bg-emerald-50/50 border border-emerald-100 hover:border-emerald-500 transition-all hover:-translate-y-1.5 duration-300"
+                className="group flex flex-col items-center justify-center space-y-3 cursor-pointer p-4 rounded-2xl bg-zinc-50 border border-zinc-100 hover:border-zinc-900 transition-all hover:-translate-y-1.5 duration-300"
               >
                 {renderClubJersey(team.name)}
-                <span className="text-[11px] font-black uppercase tracking-wider text-emerald-950 group-hover:text-emerald-700 text-center transition-colors">
+                <span className="text-[11px] font-black uppercase tracking-wider text-zinc-950 group-hover:text-zinc-700 text-center transition-colors">
                   {team.name}
                 </span>
               </div>
@@ -392,10 +392,10 @@ export const Hero: React.FC<HeroProps> = ({
       </section>
 
       {/* 4. TRENDING SEARCHES SECTION */}
-      <section className="bg-emerald-50/30 py-8 border-b border-emerald-100">
+      <section className="bg-zinc-50 py-8 border-b border-zinc-100">
         <div className="max-w-7xl mx-auto px-6 md:px-12 space-y-4">
           <div className="flex flex-col md:flex-row items-center gap-3">
-            <span className="text-[10px] font-mono font-black text-emerald-850 uppercase tracking-widest bg-emerald-100 px-3 py-1 rounded border border-emerald-200 flex-shrink-0">
+            <span className="text-[10px] font-mono font-black text-zinc-800 uppercase tracking-widest bg-zinc-100 px-3 py-1 rounded border border-zinc-200 flex-shrink-0">
               Trending Searches
             </span>
             <div className="flex flex-wrap gap-2.5 justify-center md:justify-start">
@@ -413,7 +413,7 @@ export const Hero: React.FC<HeroProps> = ({
                   key={term}
                   type="button"
                   onClick={() => onExplore('All')}
-                  className="bg-white hover:bg-emerald-800 hover:text-white border border-emerald-100 text-[10px] md:text-xs text-emerald-800 font-bold uppercase px-4 py-1.5 rounded-full transition-all duration-200 cursor-pointer"
+                  className="bg-white hover:bg-zinc-900 hover:text-white border border-zinc-100 text-[10px] md:text-xs text-zinc-800 font-bold uppercase px-4 py-1.5 rounded-full transition-all duration-200 cursor-pointer"
                 >
                   {term}
                 </button>

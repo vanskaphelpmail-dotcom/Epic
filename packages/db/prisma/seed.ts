@@ -40,7 +40,7 @@ async function main() {
     update: {
       logoText: "Epic Vanskap",
       footerCopyright: `© ${new Date().getFullYear()} Epic Vanskap`,
-      bkashPersonalNumber: "01840990700",
+      bkashPersonalNumber: "",
       bkashEnabled: true,
     },
     create: {
@@ -52,7 +52,7 @@ async function main() {
       currencySymbol: "৳",
       currencyCode: "BDT",
       exchangeRate: 115,
-      bkashPersonalNumber: "01840990700",
+      bkashPersonalNumber: "",
       bkashEnabled: true,
       deliveryInside: 70,
       deliveryOutside: 130,
@@ -60,37 +60,57 @@ async function main() {
   });
 
   await prisma.storeLocation.upsert({
-    where: { id: "dhaka-hq" },
-    update: {},
+    where: { id: "feni-garden-city" },
+    update: {
+      city: "Feni",
+      address: "Shop no: B: 67-68, 1st Floor, Feni Garden City Market, Feni, 3900",
+      phone: "",
+      hours: "11:00 AM - 09:30 PM (Friday - Wednesday)",
+      sortOrder: 0,
+      isActive: true,
+    },
     create: {
-      id: "dhaka-hq",
-      city: "Dhaka HQ",
-      address: "Shop No. 8, 3rd Floor, AQP Shopping Mall, 143/2 New Bailey Road, Dhaka 1217, Bangladesh",
-      phone: "+880 1840-990700",
+      id: "feni-garden-city",
+      city: "Feni",
+      address: "Shop no: B: 67-68, 1st Floor, Feni Garden City Market, Feni, 3900",
+      phone: "",
       hours: "11:00 AM - 09:30 PM (Friday - Wednesday)",
       sortOrder: 0,
       isActive: true,
     },
   });
 
+  await prisma.storeLocation.updateMany({
+    where: { id: { in: ["dhaka-hq", "savar-outlet"] } },
+    data: { isActive: false },
+  });
+
+  // Keep legacy rows for FK safety but hide them from storefront
+  await prisma.storeLocation.upsert({
+    where: { id: "dhaka-hq" },
+    update: { isActive: false, sortOrder: 99 },
+    create: {
+      id: "dhaka-hq",
+      city: "Dhaka HQ (legacy)",
+      address: "Legacy location — inactive",
+      phone: "",
+      hours: "",
+      sortOrder: 99,
+      isActive: false,
+    },
+  });
+
   await prisma.storeLocation.upsert({
     where: { id: "savar-outlet" },
-    update: {
-      city: "Savar Outlet",
-      address: "B-1, Talbag Thana Road, Savar, Dhaka (Near Chakladar Mahila College)",
-      phone: "+880 1862-252232",
-      hours: "11:00 AM - 09:30 PM (Friday - Wednesday)",
-      sortOrder: 1,
-      isActive: true,
-    },
+    update: { isActive: false, sortOrder: 100 },
     create: {
       id: "savar-outlet",
-      city: "Savar Outlet",
-      address: "B-1, Talbag Thana Road, Savar, Dhaka (Near Chakladar Mahila College)",
-      phone: "+880 1862-252232",
-      hours: "11:00 AM - 09:30 PM (Friday - Wednesday)",
-      sortOrder: 1,
-      isActive: true,
+      city: "Savar Outlet (legacy)",
+      address: "Legacy location — inactive",
+      phone: "",
+      hours: "",
+      sortOrder: 100,
+      isActive: false,
     },
   });
 

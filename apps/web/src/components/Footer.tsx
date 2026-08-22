@@ -64,7 +64,7 @@ export const Footer: React.FC<FooterProps> = ({ currentPage, setCurrentPage, app
     .sort((a, b) => a.order - b.order);
 
   return (
-    <footer className="bg-emerald-50/50 text-emerald-950 border-t border-emerald-100 w-full min-w-0 overflow-x-hidden">
+    <footer className="bg-zinc-50 text-zinc-950 border-t border-zinc-100 w-full min-w-0 overflow-x-hidden">
       
       {/* Main Multi-Column Footer Grid */}
       <div className="max-w-7xl mx-auto px-4 sm:px-6 md:px-12 py-10 sm:py-16 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8 sm:gap-12 text-xs">
@@ -74,35 +74,37 @@ export const Footer: React.FC<FooterProps> = ({ currentPage, setCurrentPage, app
           <div className="flex items-center gap-3">
             <BrandMark className="p-1 rounded-lg" imgClassName="w-7 h-7" />
             <div className="flex items-center gap-1.5">
-              <span className="text-emerald-600 font-sans font-black text-sm uppercase">
+              <span className="text-zinc-600 font-sans font-black text-sm uppercase">
                 Epic
               </span>
-              <span className="text-emerald-950 font-sans font-black text-sm uppercase">
+              <span className="text-zinc-950 font-sans font-black text-sm uppercase">
                 Vanskap
               </span>
             </div>
           </div>
-          <p className="text-emerald-800 leading-relaxed">
+          <p className="text-zinc-800 leading-relaxed">
             {appConfig.footerAbout}
           </p>
-          <div className="flex gap-3 text-emerald-700">
-            <a href="#" className="hover:text-emerald-950 transition-colors"><Instagram size={18} /></a>
-            <a href="#" className="hover:text-emerald-950 transition-colors"><Twitter size={18} /></a>
-            <a href="#" className="hover:text-emerald-950 transition-colors"><Facebook size={18} /></a>
+          <div className="flex gap-3 text-zinc-700">
+            <a href="#" className="hover:text-black transition-colors"><Instagram size={18} /></a>
+            <a href="#" className="hover:text-black transition-colors"><Twitter size={18} /></a>
+            <a href="#" className="hover:text-black transition-colors"><Facebook size={18} /></a>
           </div>
         </div>
 
         {/* Store Locations Column */}
         <div className="space-y-4">
-          <h4 className="font-mono uppercase tracking-widest text-xs font-black text-emerald-700">
+          <h4 className="font-mono uppercase tracking-widest text-xs font-black text-zinc-700">
             Store Locations
           </h4>
           <div className="space-y-3">
             {appConfig.footerLocations.map((loc) => (
-              <div key={loc.city} className="border-l border-emerald-200 pl-3 space-y-1">
-                <p className="font-bold text-emerald-950 uppercase">{loc.city}</p>
-                <p className="text-emerald-800 text-[11px]">{loc.address}</p>
-                <p className="text-[10px] text-emerald-600 font-mono">{loc.phone}</p>
+              <div key={loc.city} className="border-l border-zinc-200 pl-3 space-y-1">
+                <p className="font-bold text-zinc-950 uppercase">{loc.city}</p>
+                <p className="text-zinc-800 text-[11px]">{loc.address}</p>
+                {loc.phone ? (
+                  <p className="text-[10px] text-zinc-600 font-mono">{loc.phone}</p>
+                ) : null}
               </div>
             ))}
           </div>
@@ -110,7 +112,7 @@ export const Footer: React.FC<FooterProps> = ({ currentPage, setCurrentPage, app
 
         {/* Helpful Resources Column (Dynamic Navigation Builder Menu) */}
         <div className="space-y-4">
-          <h4 className="font-mono uppercase tracking-widest text-xs font-black text-emerald-700">
+          <h4 className="font-mono uppercase tracking-widest text-xs font-black text-zinc-700">
             Useful Links
           </h4>
           <ul className="space-y-2.5 font-medium text-xs">
@@ -119,12 +121,12 @@ export const Footer: React.FC<FooterProps> = ({ currentPage, setCurrentPage, app
                 <li key={item.id}>
                   <button
                     onClick={() => handleFooterLinkClick(item.url)}
-                    className="hover:text-emerald-700 text-left transition-colors hover:underline flex items-center gap-2"
+                    className="hover:text-zinc-700 text-left transition-colors hover:underline flex items-center gap-2"
                   >
                     {renderNavIcon(item.icon, 13)}
                     <span>{item.name}</span>
                     {item.badgeText && (
-                      <span className="bg-emerald-800 text-white font-mono text-[8px] font-black px-1.5 py-0.2 rounded">
+                      <span className="bg-black text-white font-mono text-[8px] font-black px-1.5 py-0.2 rounded">
                         {item.badgeText}
                       </span>
                     )}
@@ -134,22 +136,22 @@ export const Footer: React.FC<FooterProps> = ({ currentPage, setCurrentPage, app
             ) : (
               <>
                 <li>
-                  <button onClick={() => setCurrentPage('seller')} className="hover:text-emerald-700 text-left transition-colors hover:underline">
+                  <button onClick={() => setCurrentPage('seller')} className="hover:text-zinc-700 text-left transition-colors hover:underline">
                     Sell Your Shirts (Submit Details)
                   </button>
                 </li>
                 <li>
-                  <button onClick={() => setCurrentPage('faq')} className="hover:text-emerald-700 text-left transition-colors hover:underline">
+                  <button onClick={() => setCurrentPage('faq')} className="hover:text-zinc-700 text-left transition-colors hover:underline">
                     Frequently Asked Questions (FAQ)
                   </button>
                 </li>
                 <li>
-                  <button onClick={() => setCurrentPage('about')} className="hover:text-emerald-700 text-left transition-colors hover:underline">
+                  <button onClick={() => setCurrentPage('about')} className="hover:text-zinc-700 text-left transition-colors hover:underline">
                     About Epic Vanskap / Sourcing Story
                   </button>
                 </li>
                 <li>
-                  <button onClick={() => setCurrentPage('contact')} className="hover:text-emerald-700 text-left transition-colors hover:underline">
+                  <button onClick={() => setCurrentPage('contact')} className="hover:text-zinc-700 text-left transition-colors hover:underline">
                     Contact Customer Care Desk
                   </button>
                 </li>
@@ -160,32 +162,32 @@ export const Footer: React.FC<FooterProps> = ({ currentPage, setCurrentPage, app
 
         {/* Policy & Security Column */}
         <div className="space-y-4">
-          <h4 className="font-mono uppercase tracking-widest text-xs font-black text-emerald-700">
+          <h4 className="font-mono uppercase tracking-widest text-xs font-black text-zinc-700">
             Policy & Security
           </h4>
-          <ul className="space-y-2.5 font-medium text-emerald-800">
+          <ul className="space-y-2.5 font-medium text-zinc-800">
             <li>
-              <button onClick={() => setCurrentPage('privacy')} className="hover:text-emerald-700 text-left transition-colors hover:underline">
+              <button onClick={() => setCurrentPage('privacy')} className="hover:text-zinc-700 text-left transition-colors hover:underline">
                 Privacy & Data Encryption Policy
               </button>
             </li>
             <li>
-              <button onClick={() => setCurrentPage('refund')} className="hover:text-emerald-700 text-left transition-colors hover:underline">
+              <button onClick={() => setCurrentPage('refund')} className="hover:text-zinc-700 text-left transition-colors hover:underline">
                 Refunds & Return Guidelines
               </button>
             </li>
             <li>
-              <button onClick={() => setCurrentPage('terms')} className="hover:text-emerald-700 text-left transition-colors hover:underline">
+              <button onClick={() => setCurrentPage('terms')} className="hover:text-zinc-700 text-left transition-colors hover:underline">
                 Terms of Service & Licensing
               </button>
             </li>
             <li>
-              <button onClick={() => setCurrentPage('shipping')} className="hover:text-emerald-700 text-left transition-colors hover:underline">
+              <button onClick={() => setCurrentPage('shipping')} className="hover:text-zinc-700 text-left transition-colors hover:underline">
                 Shipping Rates & Customs Info
               </button>
             </li>
           </ul>
-          <div className="pt-2 border-t border-emerald-100 flex items-center gap-2 text-[10px] text-emerald-600 font-mono">
+          <div className="pt-2 border-t border-zinc-100 flex items-center gap-2 text-[10px] text-zinc-600 font-mono">
             <ShieldCheck size={14} />
             <span>SSL Secured checkout environment</span>
           </div>
@@ -194,9 +196,9 @@ export const Footer: React.FC<FooterProps> = ({ currentPage, setCurrentPage, app
       </div>
 
       {/* Trademark Legal Bar */}
-      <div className="bg-emerald-100/50 py-6 border-t border-emerald-100 text-center text-[10px] text-emerald-800 tracking-wider uppercase font-mono px-6">
+      <div className="bg-zinc-100 py-6 border-t border-zinc-100 text-center text-[10px] text-zinc-800 tracking-wider uppercase font-mono px-6">
         <p>{appConfig.footerCopyright}</p>
-        <p className="mt-1 text-emerald-700">This platform has NO affiliation with Nike, Adidas, Umbro, or FIFA. All designs are completely original vectors.</p>
+        <p className="mt-1 text-zinc-700">This platform has NO affiliation with Nike, Adidas, Umbro, or FIFA. All designs are completely original vectors.</p>
       </div>
 
     </footer>

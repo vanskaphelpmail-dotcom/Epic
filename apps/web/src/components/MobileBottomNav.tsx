@@ -56,7 +56,7 @@ export const MobileBottomNav: React.FC<MobileBottomNavProps> = ({
 
   const itemClass = (tab: MobileTab) =>
     `flex flex-1 flex-col items-center justify-center gap-0.5 py-1.5 min-w-0 transition-colors cursor-pointer ${
-      active === tab ? 'text-emerald-800' : 'text-zinc-600'
+      active === tab ? 'text-zinc-800' : 'text-zinc-600'
     }`;
 
   const go = (tab: MobileTab, action: () => void) => {
@@ -67,7 +67,7 @@ export const MobileBottomNav: React.FC<MobileBottomNavProps> = ({
   return (
     <nav
       aria-label="Mobile primary"
-      className="lg:hidden fixed inset-x-0 bottom-0 z-[45] bg-white border-t border-emerald-100/90 shadow-[0_-4px_20px_rgba(4,36,22,0.06)]"
+      className="lg:hidden fixed inset-x-0 bottom-0 z-[45] bg-white border-t border-zinc-100/90 shadow-[0_-4px_20px_rgba(4,36,22,0.06)]"
       style={{ paddingBottom: 'env(safe-area-inset-bottom, 0px)' }}
     >
       <div className="flex items-stretch justify-between px-1 pt-1 max-w-lg mx-auto">
@@ -90,7 +90,7 @@ export const MobileBottomNav: React.FC<MobileBottomNavProps> = ({
           <span className="relative inline-flex">
             <Heart size={22} strokeWidth={active === 'wishlist' ? 2.5 : 1.75} />
             {wishlistCount > 0 && (
-              <span className="absolute -top-1 -right-2 min-w-[14px] h-[14px] px-0.5 rounded-full bg-emerald-700 text-white text-[8px] font-black flex items-center justify-center">
+              <span className="absolute -top-1 -right-2 min-w-[14px] h-[14px] px-0.5 rounded-full bg-zinc-700 text-white text-[8px] font-black flex items-center justify-center">
                 {wishlistCount > 9 ? '9+' : wishlistCount}
               </span>
             )}
@@ -102,7 +102,7 @@ export const MobileBottomNav: React.FC<MobileBottomNavProps> = ({
           <span className="relative inline-flex">
             <ShoppingBag size={22} strokeWidth={active === 'cart' ? 2.5 : 1.75} />
             {cartCount > 0 && (
-              <span className="absolute -top-1 -right-2 min-w-[14px] h-[14px] px-0.5 rounded-full bg-emerald-700 text-white text-[8px] font-black flex items-center justify-center">
+              <span className="absolute -top-1 -right-2 min-w-[14px] h-[14px] px-0.5 rounded-full bg-zinc-700 text-white text-[8px] font-black flex items-center justify-center">
                 {cartCount > 9 ? '9+' : cartCount}
               </span>
             )}

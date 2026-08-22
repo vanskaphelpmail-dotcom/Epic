@@ -17,15 +17,9 @@ export const POPULAR_SEARCHES = [
 
 export const STORE_LOCATIONS = [
   {
-    city: 'Dhaka HQ',
-    address: 'Shop No. 8, 3rd Floor, AQP Shopping Mall, 143/2 New Bailey Road, Dhaka 1217, Bangladesh',
-    phone: '+880 1840-990700',
-    hours: '11:00 AM - 09:30 PM (Friday - Wednesday)',
-  },
-  {
-    city: 'Savar Outlet',
-    address: 'B-1, Talbag Thana Road, Savar, Dhaka (Near Chakladar Mahila College)',
-    phone: '+880 1862-252232',
+    city: 'Feni',
+    address: 'Shop no: B: 67-68, 1st Floor, Feni Garden City Market, Feni, 3900',
+    phone: '',
     hours: '11:00 AM - 09:30 PM (Friday - Wednesday)',
   },
 ];

@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { ShieldCheck, ArrowLeft, Truck, ClipboardCheck, Sparkles, AlertCircle, MapPin, Phone, CheckCircle, Info, Home, Briefcase, User, Save, Trash2, ShoppingBag } from 'lucide-react';
 import { CartItem, Order, AppConfig } from '../types';
-import { BkashPaymentPanel, BKASH_DEFAULT_NUMBER, BKASH_PARTIAL_DEFAULT_BDT } from './BkashPaymentPanel';
+import { BkashPaymentPanel, BKASH_DEFAULT_NUMBER, BKASH_PARTIAL_DEFAULT_BDT, type MobileWalletProvider } from './BkashPaymentPanel';
 import {
   buildBkashPaymentMeta,
   withBkashNote,
@@ -46,7 +46,7 @@ export const Checkout: React.FC<CheckoutProps> = ({
         <p className="text-xs text-zinc-700 font-mono">You do not have any vintage shirts in your checkout session. Return to the catalog to select legendary items.</p>
         <button
           onClick={onBackToCatalog}
-          className="w-full bg-emerald-800 hover:bg-emerald-900 text-white font-extrabold text-xs uppercase tracking-widest py-3.5 rounded-xl transition-all cursor-pointer"
+          className="w-full bg-black hover:bg-zinc-800 text-white font-extrabold text-xs uppercase tracking-widest py-3.5 rounded-xl transition-all cursor-pointer"
         >
           Back to Catalog
         </button>
@@ -94,8 +94,11 @@ export const Checkout: React.FC<CheckoutProps> = ({
   /** Always offer Full + Partial for jerseys; hide Partial when nameset is on. */
   const showPayTypeChoice = !requiresFullBkashForNameset;
   const [bkashPayChoice, setBkashPayChoice] = useState<'full' | 'partial'>('partial');
+  const [walletProvider, setWalletProvider] = useState<MobileWalletProvider>('bkash');
   const merchantBkash = appConfig.bkashPersonalNumber || BKASH_DEFAULT_NUMBER;
   const bkashEnabled = appConfig.bkashEnabled !== false;
+  const walletPaymentLabel = walletProvider === 'nagad' ? 'Nagad' : 'bKash';
+  const walletPaymentMethodApi = walletProvider === 'nagad' ? 'nagad' : 'bkash';
 
   const preOrderItems = cart.filter((item) => item.product.isPreOrder);
   const hasPreOrder = preOrderItems.length > 0;
@@ -210,7 +213,7 @@ export const Checkout: React.FC<CheckoutProps> = ({
       return;
     }
     if (!bkashTransactionId || bkashTransactionId.trim().length < 6) {
-      alert('অনুগ্রহ করে আপনার bKash ট্রানজ্যাকশন আইডি (TrxID) লিখুন।');
+      alert(`অনুগ্রহ করে আপনার ${walletPaymentLabel} ট্রানজ্যাকশন আইডি (TrxID) লিখুন।`);
       return;
     }
 
@@ -240,7 +243,7 @@ export const Checkout: React.FC<CheckoutProps> = ({
     if (isApiEnabled()) {
       try {
         const created = await api.createOrder({
-          paymentMethod: 'bkash',
+          paymentMethod: walletPaymentMethodApi,
           deliveryRegion,
           deliveryCharge: deliveryChargeBDT,
           shipFullName: fullName,
@@ -291,7 +294,7 @@ export const Checkout: React.FC<CheckoutProps> = ({
               country: 'Bangladesh',
               phone,
             },
-            paymentMethod: 'bKash',
+            paymentMethod: walletPaymentLabel,
             paymentStatus: 'Unpaid',
             bkashNumber,
             bkashTransactionId: bkashTransactionId.trim(),
@@ -333,7 +336,7 @@ export const Checkout: React.FC<CheckoutProps> = ({
         country: 'Bangladesh',
         phone,
       },
-      paymentMethod: 'bKash',
+      paymentMethod: walletPaymentLabel,
       paymentStatus: 'Unpaid',
       bkashNumber,
       bkashTransactionId: bkashTransactionId.trim(),
@@ -351,12 +354,12 @@ export const Checkout: React.FC<CheckoutProps> = ({
   };
 
   return (
-    <section className="bg-white text-emerald-950 py-8 px-4 md:px-12 max-w-7xl mx-auto min-h-screen">
+    <section className="bg-white text-zinc-950 py-8 px-4 md:px-12 max-w-7xl mx-auto min-h-screen">
       
       {/* Navigation Back Link */}
       <button
         onClick={onBackToCart}
-        className="inline-flex items-center gap-2 text-[10px] md:text-xs font-mono font-bold tracking-wider text-emerald-850 hover:text-emerald-950 uppercase mb-6 cursor-pointer transition-all"
+        className="inline-flex items-center gap-2 text-[10px] md:text-xs font-mono font-bold tracking-wider text-zinc-800 hover:text-black uppercase mb-6 cursor-pointer transition-all"
         id="checkout-back-to-cart"
       >
         <ArrowLeft size={14} /> Back to Cart
@@ -401,7 +404,7 @@ export const Checkout: React.FC<CheckoutProps> = ({
           {/* Section 1: Personal Contact Details */}
           <div className="bg-white border-2 border-zinc-300 rounded-2xl p-4 md:p-6 space-y-4 shadow-xl text-black">
             <h3 className="text-xs md:text-sm font-mono font-black text-black uppercase tracking-widest border-b-2 border-zinc-200 pb-2.5 flex items-center gap-2">
-              <ClipboardCheck size={16} className="text-emerald-700" /> 1. Contact Information
+              <ClipboardCheck size={16} className="text-zinc-700" /> 1. Contact Information
             </h3>
             
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
@@ -414,7 +417,7 @@ export const Checkout: React.FC<CheckoutProps> = ({
                     placeholder="e.g. Yasin Ahmed"
                     value={fullName}
                     onChange={(e) => setFullName(e.target.value)}
-                    className="w-full bg-zinc-50 border-2 border-zinc-300 focus:border-emerald-600 focus:bg-white rounded-xl py-3 px-4 text-xs font-bold focus:outline-none transition-colors text-black placeholder-zinc-400"
+                    className="w-full bg-zinc-50 border-2 border-zinc-300 focus:border-zinc-900 focus:bg-white rounded-xl py-3 px-4 text-xs font-bold focus:outline-none transition-colors text-black placeholder-zinc-400"
                   />
                 </div>
               </div>
@@ -428,7 +431,7 @@ export const Checkout: React.FC<CheckoutProps> = ({
                     placeholder="e.g. 01840990700"
                     value={phone}
                     onChange={(e) => setPhone(e.target.value)}
-                    className="w-full bg-zinc-50 border-2 border-zinc-300 focus:border-emerald-600 focus:bg-white rounded-xl py-3 px-4 text-xs focus:outline-none transition-colors font-mono font-bold text-black placeholder-zinc-400"
+                    className="w-full bg-zinc-50 border-2 border-zinc-300 focus:border-zinc-900 focus:bg-white rounded-xl py-3 px-4 text-xs focus:outline-none transition-colors font-mono font-bold text-black placeholder-zinc-400"
                   />
                 </div>
                 <span className="text-[10px] text-zinc-700 font-mono block font-medium">We will call this number before delivery to verify.</span>
@@ -442,7 +445,7 @@ export const Checkout: React.FC<CheckoutProps> = ({
                 placeholder="e.g. collector@vault.com"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
-                className="w-full bg-zinc-50 border-2 border-zinc-300 focus:border-emerald-600 focus:bg-white rounded-xl py-3 px-4 text-xs font-bold focus:outline-none transition-colors text-black placeholder-zinc-400"
+                className="w-full bg-zinc-50 border-2 border-zinc-300 focus:border-zinc-900 focus:bg-white rounded-xl py-3 px-4 text-xs font-bold focus:outline-none transition-colors text-black placeholder-zinc-400"
               />
             </div>
           </div>
@@ -450,14 +453,14 @@ export const Checkout: React.FC<CheckoutProps> = ({
           {/* Section 2: Delivery Address Details */}
           <div className="bg-white border-2 border-zinc-300 rounded-2xl p-4 md:p-6 space-y-4 shadow-xl text-black">
             <h3 className="text-xs md:text-sm font-mono font-black text-black uppercase tracking-widest border-b-2 border-zinc-200 pb-2.5 flex items-center gap-2">
-              <MapPin size={16} className="text-emerald-700" /> 2. Delivery Address
+              <MapPin size={16} className="text-zinc-700" /> 2. Delivery Address
             </h3>
 
             {/* SAVED ADDRESSES QUICK SUGGESTIONS GRID */}
             {savedAddresses.length > 0 && (
               <div className="bg-zinc-50 border-2 border-zinc-200 p-4 rounded-xl space-y-2.5">
                 <span className="text-[10px] text-black font-mono font-black uppercase tracking-wider block flex items-center gap-1.5">
-                  <span className="w-1.5 h-1.5 rounded-full bg-emerald-600 animate-pulse" /> 
+                  <span className="w-1.5 h-1.5 rounded-full bg-zinc-800 animate-pulse" /> 
                   ONE-CLICK SUGGESTIONS (SAVED ADDRESSES):
                 </span>
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
@@ -469,11 +472,11 @@ export const Checkout: React.FC<CheckoutProps> = ({
                       className="text-left bg-white hover:bg-zinc-100 border-2 border-zinc-200 hover:border-black p-3.5 rounded-xl text-xs transition-all cursor-pointer flex flex-col justify-between shadow-xs"
                     >
                       <div className="flex justify-between items-center gap-2 mb-1.5">
-                        <span className="bg-emerald-100 text-emerald-900 text-[9px] font-mono px-2 py-0.5 rounded-md uppercase font-black border border-emerald-300">
+                        <span className="bg-zinc-100 text-zinc-900 text-[9px] font-mono px-2 py-0.5 rounded-md uppercase font-black border border-zinc-300">
                           {addr.label}
                         </span>
                         {addr.isDefault && (
-                          <span className="text-emerald-800 font-mono text-[9px] font-black tracking-wide">PRIMARY</span>
+                          <span className="text-zinc-800 font-mono text-[9px] font-black tracking-wide">PRIMARY</span>
                         )}
                       </div>
                       <p className="font-extrabold text-black truncate">{addr.fullName}</p>
@@ -493,7 +496,7 @@ export const Checkout: React.FC<CheckoutProps> = ({
                 placeholder="e.g. Flat 4B, House 12, Road 5, Sector 4, Uttara, Dhaka"
                 value={addressLine1}
                 onChange={(e) => setAddressLine1(e.target.value)}
-                className="w-full bg-zinc-50 border-2 border-zinc-300 focus:border-emerald-600 focus:bg-white rounded-xl py-3 px-4 text-xs font-bold focus:outline-none transition-colors resize-none leading-relaxed text-black placeholder-zinc-400"
+                className="w-full bg-zinc-50 border-2 border-zinc-300 focus:border-zinc-900 focus:bg-white rounded-xl py-3 px-4 text-xs font-bold focus:outline-none transition-colors resize-none leading-relaxed text-black placeholder-zinc-400"
               />
             </div>
 
@@ -505,7 +508,7 @@ export const Checkout: React.FC<CheckoutProps> = ({
                   placeholder="e.g. Dhaka"
                   value={city}
                   onChange={(e) => setCity(e.target.value)}
-                  className="w-full bg-zinc-50 border-2 border-zinc-300 focus:border-emerald-600 focus:bg-white rounded-xl py-3 px-4 text-xs font-bold focus:outline-none transition-colors text-black placeholder-zinc-400"
+                  className="w-full bg-zinc-50 border-2 border-zinc-300 focus:border-zinc-900 focus:bg-white rounded-xl py-3 px-4 text-xs font-bold focus:outline-none transition-colors text-black placeholder-zinc-400"
                 />
               </div>
 
@@ -516,7 +519,7 @@ export const Checkout: React.FC<CheckoutProps> = ({
                   placeholder="e.g. 1230"
                   value={postalCode}
                   onChange={(e) => setPostalCode(e.target.value)}
-                  className="w-full bg-zinc-50 border-2 border-zinc-300 focus:border-emerald-600 focus:bg-white rounded-xl py-3 px-4 text-xs focus:outline-none transition-colors font-mono font-bold text-black placeholder-zinc-400"
+                  className="w-full bg-zinc-50 border-2 border-zinc-300 focus:border-zinc-900 focus:bg-white rounded-xl py-3 px-4 text-xs focus:outline-none transition-colors font-mono font-bold text-black placeholder-zinc-400"
                 />
               </div>
             </div>
@@ -529,7 +532,7 @@ export const Checkout: React.FC<CheckoutProps> = ({
                   id="checkoutSaveThisAddress"
                   checked={saveThisAddress}
                   onChange={(e) => setSaveThisAddress(e.target.checked)}
-                  className="w-3.5 h-3.5 accent-emerald-600 bg-white rounded border-zinc-300 cursor-pointer"
+                  className="w-3.5 h-3.5 accent-zinc-900 bg-white rounded border-zinc-300 cursor-pointer"
                 />
                 <label htmlFor="checkoutSaveThisAddress" className="text-[11px] text-zinc-950 font-black cursor-pointer select-none">
                   Save this address for future checkout suggestions
@@ -564,12 +567,12 @@ export const Checkout: React.FC<CheckoutProps> = ({
                   <button
                     type="button"
                     onClick={handleSaveCurrentAddress}
-                    className="bg-emerald-800 hover:bg-emerald-900 text-white font-extrabold text-[9px] uppercase tracking-wider px-3.5 py-1.5 rounded-lg transition-all cursor-pointer inline-flex items-center gap-1"
+                    className="bg-black hover:bg-zinc-800 text-white font-extrabold text-[9px] uppercase tracking-wider px-3.5 py-1.5 rounded-lg transition-all cursor-pointer inline-flex items-center gap-1"
                   >
                     <Save size={10} /> Save Address Now
                   </button>
                   {saveSuccessMsg && (
-                    <span className="text-[10px] text-emerald-800 font-mono font-bold animate-fadeIn">✓ Saved successfully</span>
+                    <span className="text-[10px] text-zinc-800 font-mono font-bold animate-fadeIn">✓ Saved successfully</span>
                   )}
                 </div>
               </div>
@@ -579,7 +582,7 @@ export const Checkout: React.FC<CheckoutProps> = ({
           {/* Section 3: Localization Shipping Cost Selection */}
           <div className="bg-white border-2 border-zinc-300 rounded-2xl p-4 md:p-6 space-y-4 shadow-xl text-black">
             <h3 className="text-xs md:text-sm font-mono font-black text-black uppercase tracking-widest border-b-2 border-zinc-200 pb-2.5 flex items-center gap-2">
-              <Truck size={16} className="text-emerald-700" /> 3. Select Delivery Area
+              <Truck size={16} className="text-zinc-700" /> 3. Select Delivery Area
             </h3>
 
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
@@ -588,15 +591,15 @@ export const Checkout: React.FC<CheckoutProps> = ({
                 onClick={() => setDeliveryRegion('inside')}
                 className={`p-4 rounded-xl border-2 cursor-pointer flex justify-between items-center transition-all ${
                   deliveryRegion === 'inside'
-                    ? 'bg-zinc-50 border-emerald-600 text-black shadow-lg'
+                    ? 'bg-zinc-50 border-zinc-900 text-black shadow-lg'
                     : 'bg-white border-zinc-300 text-zinc-800 hover:border-black'
                 }`}
                 id="shipping-inside-dhaka"
               >
                 <div className="space-y-1">
                   <div className="flex items-center gap-1.5">
-                    <span className={`w-3.5 h-3.5 rounded-full border-2 flex items-center justify-center ${deliveryRegion === 'inside' ? 'border-emerald-600' : 'border-zinc-400'}`}>
-                      {deliveryRegion === 'inside' && <span className="w-1.5 h-1.5 rounded-full bg-emerald-600" />}
+                    <span className={`w-3.5 h-3.5 rounded-full border-2 flex items-center justify-center ${deliveryRegion === 'inside' ? 'border-zinc-900' : 'border-zinc-400'}`}>
+                      {deliveryRegion === 'inside' && <span className="w-1.5 h-1.5 rounded-full bg-zinc-800" />}
                     </span>
                     <p className="text-xs font-black uppercase tracking-wider text-black">Inside Dhaka</p>
                   </div>
@@ -613,15 +616,15 @@ export const Checkout: React.FC<CheckoutProps> = ({
                 onClick={() => setDeliveryRegion('outside')}
                 className={`p-4 rounded-xl border-2 cursor-pointer flex justify-between items-center transition-all ${
                   deliveryRegion === 'outside'
-                    ? 'bg-zinc-50 border-emerald-600 text-black shadow-lg'
+                    ? 'bg-zinc-50 border-zinc-900 text-black shadow-lg'
                     : 'bg-white border-zinc-300 text-zinc-800 hover:border-black'
                 }`}
                 id="shipping-outside-dhaka"
               >
                 <div className="space-y-1">
                   <div className="flex items-center gap-1.5">
-                    <span className={`w-3.5 h-3.5 rounded-full border-2 flex items-center justify-center ${deliveryRegion === 'outside' ? 'border-emerald-600' : 'border-zinc-400'}`}>
-                      {deliveryRegion === 'outside' && <span className="w-1.5 h-1.5 rounded-full bg-emerald-600" />}
+                    <span className={`w-3.5 h-3.5 rounded-full border-2 flex items-center justify-center ${deliveryRegion === 'outside' ? 'border-zinc-900' : 'border-zinc-400'}`}>
+                      {deliveryRegion === 'outside' && <span className="w-1.5 h-1.5 rounded-full bg-zinc-800" />}
                     </span>
                     <p className="text-xs font-black uppercase tracking-wider text-black">Outside Dhaka</p>
                   </div>
@@ -638,14 +641,14 @@ export const Checkout: React.FC<CheckoutProps> = ({
           {/* Section 4: Payment method */}
           <div className="bg-white border-2 border-zinc-300 rounded-2xl p-4 md:p-6 space-y-4 shadow-xl text-black">
             <h3 className="text-xs md:text-sm font-mono font-black text-black uppercase tracking-widest border-b-2 border-zinc-200 pb-2.5 flex items-center gap-2">
-              <ShieldCheck size={16} className="text-emerald-700" /> 4. Payment Method
+              <ShieldCheck size={16} className="text-zinc-700" /> 4. Payment Method
             </h3>
 
             <div className="space-y-3">
               {bkashEnabled && (
                 <>
                   {requiresFullBkashForNameset && (
-                    <p className="text-[11px] font-mono text-emerald-950 bg-emerald-50 border border-emerald-200 rounded-lg px-3 py-2">
+                    <p className="text-[11px] font-mono text-zinc-950 bg-zinc-50 border border-zinc-200 rounded-lg px-3 py-2">
                       Custom nameset printing selected — <strong>full bKash payment</strong> required.
                       Per-jersey advance (৳{partialPerJerseyBdt} × qty) is not available for this order.
                     </p>
@@ -662,18 +665,18 @@ export const Checkout: React.FC<CheckoutProps> = ({
                           onClick={() => setBkashPayChoice('full')}
                           className={`text-left rounded-xl border-2 p-4 transition-all cursor-pointer ${
                             effectiveBkashPayChoice === 'full'
-                              ? 'border-emerald-600 bg-emerald-50/70 shadow-sm ring-1 ring-emerald-600/30'
+                              ? 'border-zinc-900 bg-zinc-50 shadow-sm ring-1 ring-zinc-900/30'
                               : 'border-zinc-200 bg-zinc-50 hover:border-zinc-300'
                           }`}
                         >
                           <div className="flex items-center gap-2 mb-1.5">
                             <span
                               className={`w-4 h-4 rounded-full border-2 flex items-center justify-center ${
-                                effectiveBkashPayChoice === 'full' ? 'border-emerald-600' : 'border-zinc-400'
+                                effectiveBkashPayChoice === 'full' ? 'border-zinc-900' : 'border-zinc-400'
                               }`}
                             >
                               {effectiveBkashPayChoice === 'full' && (
-                                <span className="w-2 h-2 rounded-full bg-emerald-600" />
+                                <span className="w-2 h-2 rounded-full bg-zinc-800" />
                               )}
                             </span>
                             <span className="text-xs font-black uppercase tracking-wider text-black">
@@ -731,6 +734,8 @@ export const Checkout: React.FC<CheckoutProps> = ({
                     transactionId={bkashTransactionId}
                     onCustomerBkashNumberChange={setBkashNumber}
                     onTransactionIdChange={setBkashTransactionId}
+                    walletProvider={walletProvider}
+                    onWalletProviderChange={setWalletProvider}
                   />
                 </>
               )}
@@ -741,7 +746,7 @@ export const Checkout: React.FC<CheckoutProps> = ({
           <button
             type="submit"
             disabled={isPlacingOrder}
-            className="w-full bg-emerald-800 hover:bg-emerald-900 text-white font-extrabold text-xs md:text-sm uppercase tracking-widest py-4 rounded-xl flex items-center justify-center gap-2 cursor-pointer shadow-lg active:scale-[0.99] transition-all disabled:opacity-70 disabled:cursor-wait disabled:active:scale-100"
+            className="w-full bg-black hover:bg-zinc-800 text-white font-extrabold text-xs md:text-sm uppercase tracking-widest py-4 rounded-xl flex items-center justify-center gap-2 cursor-pointer shadow-lg active:scale-[0.99] transition-all disabled:opacity-70 disabled:cursor-wait disabled:active:scale-100"
             id="checkout-submit-btn"
           >
             <ShieldCheck size={16} />{' '}
@@ -824,7 +829,7 @@ export const Checkout: React.FC<CheckoutProps> = ({
                             quantity: Math.min(itemVal.quantity, Math.max(1, max || 1)),
                           } : itemVal));
                         }}
-                        className="bg-white border-2 border-zinc-300 text-black text-[11px] font-bold rounded-lg px-2 py-0.5 focus:outline-none focus:border-emerald-600 cursor-pointer"
+                        className="bg-white border-2 border-zinc-300 text-black text-[11px] font-bold rounded-lg px-2 py-0.5 focus:outline-none focus:border-zinc-900 cursor-pointer"
                       >
                         {sizes.map(size => (
                           <option key={size} value={size} disabled={!isSizeAvailable(item.product, size)}>
@@ -904,7 +909,7 @@ export const Checkout: React.FC<CheckoutProps> = ({
                 className={`rounded-xl border-2 p-3 space-y-2 transition-all ${
                   isPartialBkash
                     ? 'border-amber-400 bg-amber-50/70'
-                    : 'border-[#E2136E]/40 bg-[#E2136E]/[0.06]'
+                    : 'border-zinc-900 bg-zinc-50'
                 }`}
               >
                 <div className="flex items-center justify-between gap-2">
@@ -915,18 +920,20 @@ export const Checkout: React.FC<CheckoutProps> = ({
                     className={`text-[9px] font-black uppercase px-2 py-0.5 rounded-full ${
                       isPartialBkash
                         ? 'bg-amber-500 text-white'
-                        : 'bg-[#E2136E] text-white'
+                        : 'bg-black text-white'
                     }`}
                   >
-                    bKash
+                    {walletPaymentLabel}
                   </span>
                 </div>
 
                 <div className="flex justify-between items-center">
                   <span className="font-bold text-zinc-800">
-                    {isPartialBkash ? 'Pay now (bKash advance):' : 'Pay now (bKash Send Money):'}
+                    {isPartialBkash
+                      ? `Pay now (${walletPaymentLabel} advance):`
+                      : `Pay now (${walletPaymentLabel} Send Money):`}
                   </span>
-                  <span className="text-[#E2136E] font-black font-mono text-base">
+                  <span className="text-zinc-950 font-black font-mono text-base">
                     {formatPrice(bkashSendAmountBdt)}
                   </span>
                 </div>
@@ -949,18 +956,18 @@ export const Checkout: React.FC<CheckoutProps> = ({
                 <p className="text-[10px] text-zinc-600 font-medium leading-snug pt-1 border-t border-zinc-200/80">
                   {isPartialBkash
                     ? `Send ৳${Math.round(bkashSendAmountBdt).toLocaleString('en-BD')} now (${partialAdvanceBreakdown}) — remaining ৳${Math.round(bkashDueOnDelivery).toLocaleString('en-BD')} collected when your order arrives.`
-                    : `Send the full ${formatPrice(grandTotal)} via bKash Send Money to complete this order.`}
+                    : `Send the full ${formatPrice(grandTotal)} via ${walletPaymentLabel} Send Money to complete this order.`}
                 </p>
               </div>
             )}
 
             <div className="border-t-2 border-zinc-200 pt-4 flex justify-between items-baseline">
               <span className="text-zinc-950 font-black uppercase text-[10px] tracking-wider">
-                {isPartialBkash ? 'Due via bKash now:' : 'Grand Total to Pay:'}
+                {isPartialBkash ? `Due via ${walletPaymentLabel} now:` : 'Grand Total to Pay:'}
               </span>
               <span
                 className={`font-black text-xl font-mono ${
-                  isPartialBkash ? 'text-[#E2136E]' : 'text-black'
+                  isPartialBkash ? 'text-amber-700' : 'text-black'
                 }`}
               >
                 {formatPrice(bkashSendAmountBdt)}
@@ -970,7 +977,7 @@ export const Checkout: React.FC<CheckoutProps> = ({
 
           {/* Delivery Note */}
           <div className="bg-zinc-50 border-2 border-zinc-200 p-4 rounded-xl text-[10px] text-zinc-800 flex gap-2.5">
-            <Info size={14} className="text-emerald-700 flex-shrink-0 mt-0.5" />
+            <Info size={14} className="text-zinc-700 flex-shrink-0 mt-0.5" />
             <p className="leading-relaxed font-semibold">
               Every package is chemically sanitized and sealed inside historical vacuum-sealed cases with certificates of origin. Sourced for real fans.
             </p>

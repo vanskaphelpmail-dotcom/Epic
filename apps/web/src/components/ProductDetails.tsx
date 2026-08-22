@@ -161,12 +161,12 @@ export const ProductDetails: React.FC<ProductDetailsProps> = ({
   };
 
   return (
-    <section className="bg-white text-emerald-950 py-10 px-4 md:px-12 max-w-7xl mx-auto min-h-screen">
+    <section className="bg-white text-zinc-950 py-10 px-4 md:px-12 max-w-7xl mx-auto min-h-screen">
       
       {/* Back button */}
       <button
         onClick={onBackToCatalog}
-        className="flex items-center gap-2 text-xs font-mono font-bold tracking-widest text-emerald-700 hover:text-emerald-950 uppercase mb-8 cursor-pointer transition-colors"
+        className="flex items-center gap-2 text-xs font-mono font-bold tracking-widest text-zinc-700 hover:text-black uppercase mb-8 cursor-pointer transition-colors"
       >
         <ArrowLeft size={14} /> Back to Catalog
       </button>
@@ -175,9 +175,9 @@ export const ProductDetails: React.FC<ProductDetailsProps> = ({
         
         {/* Left Column: Interactive 360 SVG Jersey Showcase & View Rotator */}
         <div className="lg:col-span-6 space-y-6">
-          <div className="relative bg-gradient-to-b from-emerald-50/50 to-white border border-emerald-100 rounded-3xl p-4 sm:p-8 flex items-center justify-center min-h-[280px] sm:min-h-[400px] overflow-hidden group shadow-2xl">
+          <div className="relative bg-gradient-to-b from-zinc-800/50 to-white border border-zinc-100 rounded-3xl p-4 sm:p-8 flex items-center justify-center min-h-[280px] sm:min-h-[400px] overflow-hidden group shadow-2xl">
             {/* Ambient light ring */}
-            <div className="absolute w-64 h-64 rounded-full bg-emerald-500/10 blur-[120px] pointer-events-none" />
+            <div className="absolute w-64 h-64 rounded-full bg-zinc-500/10 blur-[120px] pointer-events-none" />
 
             <div className="w-full max-w-[480px] h-auto flex items-center justify-center px-2 sm:px-4 pb-2">
               {showPhoto ? (
@@ -209,7 +209,7 @@ export const ProductDetails: React.FC<ProductDetailsProps> = ({
                   type="button"
                   onClick={() => setGalleryIndex(i)}
                   className={`h-16 w-16 rounded-xl overflow-hidden border-2 cursor-pointer ${
-                    safeGalleryIndex === i ? 'border-emerald-700' : 'border-emerald-100'
+                    safeGalleryIndex === i ? 'border-zinc-700' : 'border-zinc-100'
                   }`}
                 >
                   {isRenderableImageSrc(src) ? (
@@ -221,7 +221,7 @@ export const ProductDetails: React.FC<ProductDetailsProps> = ({
                       referrerPolicy="no-referrer"
                     />
                   ) : (
-                    <div className="w-full h-full bg-emerald-50 flex items-center justify-center text-[10px] font-bold text-emerald-800">
+                    <div className="w-full h-full bg-zinc-50 flex items-center justify-center text-[10px] font-bold text-zinc-800">
                       View {i + 1}
                     </div>
                   )}
@@ -231,37 +231,37 @@ export const ProductDetails: React.FC<ProductDetailsProps> = ({
           )}
 
           {/* Quick Specifications list below preview */}
-          <div className="bg-emerald-50/20 border border-emerald-100 rounded-2xl p-6 space-y-4">
-            <h3 className="text-emerald-800 font-mono font-bold text-xs uppercase tracking-wider">
+          <div className="bg-zinc-50 border border-zinc-100 rounded-2xl p-6 space-y-4">
+            <h3 className="text-zinc-800 font-mono font-bold text-xs uppercase tracking-wider">
               Authentication & Physical Condition
             </h3>
             <div className="grid grid-cols-2 gap-4 text-xs">
-              <div className="bg-emerald-50/50 p-3 rounded-lg border border-emerald-100/40">
-                <span className="text-emerald-600 font-mono block mb-1">OFFICIAL SKU:</span>
-                <span className="text-emerald-950 font-mono font-semibold">{product.sku}</span>
+              <div className="bg-zinc-50 p-3 rounded-lg border border-zinc-100/40">
+                <span className="text-zinc-600 font-mono block mb-1">OFFICIAL SKU:</span>
+                <span className="text-zinc-950 font-mono font-semibold">{product.sku}</span>
               </div>
-              <div className="bg-emerald-50/50 p-3 rounded-lg border border-emerald-100/40">
-                <span className="text-emerald-600 font-mono block mb-1">CONDITION RATING:</span>
-                <span className="text-emerald-900 font-black">{product.condition}</span>
+              <div className="bg-zinc-50 p-3 rounded-lg border border-zinc-100/40">
+                <span className="text-zinc-600 font-mono block mb-1">CONDITION RATING:</span>
+                <span className="text-zinc-900 font-black">{product.condition}</span>
               </div>
-              <div className="bg-emerald-50/50 p-3 rounded-lg col-span-2 border border-emerald-100/40">
-                <span className="text-emerald-600 font-mono block mb-1">VERIFIER METRICS:</span>
-                <span className="text-emerald-850 leading-relaxed text-[11px] block">{product.conditionDetail}</span>
+              <div className="bg-zinc-50 p-3 rounded-lg col-span-2 border border-zinc-100/40">
+                <span className="text-zinc-600 font-mono block mb-1">VERIFIER METRICS:</span>
+                <span className="text-zinc-800 leading-relaxed text-[11px] block">{product.conditionDetail}</span>
               </div>
             </div>
           </div>
         </div>
 
         {/* Right Column: Customization Panel & Buying controls */}
-        <div className="lg:col-span-6 space-y-8 text-emerald-950">
+        <div className="lg:col-span-6 space-y-8 text-zinc-950">
           
           {/* Header Title Info */}
           <div className="space-y-3">
             <div className="flex flex-wrap items-center gap-2">
-              <span className="bg-emerald-100 text-emerald-800 font-mono text-[10px] font-black uppercase px-3 py-1 rounded border border-emerald-200">
+              <span className="bg-zinc-100 text-zinc-800 font-mono text-[10px] font-black uppercase px-3 py-1 rounded border border-zinc-200">
                 {product.season} season
               </span>
-              <span className="bg-emerald-50 text-emerald-700 font-mono text-[10px] font-black uppercase px-3 py-1 rounded border border-emerald-100">
+              <span className="bg-zinc-50 text-zinc-700 font-mono text-[10px] font-black uppercase px-3 py-1 rounded border border-zinc-100">
                 {product.brand} Authentic
               </span>
               {product.isPreOrder && (
@@ -276,7 +276,7 @@ export const ProductDetails: React.FC<ProductDetailsProps> = ({
               )}
             </div>
 
-            <h1 className="text-3xl md:text-4xl font-black tracking-tight uppercase leading-tight text-emerald-950">
+            <h1 className="text-3xl md:text-4xl font-black tracking-tight uppercase leading-tight text-zinc-950">
               {product.name}
             </h1>
 
@@ -285,48 +285,48 @@ export const ProductDetails: React.FC<ProductDetailsProps> = ({
               <div className="flex flex-wrap items-baseline gap-2">
                 {hasProductDiscount(product) ? (
                   <>
-                    <span className="text-emerald-600 text-sm line-through font-mono">
+                    <span className="text-zinc-600 text-sm line-through font-mono">
                       {formatPrice(product.originalPrice!)}
                     </span>
-                    <span className="text-emerald-800 text-2xl font-black">{formatPrice(finalPrice)}</span>
+                    <span className="text-zinc-800 text-2xl font-black">{formatPrice(finalPrice)}</span>
                     <span className="bg-rose-50 text-rose-700 border border-rose-100 text-[10px] font-black uppercase tracking-wider px-2 py-0.5 rounded-full">
                       {getProductDiscountPercent(product)}% OFF
                     </span>
                   </>
                 ) : (
-                  <span className="text-emerald-800 text-2xl font-black">{formatPrice(finalPrice)}</span>
+                  <span className="text-zinc-800 text-2xl font-black">{formatPrice(finalPrice)}</span>
                 )}
                 {customizationCost > 0 && (
-                  <span className="text-[10px] text-emerald-700 font-mono">
+                  <span className="text-[10px] text-zinc-700 font-mono">
                     (Includes Nameset +{formatPrice(namesetPrice)})
                   </span>
                 )}
               </div>
-              <div className="h-5 w-px bg-emerald-100" />
+              <div className="h-5 w-px bg-zinc-100" />
               <div className="flex items-center gap-1.5">
-                <div className="flex text-emerald-700">
-                  <Star size={13} className="fill-emerald-600 text-emerald-600" />
+                <div className="flex text-zinc-700">
+                  <Star size={13} className="fill-zinc-700 text-zinc-600" />
                 </div>
                 <span className="text-sm font-bold">{product.rating}</span>
-                <span className="text-emerald-600 text-xs">({product.reviewsCount} verified orders)</span>
+                <span className="text-zinc-600 text-xs">({product.reviewsCount} verified orders)</span>
               </div>
             </div>
           </div>
 
-          <p className="text-emerald-800 text-base leading-relaxed">
+          <p className="text-zinc-800 text-base leading-relaxed">
             {product.shortDescription || product.description || product.longDescription}
           </p>
 
           {/* Size Selector Form */}
           <div className="space-y-3">
-            <label className="text-xs font-mono font-bold tracking-widest text-emerald-800 uppercase">
+            <label className="text-xs font-mono font-bold tracking-widest text-zinc-800 uppercase">
               Select Curated Sizing
               <span className={`ml-2 normal-case tracking-normal font-bold ${
                 product.isPreOrder
                   ? 'text-amber-700'
                   : sizeStock <= 0
                     ? 'text-rose-700'
-                    : 'text-emerald-700'
+                    : 'text-zinc-700'
               }`}>
                 {product.isPreOrder
                   ? `(Pre-order${product.preOrderEta ? ` — ${product.preOrderEta}` : ''})`
@@ -351,8 +351,8 @@ export const ProductDetails: React.FC<ProductDetailsProps> = ({
                       !available
                         ? 'bg-gray-50 border-gray-200 text-gray-400 line-through cursor-not-allowed opacity-60'
                         : selectedSize === sz
-                          ? 'bg-emerald-800 border-emerald-800 text-white shadow-lg shadow-emerald-800/15 cursor-pointer'
-                          : 'bg-white border-emerald-100 text-emerald-950 hover:border-emerald-500 cursor-pointer'
+                          ? 'bg-black border-zinc-900 text-white shadow-lg shadow-black/10 cursor-pointer'
+                          : 'bg-white border-zinc-100 text-zinc-950 hover:border-zinc-900 cursor-pointer'
                     }`}
                   >
                     {sz}
@@ -362,14 +362,14 @@ export const ProductDetails: React.FC<ProductDetailsProps> = ({
             </div>
             {sizeChart && (
               <div key={`size-chart-${product.id}-${sizeChart.id}`} className="pt-3 space-y-2 w-full min-w-0">
-                <p className="inline-flex items-center gap-1.5 text-[11px] font-bold uppercase tracking-wider text-emerald-700">
+                <p className="inline-flex items-center gap-1.5 text-[11px] font-bold uppercase tracking-wider text-zinc-700">
                   <Ruler size={13} aria-hidden />
                   <span>{sizeChart.title}</span>
                 </p>
-                <div className="overflow-x-auto border border-emerald-100 rounded-2xl bg-emerald-50/40 w-full">
+                <div className="overflow-x-auto border border-zinc-100 rounded-2xl bg-zinc-50 w-full">
                   <table className="w-full min-w-[280px] text-left text-xs">
                     <thead>
-                      <tr className="border-b border-emerald-100 text-[10px] font-mono uppercase tracking-wider text-emerald-700">
+                      <tr className="border-b border-zinc-100 text-[10px] font-mono uppercase tracking-wider text-zinc-700">
                         {sizeChart.columns.map((col) => (
                           <th key={col.key} className="px-3 py-2 whitespace-nowrap">
                             {col.label}
@@ -379,7 +379,7 @@ export const ProductDetails: React.FC<ProductDetailsProps> = ({
                     </thead>
                     <tbody>
                       {sizeChart.rows.map((row) => (
-                        <tr key={row.size} className="border-b border-emerald-50 last:border-0">
+                        <tr key={row.size} className="border-b border-zinc-50 last:border-0">
                           {sizeChart.columns.map((col) => {
                             const value =
                               col.key === 'size'
@@ -394,8 +394,8 @@ export const ProductDetails: React.FC<ProductDetailsProps> = ({
                                 key={col.key}
                                 className={`px-3 py-2 ${
                                   col.key === 'size'
-                                    ? 'font-black text-emerald-950'
-                                    : 'font-mono text-emerald-800'
+                                    ? 'font-black text-zinc-950'
+                                    : 'font-mono text-zinc-800'
                                 }`}
                               >
                                 {value}
@@ -406,7 +406,7 @@ export const ProductDetails: React.FC<ProductDetailsProps> = ({
                       ))}
                     </tbody>
                   </table>
-                  <p className="px-3 py-2 text-[10px] text-emerald-700 font-mono border-t border-emerald-100">
+                  <p className="px-3 py-2 text-[10px] text-zinc-700 font-mono border-t border-zinc-100">
                     {sizeChart.note}
                   </p>
                 </div>
@@ -416,20 +416,20 @@ export const ProductDetails: React.FC<ProductDetailsProps> = ({
 
           {/* Live Nameset Customization Creator */}
           {namesetAvailable && (
-            <div className="bg-emerald-50/40 border border-emerald-100 rounded-2xl p-6 space-y-4">
+            <div className="bg-zinc-50 border border-zinc-100 rounded-2xl p-6 space-y-4">
               <label className="flex items-start gap-3 cursor-pointer">
                 <input
                   type="checkbox"
                   checked={enableNameset}
                   onChange={(e) => handleNamesetToggle(e.target.checked)}
-                  className="mt-0.5 w-4 h-4 accent-emerald-600 cursor-pointer rounded shrink-0"
+                  className="mt-0.5 w-4 h-4 accent-zinc-900 cursor-pointer rounded shrink-0"
                 />
                 <div className="flex-1">
-                  <span className="text-xs font-mono font-bold tracking-widest text-emerald-850 uppercase flex items-center gap-1">
-                    <BadgeCheck size={14} className="text-emerald-700" />
+                  <span className="text-xs font-mono font-bold tracking-widest text-zinc-800 uppercase flex items-center gap-1">
+                    <BadgeCheck size={14} className="text-zinc-700" />
                     Add {namesetLabel} (+{formatPrice(namesetPrice)})
                   </span>
-                  <p className="text-[10px] text-emerald-600 font-mono mt-1">
+                  <p className="text-[10px] text-zinc-600 font-mono mt-1">
                     Optional — enable jersey name &amp; number. When enabled, checkout requires{' '}
                     <strong>full bKash payment</strong> (৳300/jersey advance is hidden).
                   </p>
@@ -439,12 +439,12 @@ export const ProductDetails: React.FC<ProductDetailsProps> = ({
                     </p>
                   )}
                 </div>
-                <span className="text-[10px] text-emerald-600 font-mono shrink-0">Live Vector Preview</span>
+                <span className="text-[10px] text-zinc-600 font-mono shrink-0">Live Vector Preview</span>
               </label>
 
               <div className={`grid grid-cols-1 sm:grid-cols-2 gap-4 transition-opacity ${enableNameset ? '' : 'opacity-50'}`}>
                 <div className="space-y-1.5">
-                  <span className="text-[10px] text-emerald-600 font-mono">PLAYER LAST NAME:</span>
+                  <span className="text-[10px] text-zinc-600 font-mono">PLAYER LAST NAME:</span>
                   <input
                     type="text"
                     maxLength={12}
@@ -454,11 +454,11 @@ export const ProductDetails: React.FC<ProductDetailsProps> = ({
                     onChange={(e) => {
                       setCustomName(e.target.value.toUpperCase());
                     }}
-                    className="w-full bg-white border border-emerald-100 rounded-lg py-2 px-3 text-emerald-950 placeholder-emerald-300 text-xs focus:outline-none focus:border-emerald-500 disabled:bg-gray-50 disabled:cursor-not-allowed"
+                    className="w-full bg-white border border-zinc-100 rounded-lg py-2 px-3 text-zinc-950 placeholder-zinc-400 text-xs focus:outline-none focus:border-zinc-900 disabled:bg-gray-50 disabled:cursor-not-allowed"
                   />
                 </div>
                 <div className="space-y-1.5">
-                  <span className="text-[10px] text-emerald-600 font-mono">SQUAD NUMBER (0-99):</span>
+                  <span className="text-[10px] text-zinc-600 font-mono">SQUAD NUMBER (0-99):</span>
                   <input
                     type="number"
                     min={0}
@@ -470,7 +470,7 @@ export const ProductDetails: React.FC<ProductDetailsProps> = ({
                       const val = e.target.value;
                       setCustomNumber(val === '' ? '' : Math.min(99, Math.max(0, Number(val))));
                     }}
-                    className="w-full bg-white border border-emerald-100 rounded-lg py-2 px-3 text-emerald-950 placeholder-emerald-300 text-xs focus:outline-none focus:border-emerald-500 disabled:bg-gray-50 disabled:cursor-not-allowed"
+                    className="w-full bg-white border border-zinc-100 rounded-lg py-2 px-3 text-zinc-950 placeholder-zinc-400 text-xs focus:outline-none focus:border-zinc-900 disabled:bg-gray-50 disabled:cursor-not-allowed"
                   />
                 </div>
               </div>
@@ -478,13 +478,13 @@ export const ProductDetails: React.FC<ProductDetailsProps> = ({
           )}
 
           {/* Tournament sleeve badges — checkbox enables typing (+৳100 each when checked) */}
-          <div className="bg-emerald-50/40 border border-emerald-100 rounded-2xl p-6 space-y-4">
+          <div className="bg-zinc-50 border border-zinc-100 rounded-2xl p-6 space-y-4">
             <div>
-              <span className="text-xs font-mono font-bold tracking-widest text-emerald-850 uppercase flex items-center gap-1">
-                <BadgeCheck size={14} className="text-emerald-700" />
+              <span className="text-xs font-mono font-bold tracking-widest text-zinc-800 uppercase flex items-center gap-1">
+                <BadgeCheck size={14} className="text-zinc-700" />
                 Tournament Sleeve Badges (optional)
               </span>
-              <p className="text-[10px] text-emerald-600 font-mono mt-1">
+              <p className="text-[10px] text-zinc-600 font-mono mt-1">
                 Check a badge to type — each selected badge is +{formatPrice(DEFAULT_BADGE_PRICE_BDT)}
               </p>
             </div>
@@ -502,9 +502,9 @@ export const ProductDetails: React.FC<ProductDetailsProps> = ({
                         id={`badge-enable-${badge.id}`}
                         checked={enabled}
                         onChange={(e) => handleBadgeToggle(badge.id, e.target.checked)}
-                        className="w-4 h-4 accent-emerald-600 cursor-pointer rounded shrink-0 border border-emerald-300"
+                        className="w-4 h-4 accent-zinc-900 cursor-pointer rounded shrink-0 border border-zinc-300"
                       />
-                      <span className="text-[10px] text-emerald-700 font-mono font-bold uppercase">
+                      <span className="text-[10px] text-zinc-700 font-mono font-bold uppercase">
                         {badge.label || `Tournament Sleeve Badge ${idx + 1}`} (+{formatPrice(DEFAULT_BADGE_PRICE_BDT)})
                       </span>
                     </label>
@@ -515,7 +515,7 @@ export const ProductDetails: React.FC<ProductDetailsProps> = ({
                       value={badgeTexts[badge.id] || ''}
                       disabled={!enabled}
                       onChange={(e) => handleBadgeTextChange(badge.id, e.target.value)}
-                      className={`w-full border border-emerald-100 rounded-lg py-2 px-3 text-emerald-950 placeholder-emerald-300 text-xs focus:outline-none focus:border-emerald-500 ${
+                      className={`w-full border border-zinc-100 rounded-lg py-2 px-3 text-zinc-950 placeholder-zinc-400 text-xs focus:outline-none focus:border-zinc-900 ${
                         enabled
                           ? 'bg-white'
                           : 'bg-gray-50 cursor-not-allowed opacity-60'
@@ -530,7 +530,7 @@ export const ProductDetails: React.FC<ProductDetailsProps> = ({
           {/* Cart Buttons & Utility Bar */}
           <div className="space-y-3.5 pt-2">
             {addedConfirm && (
-              <div className="bg-emerald-50 border border-emerald-500/20 text-emerald-700 text-xs font-bold font-mono py-2.5 px-4 rounded-xl text-center tracking-wide animate-fadeIn">
+              <div className="bg-zinc-50 border border-zinc-500/20 text-zinc-700 text-xs font-bold font-mono py-2.5 px-4 rounded-xl text-center tracking-wide animate-fadeIn">
                 ✓ SHIRT SUCCESFULLY INTEGRATED INTO YOUR BAG!
               </div>
             )}
@@ -550,7 +550,7 @@ export const ProductDetails: React.FC<ProductDetailsProps> = ({
                   <button
                     type="button"
                     onClick={handleOrderNowSubmit}
-                    className="sm:col-span-12 bg-emerald-950 hover:bg-emerald-900 text-white font-extrabold text-xs uppercase tracking-widest py-4 rounded-full shadow-lg shadow-emerald-950/20 flex items-center justify-center gap-2 cursor-pointer transition-all active:scale-98 font-sans"
+                    className="sm:col-span-12 bg-zinc-950 hover:bg-zinc-800 text-white font-extrabold text-xs uppercase tracking-widest py-4 rounded-full shadow-lg shadow-black/10 flex items-center justify-center gap-2 cursor-pointer transition-all active:scale-98 font-sans"
                     id="order-now-button"
                   >
                     <Zap size={15} className="fill-white" /> ORDER NOW
@@ -559,7 +559,7 @@ export const ProductDetails: React.FC<ProductDetailsProps> = ({
                   <button
                     type="button"
                     onClick={handleAddToCartSubmit}
-                    className="sm:col-span-8 bg-gradient-to-r from-emerald-600 to-emerald-700 hover:from-emerald-500 hover:to-emerald-600 text-white font-extrabold text-xs uppercase tracking-widest py-4 rounded-full shadow-lg shadow-emerald-600/10 flex items-center justify-center gap-2 cursor-pointer transition-all active:scale-98 font-sans"
+                    className="sm:col-span-8 bg-white hover:bg-zinc-50 text-zinc-950 border-2 border-zinc-900 font-extrabold text-xs uppercase tracking-widest py-4 rounded-full shadow-sm flex items-center justify-center gap-2 cursor-pointer transition-all active:scale-98 font-sans"
                     id="add-to-bag-button"
                   >
                     <ShoppingCart size={15} /> ADD TO CART
@@ -573,7 +573,7 @@ export const ProductDetails: React.FC<ProductDetailsProps> = ({
                 className={`${product.isPreOrder ? 'sm:col-span-4' : 'sm:col-span-4'} border py-4 rounded-full flex items-center justify-center gap-2 text-xs font-bold uppercase tracking-wider transition-all cursor-pointer ${
                   isWishlisted
                     ? 'border-red-500 bg-red-50 text-red-600'
-                    : 'border-emerald-150 hover:border-emerald-500 text-emerald-800 bg-white'
+                    : 'border-zinc-200 hover:border-zinc-900 text-zinc-800 bg-white'
                 }`}
               >
                 <Heart size={14} className={isWishlisted ? 'fill-red-500 text-red-500' : ''} />
@@ -582,14 +582,14 @@ export const ProductDetails: React.FC<ProductDetailsProps> = ({
             </div>
 
             {/* Share / Security Trust features */}
-            <div className="flex flex-wrap justify-between items-center text-xs text-emerald-600 pt-4 border-t border-emerald-100">
+            <div className="flex flex-wrap justify-between items-center text-xs text-zinc-600 pt-4 border-t border-zinc-100">
               <button
                 onClick={handleShare}
-                className="flex items-center gap-1.5 hover:text-emerald-950 transition-colors cursor-pointer"
+                className="flex items-center gap-1.5 hover:text-black transition-colors cursor-pointer"
               >
                 <Share2 size={13} /> {copiedLink ? 'Link Copied!' : 'Share Jersey Details'}
               </button>
-              <div className="flex items-center gap-1.5 font-mono text-[10px] text-emerald-700">
+              <div className="flex items-center gap-1.5 font-mono text-[10px] text-zinc-700">
                 <ShieldCheck size={13} />
                 <span>Verified original with lifetime guarantee</span>
               </div>
@@ -601,12 +601,12 @@ export const ProductDetails: React.FC<ProductDetailsProps> = ({
 
       {/* Related Products Section */}
       {relatedProducts.length > 0 && (
-        <div className="mt-20 border-t border-emerald-100 pt-12 space-y-6">
+        <div className="mt-20 border-t border-zinc-100 pt-12 space-y-6">
           <div className="flex justify-between items-center">
-            <h2 className="text-xl font-bold uppercase tracking-tight text-emerald-950">
+            <h2 className="text-xl font-bold uppercase tracking-tight text-zinc-950">
               Related Historical Jerseys
             </h2>
-            <span className="text-xs text-emerald-700 font-mono font-bold tracking-widest uppercase">
+            <span className="text-xs text-zinc-700 font-mono font-bold tracking-widest uppercase">
               Curated Selection
             </span>
           </div>
@@ -617,9 +617,9 @@ export const ProductDetails: React.FC<ProductDetailsProps> = ({
                 <div
                   key={rp.id}
                   onClick={() => onSelectProduct(rp)}
-                  className="group bg-emerald-50/20 hover:bg-emerald-50/50 border border-emerald-100 hover:border-emerald-300 rounded-2xl p-4 cursor-pointer transition-all duration-300"
+                  className="group bg-zinc-50 hover:bg-zinc-50/50 border border-zinc-100 hover:border-zinc-300 rounded-2xl p-4 cursor-pointer transition-all duration-300"
                 >
-                  <div className="h-40 bg-emerald-50/40 rounded-xl flex items-center justify-center p-4 relative mb-3">
+                  <div className="h-40 bg-zinc-50 rounded-xl flex items-center justify-center p-4 relative mb-3">
                     <JerseyRenderer
                       productId={rp.id}
                       uploadedImage={rp.uploadedImage || (isRenderableImageSrc(rp.image) ? rp.image : undefined)}
@@ -627,11 +627,11 @@ export const ProductDetails: React.FC<ProductDetailsProps> = ({
                     />
                   </div>
                   <div className="space-y-1">
-                    <span className="text-[9px] font-mono uppercase text-emerald-700 block">{rp.brand} • {rp.season}</span>
-                    <h3 className="text-xs font-bold text-emerald-950 group-hover:text-emerald-700 transition-colors truncate">
+                    <span className="text-[9px] font-mono uppercase text-zinc-700 block">{rp.brand} • {rp.season}</span>
+                    <h3 className="text-xs font-bold text-zinc-950 group-hover:text-zinc-700 transition-colors truncate">
                       {rp.name}
                     </h3>
-                    <p className="text-xs font-black text-emerald-850">{formatPrice(rp.price)}</p>
+                    <p className="text-xs font-black text-zinc-800">{formatPrice(rp.price)}</p>
                   </div>
                 </div>
               );

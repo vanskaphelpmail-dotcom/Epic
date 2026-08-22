@@ -49,9 +49,14 @@ function lineUnitPrice(
 }
 
 const createOrderSchema = z.object({
-  paymentMethod: z.enum(["bkash", "cod", "bKash", "CASH ON DELIVERY"]).transform((v) =>
-    v.toLowerCase().includes("bkash") ? "bkash" : "cod",
-  ),
+  paymentMethod: z
+    .enum(["bkash", "nagad", "cod", "bKash", "Nagad", "CASH ON DELIVERY"])
+    .transform((v) => {
+      const lower = v.toLowerCase();
+      if (lower.includes("nagad")) return "nagad";
+      if (lower.includes("bkash")) return "bkash";
+      return "cod";
+    }),
   deliveryRegion: z.enum(["inside", "outside"]),
   deliveryCharge: z.number().nonnegative(),
   shipFullName: z.string().min(2),
@@ -169,11 +174,16 @@ ordersRouter.post("/", optionalAuth, async (req: AuthedRequest, res) => {
   try {
     const body = createOrderSchema.parse(req.body);
 
-    if (body.paymentMethod === "bkash") {
+    if (body.paymentMethod === "bkash" || body.paymentMethod === "nagad") {
       if (!body.bkashNumber || !body.bkashTransactionId) {
         return res.status(400).json({
           success: false,
-          error: { message: "bKash number and Transaction ID are required" },
+          error: {
+            message:
+              body.paymentMethod === "nagad"
+                ? "Nagad number and Transaction ID are required"
+                : "bKash number and Transaction ID are required",
+          },
         });
       }
     }
@@ -286,33 +296,34 @@ ordersRouter.post("/", optionalAuth, async (req: AuthedRequest, res) => {
       if (item.customPrintName && item.customPrintName.trim()) return true;
       return item.customPrintNum != null && Number(item.customPrintNum) > 0;
     });
+    const isMobileWallet =
+      body.paymentMethod === "bkash" || body.paymentMethod === "nagad";
+    const walletLabel = body.paymentMethod === "nagad" ? "Nagad" : "bKash";
     let bkashPaymentType: "full" | "partial" =
       body.bkashPaymentType === "partial" ? "partial" : "full";
     // Custom jersey name / nameset → full payment only
-    if (orderHasNameset && body.paymentMethod === "bkash") {
+    if (orderHasNameset && isMobileWallet) {
       bkashPaymentType = "full";
     }
-    const bkashPaidAmount =
-      body.paymentMethod === "bkash"
-        ? bkashPaymentType === "partial"
-          ? Math.min(partialAdvanceBdt, total)
-          : total
-        : 0;
+    const bkashPaidAmount = isMobileWallet
+      ? bkashPaymentType === "partial"
+        ? Math.min(partialAdvanceBdt, total)
+        : total
+      : 0;
     const dueOnDelivery =
-      body.paymentMethod === "bkash" && bkashPaymentType === "partial"
+      isMobileWallet && bkashPaymentType === "partial"
         ? Math.max(0, total - bkashPaidAmount)
         : 0;
-    const bkashNoteTag = `[BKASH:${bkashPaymentType}:paid=${Math.round(bkashPaidAmount)}:total=${Math.round(total)}]`;
+    const bkashNoteTag = `[${walletLabel.toUpperCase()}:${bkashPaymentType}:paid=${Math.round(bkashPaidAmount)}:total=${Math.round(total)}]`;
     const bkashHumanNote =
       bkashPaymentType === "partial"
-        ? `BKASH_PARTIAL: send ৳${Math.round(bkashPaidAmount)} now (৳${partialPerJerseyBdt}×${jerseyCount} jerseys); ৳${Math.round(dueOnDelivery)} due on delivery (order ৳${Math.round(total)})`
-        : `BKASH_FULL: send ৳${Math.round(bkashPaidAmount)}`;
-    const mergedCustomerNotes =
-      body.paymentMethod === "bkash"
-        ? [bkashNoteTag, bkashHumanNote, body.customerNotes?.trim()]
-            .filter(Boolean)
-            .join(" | ")
-        : body.customerNotes || undefined;
+        ? `${walletLabel.toUpperCase()}_PARTIAL: send ৳${Math.round(bkashPaidAmount)} now (৳${partialPerJerseyBdt}×${jerseyCount} jerseys); ৳${Math.round(dueOnDelivery)} due on delivery (order ৳${Math.round(total)})`
+        : `${walletLabel.toUpperCase()}_FULL: send ৳${Math.round(bkashPaidAmount)}`;
+    const mergedCustomerNotes = isMobileWallet
+      ? [bkashNoteTag, bkashHumanNote, body.customerNotes?.trim()]
+          .filter(Boolean)
+          .join(" | ")
+      : body.customerNotes || undefined;
 
     const order = await prisma.$transaction(
       async (tx) => {
@@ -341,18 +352,18 @@ ordersRouter.post("/", optionalAuth, async (req: AuthedRequest, res) => {
           });
         }
 
-        // Guest checkout allowed; bKash with TrxID auto-confirms the order (staff still verify payment).
-        const isBkash = body.paymentMethod === "bkash";
-        const bkashFieldsDone = Boolean(
-          isBkash && body.bkashNumber?.trim() && body.bkashTransactionId?.trim(),
+        // Guest checkout allowed; Send Money with TrxID auto-confirms the order (staff still verify payment).
+        const isMobileWalletPay = isMobileWallet;
+        const walletFieldsDone = Boolean(
+          isMobileWalletPay && body.bkashNumber?.trim() && body.bkashTransactionId?.trim(),
         );
-        const orderStatus = bkashFieldsDone ? "CONFIRMED" : isBkash ? "PENDING" : "PROCESSING";
+        const orderStatus = walletFieldsDone ? "CONFIRMED" : isMobileWalletPay ? "PENDING" : "PROCESSING";
         return tx.order.create({
           data: {
             orderNumber,
             customerId: req.user?.id ?? null,
             guestEmail: req.user?.id ? undefined : body.shipEmail || null,
-            paymentMethod: isBkash ? "bKash" : "CASH ON DELIVERY",
+            paymentMethod: isMobileWalletPay ? walletLabel : "CASH ON DELIVERY",
             paymentStatus: "UNPAID",
             bkashNumber: body.bkashNumber,
             bkashTransactionId: body.bkashTransactionId,
@@ -375,23 +386,23 @@ ordersRouter.post("/", optionalAuth, async (req: AuthedRequest, res) => {
             timeline: {
               create: {
                 status: orderStatus,
-                note: isBkash
+                note: isMobileWalletPay
                   ? bkashPaymentType === "partial"
-                    ? `Order placed (guest ok) — bKash PARTIAL advance ৳${Math.round(bkashPaidAmount)} (৳${partialPerJerseyBdt}×${jerseyCount}); ৳${Math.round(dueOnDelivery)} due on delivery — awaiting staff payment verification`
-                    : `Order placed (guest ok) — bKash FULL ৳${Math.round(bkashPaidAmount)} (TrxID submitted), order confirmed — awaiting staff payment verification`
+                    ? `Order placed (guest ok) — ${walletLabel} PARTIAL advance ৳${Math.round(bkashPaidAmount)} (৳${partialPerJerseyBdt}×${jerseyCount}); ৳${Math.round(dueOnDelivery)} due on delivery — awaiting staff payment verification`
+                    : `Order placed (guest ok) — ${walletLabel} FULL ৳${Math.round(bkashPaidAmount)} (TrxID submitted), order confirmed — awaiting staff payment verification`
                   : "Order placed (COD)",
                 updatedById: req.user?.id ?? null,
               },
             },
-            payments: isBkash
+            payments: isMobileWalletPay
               ? {
                   create: {
-                    provider: "bkash",
+                    provider: body.paymentMethod === "nagad" ? "nagad" : "bkash",
                     providerRef: body.bkashTransactionId,
                     amount: bkashPaidAmount,
                     status: "UNPAID",
                     rawPayload: {
-                      bkashNumber: body.bkashNumber,
+                      walletNumber: body.bkashNumber,
                       awaitingVerification: true,
                       paymentType: bkashPaymentType,
                       paidAmount: bkashPaidAmount,
@@ -399,6 +410,7 @@ ordersRouter.post("/", optionalAuth, async (req: AuthedRequest, res) => {
                       dueOnDelivery,
                       jerseyCount,
                       partialPerJerseyBdt,
+                      wallet: body.paymentMethod,
                     },
                   },
                 }

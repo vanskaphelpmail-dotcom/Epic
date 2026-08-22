@@ -312,31 +312,31 @@ export const CustomerDashboard: React.FC<CustomerDashboardProps> = ({
   });
 
   return (
-    <section className="bg-[#fcfdfc] text-emerald-950 py-10 px-4 md:px-12 max-w-7xl mx-auto min-h-screen">
+    <section className="bg-[#fcfdfc] text-zinc-950 py-10 px-4 md:px-12 max-w-7xl mx-auto min-h-screen">
       
       {/* Dashboard Welcome Header */}
-      <div className="border-b border-emerald-100 pb-6 mb-8 flex flex-col sm:flex-row gap-5 justify-between items-start sm:items-center">
+      <div className="border-b border-zinc-100 pb-6 mb-8 flex flex-col sm:flex-row gap-5 justify-between items-start sm:items-center">
         <div className="flex items-center gap-4">
-          <div className="w-14 h-14 rounded-full bg-emerald-800 border border-emerald-700 text-white flex items-center justify-center font-sans font-black text-xl shadow-sm">
+          <div className="w-14 h-14 rounded-full bg-black border border-zinc-700 text-white flex items-center justify-center font-sans font-black text-xl shadow-sm">
             YA
           </div>
           <div>
             <h1 className="text-2xl font-black uppercase tracking-tight">My Profile & Account</h1>
-            <p className="text-xs text-emerald-800 font-mono">
-              Collector Status: <span className="text-emerald-950 font-black">LEGEND LEVEL</span> • Account ID: #COL-0997
+            <p className="text-xs text-zinc-800 font-mono">
+              Collector Status: <span className="text-zinc-950 font-black">LEGEND LEVEL</span> • Account ID: #COL-0997
             </p>
           </div>
         </div>
 
         {/* Dynamic mini counts */}
         <div className="flex gap-4 text-xs font-mono">
-          <div className="bg-emerald-50 border border-emerald-100 px-4 py-2 rounded-xl text-center">
-            <p className="text-emerald-700 text-[10px] uppercase">My Orders</p>
-            <p className="text-emerald-950 font-black text-sm">{activeOrders.length}</p>
+          <div className="bg-zinc-50 border border-zinc-100 px-4 py-2 rounded-xl text-center">
+            <p className="text-zinc-700 text-[10px] uppercase">My Orders</p>
+            <p className="text-zinc-950 font-black text-sm">{activeOrders.length}</p>
           </div>
-          <div className="bg-emerald-50 border border-emerald-100 px-4 py-2 rounded-xl text-center">
-            <p className="text-emerald-700 text-[10px] uppercase">Wishlisted</p>
-            <p className="text-emerald-950 font-black text-sm">{wishlist.length}</p>
+          <div className="bg-zinc-50 border border-zinc-100 px-4 py-2 rounded-xl text-center">
+            <p className="text-zinc-700 text-[10px] uppercase">Wishlisted</p>
+            <p className="text-zinc-950 font-black text-sm">{wishlist.length}</p>
           </div>
         </div>
       </div>
@@ -345,7 +345,7 @@ export const CustomerDashboard: React.FC<CustomerDashboardProps> = ({
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-10 items-start">
         
         {/* Left Col: Menu Navigation */}
-        <div className="lg:col-span-3 bg-emerald-50/40 border border-emerald-100 rounded-2xl p-4 space-y-2 text-xs font-semibold">
+        <div className="lg:col-span-3 bg-zinc-50 border border-zinc-100 rounded-2xl p-4 space-y-2 text-xs font-semibold">
           {[
             { id: 'orders', label: 'My Order History', icon: ClipboardList },
             { id: 'wishlist', label: 'My Wishlist', icon: Heart },
@@ -359,8 +359,8 @@ export const CustomerDashboard: React.FC<CustomerDashboardProps> = ({
                 onClick={() => setActiveTab(item.id as any)}
                 className={`w-full text-left py-3 px-4 rounded-xl flex items-center gap-2.5 transition-all cursor-pointer ${
                   activeTab === item.id
-                    ? 'bg-emerald-800 text-white font-black'
-                    : 'text-emerald-800 hover:text-emerald-950 hover:bg-emerald-50'
+                    ? 'bg-black text-white font-black'
+                    : 'text-zinc-800 hover:text-black hover:bg-zinc-50'
                 }`}
               >
                 <Icon size={14} /> {item.label}
@@ -374,7 +374,7 @@ export const CustomerDashboard: React.FC<CustomerDashboardProps> = ({
           
           {activeTab === 'orders' && (
             <div className="space-y-6 animate-fadeIn">
-              <h3 className="text-base font-bold uppercase tracking-tight text-emerald-950 border-b border-emerald-100 pb-2">
+              <h3 className="text-base font-bold uppercase tracking-tight text-zinc-950 border-b border-zinc-100 pb-2">
                 Order History & Logistics tracking
               </h3>
 
@@ -382,23 +382,23 @@ export const CustomerDashboard: React.FC<CustomerDashboardProps> = ({
                 {activeOrders.map((ord) => (
                   <div
                     key={ord.id}
-                    className="bg-emerald-50/20 border border-emerald-100 rounded-2xl overflow-hidden shadow-sm"
+                    className="bg-zinc-50 border border-zinc-100 rounded-2xl overflow-hidden shadow-sm"
                   >
                     {/* Order header row */}
-                    <div className="bg-emerald-50/80 border-b border-emerald-100 p-4 md:p-6 flex flex-wrap justify-between items-center gap-4 text-xs font-mono text-emerald-950">
+                    <div className="bg-zinc-50/80 border-b border-zinc-100 p-4 md:p-6 flex flex-wrap justify-between items-center gap-4 text-xs font-mono text-zinc-950">
                       <div>
-                        <span className="text-emerald-700">ORDER NUMBER:</span>
-                        <p className="text-emerald-950 font-bold text-sm">{ord.id}</p>
+                        <span className="text-zinc-700">ORDER NUMBER:</span>
+                        <p className="text-zinc-950 font-bold text-sm">{ord.id}</p>
                       </div>
                       <div>
-                        <span className="text-emerald-700">DATE CONFIRMED:</span>
-                        <p className="text-emerald-950 font-bold">{ord.date}</p>
+                        <span className="text-zinc-700">DATE CONFIRMED:</span>
+                        <p className="text-zinc-950 font-bold">{ord.date}</p>
                       </div>
                       <div>
-                        <span className="text-emerald-700">TOTAL VALUE:</span>
-                        <p className="text-emerald-950 font-extrabold text-sm">{displayPrice(ord.total)}</p>
+                        <span className="text-zinc-700">TOTAL VALUE:</span>
+                        <p className="text-zinc-950 font-extrabold text-sm">{displayPrice(ord.total)}</p>
                       </div>
-                      <span className="bg-emerald-800 text-white px-3 py-1 rounded font-bold border border-emerald-700">
+                      <span className="bg-black text-white px-3 py-1 rounded font-bold border border-zinc-700">
                         {ord.status.toUpperCase()}
                       </span>
                     </div>
@@ -407,53 +407,53 @@ export const CustomerDashboard: React.FC<CustomerDashboardProps> = ({
                     <div className="p-6 space-y-6">
                       <div className="space-y-3">
                         {ord.items.map((item, idx) => (
-                          <div key={idx} className="flex gap-4 items-center border-b border-emerald-100/50 pb-3 text-xs">
-                            <div className="w-12 h-12 bg-emerald-50 border border-emerald-100/40 rounded p-1 flex items-center justify-center">
+                          <div key={idx} className="flex gap-4 items-center border-b border-zinc-100 pb-3 text-xs">
+                            <div className="w-12 h-12 bg-zinc-50 border border-zinc-100/40 rounded p-1 flex items-center justify-center">
                               <svg viewBox="0 0 200 240" className="w-full h-full">
                                 <rect width="200" height="240" rx="10" fill="#f0fdf4" />
-                                <circle cx="100" cy="120" r="60" fill="#047857" opacity="0.3" />
+                                <circle cx="100" cy="120" r="60" fill="#18181b" opacity="0.3" />
                               </svg>
                             </div>
                             <div className="flex-1">
-                              <h4 className="font-bold text-emerald-950 hover:text-emerald-700 cursor-pointer" onClick={() => { onSelectProduct(item.product); setCurrentPage('details'); }}>
+                              <h4 className="font-bold text-zinc-950 hover:text-zinc-700 cursor-pointer" onClick={() => { onSelectProduct(item.product); setCurrentPage('details'); }}>
                                 {item.product.name}
                               </h4>
-                              <p className="text-[10px] text-emerald-700 font-mono">
+                              <p className="text-[10px] text-zinc-700 font-mono">
                                 Size: {item.selectedSize} | Qty: {item.quantity}
                               </p>
                             </div>
-                            <span className="text-emerald-950 font-bold font-mono">{displayPrice(item.product.price)}</span>
+                            <span className="text-zinc-950 font-bold font-mono">{displayPrice(item.product.price)}</span>
                           </div>
                         ))}
                       </div>
 
                       {/* Visual Logistics Tracking nodes */}
                       {ord.trackingNumber && (
-                        <div className="bg-emerald-50/50 border border-emerald-100 p-5 rounded-xl space-y-4 text-xs">
-                          <div className="flex justify-between items-center border-b border-emerald-100/50 pb-2">
-                            <span className="font-mono text-[10px] text-emerald-700">TRACKING COURIER: COURIER-POST EXCLUSIVE</span>
-                            <span className="font-mono font-black text-emerald-950">{ord.trackingNumber}</span>
+                        <div className="bg-zinc-50 border border-zinc-100 p-5 rounded-xl space-y-4 text-xs">
+                          <div className="flex justify-between items-center border-b border-zinc-100 pb-2">
+                            <span className="font-mono text-[10px] text-zinc-700">TRACKING COURIER: COURIER-POST EXCLUSIVE</span>
+                            <span className="font-mono font-black text-zinc-950">{ord.trackingNumber}</span>
                           </div>
 
                           {/* Interactive milestones dots bar */}
                           <div className="relative pt-4 pb-2">
-                            <div className="absolute top-1/2 left-4 right-4 h-0.5 bg-emerald-100 -translate-y-1/2" />
+                            <div className="absolute top-1/2 left-4 right-4 h-0.5 bg-zinc-100 -translate-y-1/2" />
                             <div className="relative flex justify-between items-center text-center">
                               <div className="space-y-1.5 flex flex-col items-center">
-                                <span className="w-3.5 h-3.5 rounded-full bg-emerald-800 border-4 border-white z-10" />
-                                <p className="text-[9px] font-bold text-emerald-800 uppercase">Sourced & Sanitized</p>
+                                <span className="w-3.5 h-3.5 rounded-full bg-black border-4 border-white z-10" />
+                                <p className="text-[9px] font-bold text-zinc-800 uppercase">Sourced & Sanitized</p>
                               </div>
                               <div className="space-y-1.5 flex flex-col items-center">
-                                <span className="w-3.5 h-3.5 rounded-full bg-emerald-800 border-4 border-white z-10" />
-                                <p className="text-[9px] font-bold text-emerald-800 uppercase">Verified Lab</p>
+                                <span className="w-3.5 h-3.5 rounded-full bg-black border-4 border-white z-10" />
+                                <p className="text-[9px] font-bold text-zinc-800 uppercase">Verified Lab</p>
                               </div>
                               <div className="space-y-1.5 flex flex-col items-center">
-                                <span className={`w-3.5 h-3.5 rounded-full border-4 border-white z-10 ${ord.status === 'Shipped' || ord.status === 'Delivered' ? 'bg-emerald-800' : 'bg-emerald-200'}`} />
-                                <p className="text-[9px] font-bold text-emerald-700 uppercase">Departed Flight</p>
+                                <span className={`w-3.5 h-3.5 rounded-full border-4 border-white z-10 ${ord.status === 'Shipped' || ord.status === 'Delivered' ? 'bg-black' : 'bg-zinc-200'}`} />
+                                <p className="text-[9px] font-bold text-zinc-700 uppercase">Departed Flight</p>
                               </div>
                               <div className="space-y-1.5 flex flex-col items-center">
-                                <span className="w-3.5 h-3.5 rounded-full bg-emerald-200 border-4 border-white z-10" />
-                                <p className="text-[9px] font-bold text-emerald-500 uppercase">Out for Delivery</p>
+                                <span className="w-3.5 h-3.5 rounded-full bg-zinc-200 border-4 border-white z-10" />
+                                <p className="text-[9px] font-bold text-zinc-500 uppercase">Out for Delivery</p>
                               </div>
                             </div>
                           </div>
@@ -469,16 +469,16 @@ export const CustomerDashboard: React.FC<CustomerDashboardProps> = ({
 
           {activeTab === 'wishlist' && (
             <div className="space-y-6 animate-fadeIn">
-              <h3 className="text-base font-bold uppercase tracking-tight text-emerald-950 border-b border-emerald-100 pb-2">
+              <h3 className="text-base font-bold uppercase tracking-tight text-zinc-950 border-b border-zinc-100 pb-2">
                 My saved wishlist ({wishlist.length} Items)
               </h3>
 
               {wishlist.length === 0 ? (
-                <div className="bg-emerald-50/40 border border-emerald-100 p-10 text-center rounded-2xl space-y-4">
-                  <p className="text-xs text-emerald-800 leading-relaxed">
+                <div className="bg-zinc-50 border border-zinc-100 p-10 text-center rounded-2xl space-y-4">
+                  <p className="text-xs text-zinc-800 leading-relaxed">
                     No historical jerseys saved in your wishlist folder yet. Explore the Epic Vanskap BD catalog to favorite some classic models.
                   </p>
-                  <button onClick={() => setCurrentPage('listing')} className="bg-emerald-800 text-white text-[10px] uppercase font-black tracking-widest px-6 py-2.5 rounded-full cursor-pointer">
+                  <button onClick={() => setCurrentPage('listing')} className="bg-black text-white text-[10px] uppercase font-black tracking-widest px-6 py-2.5 rounded-full cursor-pointer">
                     Browse Catalogue
                   </button>
                 </div>
@@ -487,25 +487,25 @@ export const CustomerDashboard: React.FC<CustomerDashboardProps> = ({
                   {wishlist.map((w) => (
                     <div
                       key={w.id}
-                      className="bg-emerald-50/20 border border-emerald-100 rounded-2xl p-4 flex gap-4 items-center justify-between"
+                      className="bg-zinc-50 border border-zinc-100 rounded-2xl p-4 flex gap-4 items-center justify-between"
                     >
                       <div className="flex gap-3 items-center cursor-pointer" onClick={() => { onSelectProduct(w); setCurrentPage('details'); }}>
-                        <div className="w-12 h-12 bg-emerald-50 border border-emerald-100 p-1 rounded flex items-center justify-center">
+                        <div className="w-12 h-12 bg-zinc-50 border border-zinc-100 p-1 rounded flex items-center justify-center">
                           <svg viewBox="0 0 200 240" className="w-full h-full">
                             <rect width="200" height="240" rx="10" fill="#f0fdf4" />
                           </svg>
                         </div>
                         <div>
-                          <h4 className="text-xs font-bold hover:text-emerald-800 leading-tight truncate max-w-[150px]">
+                          <h4 className="text-xs font-bold hover:text-zinc-900 leading-tight truncate max-w-[150px]">
                             {w.name}
                           </h4>
-                          <span className="text-[10px] text-emerald-950 font-bold font-mono">{displayPrice(w.price)}</span>
+                          <span className="text-[10px] text-zinc-950 font-bold font-mono">{displayPrice(w.price)}</span>
                         </div>
                       </div>
                       
                       <button
                         onClick={() => onRemoveWishlist(w)}
-                        className="text-emerald-600 hover:text-red-600 p-2 rounded-full cursor-pointer"
+                        className="text-zinc-600 hover:text-red-600 p-2 rounded-full cursor-pointer"
                         title="Remove from wishlist"
                       >
                         <Trash2 size={14} />
@@ -518,37 +518,37 @@ export const CustomerDashboard: React.FC<CustomerDashboardProps> = ({
           )}
 
           {activeTab === 'profile' && (
-            <div className="bg-emerald-50/40 border border-emerald-100 p-6 rounded-2xl space-y-5 animate-fadeIn">
-              <h3 className="text-base font-bold uppercase tracking-tight text-emerald-950 border-b border-emerald-100 pb-2 flex items-center gap-2">
-                <User size={18} className="text-emerald-800" /> Account & Security Profiles
+            <div className="bg-zinc-50 border border-zinc-100 p-6 rounded-2xl space-y-5 animate-fadeIn">
+              <h3 className="text-base font-bold uppercase tracking-tight text-zinc-950 border-b border-zinc-100 pb-2 flex items-center gap-2">
+                <User size={18} className="text-zinc-800" /> Account & Security Profiles
               </h3>
 
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 text-xs">
                 <div className="space-y-1.5">
-                  <span className="text-[10px] text-emerald-700 font-mono">COLLECTOR FULL NAME:</span>
+                  <span className="text-[10px] text-zinc-700 font-mono">COLLECTOR FULL NAME:</span>
                   <input
                     type="text"
                     value={fullName}
                     onChange={(e) => setFullName(e.target.value)}
-                    className="w-full bg-white border border-emerald-100 rounded-lg py-2 px-3 text-xs text-emerald-950 focus:outline-none focus:border-emerald-500"
+                    className="w-full bg-white border border-zinc-100 rounded-lg py-2 px-3 text-xs text-zinc-950 focus:outline-none focus:border-zinc-900"
                   />
                 </div>
                 <div className="space-y-1.5">
-                  <span className="text-[10px] text-emerald-700 font-mono">REGISTRATION EMAIL ADDRESS:</span>
+                  <span className="text-[10px] text-zinc-700 font-mono">REGISTRATION EMAIL ADDRESS:</span>
                   <input
                     type="email"
                     value={email}
                     readOnly
-                    className="w-full bg-emerald-50/80 border border-emerald-100 rounded-lg py-2 px-3 text-xs text-emerald-950 focus:outline-none"
+                    className="w-full bg-zinc-50/80 border border-zinc-100 rounded-lg py-2 px-3 text-xs text-zinc-950 focus:outline-none"
                   />
                 </div>
                 <div className="space-y-1.5 col-span-2">
-                  <span className="text-[10px] text-emerald-700 font-mono">VERIFIED PHONE CONTACT:</span>
+                  <span className="text-[10px] text-zinc-700 font-mono">VERIFIED PHONE CONTACT:</span>
                   <input
                     type="tel"
                     value={phone}
                     onChange={(e) => setPhone(e.target.value)}
-                    className="w-full bg-white border border-emerald-100 rounded-lg py-2 px-3 text-xs text-emerald-950 focus:outline-none focus:border-emerald-500"
+                    className="w-full bg-white border border-zinc-100 rounded-lg py-2 px-3 text-xs text-zinc-950 focus:outline-none focus:border-zinc-900"
                   />
                 </div>
               </div>
@@ -556,7 +556,7 @@ export const CustomerDashboard: React.FC<CustomerDashboardProps> = ({
               <button
                 onClick={() => void handleSaveProfile()}
                 disabled={profileBusy}
-                className="bg-emerald-800 hover:bg-emerald-700 disabled:opacity-60 text-white font-extrabold text-[10px] uppercase tracking-widest px-6 py-2.5 rounded-lg cursor-pointer"
+                className="bg-black hover:bg-zinc-700 disabled:opacity-60 text-white font-extrabold text-[10px] uppercase tracking-widest px-6 py-2.5 rounded-lg cursor-pointer"
               >
                 {profileBusy ? 'Saving…' : 'Save Settings Profile'}
               </button>
@@ -564,15 +564,15 @@ export const CustomerDashboard: React.FC<CustomerDashboardProps> = ({
           )}
 
           {activeTab === 'addresses' && (
-            <div className="bg-emerald-50/40 border border-emerald-100 p-6 rounded-2xl space-y-6 animate-fadeIn">
-              <div className="flex justify-between items-center border-b border-emerald-100 pb-3">
-                <h3 className="text-base font-bold uppercase tracking-tight text-emerald-950 flex items-center gap-2">
-                  <MapPin size={18} className="text-emerald-800" /> Saved Shipping Coordinates
+            <div className="bg-zinc-50 border border-zinc-100 p-6 rounded-2xl space-y-6 animate-fadeIn">
+              <div className="flex justify-between items-center border-b border-zinc-100 pb-3">
+                <h3 className="text-base font-bold uppercase tracking-tight text-zinc-950 flex items-center gap-2">
+                  <MapPin size={18} className="text-zinc-800" /> Saved Shipping Coordinates
                 </h3>
                 {!isEditingAddress && (
                   <button
                     onClick={handleOpenAddForm}
-                    className="bg-emerald-800 hover:bg-emerald-700 text-white font-extrabold text-[10px] uppercase tracking-wider py-2 px-4 rounded-xl flex items-center gap-1.5 transition-all cursor-pointer"
+                    className="bg-black hover:bg-zinc-700 text-white font-extrabold text-[10px] uppercase tracking-wider py-2 px-4 rounded-xl flex items-center gap-1.5 transition-all cursor-pointer"
                   >
                     <Plus size={12} /> Add Address
                   </button>
@@ -582,14 +582,14 @@ export const CustomerDashboard: React.FC<CustomerDashboardProps> = ({
               {isEditingAddress ? (
                 /* ADD / EDIT ADDRESS FORM */
                 <form onSubmit={handleSaveAddress} className="space-y-4 text-xs">
-                  <div className="bg-white border border-emerald-100 p-4 rounded-2xl space-y-4">
-                    <p className="text-[10px] font-mono text-emerald-800 uppercase font-black">
+                  <div className="bg-white border border-zinc-100 p-4 rounded-2xl space-y-4">
+                    <p className="text-[10px] font-mono text-zinc-800 uppercase font-black">
                       {editingAddressId ? 'Edit Shipping Coordinate' : 'Add New Shipping Coordinate'}
                     </p>
 
                     {/* ADDRESS LABEL OPTIONS (Home, Office, Visitor) */}
                     <div className="space-y-2">
-                      <label className="text-[10px] text-emerald-700 font-mono block uppercase font-bold">ADDRESS LABEL / TYPE:</label>
+                      <label className="text-[10px] text-zinc-700 font-mono block uppercase font-bold">ADDRESS LABEL / TYPE:</label>
                       <div className="grid grid-cols-3 gap-2">
                         {[
                           { id: 'Home', icon: Home },
@@ -605,8 +605,8 @@ export const CustomerDashboard: React.FC<CustomerDashboardProps> = ({
                               onClick={() => setFormLabel(lbl.id as any)}
                               className={`p-3 rounded-xl border flex flex-col sm:flex-row items-center justify-center gap-1.5 transition-all cursor-pointer font-bold ${
                                 isSelected
-                                  ? 'bg-emerald-800 text-white border-emerald-800 font-black'
-                                  : 'border-emerald-100 bg-emerald-50/50 text-emerald-800 hover:border-emerald-200'
+                                  ? 'bg-black text-white border-zinc-900 font-black'
+                                  : 'border-zinc-100 bg-zinc-50 text-zinc-800 hover:border-zinc-200'
                               }`}
                             >
                               <Icon size={14} />
@@ -620,63 +620,63 @@ export const CustomerDashboard: React.FC<CustomerDashboardProps> = ({
                     {/* Name & Phone fields */}
                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                       <div className="space-y-1.5">
-                        <label className="text-[10px] text-emerald-700 font-mono block uppercase">Recipient Full Name *</label>
+                        <label className="text-[10px] text-zinc-700 font-mono block uppercase">Recipient Full Name *</label>
                         <input
                           type="text"
                           required
                           value={formFullName}
                           onChange={(e) => setFormFullName(e.target.value)}
                           placeholder="e.g. Yasin Ahmed"
-                          className="w-full bg-white border border-emerald-100 rounded-lg py-2.5 px-3 text-xs text-emerald-950 focus:outline-none focus:border-emerald-500"
+                          className="w-full bg-white border border-zinc-100 rounded-lg py-2.5 px-3 text-xs text-zinc-950 focus:outline-none focus:border-zinc-900"
                         />
                       </div>
                       <div className="space-y-1.5">
-                        <label className="text-[10px] text-emerald-700 font-mono block uppercase">Active Contact Phone *</label>
+                        <label className="text-[10px] text-zinc-700 font-mono block uppercase">Active Contact Phone *</label>
                         <input
                           type="tel"
                           required
                           value={formPhone}
                           onChange={(e) => setFormPhone(e.target.value)}
                           placeholder="e.g. 01840990700"
-                          className="w-full bg-white border border-emerald-100 rounded-lg py-2.5 px-3 text-xs text-emerald-950 focus:outline-none focus:border-emerald-500"
+                          className="w-full bg-white border border-zinc-100 rounded-lg py-2.5 px-3 text-xs text-zinc-950 focus:outline-none focus:border-zinc-900"
                         />
                       </div>
                     </div>
 
                     {/* Detailed Address field */}
                     <div className="space-y-1.5">
-                      <label className="text-[10px] text-emerald-700 font-mono block uppercase">Detailed Delivery Address *</label>
+                      <label className="text-[10px] text-zinc-700 font-mono block uppercase">Detailed Delivery Address *</label>
                       <textarea
                         required
                         rows={2}
                         value={formAddressLine1}
                         onChange={(e) => setFormAddressLine1(e.target.value)}
                         placeholder="e.g. Flat 4B, House 12, Road 5, Sector 4, Uttara"
-                        className="w-full bg-white border border-emerald-100 rounded-lg py-2.5 px-3 text-xs text-emerald-950 focus:outline-none focus:border-emerald-500 resize-none"
+                        className="w-full bg-white border border-zinc-100 rounded-lg py-2.5 px-3 text-xs text-zinc-950 focus:outline-none focus:border-zinc-900 resize-none"
                       />
                     </div>
 
                     {/* City / District & Postal code fields */}
                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                       <div className="space-y-1.5">
-                        <label className="text-[10px] text-emerald-700 font-mono block uppercase">City / District *</label>
+                        <label className="text-[10px] text-zinc-700 font-mono block uppercase">City / District *</label>
                         <input
                           type="text"
                           required
                           value={formCity}
                           onChange={(e) => setFormCity(e.target.value)}
                           placeholder="e.g. Dhaka"
-                          className="w-full bg-white border border-emerald-100 rounded-lg py-2.5 px-3 text-xs text-emerald-950 focus:outline-none focus:border-emerald-500"
+                          className="w-full bg-white border border-zinc-100 rounded-lg py-2.5 px-3 text-xs text-zinc-950 focus:outline-none focus:border-zinc-900"
                         />
                       </div>
                       <div className="space-y-1.5">
-                        <label className="text-[10px] text-emerald-700 font-mono block uppercase">Postal Code (Optional)</label>
+                        <label className="text-[10px] text-zinc-700 font-mono block uppercase">Postal Code (Optional)</label>
                         <input
                           type="text"
                           value={formPostalCode}
                           onChange={(e) => setFormPostalCode(e.target.value)}
                           placeholder="e.g. 1230"
-                          className="w-full bg-white border border-emerald-100 rounded-lg py-2.5 px-3 text-xs text-emerald-950 focus:outline-none focus:border-emerald-500"
+                          className="w-full bg-white border border-zinc-100 rounded-lg py-2.5 px-3 text-xs text-zinc-950 focus:outline-none focus:border-zinc-900"
                         />
                       </div>
                     </div>
@@ -689,9 +689,9 @@ export const CustomerDashboard: React.FC<CustomerDashboardProps> = ({
                         checked={formIsDefault}
                         disabled={editingAddressId !== null && addresses.find(a => a.id === editingAddressId)?.isDefault}
                         onChange={(e) => setFormIsDefault(e.target.checked)}
-                        className="w-3.5 h-3.5 accent-emerald-800 bg-white border-emerald-100 rounded"
+                        className="w-3.5 h-3.5 accent-zinc-900 bg-white border-zinc-100 rounded"
                       />
-                      <label htmlFor="formIsDefault" className="text-[10px] text-emerald-700 font-mono cursor-pointer select-none">
+                      <label htmlFor="formIsDefault" className="text-[10px] text-zinc-700 font-mono cursor-pointer select-none">
                         Make this my primary default delivery address
                       </label>
                     </div>
@@ -701,14 +701,14 @@ export const CustomerDashboard: React.FC<CustomerDashboardProps> = ({
                   <div className="flex gap-2.5">
                     <button
                       type="submit"
-                      className="bg-emerald-800 hover:bg-emerald-700 text-white font-extrabold text-[10px] uppercase tracking-widest py-3 px-6 rounded-xl transition-all cursor-pointer"
+                      className="bg-black hover:bg-zinc-700 text-white font-extrabold text-[10px] uppercase tracking-widest py-3 px-6 rounded-xl transition-all cursor-pointer"
                     >
                       Save Coordinate
                     </button>
                     <button
                       type="button"
                       onClick={() => setIsEditingAddress(false)}
-                      className="bg-white hover:bg-emerald-50 border border-emerald-100 text-emerald-800 font-bold text-[10px] uppercase tracking-widest py-3 px-6 rounded-xl transition-all cursor-pointer"
+                      className="bg-white hover:bg-zinc-50 border border-zinc-100 text-zinc-800 font-bold text-[10px] uppercase tracking-widest py-3 px-6 rounded-xl transition-all cursor-pointer"
                     >
                       Cancel
                     </button>
@@ -718,8 +718,8 @@ export const CustomerDashboard: React.FC<CustomerDashboardProps> = ({
                 /* SAVED ADDRESSES GRID LIST */
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   {addresses.length === 0 ? (
-                    <div className="col-span-2 text-center py-8 bg-white border border-emerald-100 rounded-xl">
-                      <p className="text-xs text-emerald-700 font-mono">No shipping addresses saved yet. Click 'Add Address' to set one up.</p>
+                    <div className="col-span-2 text-center py-8 bg-white border border-zinc-100 rounded-xl">
+                      <p className="text-xs text-zinc-700 font-mono">No shipping addresses saved yet. Click 'Add Address' to set one up.</p>
                     </div>
                   ) : (
                     addresses.map((addr) => (
@@ -727,8 +727,8 @@ export const CustomerDashboard: React.FC<CustomerDashboardProps> = ({
                         key={addr.id}
                         className={`border p-5 rounded-2xl space-y-3.5 text-xs transition-all flex flex-col justify-between ${
                           addr.isDefault
-                            ? 'border-emerald-800 bg-white shadow-sm'
-                            : 'border-emerald-100 bg-emerald-50/20 hover:border-emerald-200'
+                            ? 'border-zinc-900 bg-white shadow-sm'
+                            : 'border-zinc-100 bg-zinc-50 hover:border-zinc-200'
                         }`}
                       >
                         <div className="space-y-2.5">
@@ -738,8 +738,8 @@ export const CustomerDashboard: React.FC<CustomerDashboardProps> = ({
                               {/* Address Label type indicator */}
                               <span className={`inline-flex items-center gap-1 font-mono text-[9px] font-black px-2.5 py-0.5 rounded-full border ${
                                 addr.label === 'Home'
-                                  ? 'bg-emerald-800 text-white border-emerald-700'
-                                  : 'bg-emerald-50 text-emerald-800 border-emerald-200'
+                                  ? 'bg-black text-white border-zinc-700'
+                                  : 'bg-zinc-50 text-zinc-800 border-zinc-200'
                               }`}>
                                 {addr.label === 'Home' && <Home size={9} />}
                                 {addr.label === 'Office' && <Briefcase size={9} />}
@@ -748,7 +748,7 @@ export const CustomerDashboard: React.FC<CustomerDashboardProps> = ({
                               </span>
 
                               {addr.isDefault && (
-                                <span className="bg-emerald-800 text-white font-mono text-[9px] font-bold px-2 py-0.5 rounded-full border border-emerald-700">
+                                <span className="bg-black text-white font-mono text-[9px] font-bold px-2 py-0.5 rounded-full border border-zinc-700">
                                   PRIMARY DEFAULT
                                 </span>
                               )}
@@ -758,7 +758,7 @@ export const CustomerDashboard: React.FC<CustomerDashboardProps> = ({
                             {!addr.isDefault && (
                               <button
                                 onClick={() => handleSetDefault(addr.id)}
-                                className="text-emerald-800 hover:text-emerald-950 text-[9px] font-mono hover:underline cursor-pointer flex items-center gap-0.5"
+                                className="text-zinc-800 hover:text-black text-[9px] font-mono hover:underline cursor-pointer flex items-center gap-0.5"
                               >
                                 <Check size={10} /> Make Default
                               </button>
@@ -767,23 +767,23 @@ export const CustomerDashboard: React.FC<CustomerDashboardProps> = ({
 
                           {/* Address details */}
                           <div className="space-y-1">
-                            <p className="font-black text-emerald-950 text-sm">{addr.fullName}</p>
-                            <p className="text-emerald-800 font-medium leading-relaxed">{addr.addressLine1}</p>
-                            <p className="text-emerald-800 font-mono text-[10px]">
+                            <p className="font-black text-zinc-950 text-sm">{addr.fullName}</p>
+                            <p className="text-zinc-800 font-medium leading-relaxed">{addr.addressLine1}</p>
+                            <p className="text-zinc-800 font-mono text-[10px]">
                               {addr.city}{addr.postalCode ? ` - ${addr.postalCode}` : ''}
                             </p>
-                            <p className="text-emerald-700 font-mono text-[10px] pt-1 block">
-                              Phone: <span className="text-emerald-950 font-bold">{addr.phone}</span>
+                            <p className="text-zinc-700 font-mono text-[10px] pt-1 block">
+                              Phone: <span className="text-zinc-950 font-bold">{addr.phone}</span>
                             </p>
                           </div>
                         </div>
 
                         {/* Edit & Delete Action Row */}
-                        <div className="flex gap-2.5 pt-3 border-t border-emerald-100 mt-1">
+                        <div className="flex gap-2.5 pt-3 border-t border-zinc-100 mt-1">
                           <button
                             type="button"
                             onClick={() => handleOpenEditForm(addr)}
-                            className="text-emerald-800 hover:text-emerald-950 text-[10px] font-bold flex items-center gap-1 cursor-pointer transition-colors"
+                            className="text-zinc-800 hover:text-black text-[10px] font-bold flex items-center gap-1 cursor-pointer transition-colors"
                           >
                             <Edit size={12} /> Edit
                           </button>

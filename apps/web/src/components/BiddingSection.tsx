@@ -205,7 +205,7 @@ export const BiddingSection: React.FC<BiddingSectionProps> = ({ onAddToCart, set
       
       {/* 1. AUCTION HERO BANNER */}
       <section 
-        className="relative rounded-3xl overflow-hidden bg-cover bg-center min-h-[280px] md:min-h-[320px] flex items-center shadow-lg transition-all border border-emerald-100"
+        className="relative rounded-3xl overflow-hidden bg-cover bg-center min-h-[280px] md:min-h-[320px] flex items-center shadow-lg transition-all border border-zinc-100"
         style={{
           backgroundImage: `linear-gradient(rgba(0, 0, 0, 0.55), rgba(0, 0, 0, 0.85)), url('https://images.unsplash.com/photo-1508098682722-e99c43a406b2?auto=format&fit=crop&q=80&w=1600')`
         }}
@@ -214,7 +214,7 @@ export const BiddingSection: React.FC<BiddingSectionProps> = ({ onAddToCart, set
           
           {/* Banner Details (Left) */}
           <div className="space-y-3.5 max-w-2xl text-left">
-            <span className="inline-block bg-emerald-700/60 backdrop-blur-sm border border-emerald-500/20 text-white font-mono font-black text-[9px] md:text-[10px] tracking-widest uppercase px-3 py-1 rounded-full">
+            <span className="inline-block bg-zinc-700/60 backdrop-blur-sm border border-zinc-500/20 text-white font-mono font-black text-[9px] md:text-[10px] tracking-widest uppercase px-3 py-1 rounded-full">
               Epic Vanskap BD
             </span>
             <h1 className="text-3xl sm:text-4xl md:text-5xl font-extrabold tracking-tight leading-tight uppercase font-sans text-white">
@@ -261,11 +261,11 @@ export const BiddingSection: React.FC<BiddingSectionProps> = ({ onAddToCart, set
         {DEFAULT_AUCTION_ITEMS.map((item) => (
           <div 
             key={item.id} 
-            className="group bg-white border border-emerald-100 hover:border-emerald-300 rounded-3xl p-5 flex flex-col justify-between transition-all duration-300 shadow-sm hover:shadow-md relative overflow-hidden"
+            className="group bg-white border border-zinc-100 hover:border-zinc-300 rounded-3xl p-5 flex flex-col justify-between transition-all duration-300 shadow-sm hover:shadow-md relative overflow-hidden"
           >
             
             {/* Jersey visual container */}
-            <div className="bg-emerald-50/20 rounded-2xl p-4 h-[240px] flex items-center justify-center relative border border-emerald-50/10 mb-4 group-hover:bg-emerald-50/45 transition-colors">
+            <div className="bg-zinc-50 rounded-2xl p-4 h-[240px] flex items-center justify-center relative border border-zinc-50/10 mb-4 group-hover:bg-zinc-50/45 transition-colors">
               <div className="w-full h-full max-h-[190px]">
                 <JerseyRenderer 
                   productId={item.productId} 
@@ -280,13 +280,13 @@ export const BiddingSection: React.FC<BiddingSectionProps> = ({ onAddToCart, set
             <div className="space-y-3 flex-grow flex flex-col justify-between">
               
               <div className="space-y-1.5">
-                <h3 className="text-emerald-950 font-extrabold text-[13px] leading-snug tracking-tight text-left min-h-[40px] group-hover:text-emerald-700 transition-colors">
+                <h3 className="text-zinc-950 font-extrabold text-[13px] leading-snug tracking-tight text-left min-h-[40px] group-hover:text-zinc-700 transition-colors">
                   {item.title}
                 </h3>
-                <div className="flex justify-between items-center border-t border-emerald-50/50 pt-3">
-                  <span className="text-[10px] text-emerald-700/60 font-mono font-bold uppercase tracking-wider">In Stock</span>
+                <div className="flex justify-between items-center border-t border-zinc-50/50 pt-3">
+                  <span className="text-[10px] text-zinc-500 font-mono font-bold uppercase tracking-wider">In Stock</span>
                   <div className="text-right">
-                    <p className="text-lg font-black text-emerald-950 font-mono tracking-tight">
+                    <p className="text-lg font-black text-zinc-950 font-mono tracking-tight">
                       {formatCurrency(item.currentBid * (quantities[item.id] || 1))}
                     </p>
                   </div>
@@ -294,10 +294,10 @@ export const BiddingSection: React.FC<BiddingSectionProps> = ({ onAddToCart, set
               </div>
 
               {/* Sizing & Quantity selection options */}
-              <div className="space-y-3 pt-2.5 border-t border-emerald-100">
+              <div className="space-y-3 pt-2.5 border-t border-zinc-100">
                 {/* Size Selection */}
                 <div className="space-y-1 text-left">
-                  <span className="text-[9px] font-bold text-emerald-700/60 uppercase tracking-widest font-mono">SELECT SIZE</span>
+                  <span className="text-[9px] font-bold text-zinc-500 uppercase tracking-widest font-mono">SELECT SIZE</span>
                   <div className="flex gap-1 flex-wrap">
                     {[...STANDARD_PRODUCT_SIZES.filter((s) => s !== 'XS')].map((size) => (
                       <button
@@ -309,8 +309,8 @@ export const BiddingSection: React.FC<BiddingSectionProps> = ({ onAddToCart, set
                         }}
                         className={`w-7 h-7 rounded-lg text-[10px] font-black transition-all border flex items-center justify-center cursor-pointer ${
                           (selectedSizes[item.id] || 'L') === size
-                            ? 'bg-emerald-800 border-emerald-800 text-white shadow-sm'
-                            : 'bg-emerald-50/50 border-emerald-100 hover:border-emerald-300 text-emerald-900'
+                            ? 'bg-black border-zinc-900 text-white shadow-sm'
+                            : 'bg-zinc-50 border-zinc-100 hover:border-zinc-300 text-zinc-900'
                         }`}
                       >
                         {size}
@@ -321,26 +321,26 @@ export const BiddingSection: React.FC<BiddingSectionProps> = ({ onAddToCart, set
 
                 {/* Quantity Selector */}
                 <div className="flex items-center justify-between text-left">
-                  <span className="text-[9px] font-bold text-emerald-700/60 uppercase tracking-widest font-mono">QUANTITY</span>
-                  <div className="flex items-center border border-emerald-100 rounded-lg overflow-hidden bg-emerald-50/30">
+                  <span className="text-[9px] font-bold text-zinc-500 uppercase tracking-widest font-mono">QUANTITY</span>
+                  <div className="flex items-center border border-zinc-100 rounded-lg overflow-hidden bg-zinc-50">
                     <button
                       type="button"
                       onClick={(e) => {
                         e.stopPropagation();
                         setQuantities(prev => ({ ...prev, [item.id]: Math.max(1, (prev[item.id] || 1) - 1) }));
                       }}
-                      className="px-2.5 py-1 text-xs font-black text-emerald-800 hover:bg-emerald-100/80 transition-colors cursor-pointer"
+                      className="px-2.5 py-1 text-xs font-black text-zinc-800 hover:bg-zinc-100/80 transition-colors cursor-pointer"
                     >
                       -
                     </button>
-                    <span className="px-3 text-xs font-black font-mono text-emerald-950">{quantities[item.id] || 1}</span>
+                    <span className="px-3 text-xs font-black font-mono text-zinc-950">{quantities[item.id] || 1}</span>
                     <button
                       type="button"
                       onClick={(e) => {
                         e.stopPropagation();
                         setQuantities(prev => ({ ...prev, [item.id]: (prev[item.id] || 1) + 1 }));
                       }}
-                      className="px-2.5 py-1 text-xs font-black text-emerald-800 hover:bg-emerald-100/80 transition-colors cursor-pointer"
+                      className="px-2.5 py-1 text-xs font-black text-zinc-800 hover:bg-zinc-100/80 transition-colors cursor-pointer"
                     >
                       +
                     </button>
@@ -349,11 +349,11 @@ export const BiddingSection: React.FC<BiddingSectionProps> = ({ onAddToCart, set
               </div>
 
               {/* Action Buttons Grid */}
-              <div className="grid grid-cols-2 gap-2 pt-2 border-t border-emerald-100">
+              <div className="grid grid-cols-2 gap-2 pt-2 border-t border-zinc-100">
                 <button
                   type="button"
                   onClick={() => handleAddToCartClick(item)}
-                  className="bg-emerald-50 hover:bg-emerald-100 text-emerald-800 border border-emerald-200 py-2.5 px-2 rounded-xl text-[10px] font-black uppercase tracking-wider flex items-center justify-center gap-1 transition-all cursor-pointer font-sans"
+                  className="bg-zinc-50 hover:bg-zinc-100 text-zinc-800 border border-zinc-200 py-2.5 px-2 rounded-xl text-[10px] font-black uppercase tracking-wider flex items-center justify-center gap-1 transition-all cursor-pointer font-sans"
                   title="Add to shopping bag"
                 >
                   <ShoppingCart size={11} />
@@ -362,7 +362,7 @@ export const BiddingSection: React.FC<BiddingSectionProps> = ({ onAddToCart, set
                 <button
                   type="button"
                   onClick={() => handleCheckoutClick(item)}
-                  className="bg-emerald-800 hover:bg-emerald-900 text-white border border-emerald-800 py-2.5 px-2 rounded-xl text-[10px] font-black uppercase tracking-wider flex items-center justify-center gap-1 transition-all cursor-pointer font-sans shadow-md shadow-emerald-900/10"
+                  className="bg-black hover:bg-zinc-800 text-white border border-zinc-900 py-2.5 px-2 rounded-xl text-[10px] font-black uppercase tracking-wider flex items-center justify-center gap-1 transition-all cursor-pointer font-sans shadow-md shadow-black/10"
                   title="Checkout directly"
                 >
                   <span>CHECK OUT</span>
@@ -377,38 +377,38 @@ export const BiddingSection: React.FC<BiddingSectionProps> = ({ onAddToCart, set
 
       {/* 3. SUCCESS NOTIFICATION MODAL */}
       {addedItem && (
-        <div className="fixed inset-0 bg-emerald-950/60 backdrop-blur-sm flex items-center justify-center p-4 z-50 animate-fadeIn">
-          <div className="bg-white rounded-3xl max-w-md w-full border border-emerald-100 overflow-hidden shadow-2xl relative p-8 text-center space-y-6 animate-scaleUp">
+        <div className="fixed inset-0 bg-zinc-950/60 backdrop-blur-sm flex items-center justify-center p-4 z-50 animate-fadeIn">
+          <div className="bg-white rounded-3xl max-w-md w-full border border-zinc-100 overflow-hidden shadow-2xl relative p-8 text-center space-y-6 animate-scaleUp">
             
             {/* Modal Close Button */}
             <button 
               type="button"
               onClick={() => setAddedItem(null)}
-              className="absolute top-5 right-5 p-2 bg-emerald-50 hover:bg-emerald-100 text-emerald-900 rounded-full transition-all cursor-pointer"
+              className="absolute top-5 right-5 p-2 bg-zinc-50 hover:bg-zinc-100 text-zinc-900 rounded-full transition-all cursor-pointer"
               aria-label="Close"
             >
               <X size={16} />
             </button>
 
-            <div className="w-16 h-16 bg-emerald-50 border border-emerald-100 text-emerald-850 rounded-full flex items-center justify-center mx-auto shadow-sm">
-              <CheckCircle size={32} className="text-emerald-800" />
+            <div className="w-16 h-16 bg-zinc-50 border border-zinc-100 text-zinc-800 rounded-full flex items-center justify-center mx-auto shadow-sm">
+              <CheckCircle size={32} className="text-zinc-800" />
             </div>
 
             <div className="space-y-2">
               <span className="text-[10px] font-mono font-black text-amber-500 uppercase tracking-widest">
                 HERITAGE SECURED
               </span>
-              <h3 className="text-xl font-black text-emerald-950 uppercase tracking-tight">
+              <h3 className="text-xl font-black text-zinc-950 uppercase tracking-tight">
                 Added to Your Bag
               </h3>
-              <p className="text-xs text-emerald-800 font-medium leading-relaxed">
+              <p className="text-xs text-zinc-800 font-medium leading-relaxed">
                 The certified 1-of-1 <strong>{addedItem.title}</strong> has been successfully added to your shopping bag.
               </p>
             </div>
 
             {/* Small Jersey Preview inside success modal */}
-            <div className="bg-emerald-50/40 rounded-2xl p-4 border border-emerald-100/30 flex items-center gap-4 text-left">
-              <div className="w-16 h-16 shrink-0 bg-white rounded-xl p-1 border border-emerald-100/50">
+            <div className="bg-zinc-50 rounded-2xl p-4 border border-zinc-100/30 flex items-center gap-4 text-left">
+              <div className="w-16 h-16 shrink-0 bg-white rounded-xl p-1 border border-zinc-100">
                 <JerseyRenderer 
                   productId={addedItem.productId} 
                   isBackView={true} 
@@ -417,9 +417,9 @@ export const BiddingSection: React.FC<BiddingSectionProps> = ({ onAddToCart, set
                 />
               </div>
               <div className="space-y-0.5 overflow-hidden">
-                <p className="text-xs font-black text-emerald-950 truncate">{addedItem.title}</p>
-                <p className="text-[10px] font-mono text-emerald-700 font-bold">{addedItem.type} • SIZE L (PLAYER SPEC)</p>
-                <p className="text-sm font-bold text-emerald-950 font-mono">{formatCurrency(addedItem.currentBid)}</p>
+                <p className="text-xs font-black text-zinc-950 truncate">{addedItem.title}</p>
+                <p className="text-[10px] font-mono text-zinc-700 font-bold">{addedItem.type} • SIZE L (PLAYER SPEC)</p>
+                <p className="text-sm font-bold text-zinc-950 font-mono">{formatCurrency(addedItem.currentBid)}</p>
               </div>
             </div>
 
@@ -427,7 +427,7 @@ export const BiddingSection: React.FC<BiddingSectionProps> = ({ onAddToCart, set
               <button
                 type="button"
                 onClick={() => setAddedItem(null)}
-                className="bg-emerald-50 hover:bg-emerald-100 text-emerald-900 font-bold text-xs uppercase py-3.5 rounded-full transition-all cursor-pointer"
+                className="bg-zinc-50 hover:bg-zinc-100 text-zinc-900 font-bold text-xs uppercase py-3.5 rounded-full transition-all cursor-pointer"
               >
                 Keep Browsing
               </button>
@@ -439,7 +439,7 @@ export const BiddingSection: React.FC<BiddingSectionProps> = ({ onAddToCart, set
                     setCurrentPage('cart');
                   }
                 }}
-                className="bg-emerald-800 hover:bg-emerald-900 text-white font-extrabold text-xs uppercase tracking-wider py-3.5 rounded-full transition-all cursor-pointer"
+                className="bg-black hover:bg-zinc-800 text-white font-extrabold text-xs uppercase tracking-wider py-3.5 rounded-full transition-all cursor-pointer"
               >
                 Go to Bag
               </button>

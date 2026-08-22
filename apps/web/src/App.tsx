@@ -233,10 +233,9 @@ const DEFAULT_APP_CONFIG: AppConfig = {
   logoText: 'Epic Vanskap',
   logoSubtext: '',
   theme: 'bengal',
-  footerAbout: "The world's premium destination for verified original vintage football jerseys. Founded by obsessive collectors, for obsessive collectors. Every kit undergoes a rigorous 12-point authentication process in our physical workshops in Dhaka, Bangladesh.",
+  footerAbout: "The world's premium destination for verified original vintage football jerseys. Founded by obsessive collectors, for obsessive collectors. Every kit undergoes a rigorous 12-point authentication process in our physical workshop in Feni, Bangladesh.",
   footerLocations: [
-    { city: 'Dhaka HQ', address: 'Shop No. 8, 3rd Floor, AQP Shopping Mall, 143/2 New Bailey Road, Dhaka 1217, Bangladesh', phone: '+880 1840-990700' },
-    { city: 'Savar Outlet', address: 'B-1, Talbag Thana Road, Savar, Dhaka (Near Chakladar Mahila College)', phone: '+880 1862-252232' },
+    { city: 'Feni', address: 'Shop no: B: 67-68, 1st Floor, Feni Garden City Market, Feni, 3900', phone: '' },
   ],
   footerCopyright: '© 2026 Epic Vanskap. All rights reserved.',
   currencySymbol: '৳',
@@ -253,7 +252,7 @@ const DEFAULT_APP_CONFIG: AppConfig = {
   dailyDealEnabled: false,
   dailyDealItems: [],
   dailyDealEndsAt: null,
-  bkashPersonalNumber: '01840990700',
+  bkashPersonalNumber: '',
   bkashEnabled: true,
   bkashPaymentMode: 'both',
   bkashPartialAmountBdt: 300,
@@ -268,35 +267,35 @@ const DEFAULT_APP_CONFIG: AppConfig = {
   ],
   homepageSections: [
     { id: 'hero-slider', name: 'Hero Banner Slider', visible: true, bgColor: 'bg-white', padding: 'py-0', margin: 'my-0', title: 'WORLD CUP 2026 EDITION', subtitle: 'The Grandest Stage of Football', status: 'active' },
-    { id: 'trending-searches', name: 'Trending Searches bar', visible: true, bgColor: 'bg-emerald-50/50', padding: 'py-3.5', margin: 'my-2', status: 'active' },
+    { id: 'trending-searches', name: 'Trending Searches bar', visible: true, bgColor: 'bg-zinc-50', padding: 'py-3.5', margin: 'my-2', status: 'active' },
     { id: 'live-auction', name: 'Bidding & Live Auctions', visible: false, bgColor: 'bg-white', padding: 'py-12', margin: 'my-0', status: 'inactive' },
     { id: 'daily-deals', name: 'Daily Deals Countdown', visible: false, bgColor: 'bg-amber-500/10', padding: 'py-12', margin: 'my-4', title: 'LIMITED DAILY DEAL DECK', subtitle: '24-hour flash sale on ultra rare collectibles', status: 'inactive' },
     { id: 'featured-collection', name: 'Featured Collection Row', visible: true, bgColor: 'bg-white', padding: 'py-12', margin: 'my-0', title: 'VERIFIED FEATURED CLASSICS', subtitle: 'Curated 1-of-1 historic collectibles', status: 'active', sectionType: 'product-row', productCategory: 'Featured', buttonText: 'VIEW ALL', buttonUrl: 'listing', maxProducts: 4 },
     { id: 'latest-products', name: 'Latest Products Row', visible: true, bgColor: 'bg-white', padding: 'py-12', margin: 'my-0', title: 'LATEST WORKSHOP DROPS', subtitle: 'Freshly authenticated physical catalog arrivals', status: 'active', sectionType: 'product-row', productCategory: 'New In', buttonText: '', maxProducts: 4 },
     { id: 'shop-by-league', name: 'Shop by League badges', visible: true, bgColor: 'bg-white', padding: 'py-10', margin: 'my-0', title: 'SHOP BY FOOTBALL LEAGUE', subtitle: 'Sourced kits from leagues worldwide', status: 'active' },
-    { id: 'retro-collection', name: 'Retro Collection Row', visible: true, bgColor: 'bg-emerald-50/25', padding: 'py-12', margin: 'my-0', title: 'RETRO', subtitle: 'Rare 80s, 90s & 2000s vintage reissues', status: 'active', sectionType: 'product-row', productCategory: 'Retro', buttonText: 'VIEW ALL', buttonUrl: 'listing', maxProducts: 4 },
+    { id: 'retro-collection', name: 'Retro Collection Row', visible: true, bgColor: 'bg-zinc-50/25', padding: 'py-12', margin: 'my-0', title: 'RETRO', subtitle: 'Rare 80s, 90s & 2000s vintage reissues', status: 'active', sectionType: 'product-row', productCategory: 'Retro', buttonText: 'VIEW ALL', buttonUrl: 'listing', maxProducts: 4 },
     { id: 'shop-by-club', name: 'Shop by Club', visible: true, bgColor: 'bg-white', padding: 'py-10', margin: 'my-0', title: 'SHOP BY CLUB', subtitle: 'Authentic retro & modern club matchwear', status: 'active' },
     { id: 'product-row-la-liga', name: 'La Liga Row', visible: true, bgColor: 'bg-white', padding: 'py-12', margin: 'my-0', title: 'LA LIGA', subtitle: 'Shop La Liga — curated picks for collectors', status: 'active', sectionType: 'product-row', productCategory: 'La Liga', buttonText: 'VIEW ALL', buttonUrl: 'listing', maxProducts: 4 },
     { id: 'shop-by-international-team', name: 'Shop by International Team', visible: true, bgColor: 'bg-white', padding: 'py-10', margin: 'my-0', title: 'SHOP BY INTERNATIONAL TEAM', subtitle: 'National team kits from around the world', status: 'active' },
-    { id: 'product-row-world-cup', name: 'World Cup Row', visible: true, bgColor: 'bg-emerald-50/25', padding: 'py-12', margin: 'my-0', title: 'WORLD CUP', subtitle: 'National team World Cup kits & vault classics', status: 'active', sectionType: 'product-row', productCategory: 'World Cup', buttonText: 'VIEW ALL', buttonUrl: 'listing', maxProducts: 4 },
+    { id: 'product-row-world-cup', name: 'World Cup Row', visible: true, bgColor: 'bg-zinc-50/25', padding: 'py-12', margin: 'my-0', title: 'WORLD CUP', subtitle: 'National team World Cup kits & vault classics', status: 'active', sectionType: 'product-row', productCategory: 'World Cup', buttonText: 'VIEW ALL', buttonUrl: 'listing', maxProducts: 4 },
     { id: 'player-edition', name: 'Player Edition Row', visible: true, bgColor: 'bg-white', padding: 'py-12', margin: 'my-0', title: 'PLAYER EDITION', subtitle: 'Slim-fit match issue quality kits', status: 'active', sectionType: 'product-row', productCategory: 'Player Edition', buttonText: 'VIEW ALL', buttonUrl: 'listing', maxProducts: 4 },
     { id: 'kids-collection', name: 'Kids Collection Row', visible: true, bgColor: 'bg-white', padding: 'py-12', margin: 'my-0', title: 'KIDS', subtitle: 'Junior kits sized for ages 1–14', status: 'active', sectionType: 'product-row', productCategory: 'Kids', buttonText: 'VIEW ALL', buttonUrl: 'listing', maxProducts: 4 },
-    { id: 'customised-kit', name: 'Customised Kit Row', visible: true, bgColor: 'bg-emerald-50/25', padding: 'py-12', margin: 'my-0', title: 'CUSTOMISED KIT', subtitle: 'Custom printed kits with full size guide', status: 'active', sectionType: 'product-row', productCategory: 'Customised Kit', buttonText: 'VIEW ALL', buttonUrl: 'listing', maxProducts: 4 },
+    { id: 'customised-kit', name: 'Customised Kit Row', visible: true, bgColor: 'bg-zinc-50/25', padding: 'py-12', margin: 'my-0', title: 'CUSTOMISED KIT', subtitle: 'Custom printed kits with full size guide', status: 'active', sectionType: 'product-row', productCategory: 'Customised Kit', buttonText: 'VIEW ALL', buttonUrl: 'listing', maxProducts: 4 },
     { id: 'fan-edition', name: 'Fan Edition Row', visible: true, bgColor: 'bg-white', padding: 'py-12', margin: 'my-0', title: 'FAN EDITION', subtitle: 'Comfortable stadium fan-fit replicas', status: 'active', sectionType: 'product-row', productCategory: 'Fan Edition', buttonText: 'VIEW ALL', buttonUrl: 'listing', maxProducts: 4 },
     { id: 'preorder-jacket', name: 'Pre-Order Jacket Row', visible: true, bgColor: 'bg-amber-50/40', padding: 'py-12', margin: 'my-0', title: 'PRE-ORDER · JACKET', subtitle: 'Reserve jackets before they land in Dhaka', status: 'active', sectionType: 'product-row', productCategory: 'Jacket', buttonText: 'VIEW ALL', buttonUrl: 'listing', maxProducts: 4 },
     { id: 'preorder-track-suit', name: 'Pre-Order Track Suit Row', visible: true, bgColor: 'bg-white', padding: 'py-12', margin: 'my-0', title: 'PRE-ORDER · TRACK SUIT', subtitle: 'Upcoming track suit drops — reserve yours', status: 'active', sectionType: 'product-row', productCategory: 'Track Suit', buttonText: 'VIEW ALL', buttonUrl: 'listing', maxProducts: 4 },
     { id: 'preorder-badminton', name: 'Pre-Order Badminton Row', visible: true, bgColor: 'bg-amber-50/40', padding: 'py-12', margin: 'my-0', title: 'PRE-ORDER · BADMINTON RACKET', subtitle: 'Badminton rackets available for pre-order', status: 'active', sectionType: 'product-row', productCategory: 'Badminton Racket', buttonText: 'VIEW ALL', buttonUrl: 'listing', maxProducts: 4 },
-    { id: 'worldcup-collection', name: 'World Cup Vault Section', visible: false, bgColor: 'bg-emerald-900/5', padding: 'py-12', margin: 'my-0', title: 'WORLD CUP HERITAGE VAULT', subtitle: 'Historical match issue kits from 1970 to 2026', status: 'inactive' },
+    { id: 'worldcup-collection', name: 'World Cup Vault Section', visible: false, bgColor: 'bg-zinc-900/5', padding: 'py-12', margin: 'my-0', title: 'WORLD CUP HERITAGE VAULT', subtitle: 'Historical match issue kits from 1970 to 2026', status: 'inactive' },
     { id: 'current-season', name: 'Current Season Row', visible: true, bgColor: 'bg-white', padding: 'py-12', margin: 'my-0', title: 'CURRENT SEASON STOCK', subtitle: 'Direct from authorized team supplier docks', status: 'active', sectionType: 'product-row', productCategory: 'Current Season', buttonText: 'EXPLORE MODERN', buttonUrl: 'listing', maxProducts: 4 },
     { id: 'mystery-box', name: 'Mystery Box Challenge', visible: false, bgColor: 'bg-gradient-to-r from-purple-950 to-indigo-950', padding: 'py-14', margin: 'my-6', title: 'THE VAULT MYSTERY BOX', subtitle: 'Receive one random 100% authentic retro or modern kit with premium certificates', status: 'inactive' },
     { id: 'clearance', name: 'Clearance & Sale Rack', visible: true, bgColor: 'bg-white', padding: 'py-12', margin: 'my-0', title: 'OUTLET CLEARANCE SALE', subtitle: 'End of collection deadstock at cost prices', status: 'active', sectionType: 'product-row', productCategory: 'Clearance', buttonText: 'EXPLORE OUTLET', buttonUrl: 'listing', maxProducts: 4 },
-    { id: 'best-sellers', name: 'Best Sellers Grid', visible: true, bgColor: 'bg-emerald-50/25', padding: 'py-12', margin: 'my-0', title: 'BEST SELLERS', subtitle: 'Most reviewed and requested reissues', status: 'active', sectionType: 'product-row', productCategory: 'Best Sellers', buttonText: 'VIEW ALL', buttonUrl: 'listing', maxProducts: 4 },
+    { id: 'best-sellers', name: 'Best Sellers Grid', visible: true, bgColor: 'bg-zinc-50/25', padding: 'py-12', margin: 'my-0', title: 'BEST SELLERS', subtitle: 'Most reviewed and requested reissues', status: 'active', sectionType: 'product-row', productCategory: 'Best Sellers', buttonText: 'VIEW ALL', buttonUrl: 'listing', maxProducts: 4 },
     { id: 'shop-by-legends', name: 'Shop by Legends portraits', visible: false, bgColor: 'bg-white', padding: 'py-12', margin: 'my-0', title: 'THE LEGENDS STORE', subtitle: 'Embroidered match prints of historical deities', status: 'inactive' },
-    { id: 'community-gallery', name: 'Dhaka Fan Community Gallery', visible: true, bgColor: 'bg-emerald-50/30', padding: 'py-12', margin: 'my-0', title: 'COLLECTORS IN DHAKA', subtitle: 'Fan gallery sharing local unboxings on Bailey Road', status: 'active' },
+    { id: 'community-gallery', name: 'Dhaka Fan Community Gallery', visible: true, bgColor: 'bg-zinc-50', padding: 'py-12', margin: 'my-0', title: 'COLLECTORS IN DHAKA', subtitle: 'Fan gallery sharing local unboxings on Bailey Road', status: 'active' },
     { id: 'testimonials', name: 'Testimonials Deck', visible: true, bgColor: 'bg-white', padding: 'py-12', margin: 'my-0', title: 'WHAT COLLECTORS DECLARE', subtitle: 'Genuine reviews from verified buyers', status: 'active' },
-    { id: 'video-banner', name: 'Video Feature Banner', visible: false, bgColor: 'bg-emerald-950', padding: 'py-16', margin: 'my-0', title: 'THE ART OF AUTHENTICATION', subtitle: 'A look inside our 12-point micro-fabric check laboratory in Dhaka', status: 'inactive' },
+    { id: 'video-banner', name: 'Video Feature Banner', visible: false, bgColor: 'bg-zinc-950', padding: 'py-16', margin: 'my-0', title: 'THE ART OF AUTHENTICATION', subtitle: 'A look inside our 12-point micro-fabric check laboratory in Dhaka', status: 'inactive' },
     { id: 'instagram-feed', name: 'Instagram Feed Mockup', visible: false, bgColor: 'bg-white', padding: 'py-12', margin: 'my-0', title: 'FOLLOW @JERSEYADDICTS_BD', subtitle: 'Daily vintage drops, buyer photos, and restocks', status: 'inactive' },
-    { id: 'newsletter', name: 'Newsletter Subscription', visible: true, bgColor: 'bg-emerald-900', padding: 'py-12', margin: 'my-4', title: 'JOIN THE EXCLUSIVE CIRCLE', subtitle: 'Be first to receive physical workshop inventory arrivals', status: 'active' },
+    { id: 'newsletter', name: 'Newsletter Subscription', visible: true, bgColor: 'bg-zinc-900', padding: 'py-12', margin: 'my-4', title: 'JOIN THE EXCLUSIVE CIRCLE', subtitle: 'Be first to receive physical workshop inventory arrivals', status: 'active' },
     { id: 'store-locations', name: 'Physical Store Maps', visible: true, bgColor: 'bg-white', padding: 'py-12', margin: 'my-0', title: 'PHYSICAL OUTLET POINTS', subtitle: 'Visit us for physical sizing and authentications', status: 'active' }
   ],
   banners: [
@@ -710,8 +709,7 @@ export default function App() {
         }
         parsed.logoSubtext = '';
         parsed.footerLocations = [
-          { city: 'Dhaka HQ', address: 'Shop No. 8, 3rd Floor, AQP Shopping Mall, 143/2 New Bailey Road, Dhaka 1217, Bangladesh', phone: '+880 1840-990700' },
-          { city: 'Savar Outlet', address: 'B-1, Talbag Thana Road, Savar, Dhaka (Near Chakladar Mahila College)', phone: '+880 1862-252232' },
+          { city: 'Feni', address: 'Shop no: B: 67-68, 1st Floor, Feni Garden City Market, Feni, 3900', phone: '' },
         ];
         if (!parsed.menuItems || !Array.isArray(parsed.menuItems) || parsed.menuItems.length === 0) {
           parsed.menuItems = DEFAULT_APP_CONFIG.menuItems;
@@ -740,8 +738,8 @@ export default function App() {
         if (parsed.dailyDealEndsAt === undefined) {
           parsed.dailyDealEndsAt = null;
         }
-        if (!parsed.bkashPersonalNumber) {
-          parsed.bkashPersonalNumber = '01840990700';
+        if (parsed.bkashPersonalNumber === undefined || parsed.bkashPersonalNumber === null) {
+          parsed.bkashPersonalNumber = '';
         }
         if (parsed.bkashEnabled === undefined) {
           parsed.bkashEnabled = true;
@@ -1152,6 +1150,8 @@ export default function App() {
                   phone: loc.phone,
                 }));
               }
+              // Always prefer the single Feni storefront location
+              next.footerLocations = DEFAULT_APP_CONFIG.footerLocations;
               if (Array.isArray(cms.banners) && cms.banners.length) {
                 const defaultsById = new Map(
                   (DEFAULT_APP_CONFIG.banners || []).map((b) => [b.id, b]),
@@ -1258,7 +1258,7 @@ export default function App() {
                 sections = ensureHomepageRowsForCategories(sections, catNames);
                 next.homepageSections = sections;
               }
-              if ((!Array.isArray(next.footerLocations) || next.footerLocations.length < 2) && DEFAULT_APP_CONFIG.footerLocations) {
+              if ((!Array.isArray(next.footerLocations) || next.footerLocations.length < 1) && DEFAULT_APP_CONFIG.footerLocations) {
                 next.footerLocations = DEFAULT_APP_CONFIG.footerLocations;
               }
               return next;
@@ -2253,7 +2253,7 @@ export default function App() {
   const isAdminShell = currentPage === 'admin' || currentPage === 'auth';
 
   return (
-    <div className={`min-h-screen w-full min-w-0 overflow-x-hidden bg-white text-emerald-950 selection:bg-emerald-800 selection:text-white flex flex-col justify-between`}>
+    <div className={`min-h-screen w-full min-w-0 overflow-x-hidden bg-white text-zinc-950 selection:bg-black selection:text-white flex flex-col justify-between`}>
       <UiFeedbackHost />
 
       {/* Storefront chrome — hidden on secret admin portal */}
@@ -2287,12 +2287,12 @@ export default function App() {
         
         {/* Secret admin portal — login or panel only (no storefront UI) */}
         {isAdminShell && (
-          <div className="min-h-screen bg-emerald-950/95 flex flex-col">
-            <div className="px-4 py-5 border-b border-emerald-800/60 flex items-center justify-between">
+          <div className="min-h-screen bg-zinc-950/95 flex flex-col">
+            <div className="px-4 py-5 border-b border-zinc-900/60 flex items-center justify-between">
               <div className="flex items-center gap-2">
                 <BrandMark imgClassName="w-7 h-7" />
                 <span className="text-white font-black text-sm tracking-widest uppercase">Epic Vanskap</span>
-                <span className="text-emerald-400/80 text-[10px] font-mono uppercase tracking-wider ml-1">Admin Portal</span>
+                <span className="text-zinc-400/80 text-[10px] font-mono uppercase tracking-wider ml-1">Admin Portal</span>
               </div>
               {currentUser && canUseAdminPanel(currentUser.role, !!getToken(), isApiEnabled()) && (
                 <button
@@ -2304,13 +2304,13 @@ export default function App() {
                     setStaffLoginRequired(true);
                     goToPage('auth', { replace: true });
                   }}
-                  className="text-[10px] font-mono text-emerald-300 hover:text-white uppercase tracking-wider cursor-pointer"
+                  className="text-[10px] font-mono text-zinc-300 hover:text-white uppercase tracking-wider cursor-pointer"
                 >
                   Sign Out
                 </button>
               )}
             </div>
-            <div className="flex-1 bg-emerald-50/95">
+            <div className="flex-1 bg-zinc-50/95">
               {currentPage === 'auth' && (
                 <AuthScreen
                   onLoginSuccess={handleLoginSuccess}
@@ -2395,16 +2395,16 @@ export default function App() {
           <section className="max-w-7xl mx-auto px-4 md:px-12 py-6 sm:py-10 min-h-screen w-full min-w-0 overflow-x-hidden">
             
             {/* Catalog Banner */}
-            <div className="border-b border-emerald-100 pb-6 mb-6 sm:mb-8 flex flex-col md:flex-row justify-between items-start md:items-end gap-4">
+            <div className="border-b border-zinc-100 pb-6 mb-6 sm:mb-8 flex flex-col md:flex-row justify-between items-start md:items-end gap-4">
               <div className="min-w-0">
-                <h1 className="text-xl sm:text-2xl md:text-3xl font-black uppercase tracking-tight text-emerald-950 font-display break-words">
+                <h1 className="text-xl sm:text-2xl md:text-3xl font-black uppercase tracking-tight text-zinc-950 font-display break-words">
                   {selectedCategory && selectedCategory !== 'All'
                     ? resolveStorefrontPage(selectedCategory)
                       ? canonicalTargetPageName(selectedCategory)
                       : selectedCategory
                     : 'All Jerseys'}
                 </h1>
-                <p className="text-xs text-emerald-700 font-mono mt-1">
+                <p className="text-xs text-zinc-700 font-mono mt-1">
                   Showing {filteredProducts.length} verified original jerseys
                   {selectedBrand !== 'All' ? ` · ${selectedBrand}` : ''}
                   {selectedCondition !== 'All' ? ` · ${selectedCondition}` : ''}
@@ -2430,43 +2430,43 @@ export default function App() {
                 <button
                   type="button"
                   onClick={() => setMobileFiltersOpen((open) => !open)}
-                  className="w-full flex items-center justify-center gap-2 bg-emerald-50 border border-emerald-200 text-emerald-900 text-xs font-bold uppercase tracking-wider py-3 rounded-xl cursor-pointer"
+                  className="w-full flex items-center justify-center gap-2 bg-zinc-50 border border-zinc-200 text-zinc-900 text-xs font-bold uppercase tracking-wider py-3 rounded-xl cursor-pointer"
                 >
                   <SlidersHorizontal size={14} />
                   {mobileFiltersOpen ? 'Hide Filters' : 'Show Filters'}
                   {(selectedBrand !== 'All' || selectedCategory !== 'All' || selectedCondition !== 'All' || searchQuery !== '') && (
-                    <span className="bg-emerald-700 text-white text-[9px] font-black px-2 py-0.5 rounded-full">Active</span>
+                    <span className="bg-zinc-700 text-white text-[9px] font-black px-2 py-0.5 rounded-full">Active</span>
                   )}
                 </button>
               </div>
               
               {/* Left Column: Filter Sidebar */}
-              <div className={`lg:col-span-3 bg-white border border-emerald-100 rounded-2xl p-4 sm:p-6 space-y-6 shadow-sm w-full min-w-0 ${mobileFiltersOpen ? 'block' : 'hidden lg:block'}`}>
+              <div className={`lg:col-span-3 bg-white border border-zinc-100 rounded-2xl p-4 sm:p-6 space-y-6 shadow-sm w-full min-w-0 ${mobileFiltersOpen ? 'block' : 'hidden lg:block'}`}>
                 
-                <div className="flex justify-between items-center border-b border-emerald-100 pb-2">
-                  <h3 className="text-xs font-mono font-black text-emerald-700 uppercase tracking-widest flex items-center gap-1.5">
+                <div className="flex justify-between items-center border-b border-zinc-100 pb-2">
+                  <h3 className="text-xs font-mono font-black text-zinc-700 uppercase tracking-widest flex items-center gap-1.5">
                     <SlidersHorizontal size={13} /> Filter Engine
                   </h3>
-                  <button onClick={resetFilters} className="text-[10px] text-emerald-600 hover:text-emerald-800 font-mono uppercase">
+                  <button onClick={resetFilters} className="text-[10px] text-zinc-600 hover:text-zinc-900 font-mono uppercase">
                     Reset
                   </button>
                 </div>
 
                 {/* Search */}
                 <div className="space-y-2">
-                  <span className="text-[10px] text-emerald-800 font-mono font-bold uppercase tracking-wider block">Keyword Search:</span>
+                  <span className="text-[10px] text-zinc-800 font-mono font-bold uppercase tracking-wider block">Keyword Search:</span>
                   <input
                     type="text"
                     placeholder="Search player, club, SKU..."
                     value={searchQuery}
                     onChange={(e) => setSearchQuery(e.target.value)}
-                    className="w-full bg-emerald-50/50 border border-emerald-100 rounded-xl py-2 px-3 text-emerald-950 placeholder-emerald-800/45 text-xs focus:outline-none focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500 font-mono"
+                    className="w-full bg-zinc-50 border border-zinc-100 rounded-xl py-2 px-3 text-zinc-950 placeholder-zinc-400 text-xs focus:outline-none focus:border-zinc-900 focus:ring-1 focus:ring-zinc-900/10 font-mono"
                   />
                 </div>
 
                 {/* Brands */}
                 <div className="space-y-2">
-                  <span className="text-[10px] text-emerald-800 font-mono font-bold uppercase tracking-wider block">Brands:</span>
+                  <span className="text-[10px] text-zinc-800 font-mono font-bold uppercase tracking-wider block">Brands:</span>
                   <div className="space-y-1.5 max-h-48 overflow-y-auto pr-1">
                     {listingFilterOptions.brands.map((b) => (
                       <button
@@ -2474,7 +2474,7 @@ export default function App() {
                         key={b}
                         onClick={() => setSelectedBrand(b)}
                         className={`w-full text-left text-xs px-2.5 py-1.5 rounded-lg cursor-pointer transition-colors ${
-                          selectedBrand === b ? 'bg-emerald-800 text-white font-extrabold shadow-sm' : 'hover:bg-emerald-50 text-emerald-900'
+                          selectedBrand === b ? 'bg-black text-white font-extrabold shadow-sm' : 'hover:bg-zinc-50 text-zinc-900'
                         }`}
                       >
                         {b}
@@ -2485,7 +2485,7 @@ export default function App() {
 
                 {/* Categories — live values from catalog */}
                 <div className="space-y-2">
-                  <span className="text-[10px] text-emerald-800 font-mono font-bold uppercase tracking-wider block">Category:</span>
+                  <span className="text-[10px] text-zinc-800 font-mono font-bold uppercase tracking-wider block">Category:</span>
                   <div className="space-y-1.5 max-h-56 overflow-y-auto pr-1">
                     {listingFilterOptions.categories.map((cat) => {
                       const label =
@@ -2511,7 +2511,7 @@ export default function App() {
                           key={cat}
                           onClick={() => setSelectedCategory(cat)}
                           className={`w-full text-left text-xs px-2.5 py-1.5 rounded-lg cursor-pointer transition-colors ${
-                            selected ? 'bg-emerald-800 text-white font-extrabold shadow-sm' : 'hover:bg-emerald-50 text-emerald-900'
+                            selected ? 'bg-black text-white font-extrabold shadow-sm' : 'hover:bg-zinc-50 text-zinc-900'
                           }`}
                         >
                           {label}
@@ -2523,7 +2523,7 @@ export default function App() {
 
                 {/* Conditions */}
                 <div className="space-y-2">
-                  <span className="text-[10px] text-emerald-800 font-mono font-bold uppercase tracking-wider block">Condition Matrix:</span>
+                  <span className="text-[10px] text-zinc-800 font-mono font-bold uppercase tracking-wider block">Condition Matrix:</span>
                   <div className="space-y-1.5">
                     {listingFilterOptions.conditions.map((cond) => (
                       <button
@@ -2531,7 +2531,7 @@ export default function App() {
                         key={cond}
                         onClick={() => setSelectedCondition(cond)}
                         className={`w-full text-left text-xs px-2.5 py-1.5 rounded-lg cursor-pointer transition-colors ${
-                          selectedCondition === cond ? 'bg-emerald-800 text-white font-extrabold shadow-sm' : 'hover:bg-emerald-50 text-emerald-900'
+                          selectedCondition === cond ? 'bg-black text-white font-extrabold shadow-sm' : 'hover:bg-zinc-50 text-zinc-900'
                         }`}
                       >
                         {cond}
@@ -2542,11 +2542,11 @@ export default function App() {
 
                 {/* Sorting Select */}
                 <div className="space-y-2">
-                  <span className="text-[10px] text-emerald-800 font-mono font-bold uppercase tracking-wider block">Sort Catalogue:</span>
+                  <span className="text-[10px] text-zinc-800 font-mono font-bold uppercase tracking-wider block">Sort Catalogue:</span>
                   <select
                     value={sortBy}
                     onChange={(e) => setSortBy(e.target.value)}
-                    className="w-full bg-emerald-50/50 border border-emerald-100 rounded-xl py-2 px-3 text-emerald-950 text-xs focus:outline-none focus:border-emerald-500"
+                    className="w-full bg-zinc-50 border border-zinc-100 rounded-xl py-2 px-3 text-zinc-950 text-xs focus:outline-none focus:border-zinc-900"
                   >
                     <option value="featured">Sourced Featured</option>
                     <option value="price-low">Price: Low-to-High</option>
@@ -2562,13 +2562,13 @@ export default function App() {
               {/* Right Column: Active catalog items matching filters */}
               <div className="lg:col-span-9 w-full min-w-0">
                 {filteredProducts.length === 0 ? (
-                  <div className="bg-white border border-emerald-100 rounded-2xl p-12 text-center space-y-4 shadow-sm">
-                    <p className="text-emerald-800 text-sm max-w-sm mx-auto">
+                  <div className="bg-white border border-zinc-100 rounded-2xl p-12 text-center space-y-4 shadow-sm">
+                    <p className="text-zinc-800 text-sm max-w-sm mx-auto">
                       No vintage jerseys found matching the selected search query or category parameters inside the database.
                     </p>
                     <button
                       onClick={resetFilters}
-                      className="bg-emerald-800 hover:bg-emerald-900 text-white font-extrabold text-xs uppercase tracking-widest px-6 py-2.5 rounded-full cursor-pointer transition-all shadow-md shadow-emerald-900/10"
+                      className="bg-black hover:bg-zinc-800 text-white font-extrabold text-xs uppercase tracking-widest px-6 py-2.5 rounded-full cursor-pointer transition-all shadow-md shadow-black/10"
                     >
                       Clear Active Filters
                     </button>
@@ -2643,8 +2643,8 @@ export default function App() {
           <section className="max-w-3xl mx-auto px-4 md:px-6 py-12 md:py-16 space-y-8 text-black animate-fadeIn">
             {/* STAGE 1: SUCCESS CELEBRATION CARD */}
             <div className="bg-white border-2 border-zinc-300 rounded-3xl p-6 md:p-8 text-center space-y-6 shadow-xl max-w-xl mx-auto">
-              <div className="w-16 h-16 bg-emerald-50 border-2 border-emerald-500 text-emerald-800 rounded-full flex items-center justify-center mx-auto shadow-sm">
-                <CheckCircle size={32} className="text-emerald-700" />
+              <div className="w-16 h-16 bg-zinc-50 border-2 border-zinc-500 text-zinc-800 rounded-full flex items-center justify-center mx-auto shadow-sm">
+                <CheckCircle size={32} className="text-zinc-700" />
               </div>
 
               <div className="space-y-2">
@@ -2700,7 +2700,7 @@ export default function App() {
                     <BrandMark className="p-1 rounded-xl" imgClassName="w-8 h-8" />
                     <div className="flex flex-col">
                       <div className="flex items-center gap-1.5">
-                        <span className="text-emerald-600 font-sans font-black text-sm md:text-base tracking-tight leading-none uppercase">
+                        <span className="text-zinc-600 font-sans font-black text-sm md:text-base tracking-tight leading-none uppercase">
                           Epic
                         </span>
                         <span className="text-black font-sans font-black text-sm md:text-base tracking-tight leading-none uppercase">
@@ -2720,7 +2720,7 @@ export default function App() {
                   <p><span className="font-bold">INVOICE:</span> #{lastPlacedOrder.id.slice(0, 8).toUpperCase()}</p>
                   <p><span className="font-bold">DATE:</span> {new Date().toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' })}</p>
                   <p><span className="font-bold">TRACKING:</span> {lastPlacedOrder.trackingNumber}</p>
-                  <p><span className="font-bold text-emerald-700">METHOD:</span> {lastPlacedOrder.paymentMethod}</p>
+                  <p><span className="font-bold text-zinc-700">METHOD:</span> {lastPlacedOrder.paymentMethod}</p>
                 </div>
               </div>
 
@@ -2842,24 +2842,22 @@ export default function App() {
                 </div>
               </div>
 
-              {/* bKash payment receipt details */}
-              {lastPlacedOrder.paymentMethod?.toLowerCase().includes('bkash') && (
-                <div className="border-2 border-[#E2136E]/30 bg-[#E2136E]/[0.04] rounded-xl p-4 space-y-2">
+              {/* Mobile wallet payment receipt details */}
+              {(lastPlacedOrder.paymentMethod?.toLowerCase().includes('bkash') ||
+                lastPlacedOrder.paymentMethod?.toLowerCase().includes('nagad')) && (
+                <div className="border-2 border-zinc-300 bg-zinc-50 rounded-xl p-4 space-y-2">
                   <div className="flex items-center gap-2">
-                    <span className="inline-flex items-center justify-center w-7 h-7 rounded-md bg-[#E2136E] text-white font-black text-[9px]">bK</span>
+                    <span className="inline-flex items-center justify-center w-7 h-7 rounded-md bg-black text-white font-black text-[9px]">SM</span>
                     <span className="font-black text-xs uppercase tracking-wider text-zinc-950">
-                      bKash Payment
+                      {lastPlacedOrder.paymentMethod?.toLowerCase().includes('nagad') ? 'Nagad' : 'bKash'} Send Money
                       {lastPlacedOrder.bkashPaymentType === 'partial'
                         ? ' · Partial Advance'
                         : ' · Full Pay'}
                     </span>
                   </div>
                   <p className="text-[11px] font-bold text-zinc-800">
-                    Merchant Number: <span className="font-mono text-[#E2136E]">{appConfig.bkashPersonalNumber || '01840990700'}</span>
-                  </p>
-                  <p className="text-[11px] font-bold text-zinc-800">
                     Amount sent:{' '}
-                    <span className="font-mono text-[#E2136E]">
+                    <span className="font-mono text-zinc-950">
                       {formatPrice(lastPlacedOrder.bkashPaidAmount ?? lastPlacedOrder.total)}
                     </span>
                     {lastPlacedOrder.bkashPaymentType === 'partial' && (
@@ -2929,7 +2927,7 @@ export default function App() {
                   setLastPlacedOrder(null);
                   goToPage('listing');
                 }}
-                className="flex-1 bg-emerald-800 hover:bg-emerald-900 text-white font-extrabold text-xs uppercase tracking-widest py-3.5 rounded-xl cursor-pointer transition-all flex items-center justify-center gap-2"
+                className="flex-1 bg-black hover:bg-zinc-800 text-white font-extrabold text-xs uppercase tracking-widest py-3.5 rounded-xl cursor-pointer transition-all flex items-center justify-center gap-2"
               >
                 <ShoppingBag size={14} /> Continue Shopping
               </button>
