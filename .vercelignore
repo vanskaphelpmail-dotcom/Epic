@@ -1,0 +1,7 @@
+# Keep local-only / generated noise out of Vercel uploads
+.env
+.env.*
+!.env.example
+**/node_modules
+**/.next
+dist

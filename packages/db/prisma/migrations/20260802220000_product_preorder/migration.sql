@@ -1,0 +1,3 @@
+-- AlterTable
+ALTER TABLE "products" ADD COLUMN IF NOT EXISTS "isPreOrder" BOOLEAN NOT NULL DEFAULT false;
+ALTER TABLE "products" ADD COLUMN IF NOT EXISTS "preOrderEta" TEXT;

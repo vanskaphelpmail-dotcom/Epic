@@ -1,0 +1,42 @@
+{
+  "name": "@jab/web",
+  "version": "0.0.0",
+  "private": true,
+  "scripts": {
+    "dev": "next dev --port 3000",
+    "build": "next build",
+    "start": "next start --port 3000",
+    "type-check": "tsc --noEmit"
+  },
+  "dependencies": {
+    "@jab/db": "*",
+    "@jab/server": "*",
+    "@jab/shared": "*",
+    "@tailwindcss/postcss": "^4.1.14",
+    "cloudinary": "^2.10.0",
+    "dotenv": "^17.2.3",
+    "html2canvas": "^1.4.1",
+    "jspdf": "^4.2.1",
+    "lucide-react": "^0.546.0",
+    "motion": "^12.23.24",
+    "next": "^15.5.7",
+    "node-mocks-http": "^1.18.1",
+    "react": "^19.0.1",
+    "react-dom": "^19.0.1",
+    "tailwindcss": "^4.1.14",
+    "zod": "^4.4.3"
+  },
+  "devDependencies": {
+    "@types/node": "^22.14.0",
+    "@types/react": "^19.0.10",
+    "@types/react-dom": "^19.0.4",
+    "typescript": "~5.8.2"
+  },
+  "engines": {
+    "node": "24.x"
+  },
+  "optionalDependencies": {
+    "@tailwindcss/oxide-linux-x64-gnu": "4.3.3",
+    "lightningcss-linux-x64-gnu": "1.33.0"
+  }
+}

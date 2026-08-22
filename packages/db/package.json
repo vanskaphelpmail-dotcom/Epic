@@ -1,0 +1,34 @@
+{
+  "name": "@jab/db",
+  "version": "0.0.0",
+  "private": true,
+  "main": "./src/index.ts",
+  "types": "./src/index.ts",
+  "exports": {
+    ".": "./src/index.ts"
+  },
+  "scripts": {
+    "generate": "node ./scripts/run-prisma.mjs generate --schema=./prisma/schema.prisma",
+    "migrate": "node ./scripts/run-prisma.mjs migrate dev --schema=./prisma/schema.prisma",
+    "migrate:deploy": "node ./scripts/run-prisma.mjs migrate deploy --schema=./prisma/schema.prisma",
+    "migrate:status": "node ./scripts/run-prisma.mjs migrate status --schema=./prisma/schema.prisma",
+    "push": "node ./scripts/run-prisma.mjs db push --schema=./prisma/schema.prisma",
+    "seed": "tsx prisma/seed.ts",
+    "studio": "node ./scripts/run-prisma.mjs studio --schema=./prisma/schema.prisma",
+    "validate": "node ./scripts/run-prisma.mjs validate --schema=./prisma/schema.prisma"
+  },
+  "dependencies": {
+    "@prisma/client": "^6.19.3"
+  },
+  "devDependencies": {
+    "bcryptjs": "^3.0.3",
+    "dotenv": "^17.2.3",
+    "prisma": "^6.19.3",
+    "tsx": "^4.21.0",
+    "typescript": "~5.8.2"
+  },
+  "prisma": {
+    "schema": "prisma/schema.prisma",
+    "seed": "tsx prisma/seed.ts"
+  }
+}

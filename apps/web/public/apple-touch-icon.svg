@@ -1,0 +1,9 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 180 180" role="img" aria-label="Jersey Addicts BD">
+  <rect width="180" height="180" rx="40" fill="#ecfdf5"/>
+  <g transform="translate(40 30) scale(1)">
+    <path d="M 8 44 L 26 44 L 17 60 Z" fill="#059669"/>
+    <path d="M 28 76 L 46 24" stroke="#059669" stroke-width="12" stroke-linecap="round"/>
+    <path d="M 48 76 L 66 24" stroke="#10b981" stroke-width="12" stroke-linecap="round"/>
+    <path d="M 74 56 L 92 56 L 83 40 Z" fill="#10b981"/>
+  </g>
+</svg>

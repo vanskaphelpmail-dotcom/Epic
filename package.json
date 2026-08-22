@@ -1,66 +1,45 @@
 {
-  "name": "perfume-shop-management",
-  "version": "1.0.0",
+  "name": "jersey-addicts-bd",
   "private": true,
+  "version": "1.0.0",
+  "description": "Jersey Addicts BD monorepo — Next.js web + Prisma DB + API server packages",
+  "workspaces": [
+    "apps/*",
+    "packages/*"
+  ],
   "scripts": {
-    "dev": "node scripts/start-dev.mjs",
-    "web": "next dev",
-    "server": "node server.js",
-    "build": "node scripts/vercel-build.mjs",
-    "start": "next start",
-    "typecheck": "tsc --noEmit",
-    "test": "tsx --test tests/pdf.test.ts tests/security.test.ts tests/invoice-number.test.ts",
-    "db:generate": "prisma generate",
-    "db:push": "prisma db push",
-    "db:migrate": "prisma migrate dev",
-    "db:migrate:deploy": "prisma migrate deploy",
-    "seed": "tsx prisma/seed.ts",
-    "db:ensure-admin": "tsx scripts/ensure-admin.ts",
-    "setup": "prisma generate && prisma db push && tsx prisma/seed.ts",
-    "postinstall": "node scripts/prisma-generate.mjs"
+    "dev": "npm run dev -w @jab/web",
+    "build": "npm run generate -w @jab/db && npm run build -w @jab/web",
+    "build:web": "npm run build -w @jab/web",
+    "vercel-build": "node scripts/vercel-build.mjs",
+    "start": "npm run start -w @jab/web",
+    "lint": "npm run type-check -w @jab/web",
+    "type-check": "npm run type-check -w @jab/web",
+    "db:generate": "npm run generate -w @jab/db",
+    "db:migrate": "npm run migrate -w @jab/db",
+    "db:migrate:deploy": "npm run migrate:deploy -w @jab/db",
+    "db:migrate:status": "npm run migrate:status -w @jab/db",
+    "db:push": "npm run push -w @jab/db",
+    "db:seed": "npm run seed -w @jab/db",
+    "db:wipe-app-data": "node packages/db/scripts/wipe-app-data.mjs",
+    "db:studio": "npm run studio -w @jab/db",
+    "db:validate": "npm run validate -w @jab/db",
+    "dev:api": "npm run dev -w @jab/server",
+    "e2e:api": "tsx scripts/e2e-api.ts"
   },
-  "prisma": {
-    "seed": "tsx prisma/seed.ts"
+  "engines": {
+    "node": "24.x"
+  },
+  "optionalDependencies": {
+    "@tailwindcss/oxide-linux-x64-gnu": "4.3.3",
+    "lightningcss-linux-x64-gnu": "1.33.0"
+  },
+  "overrides": {
+    "lightningcss": "1.33.0"
   },
   "dependencies": {
-    "@neondatabase/serverless": "^0.10.4",
-    "@prisma/adapter-neon": "^5.22.0",
-    "@prisma/client": "^5.22.0",
-    "@vercel/analytics": "^2.0.1",
-    "@vercel/speed-insights": "^2.0.0",
-    "bcryptjs": "^3.0.3",
-    "bwip-js": "^4.11.2",
-    "cloudinary": "^2.10.0",
-    "cookie": "^2.0.1",
-    "dotenv": "^16.5.0",
-    "exceljs": "^4.4.0",
-    "jose": "^6.2.8",
-    "jsonwebtoken": "^9.0.2",
-    "next": "^16.3.0",
-    "pdf-lib": "^1.17.1",
-    "pdfkit": "^0.19.1",
-    "react": "19.0.0",
-    "react-dom": "19.0.0",
-    "uuid": "^14.0.1",
-    "ws": "^8.21.3",
-    "zod": "^4.4.3"
-  },
-  "devDependencies": {
-    "@types/bcryptjs": "^2.4.6",
-    "@types/cookie": "^0.6.0",
-    "@types/node": "^26.2.0",
-    "@types/pdfkit": "^0.17.6",
-    "@types/react": "^19.2.18",
-    "@types/react-dom": "^19.2.4",
-    "@types/uuid": "^10.0.0",
-    "@types/ws": "^8.18.1",
-    "prisma": "^5.22.0",
-    "tsx": "^4.23.11",
-    "typescript": "^7.0.2"
-  },
-  "allowScripts": {
-    "@prisma/client@5.22.0": true,
-    "@prisma/engines@5.22.0": true,
-    "prisma@5.22.0": true
+    "@tailwindcss/node": "^4.3.3",
+    "@tailwindcss/postcss": "^4.3.3",
+    "lightningcss": "1.33.0"
   }
 }

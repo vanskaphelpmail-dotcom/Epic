@@ -1,0 +1,933 @@
+// =============================================================================
+// Jersey Addicts BD — Enterprise Prisma Schema (Neon PostgreSQL)
+// =============================================================================
+// Neon setup:
+//   DATABASE_URL       = pooled connection string (runtime / Prisma Client)
+//   DATABASE_URL_UNPOOLED = direct connection (migrations / prisma migrate)
+//
+// Recommended Neon flags:
+//   ?sslmode=require&pgbouncer=true   on pooled URL
+//   ?sslmode=require                  on unpooled / direct URL
+// =============================================================================
+
+generator client {
+  provider      = "prisma-client-js"
+  // native = local Windows/Mac; rhel-openssl-3.0.x = Vercel Node serverless
+  binaryTargets = ["native", "rhel-openssl-3.0.x"]
+}
+
+datasource db {
+  provider  = "postgresql"
+  url       = env("DATABASE_URL")
+  directUrl = env("DATABASE_URL_UNPOOLED")
+}
+
+// ---------------------------------------------------------------------------
+// Enums
+// ---------------------------------------------------------------------------
+
+enum UserRole {
+  SUPER_ADMIN
+  ADMIN
+  INVENTORY_MANAGER
+  ORDER_MANAGER
+  CUSTOMER_SUPPORT
+  CONTENT_MANAGER
+  SELLER
+  CUSTOMER
+}
+
+enum UserStatus {
+  ACTIVE
+  INACTIVE
+  SUSPENDED
+}
+
+enum ProductStatus {
+  ACTIVE
+  DRAFT
+  ARCHIVED
+  TRASHED
+}
+
+enum ProductGender {
+  MEN
+  WOMEN
+  UNISEX
+  KIDS
+}
+
+enum ProductCondition {
+  MINT
+  EXCELLENT
+  VERY_GOOD
+  GOOD
+  FAIR
+}
+
+enum OrderStatus {
+  PENDING
+  CONFIRMED
+  PACKED
+  READY_TO_SHIP
+  SHIPPED
+  DELIVERED
+  CANCELLED
+  RETURNED
+  REFUND_REQUEST
+  PROCESSING
+}
+
+enum PaymentStatus {
+  PAID
+  UNPAID
+  REFUNDED
+  PARTIALLY_REFUNDED
+}
+
+enum DeliveryRegion {
+  INSIDE
+  OUTSIDE
+}
+
+enum StockChangeReason {
+  INITIAL_RESTOCK
+  SALE
+  DAMAGED_WRITE_OFF
+  MANUAL_ADJUSTMENT
+  SUPPLIER_RECEIVING
+  CUSTOMER_RETURN
+}
+
+enum SellerRequestStatus {
+  PENDING
+  APPROVED
+  REJECTED
+}
+
+enum BannerType {
+  HERO_SLIDER
+  CATEGORY_BANNER
+  COLLECTION_BANNER
+  LEAGUE_BANNER
+  POPUP_BANNER
+  OFFER_BANNER
+  NEWSLETTER_BANNER
+  FOOTER_BANNER
+  BLOG_BANNER
+  MOBILE_BANNER
+}
+
+enum PublishStatus {
+  ACTIVE
+  INACTIVE
+  DRAFT
+}
+
+enum MenuPlacement {
+  MAIN_MENU
+  MEGA_MENU
+  FOOTER_MENU
+}
+
+enum PageSectionStatus {
+  ACTIVE
+  DRAFT
+  INACTIVE
+}
+
+enum CouponType {
+  PERCENT
+  FIXED
+}
+
+// ---------------------------------------------------------------------------
+// Auth & Users
+// ---------------------------------------------------------------------------
+
+model User {
+  id             String     @id @default(cuid())
+  email          String     @unique
+  passwordHash   String
+  resetToken     String?
+  resetTokenExpires DateTime?
+  fullName       String
+  role           UserRole   @default(CUSTOMER)
+  status         UserStatus @default(ACTIVE)
+  phone          String?
+  location       String?
+  department     String?
+  avatarUrl      String?
+  permissions    String[]   @default([])
+  accessFlags    Json? // Partial<AccessPermissionFlags>
+  assignedById   String?
+  assignedBy     User?      @relation("UserAssignments", fields: [assignedById], references: [id])
+  assignedUsers  User[]     @relation("UserAssignments")
+  lastLoginAt    DateTime?
+  emailVerifiedAt DateTime?
+  createdAt      DateTime   @default(now())
+  updatedAt      DateTime   @updatedAt
+
+  addresses      Address[]
+  orders         Order[]    @relation("CustomerOrders")
+  reviews        Review[]
+  wishlistItems  WishlistItem[]
+  cart           Cart?
+  stockLogs      StockLog[]
+  sellerRequests SellerRequest[]
+  blogsAuthored  BlogPost[] @relation("BlogAuthor")
+  orderTimeline  OrderTimelineEvent[]
+  sessions       Session[]
+  accounts       Account[]
+
+  @@index([role, status])
+  @@index([email])
+  @@map("users")
+}
+
+model Session {
+  id           String   @id @default(cuid())
+  sessionToken String   @unique
+  userId       String
+  user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  expires      DateTime
+  createdAt    DateTime @default(now())
+
+  @@index([userId])
+  @@map("sessions")
+}
+
+model Account {
+  id                String  @id @default(cuid())
+  userId            String
+  user              User    @relation(fields: [userId], references: [id], onDelete: Cascade)
+  type              String
+  provider          String
+  providerAccountId String
+  refresh_token     String? @db.Text
+  access_token      String? @db.Text
+  expires_at        Int?
+  token_type        String?
+  scope             String?
+  id_token          String? @db.Text
+  session_state     String?
+
+  @@unique([provider, providerAccountId])
+  @@index([userId])
+  @@map("accounts")
+}
+
+model Address {
+  id           String  @id @default(cuid())
+  userId       String
+  user         User    @relation(fields: [userId], references: [id], onDelete: Cascade)
+  label        String? // Home / Office
+  fullName     String
+  phone        String
+  email        String?
+  addressLine1 String
+  addressLine2 String?
+  city         String
+  postalCode   String
+  country      String  @default("Bangladesh")
+  isDefault    Boolean @default(false)
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  @@index([userId])
+  @@map("addresses")
+}
+
+// ---------------------------------------------------------------------------
+// Catalog: Brands, Leagues, Clubs, Categories, Products
+// ---------------------------------------------------------------------------
+
+model Brand {
+  id        String    @id @default(cuid())
+  name      String    @unique
+  slug      String    @unique
+  logoUrl   String?
+  status    PublishStatus @default(ACTIVE)
+  products  Product[]
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+
+  @@map("brands")
+}
+
+model League {
+  id         String   @id @default(cuid())
+  name       String
+  slug       String   @unique
+  categoryId String?
+  category   Category? @relation(fields: [categoryId], references: [id], onDelete: SetNull)
+  mark       String? // premier | laliga | seriea | bundesliga | worldcup | bangladesh
+  logoUrl    String?
+  shirtCount Int      @default(0)
+  status     PublishStatus @default(ACTIVE)
+  clubs      Club[]
+  products   Product[]
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+
+  @@index([status])
+  @@index([categoryId])
+  @@map("leagues")
+}
+
+model Club {
+  id        String   @id @default(cuid())
+  name      String
+  slug      String   @unique
+  code      String?
+  country   String?
+  emoji     String?
+  logoUrl   String?
+  leagueId  String?
+  league    League?  @relation(fields: [leagueId], references: [id])
+  status    PublishStatus @default(ACTIVE)
+  products  Product[]
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([leagueId])
+  @@map("clubs")
+}
+
+model Category {
+  id           String     @id @default(cuid())
+  name         String
+  slug         String     @unique
+  parentId     String?
+  parent       Category?  @relation("CategoryTree", fields: [parentId], references: [id])
+  children     Category[] @relation("CategoryTree")
+  pageNumber   Int        @default(1)
+  targetPage   String?
+  pageName     String?
+  rowOrder     Int        @default(1)
+  description  String?    @db.Text
+  imageUrl     String?
+  bannerUrl    String?
+  icon         String?
+  status       PublishStatus @default(ACTIVE)
+  products     Product[]
+  leagues      League[]
+  createdAt    DateTime   @default(now())
+  updatedAt    DateTime   @updatedAt
+
+  @@index([parentId, rowOrder])
+  @@index([status])
+  @@map("categories")
+}
+
+model Product {
+  id               String           @id @default(cuid())
+  name             String
+  slug             String           @unique
+  sku              String           @unique
+  description      String           @db.Text
+  shortDescription String?
+  longDescription  String?          @db.Text
+  features         String[]         @default([])
+
+  // Pricing (store BDT integers / minor units as preferred; app uses exchangeRate)
+  price            Decimal          @db.Decimal(12, 2)
+  originalPrice    Decimal?         @db.Decimal(12, 2)
+  costPrice        Decimal?         @db.Decimal(12, 2)
+  sellingPrice     Decimal?         @db.Decimal(12, 2)
+  discountAmount   Decimal?         @db.Decimal(12, 2)
+
+  // Media — prefer CDN URLs (3 gallery slots)
+  imageUrl         String
+  galleryUrls      String[]         @default([])
+
+  brandId          String?
+  brandRel         Brand?           @relation(fields: [brandId], references: [id])
+  brandName        String // denormalized for fast listing filters
+  leagueId         String?
+  league           League?          @relation(fields: [leagueId], references: [id])
+  clubId           String?
+  club             Club?            @relation(fields: [clubId], references: [id])
+  categoryId       String?
+  category         Category?        @relation(fields: [categoryId], references: [id])
+
+  country          String?
+  nationalTeam     String?
+  season           String
+  year             Int
+  gender           ProductGender    @default(MEN)
+  condition        ProductCondition @default(MINT)
+  conditionDetail  String           @db.Text
+  color            String
+  sizes            String[]         @default([])
+  playerName       String?
+  playerNumber     Int?
+
+  material         String?
+  madeIn           String?
+  fit              String?
+  sponsor          String?
+  dimensions       String?
+
+  badgeAvailable   Boolean          @default(true)
+  printAvailable   Boolean          @default(true)
+  namesetPriceBdt  Int              @default(15)
+  badgePriceBdt    Int              @default(15)
+  namesetLabel     String           @default("Custom Nameset Printing")
+  badgeLabel       String           @default("WC '26")
+  /// [{ "id": "badge-1", "label": "WC '26", "priceBdt": 150 }, ...]
+  badgeOptions     Json?
+  rating           Decimal          @default(0) @db.Decimal(3, 2)
+  reviewsCount     Int              @default(0)
+
+  stock            Int              @default(0)
+  lowStockThreshold Int             @default(3)
+  /// Per-size inventory map, e.g. { "S": 2, "M": 5, "XL": 0 }
+  sizeStocks       Json?
+  damagedQty       Int              @default(0)
+  warehouse        String?          @default("Dhaka Central")
+  binCode          String?
+  isClearance      Boolean          @default(false)
+  isDamaged        Boolean          @default(false)
+  isBestSeller     Boolean          @default(false)
+  isFeatured       Boolean          @default(false)
+  isPreOrder       Boolean          @default(false)
+  /// Optional estimated arrival text for pre-order products (e.g. "Ships in 2-3 weeks")
+  preOrderEta      String?
+
+  pageNumber       Int?
+  targetPage       String?
+  pageName         String?
+  categoryRow      Int?
+  /// Size chart key: player-edition | retro | fan-edition | custom | kids
+  sizeChartId      String?
+
+  status           ProductStatus    @default(DRAFT)
+  publishedAt      DateTime?
+  createdAt        DateTime         @default(now())
+  updatedAt        DateTime         @updatedAt
+  deletedAt        DateTime? // soft delete
+
+  images           ProductImage[]
+  orderItems       OrderItem[]
+  cartItems        CartItem[]
+  wishlistItems    WishlistItem[]
+  reviews          Review[]
+  stockLogs        StockLog[]
+  dailyDeal        DailyDeal?
+  auctionLots      AuctionLot[]
+  banners          Banner[]
+
+  @@index([status, isFeatured, isBestSeller])
+  @@index([brandName])
+  @@index([brandId])
+  @@index([leagueId])
+  @@index([clubId])
+  @@index([categoryId])
+  @@index([deletedAt])
+  @@index([slug])
+  @@index([sku])
+  @@index([stock])
+  @@map("products")
+}
+
+model ProductImage {
+  id        String   @id @default(cuid())
+  productId String
+  product   Product  @relation(fields: [productId], references: [id], onDelete: Cascade)
+  url       String
+  alt       String?
+  sortOrder Int      @default(0)
+  isPrimary Boolean  @default(false)
+  createdAt DateTime @default(now())
+
+  @@index([productId, sortOrder])
+  @@map("product_images")
+}
+
+// ---------------------------------------------------------------------------
+// Inventory
+// ---------------------------------------------------------------------------
+
+model StockLog {
+  id            String            @id @default(cuid())
+  productId     String
+  product       Product           @relation(fields: [productId], references: [id], onDelete: Cascade)
+  productName   String
+  sku           String
+  previousStock Int
+  newStock      Int
+  change        Int
+  reason        StockChangeReason
+  note          String?
+  userId        String?
+  user          User?             @relation(fields: [userId], references: [id])
+  createdAt     DateTime          @default(now())
+
+  @@index([productId, createdAt])
+  @@index([sku])
+  @@map("stock_logs")
+}
+
+// ---------------------------------------------------------------------------
+// Cart & Wishlist
+// ---------------------------------------------------------------------------
+
+model Cart {
+  id        String     @id @default(cuid())
+  userId    String     @unique
+  user      User       @relation(fields: [userId], references: [id], onDelete: Cascade)
+  items     CartItem[]
+  updatedAt DateTime   @updatedAt
+  createdAt DateTime   @default(now())
+
+  @@map("carts")
+}
+
+model CartItem {
+  id              String  @id @default(cuid())
+  cartId          String
+  cart            Cart    @relation(fields: [cartId], references: [id], onDelete: Cascade)
+  productId       String
+  product         Product @relation(fields: [productId], references: [id], onDelete: Cascade)
+  selectedSize    String
+  quantity        Int     @default(1)
+  // Use empty sentinels (not NULL) so @@unique works correctly in PostgreSQL
+  customPrintName String  @default("")
+  customPrintNum  Int     @default(0)
+  addBadge        Boolean @default(false)
+  selectedBadgeIds String @default("")
+  unitPrice       Decimal @db.Decimal(12, 2)
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  @@unique([cartId, productId, selectedSize, customPrintName, customPrintNum, selectedBadgeIds])
+  @@index([productId])
+  @@map("cart_items")
+}
+
+model WishlistItem {
+  id        String   @id @default(cuid())
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  productId String
+  product   Product  @relation(fields: [productId], references: [id], onDelete: Cascade)
+  createdAt DateTime @default(now())
+
+  @@unique([userId, productId])
+  @@map("wishlist_items")
+}
+
+// ---------------------------------------------------------------------------
+// Orders & Payments
+// ---------------------------------------------------------------------------
+
+model Order {
+  id                String         @id @default(cuid())
+  orderNumber       String         @unique // e.g. JAB-20260801-0001
+  customerId        String?
+  customer          User?          @relation("CustomerOrders", fields: [customerId], references: [id])
+  guestEmail        String?
+
+  status            OrderStatus    @default(PENDING)
+  paymentStatus     PaymentStatus  @default(UNPAID)
+  paymentMethod     String
+  bkashNumber       String?
+  bkashTransactionId String?
+
+  deliveryRegion    DeliveryRegion @default(INSIDE)
+  deliveryCharge    Decimal        @default(0) @db.Decimal(12, 2)
+  subtotal          Decimal        @db.Decimal(12, 2)
+  tax               Decimal        @default(0) @db.Decimal(12, 2)
+  shipping          Decimal        @default(0) @db.Decimal(12, 2)
+  discountTotal     Decimal        @default(0) @db.Decimal(12, 2)
+  total             Decimal        @db.Decimal(12, 2)
+  currencyCode      String         @default("BDT")
+
+  // Shipping snapshot
+  shipFullName      String
+  shipEmail         String?
+  shipPhone         String
+  shipAddressLine1  String
+  shipAddressLine2  String?
+  shipCity          String
+  shipPostalCode    String
+  shipCountry       String         @default("Bangladesh")
+
+  trackingNumber    String?
+  carrier           String?
+  trackingUrl       String?
+  shippedAt         DateTime?
+  estimatedDelivery DateTime?
+  customerNotes     String?        @db.Text
+  internalNotes     String?        @db.Text
+
+  couponId          String?
+  coupon            Coupon?        @relation(fields: [couponId], references: [id])
+
+  items             OrderItem[]
+  timeline          OrderTimelineEvent[]
+  payments          Payment[]
+
+  createdAt         DateTime       @default(now())
+  updatedAt         DateTime       @updatedAt
+
+  @@index([customerId, status])
+  @@index([orderNumber])
+  @@index([status, createdAt])
+  @@map("orders")
+}
+
+model OrderItem {
+  id              String  @id @default(cuid())
+  orderId         String
+  order           Order   @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  productId       String?
+  product         Product? @relation(fields: [productId], references: [id], onDelete: SetNull)
+  productName     String
+  productSku      String
+  productImageUrl String?
+  selectedSize    String
+  quantity        Int
+  unitPrice       Decimal @db.Decimal(12, 2)
+  lineTotal       Decimal @db.Decimal(12, 2)
+  customPrintName String?
+  customPrintNum  Int?
+  addBadge        Boolean @default(false)
+  selectedBadgeIds String @default("")
+
+  @@index([orderId])
+  @@index([productId])
+  @@map("order_items")
+}
+
+model OrderTimelineEvent {
+  id        String   @id @default(cuid())
+  orderId   String
+  order     Order    @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  status    String
+  note      String?
+  updatedById String?
+  updatedBy User?    @relation(fields: [updatedById], references: [id])
+  createdAt DateTime @default(now())
+
+  @@index([orderId, createdAt])
+  @@map("order_timeline_events")
+}
+
+model Payment {
+  id              String        @id @default(cuid())
+  orderId         String
+  order           Order         @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  provider        String // bkash | nagad | card | cod
+  providerRef     String?
+  amount          Decimal       @db.Decimal(12, 2)
+  currencyCode    String        @default("BDT")
+  status          PaymentStatus @default(UNPAID)
+  rawPayload      Json?
+  paidAt          DateTime?
+  createdAt       DateTime      @default(now())
+  updatedAt       DateTime      @updatedAt
+
+  @@index([orderId])
+  @@index([providerRef])
+  @@map("payments")
+}
+
+// ---------------------------------------------------------------------------
+// Marketing / CMS
+// ---------------------------------------------------------------------------
+
+model Banner {
+  id            String        @id @default(cuid())
+  name          String?
+  type          BannerType
+  desktopImage  String
+  tabletImage   String
+  mobileImage   String
+  title         String
+  subtitle      String        @default("")
+  description   String        @default("") @db.Text
+  cta           String        @default("SHOP NOW")
+  buttonUrl     String        @default("listing")
+  productId     String?
+  product       Product?      @relation(fields: [productId], references: [id], onDelete: SetNull)
+  openNewTab    Boolean       @default(false)
+  scheduleStart DateTime?
+  scheduleEnd   DateTime?
+  status        PublishStatus @default(DRAFT)
+  sortOrder     Int           @default(0)
+  /// Extra SPA fields e.g. { badge, primaryColor } for hero carousel
+  meta          Json?
+  createdAt     DateTime      @default(now())
+  updatedAt     DateTime      @updatedAt
+
+  @@index([type, status, sortOrder])
+  @@index([productId])
+  @@map("banners")
+}
+
+model MenuItem {
+  id          String        @id @default(cuid())
+  name        String
+  placement   MenuPlacement
+  parentId    String?
+  parent      MenuItem?     @relation("MenuTree", fields: [parentId], references: [id])
+  children    MenuItem[]    @relation("MenuTree")
+  icon        String?
+  sortOrder   Int           @default(1)
+  url         String
+  status      PublishStatus @default(ACTIVE)
+  badgeText   String?
+  description String?
+  openNewTab  Boolean       @default(false)
+  createdAt   DateTime      @default(now())
+  updatedAt   DateTime      @updatedAt
+
+  @@index([placement, sortOrder])
+  @@index([parentId])
+  @@map("menu_items")
+}
+
+model CmsPage {
+  id        String       @id @default(cuid())
+  name      String
+  slug      String       @unique
+  isCustom  Boolean      @default(true)
+  visible   Boolean      @default(true)
+  sections  PageSection[]
+  createdAt DateTime     @default(now())
+  updatedAt DateTime     @updatedAt
+
+  @@map("cms_pages")
+}
+
+model PageSection {
+  id         String            @id @default(cuid())
+  pageId     String?
+  page       CmsPage?          @relation(fields: [pageId], references: [id], onDelete: Cascade)
+  sectionKey String // hero-slider | best-sellers | shop-by-league ...
+  name       String
+  visible    Boolean           @default(true)
+  bgColor    String            @default("bg-white")
+  padding    String            @default("py-12")
+  margin     String            @default("my-0")
+  imageUrl   String?
+  title      String?
+  subtitle   String?
+  buttonText String?
+  buttonUrl  String?
+  animation  String?           @default("none")
+  status     PageSectionStatus @default(ACTIVE)
+  sortOrder  Int               @default(0)
+  isHomepage Boolean           @default(false)
+  meta       Json?
+  createdAt  DateTime          @default(now())
+  updatedAt  DateTime          @updatedAt
+
+  @@index([pageId, sortOrder])
+  @@index([isHomepage, sortOrder])
+  @@map("page_sections")
+}
+
+model StoreSettings {
+  id                 String   @id @default("default")
+  logoText           String   @default("Jersey Addicts BD")
+  logoSubtext        String   @default("")
+  theme              String   @default("bengal")
+  footerAbout        String   @db.Text
+  footerCopyright    String
+  currencySymbol     String   @default("৳")
+  currencyCode       String   @default("BDT")
+  exchangeRate       Decimal  @default(115) @db.Decimal(12, 4)
+  timerTeam1         String?
+  timerTeam1Emoji    String?
+  timerTeam2         String?
+  timerTeam2Emoji    String?
+  timerLabel         String?
+  timerTargetHours   Int?
+  timerEnabled       Boolean  @default(true)
+  dailyDealProductId String?
+  dailyDealEnabled   Boolean  @default(false)
+  /// Hot / flash deals: [{ productId, dealPrice, compareAtPrice?, isHotDeal?, stockLeft?, claimedPercent?, sortOrder? }]
+  dailyDealItems     Json?
+  /// When the flash offer countdown ends (null = rolling end-of-day style timer on storefront)
+  dailyDealEndsAt    DateTime?
+  announcementText   String?
+  announcementSpeed  Int      @default(15)
+  vatPercent         Decimal  @default(0) @db.Decimal(5, 2)
+  deliveryInside     Decimal  @default(0) @db.Decimal(12, 2)
+  deliveryOutside    Decimal  @default(0) @db.Decimal(12, 2)
+  bkashPersonalNumber String  @default("01840990700")
+  bkashEnabled       Boolean  @default(true)
+  /// full | partial | both — both lets customer pick at checkout
+  bkashPaymentMode     String   @default("both")
+  bkashPartialAmountBdt Int     @default(300)
+  categoryItems      Json?
+  /// Shared storefront nav (Main / Mega / Footer) — updates apply for all visitors
+  menuItems          Json?
+  /// Cached outlet cards mirrored from StoreLocation for SPA footer
+  footerLocations    Json?
+  updatedAt          DateTime @updatedAt
+
+  @@map("store_settings")
+}
+
+model StoreLocation {
+  id        String   @id @default(cuid())
+  city      String
+  address   String
+  phone     String
+  hours     String?
+  sortOrder Int      @default(0)
+  isActive  Boolean  @default(true)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@map("store_locations")
+}
+
+model BlogPost {
+  id         String   @id @default(cuid())
+  title      String
+  slug       String   @unique
+  excerpt    String   @db.Text
+  content    String   @db.Text
+  imageUrl   String
+  authorId   String?
+  author     User?    @relation("BlogAuthor", fields: [authorId], references: [id])
+  authorName String
+  readTime   String   @default("5 min read")
+  published  Boolean  @default(false)
+  publishedAt DateTime?
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+
+  @@index([slug])
+  @@index([published, publishedAt])
+  @@map("blog_posts")
+}
+
+model Review {
+  id         String   @id @default(cuid())
+  productId  String?
+  product    Product? @relation(fields: [productId], references: [id], onDelete: SetNull)
+  userId     String?
+  user       User?    @relation(fields: [userId], references: [id], onDelete: SetNull)
+  userName   String
+  rating     Int
+  comment    String   @db.Text
+  verified   Boolean  @default(false)
+  approved   Boolean  @default(false)
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+
+  @@index([productId, approved])
+  @@map("reviews")
+}
+
+model Coupon {
+  id            String     @id @default(cuid())
+  code          String     @unique
+  type          CouponType @default(PERCENT)
+  discountValue Decimal    @db.Decimal(12, 2)
+  usageLimit    Int?
+  usedCount     Int        @default(0)
+  minOrderTotal Decimal?   @db.Decimal(12, 2)
+  startsAt      DateTime?
+  endsAt        DateTime?
+  active        Boolean    @default(true)
+  orders        Order[]
+  createdAt     DateTime   @default(now())
+  updatedAt     DateTime   @updatedAt
+
+  @@map("coupons")
+}
+
+model NewsletterSubscriber {
+  id        String   @id @default(cuid())
+  email     String   @unique
+  source    String?
+  isActive  Boolean  @default(true)
+  createdAt DateTime @default(now())
+
+  @@map("newsletter_subscribers")
+}
+
+model DailyDeal {
+  id              String    @id @default(cuid())
+  productId       String    @unique
+  product         Product   @relation(fields: [productId], references: [id], onDelete: Cascade)
+  discountPercent Int       @default(30)
+  claimedPercent  Int       @default(0)
+  stockLeft       Int       @default(2)
+  startsAt        DateTime  @default(now())
+  endsAt          DateTime
+  isActive        Boolean   @default(true)
+  createdAt       DateTime  @default(now())
+  updatedAt       DateTime  @updatedAt
+
+  @@map("daily_deals")
+}
+
+// ---------------------------------------------------------------------------
+// Seller Desk & Auctions
+// ---------------------------------------------------------------------------
+
+model SellerRequest {
+  id            String              @id @default(cuid())
+  sellerId      String?
+  seller        User?               @relation(fields: [sellerId], references: [id])
+  shirtName     String
+  brand         String
+  season        String
+  condition     String
+  expectedPrice Decimal             @db.Decimal(12, 2)
+  imageUrls     String[]            @default([])
+  status        SellerRequestStatus @default(PENDING)
+  adminNote     String?
+  createdAt     DateTime            @default(now())
+  updatedAt     DateTime            @updatedAt
+
+  @@index([status, createdAt])
+  @@map("seller_requests")
+}
+
+model AuctionLot {
+  id           String   @id @default(cuid())
+  title        String
+  productId    String?
+  product      Product? @relation(fields: [productId], references: [id], onDelete: SetNull)
+  lotType      String // MATCH WORN | MATCH ISSUE
+  tags         String[] @default([])
+  currentBid   Decimal  @db.Decimal(12, 2)
+  playerName   String?
+  playerNumber Int?
+  endsAt       DateTime
+  isActive     Boolean  @default(true)
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  @@index([isActive, endsAt])
+  @@map("auction_lots")
+}
+
+// ---------------------------------------------------------------------------
+// Audit
+// ---------------------------------------------------------------------------
+
+model AuditLog {
+  id         String   @id @default(cuid())
+  actorId    String?
+  actorEmail String?
+  action     String
+  entity     String?
+  entityId   String?
+  metadata   Json?
+  ip         String?
+  createdAt  DateTime @default(now())
+
+  @@index([entity, entityId])
+  @@index([createdAt])
+  @@map("audit_logs")
+}

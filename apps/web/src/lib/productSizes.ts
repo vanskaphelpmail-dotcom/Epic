@@ -1,0 +1,64 @@
+import type { Product } from "../types";
+
+/** Standard adult jersey sizes offered in admin + storefront. */
+export const STANDARD_PRODUCT_SIZES = ["XS", "S", "M", "L", "XL", "2XL", "3XL"] as const;
+
+/** Kids kit sizes (numeric kit sizes matching Kids Size Chart). */
+export const KIDS_PRODUCT_SIZES = ["16", "18", "20", "22", "24", "26", "28"] as const;
+
+/** Default per-size stock when creating a new product in admin. */
+export const DEFAULT_PRODUCT_SIZE_STOCKS: Record<string, number> = {
+  S: 2,
+  M: 3,
+  L: 3,
+  XL: 2,
+  "2XL": 1,
+};
+
+export const DEFAULT_KIDS_SIZE_STOCKS: Record<string, number> = {
+  "16": 1,
+  "18": 1,
+  "20": 2,
+  "22": 2,
+  "24": 2,
+  "26": 1,
+  "28": 1,
+};
+
+export const DEFAULT_FALLBACK_SIZES = ["S", "M", "L", "XL", "2XL"];
+
+/** Legacy listings may still use XXL — treat as 2XL for display when normalizing. */
+export function normalizeSizeLabel(size: string): string {
+  return size.trim().toUpperCase() === "XXL" ? "2XL" : size;
+}
+
+/** Stock for one size. Uses sizeStocks when present; otherwise falls back to total stock for listed sizes. */
+export function getSizeStock(product: Product, size: string): number {
+  const map = product.sizeStocks;
+  const lookup = size === "2XL" && map?.XXL !== undefined ? "XXL" : size;
+  if (map && Object.keys(map).length > 0) {
+    const n = Number(map[lookup] ?? map[size]);
+    return Number.isFinite(n) && n > 0 ? Math.floor(n) : 0;
+  }
+  const sizes = (product.sizes || []).map(normalizeSizeLabel);
+  if (sizes.includes(size) && (product.stock || 0) > 0) {
+    return product.stock;
+  }
+  return 0;
+}
+
+export function isSizeAvailable(product: Product, size: string): boolean {
+  if (product.isPreOrder) {
+    const sizes = getProductSizes(product);
+    return sizes.includes(size);
+  }
+  return getSizeStock(product, size) > 0;
+}
+
+/** Sizes shown on storefront (prefer keys from sizeStocks, else product.sizes). */
+export function getProductSizes(product: Product): string[] {
+  const fromMap = product.sizeStocks ? Object.keys(product.sizeStocks) : [];
+  if (fromMap.length) return fromMap.map(normalizeSizeLabel);
+  if (product.sizes?.length) return product.sizes.map(normalizeSizeLabel);
+  return [...DEFAULT_FALLBACK_SIZES];
+}

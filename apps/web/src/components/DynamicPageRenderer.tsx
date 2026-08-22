@@ -1,0 +1,1077 @@
+import React, { useState, useEffect, useMemo } from 'react';
+import { Product, AppConfig, PageSection, CustomPage, CartItem } from '../types';
+import { ProductCard } from './ProductCard';
+import { JerseyRenderer } from './JerseyRenderer';
+import { isProductWishlisted } from '../lib/cartWishlistStorage';
+import { LeagueLogo } from './LeagueLogo';
+import { DEFAULT_LEAGUES } from '../data/leaguesData';
+import { DEFAULT_CLUBS } from '../data/clubsData';
+import { DEFAULT_INTERNATIONAL_TEAMS } from '../data/internationalTeamsData';
+import { navigateFromCmsUrl } from '../lib/navigateFromCmsUrl';
+import { isBannerLive, isHeroBannerType } from '../lib/bannerVisibility';
+import { getProductsForHomepageSection, isProductRowSection, normalizeHomepageSections, resolveSectionCategory } from '../lib/homepageSections';
+import { buildCatalogSearchKeywords, productMatchesSearchQuery, productMatchesNationalTeam } from '../lib/catalogSearch';
+import { DEFAULT_FALLBACK_SIZES } from '../lib/productSizes';
+import {
+  dealCompareAtPrice,
+  dealSavePercent,
+  msUntilDealEnds,
+  normalizeDailyDealItems,
+  productWithDealPrice,
+  suggestDealPrice,
+  suggestCompareAtPrice,
+  timePartsFromMs,
+} from '../lib/dailyDeals';
+import { 
+  Star, ArrowRight, Sparkles, Flame, Percent, Trophy, RefreshCw, 
+  Layers, Eye, ShieldCheck, Mail, MapPin, HelpCircle, 
+  ChevronRight, ChevronLeft, Calendar, UserCheck, AlertCircle, ShoppingBag, BadgeCheck, X, ShoppingCart 
+} from 'lucide-react';
+import type { BannerConfig } from '../types';
+
+/** Hero frame: mobile hugs image height (no letterbox); desktop stays wide cinematic */
+const HERO_BANNER_FRAME =
+  'aspect-auto min-h-0 h-auto leading-none sm:min-h-0 sm:aspect-[21/9]';
+
+/** Always-available local cover (never depends on Unsplash / CDN / base64) */
+const HERO_FALLBACK_COVER = '/hero-cover.svg';
+
+function isUsableHeroImageSrc(src?: string | null): boolean {
+  if (!src || typeof src !== 'string') return false;
+  const s = src.trim();
+  if (!s) return false;
+  // Never use data:/blob: for hero — truncated uploads cause the broken-image icon
+  if (s.startsWith('data:') || s.startsWith('blob:')) return false;
+  if (s.startsWith('/')) return true;
+  if (/^https?:\/\//i.test(s)) return true;
+  return false;
+}
+
+function heroBannerFallbackImage(banner: BannerConfig, preferMobile = false) {
+  const ordered = preferMobile
+    ? [banner.mobileImage, banner.tabletImage, banner.desktopImage, banner.image]
+    : [banner.desktopImage, banner.tabletImage, banner.mobileImage, banner.image];
+  for (const src of ordered) {
+    if (isUsableHeroImageSrc(src)) return String(src).trim();
+  }
+  return HERO_FALLBACK_COVER;
+}
+
+/** Renders cover immediately; swaps to fallback if the URL fails */
+const HeroCoverImage: React.FC<{ src: string; slideKey: string }> = ({ src, slideKey }) => {
+  const [activeSrc, setActiveSrc] = useState(src || HERO_FALLBACK_COVER);
+  const [failed, setFailed] = useState(false);
+
+  useEffect(() => {
+    setActiveSrc(src || HERO_FALLBACK_COVER);
+    setFailed(false);
+  }, [src, slideKey]);
+
+  if (failed) return null;
+
+  return (
+    <img
+      src={activeSrc}
+      alt=""
+      aria-hidden="true"
+      // Mobile: in-flow so the frame height matches the artwork (no empty gap under image).
+      // sm+: absolute + cover inside fixed cinematic aspect ratio.
+      className="relative z-0 m-0 block h-auto w-full max-w-full align-top object-cover object-center sm:absolute sm:inset-0 sm:h-full sm:w-full"
+      loading="eager"
+      decoding="async"
+      referrerPolicy="no-referrer"
+      onError={() => {
+        if (activeSrc !== HERO_FALLBACK_COVER) {
+          setActiveSrc(HERO_FALLBACK_COVER);
+          return;
+        }
+        setFailed(true);
+      }}
+    />
+  );
+};
+
+interface DynamicPageRendererProps {
+  currentPage: string;
+  products: Product[];
+  appConfig: AppConfig;
+  formatPrice: (amount: number) => string;
+  onSelectProduct: (p: Product) => void;
+  onAddToCart: (item: CartItem) => void;
+  onToggleWishlist: (p: Product) => void;
+  wishlist: Product[];
+  setCurrentPage: (page: string) => void;
+  setSelectedCategory: (cat: string) => void;
+  onSearch?: (query: string) => void;
+  handleQuickAdd: (p: Product, size?: string, quantity?: number) => void;
+  handleUpdateProductImage: (id: string, base64: string) => void;
+  handleCheckoutDirectly: (p: Product, size: string, quantity: number) => void;
+}
+
+export const DEFAULT_HOMEPAGE_SECTIONS: PageSection[] = [
+  { id: 'hero-slider', name: 'Hero Banner Slider', visible: true, bgColor: 'bg-white', padding: 'py-0', margin: 'my-0', title: 'WORLD CUP 2026 EDITION', subtitle: 'The Grandest Stage of Football', status: 'active' },
+  { id: 'trending-searches', name: 'Trending Searches bar', visible: true, bgColor: 'bg-emerald-50/50', padding: 'py-3.5', margin: 'my-2', status: 'active' },
+  { id: 'live-auction', name: 'Bidding & Live Auctions', visible: false, bgColor: 'bg-white', padding: 'py-12', margin: 'my-0', status: 'inactive' },
+  { id: 'daily-deals', name: 'Daily Deals Countdown', visible: false, bgColor: 'bg-amber-500/10', padding: 'py-12', margin: 'my-4', title: 'LIMITED DAILY DEAL DECK', subtitle: '24-hour flash sale on ultra rare collectibles', status: 'inactive' },
+  { id: 'featured-collection', name: 'Featured Collection Row', visible: true, bgColor: 'bg-white', padding: 'py-12', margin: 'my-0', title: 'VERIFIED FEATURED CLASSICS', subtitle: 'Curated 1-of-1 historic collectibles', status: 'active', sectionType: 'product-row', productCategory: 'Featured', buttonText: 'VIEW ALL', buttonUrl: 'listing', maxProducts: 4 },
+  { id: 'latest-products', name: 'Latest Products Row', visible: true, bgColor: 'bg-white', padding: 'py-12', margin: 'my-0', title: 'LATEST WORKSHOP DROPS', subtitle: 'Freshly authenticated physical catalog arrivals', status: 'active', sectionType: 'product-row', productCategory: 'New In', buttonText: '', maxProducts: 4 },
+  { id: 'shop-by-league', name: 'Shop by League badges', visible: true, bgColor: 'bg-white', padding: 'py-10', margin: 'my-0', title: 'SHOP BY FOOTBALL LEAGUE', subtitle: 'Sourced kits from leagues worldwide', status: 'active' },
+  { id: 'retro-collection', name: 'Retro Collection Row', visible: true, bgColor: 'bg-emerald-50/25', padding: 'py-12', margin: 'my-0', title: 'RETRO', subtitle: 'Rare 80s, 90s & 2000s vintage reissues', status: 'active', sectionType: 'product-row', productCategory: 'Retro', buttonText: 'VIEW ALL', buttonUrl: 'listing', maxProducts: 4 },
+  { id: 'shop-by-club', name: 'Shop by Club', visible: true, bgColor: 'bg-white', padding: 'py-10', margin: 'my-0', title: 'SHOP BY CLUB', subtitle: 'Authentic retro & modern club matchwear', status: 'active' },
+  { id: 'product-row-la-liga', name: 'La Liga Row', visible: true, bgColor: 'bg-white', padding: 'py-12', margin: 'my-0', title: 'LA LIGA', subtitle: 'Shop La Liga — curated picks for collectors', status: 'active', sectionType: 'product-row', productCategory: 'La Liga', buttonText: 'VIEW ALL', buttonUrl: 'listing', maxProducts: 4 },
+  { id: 'shop-by-international-team', name: 'Shop by International Team', visible: true, bgColor: 'bg-white', padding: 'py-10', margin: 'my-0', title: 'SHOP BY INTERNATIONAL TEAM', subtitle: 'National team kits from around the world', status: 'active' },
+  { id: 'product-row-world-cup', name: 'World Cup Row', visible: true, bgColor: 'bg-emerald-50/25', padding: 'py-12', margin: 'my-0', title: 'WORLD CUP', subtitle: 'National team World Cup kits & vault classics', status: 'active', sectionType: 'product-row', productCategory: 'World Cup', buttonText: 'VIEW ALL', buttonUrl: 'listing', maxProducts: 4 },
+  { id: 'player-edition', name: 'Player Edition Row', visible: true, bgColor: 'bg-white', padding: 'py-12', margin: 'my-0', title: 'PLAYER EDITION', subtitle: 'Slim-fit match issue quality kits', status: 'active', sectionType: 'product-row', productCategory: 'Player Edition', buttonText: 'VIEW ALL', buttonUrl: 'listing', maxProducts: 4 },
+  { id: 'kids-collection', name: 'Kids Collection Row', visible: true, bgColor: 'bg-white', padding: 'py-12', margin: 'my-0', title: 'KIDS', subtitle: 'Junior kits sized for ages 1–14', status: 'active', sectionType: 'product-row', productCategory: 'Kids', buttonText: 'VIEW ALL', buttonUrl: 'listing', maxProducts: 4 },
+  { id: 'customised-kit', name: 'Customised Kit Row', visible: true, bgColor: 'bg-emerald-50/25', padding: 'py-12', margin: 'my-0', title: 'CUSTOMISED KIT', subtitle: 'Custom printed kits with full size guide', status: 'active', sectionType: 'product-row', productCategory: 'Customised Kit', buttonText: 'VIEW ALL', buttonUrl: 'listing', maxProducts: 4 },
+  { id: 'fan-edition', name: 'Fan Edition Row', visible: true, bgColor: 'bg-white', padding: 'py-12', margin: 'my-0', title: 'FAN EDITION', subtitle: 'Comfortable stadium fan-fit replicas', status: 'active', sectionType: 'product-row', productCategory: 'Fan Edition', buttonText: 'VIEW ALL', buttonUrl: 'listing', maxProducts: 4 },
+  { id: 'preorder-jacket', name: 'Pre-Order Jacket Row', visible: true, bgColor: 'bg-amber-50/40', padding: 'py-12', margin: 'my-0', title: 'PRE-ORDER · JACKET', subtitle: 'Reserve jackets before they land in Dhaka', status: 'active', sectionType: 'product-row', productCategory: 'Jacket', buttonText: 'VIEW ALL', buttonUrl: 'listing', maxProducts: 4 },
+  { id: 'preorder-track-suit', name: 'Pre-Order Track Suit Row', visible: true, bgColor: 'bg-white', padding: 'py-12', margin: 'my-0', title: 'PRE-ORDER · TRACK SUIT', subtitle: 'Upcoming track suit drops — reserve yours', status: 'active', sectionType: 'product-row', productCategory: 'Track Suit', buttonText: 'VIEW ALL', buttonUrl: 'listing', maxProducts: 4 },
+  { id: 'preorder-badminton', name: 'Pre-Order Badminton Row', visible: true, bgColor: 'bg-amber-50/40', padding: 'py-12', margin: 'my-0', title: 'PRE-ORDER · BADMINTON RACKET', subtitle: 'Badminton rackets available for pre-order', status: 'active', sectionType: 'product-row', productCategory: 'Badminton Racket', buttonText: 'VIEW ALL', buttonUrl: 'listing', maxProducts: 4 },
+  { id: 'worldcup-collection', name: 'World Cup Vault Section', visible: false, bgColor: 'bg-emerald-900/5', padding: 'py-12', margin: 'my-0', title: 'WORLD CUP HERITAGE VAULT', subtitle: 'Historical match issue kits from 1970 to 2026', status: 'inactive' },
+  { id: 'current-season', name: 'Current Season Row', visible: true, bgColor: 'bg-white', padding: 'py-12', margin: 'my-0', title: 'CURRENT SEASON STOCK', subtitle: 'Direct from authorized team supplier docks', status: 'active', sectionType: 'product-row', productCategory: 'Current Season', buttonText: 'EXPLORE MODERN', buttonUrl: 'listing', maxProducts: 4 },
+  { id: 'mystery-box', name: 'Mystery Box Challenge', visible: false, bgColor: 'bg-gradient-to-r from-purple-950 to-indigo-950', padding: 'py-14', margin: 'my-6', title: 'THE VAULT MYSTERY BOX', subtitle: 'Receive one random 100% authentic retro or modern kit with premium certificates', status: 'inactive' },
+  { id: 'clearance', name: 'Clearance & Sale Rack', visible: true, bgColor: 'bg-white', padding: 'py-12', margin: 'my-0', title: 'OUTLET CLEARANCE SALE', subtitle: 'End of collection deadstock at cost prices', status: 'active', sectionType: 'product-row', productCategory: 'Clearance', buttonText: 'EXPLORE OUTLET', buttonUrl: 'listing', maxProducts: 4 },
+  { id: 'best-sellers', name: 'Best Sellers Grid', visible: true, bgColor: 'bg-emerald-50/25', padding: 'py-12', margin: 'my-0', title: 'BEST SELLERS', subtitle: 'Most reviewed and requested reissues', status: 'active', sectionType: 'product-row', productCategory: 'Best Sellers', buttonText: 'VIEW ALL', buttonUrl: 'listing', maxProducts: 4 },
+  { id: 'shop-by-legends', name: 'Shop by Legends portraits', visible: false, bgColor: 'bg-white', padding: 'py-12', margin: 'my-0', title: 'THE LEGENDS STORE', subtitle: 'Embroidered match prints of historical deities', status: 'inactive' },
+  { id: 'community-gallery', name: 'Dhaka Fan Community Gallery', visible: true, bgColor: 'bg-emerald-50/30', padding: 'py-12', margin: 'my-0', title: 'COLLECTORS IN DHAKA', subtitle: 'Fan gallery sharing local unboxings on Bailey Road', status: 'active' },
+  { id: 'testimonials', name: 'Testimonials Deck', visible: true, bgColor: 'bg-white', padding: 'py-12', margin: 'my-0', title: 'WHAT COLLECTORS DECLARE', subtitle: 'Genuine reviews from verified buyers', status: 'active' },
+  { id: 'video-banner', name: 'Video Feature Banner', visible: false, bgColor: 'bg-emerald-950', padding: 'py-16', margin: 'my-0', title: 'THE ART OF AUTHENTICATION', subtitle: 'A look inside our 12-point micro-fabric check laboratory in Dhaka', status: 'inactive' },
+  { id: 'instagram-feed', name: 'Instagram Feed Mockup', visible: false, bgColor: 'bg-white', padding: 'py-12', margin: 'my-0', title: 'FOLLOW @JERSEYADDICTS_BD', subtitle: 'Daily vintage drops, buyer photos, and restocks', status: 'inactive' },
+  { id: 'newsletter', name: 'Newsletter Subscription', visible: true, bgColor: 'bg-emerald-900', padding: 'py-12', margin: 'my-4', title: 'JOIN THE EXCLUSIVE CIRCLE', subtitle: 'Be first to receive physical workshop inventory arrivals', status: 'active' },
+  { id: 'store-locations', name: 'Physical Store Maps', visible: true, bgColor: 'bg-white', padding: 'py-12', margin: 'my-0', title: 'PHYSICAL OUTLET POINTS', subtitle: 'Visit us for physical sizing and authentications', status: 'active' },
+];
+
+export const DynamicPageRenderer: React.FC<DynamicPageRendererProps> = ({
+  currentPage,
+  products,
+  appConfig,
+  formatPrice,
+  onSelectProduct,
+  onAddToCart,
+  onToggleWishlist,
+  wishlist,
+  setCurrentPage,
+  setSelectedCategory,
+  onSearch,
+  handleQuickAdd,
+  handleUpdateProductImage,
+  handleCheckoutDirectly,
+}) => {
+  // Extract sections based on the active page
+  const [sections, setSections] = useState<PageSection[]>([]);
+  const [pageTitle, setPageTitle] = useState('');
+  const [pageSubtitle, setPageSubtitle] = useState('');
+  const [dealTimeLeft, setDealTimeLeft] = useState({ hrs: 14, mins: 42, secs: 19 });
+  const [heroSlideIndex, setHeroSlideIndex] = useState(0);
+  const [showPopupBanner, setShowPopupBanner] = useState(false);
+  const [dealSize, setDealSize] = useState('M');
+  const [activeDealProductId, setActiveDealProductId] = useState<string | null>(null);
+  const [preferMobileHero, setPreferMobileHero] = useState(false);
+
+  useEffect(() => {
+    if (typeof window === 'undefined' || !window.matchMedia) return;
+    const mq = window.matchMedia('(max-width: 639px)');
+    const apply = () => setPreferMobileHero(mq.matches);
+    apply();
+    mq.addEventListener('change', apply);
+    return () => mq.removeEventListener('change', apply);
+  }, []);
+
+  const catalogProducts = products.filter(
+    (p) => p.category !== 'Mystery' && !/mystery/i.test(p.name) && p.id !== 'shirt-7' && p.id !== 'mystery-box-item'
+  );
+
+  const trendingKeywords = useMemo(
+    () => buildCatalogSearchKeywords(catalogProducts, 8),
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    [products],
+  );
+
+  // Curated storefront leagues (logos in /public/logos) — ignore stale CMS World Cup / BD entries
+  const leagueItems = DEFAULT_LEAGUES.filter((l) => l.status === 'Active');
+
+  const dailyDealEnabled = appConfig.dailyDealEnabled === true;
+  const flashDeals = useMemo(() => {
+    let items = normalizeDailyDealItems(appConfig.dailyDealItems);
+    if (items.length === 0 && appConfig.dailyDealProductId) {
+      const legacy = catalogProducts.find((p) => p.id === appConfig.dailyDealProductId);
+      if (legacy) {
+        items = [
+          {
+            productId: legacy.id,
+            dealPrice: suggestDealPrice(legacy),
+            compareAtPrice: suggestCompareAtPrice(legacy),
+            isHotDeal: true,
+            stockLeft: Math.max(1, Number(legacy.stock) || 1),
+            claimedPercent: 80,
+            sortOrder: 0,
+          },
+        ];
+      }
+    }
+    return items
+      .map((deal) => {
+        const product = catalogProducts.find((p) => p.id === deal.productId);
+        return product ? { deal, product } : null;
+      })
+      .filter((row): row is { deal: (typeof items)[number]; product: Product } => row != null);
+  }, [appConfig.dailyDealItems, appConfig.dailyDealProductId, catalogProducts]);
+
+  useEffect(() => {
+    if (flashDeals.length === 0) {
+      setActiveDealProductId(null);
+      return;
+    }
+    if (!activeDealProductId || !flashDeals.some((d) => d.product.id === activeDealProductId)) {
+      setActiveDealProductId(flashDeals[0].product.id);
+    }
+  }, [flashDeals, activeDealProductId]);
+
+  const activeFlashDeal =
+    flashDeals.find((d) => d.product.id === activeDealProductId) || flashDeals[0] || null;
+
+  useEffect(() => {
+    if (activeFlashDeal?.product) {
+      const sizes = activeFlashDeal.product.sizes?.length
+        ? activeFlashDeal.product.sizes
+        : [...DEFAULT_FALLBACK_SIZES];
+      setDealSize(sizes.includes('M') ? 'M' : sizes[0]);
+    }
+  }, [activeFlashDeal?.product?.id]);
+
+  // Countdown: admin endsAt when set, otherwise rolling timer
+  useEffect(() => {
+    const tick = () => {
+      const remaining = msUntilDealEnds(appConfig.dailyDealEndsAt);
+      if (remaining != null) {
+        setDealTimeLeft(timePartsFromMs(remaining));
+        return;
+      }
+      setDealTimeLeft((prev) => {
+        if (prev.secs > 0) return { ...prev, secs: prev.secs - 1 };
+        if (prev.mins > 0) return { hrs: prev.hrs, mins: prev.mins - 1, secs: 59 };
+        if (prev.hrs > 0) return { hrs: prev.hrs - 1, mins: 59, secs: 59 };
+        return { hrs: 23, mins: 59, secs: 59 };
+      });
+    };
+    tick();
+    const timer = setInterval(tick, 1000);
+    return () => clearInterval(timer);
+  }, [appConfig.dailyDealEndsAt]);
+
+  // Active Banners Selector Helpers — Inactive / Draft never render on storefront
+  const activeHeroBanners = (appConfig.banners || [])
+    .filter((b) => isHeroBannerType(b) && isBannerLive(b))
+    .sort((a, b) => (a.sortOrder ?? 0) - (b.sortOrder ?? 0));
+  const activePopupBanner = (appConfig.banners || []).find(
+    (b) => b.type === 'Popup Banner' && isBannerLive(b),
+  );
+
+  useEffect(() => {
+    if (currentPage === 'home') {
+      setSections(normalizeHomepageSections(appConfig.homepageSections || DEFAULT_HOMEPAGE_SECTIONS));
+      setPageTitle('HOME');
+    } else {
+      // Check if this is a custom page ID or custom category page
+      const matchedPage = appConfig.pages?.find(
+        (p) => p.id === currentPage || `page-${p.id}` === currentPage || p.slug === currentPage || p.name === currentPage || p.name.toLowerCase() === currentPage.toLowerCase()
+      );
+      if (matchedPage) {
+        setSections(matchedPage.sections || []);
+        setPageTitle(matchedPage.name);
+        setPageSubtitle(`Dynamic Page • Sourced and Managed via Command CMS`);
+      } else {
+        // Fallback or category filters
+        setSections([]);
+      }
+    }
+  }, [currentPage, appConfig]);
+
+  if (sections.length === 0 && currentPage !== 'home') {
+    // If it's a category page without custom layout sections, return null so App.tsx can render standard listing
+    return null;
+  }
+
+  const getAnimationClass = (anim: string | undefined) => {
+    if (!anim || anim === 'none') return '';
+    if (anim === 'fadeIn') return 'animate-fadeIn';
+    if (anim === 'slideUp') return 'animate-slideUp';
+    if (anim === 'pulse') return 'animate-pulse';
+    return '';
+  };
+
+  return (
+    <div className="space-y-0 w-full">
+      {sections.map((section, idx) => {
+        if (!section.visible || section.status === 'draft' || section.status === 'inactive' || section.id === 'mystery-box' || section.id === 'instagram-feed' || section.id === 'video-banner' || section.id === 'worldcup-collection' || section.id === 'popular-teams') return null;
+
+        // Product rows with no matching products must not render — otherwise empty
+        // padded shells (py-12 each) stack into large blank gaps on the homepage.
+        const productRowItems = isProductRowSection(section)
+          ? getProductsForHomepageSection(section, catalogProducts)
+          : null;
+        if (productRowItems && productRowItems.length === 0) return null;
+
+        // Same for non–product-row sections that would only show a padded empty shell
+        if (section.id === 'hero-slider' && activeHeroBanners.length === 0) return null;
+        if (section.id === 'shop-by-league' && leagueItems.length === 0) return null;
+        if (section.id === 'daily-deals' && (!dailyDealEnabled || flashDeals.length === 0)) return null;
+        if (section.id === 'community-gallery') {
+          const galleryItems = catalogProducts.filter((p) => p.isFeatured || p.isBestSeller).slice(0, 4);
+          if (galleryItems.length === 0) return null;
+        }
+
+        const compactShopIds = new Set([
+          'shop-by-league',
+          'shop-by-club',
+          'shop-by-international-team',
+        ]);
+        const containerStyle =
+          section.id === 'hero-slider'
+            ? `bg-white pt-2.5 pb-0 sm:pt-4 sm:pb-5 lg:pt-5 lg:pb-6 my-0 ${getAnimationClass(section.animation)} transition-all duration-300 relative`
+            : section.id === 'trending-searches'
+              ? `hidden lg:block ${section.bgColor} ${section.padding} ${section.margin} ${getAnimationClass(section.animation)} transition-all duration-300 relative`
+              : compactShopIds.has(section.id)
+                ? `bg-white pt-3 pb-5 sm:pt-8 sm:pb-10 lg:py-10 my-0 ${getAnimationClass(section.animation)} transition-all duration-300 relative`
+                : `${section.bgColor} ${section.padding} ${section.margin} ${getAnimationClass(section.animation)} transition-all duration-300 relative`;
+        const headingColor = section.bgColor.includes('emerald-9') || section.bgColor.includes('purple') || section.bgColor.includes('indigo') ? 'text-white' : 'text-emerald-950';
+        const subColor = section.bgColor.includes('emerald-9') || section.bgColor.includes('purple') || section.bgColor.includes('indigo') ? 'text-emerald-300' : 'text-emerald-800';
+
+        return (
+          <div key={`${section.id}-${idx}`} className={containerStyle} id={`section-${section.id}`}>
+            
+            {/* SECTION RENDER DISTRIBUTOR */}
+
+            {/* 1. HERO SLIDER DYNAMIC DISPLAY */}
+            {section.id === 'hero-slider' && activeHeroBanners.length > 0 && (
+              <div className="w-full max-w-[1440px] mx-auto px-3 sm:px-4 md:px-5 lg:px-6">
+                <div
+                  className={`relative w-full overflow-hidden rounded-xl sm:rounded-2xl lg:rounded-3xl border border-emerald-900/10 shadow-md sm:shadow-lg bg-transparent sm:bg-emerald-950 ${HERO_BANNER_FRAME}`}
+                >
+                {(() => {
+                    const currentSlide = activeHeroBanners[heroSlideIndex % activeHeroBanners.length];
+                    if (!currentSlide) return null;
+
+                    const subtitleText = (currentSlide.subtitle || '').trim();
+                    const titleText = (currentSlide.title || '').trim();
+                    const descriptionText = (currentSlide.description || '').trim();
+                    const ctaLabel = (currentSlide.cta || currentSlide.ctaText || '').trim();
+                    const hasCta =
+                      !!ctaLabel && !!(currentSlide.productId || (currentSlide.buttonUrl || '').trim());
+                    const hasOverlay = !!(subtitleText || titleText || descriptionText || hasCta);
+                    const coverSrc = heroBannerFallbackImage(currentSlide, preferMobileHero);
+
+                    return (
+                      <>
+                        <HeroCoverImage src={coverSrc} slideKey={currentSlide.id} />
+
+                        {hasOverlay && (
+                          <div className="absolute inset-0 z-10 bg-gradient-to-t from-emerald-950/75 via-emerald-950/35 to-emerald-950/10 pointer-events-none" />
+                        )}
+
+                        {hasOverlay && (
+                          <div className="absolute inset-0 z-20 flex flex-col items-center justify-center px-4 py-8 text-center text-white sm:px-8 sm:py-12 md:px-10">
+                            <div className="flex max-w-4xl flex-col items-center justify-center space-y-3 sm:space-y-4 md:space-y-6">
+                            {subtitleText && (
+                              <span className="bg-emerald-500 text-emerald-950 text-[9px] sm:text-[10px] font-mono tracking-widest px-3 py-1 sm:px-4 sm:py-1.5 rounded-full font-black uppercase">
+                                {subtitleText}
+                              </span>
+                            )}
+                            {titleText && (
+                              <h1 className="text-xl sm:text-3xl md:text-5xl lg:text-6xl font-black uppercase tracking-tighter leading-tight font-display drop-shadow-md">
+                                {titleText}
+                              </h1>
+                            )}
+                            {descriptionText && (
+                              <p className="text-[11px] sm:text-xs md:text-base text-emerald-100 max-w-2xl leading-relaxed drop-shadow px-2">
+                                {descriptionText}
+                              </p>
+                            )}
+                            {hasCta && (
+                              <div className="flex flex-wrap justify-center gap-3 pt-1 sm:pt-2">
+                                <button
+                                  type="button"
+                                  onClick={() => {
+                                    const target = currentSlide.productId
+                                      ? `product:${currentSlide.productId}`
+                                      : currentSlide.buttonUrl;
+                                    navigateFromCmsUrl(target, {
+                                      setCurrentPage,
+                                      setSelectedCategory,
+                                      products,
+                                      onSelectProduct,
+                                      openNewTab: currentSlide.openNewTab,
+                                    });
+                                  }}
+                                  className="bg-emerald-500 hover:bg-emerald-600 text-emerald-950 font-extrabold text-[10px] sm:text-xs uppercase tracking-widest px-5 py-3 sm:px-8 sm:py-4 rounded-xl cursor-pointer transition-all hover:scale-105 shadow-lg"
+                                >
+                                  {ctaLabel}
+                                </button>
+                              </div>
+                            )}
+                            </div>
+                          </div>
+                        )}
+
+                        {/* Navigation Carousel Controls if multiple slides */}
+                        {activeHeroBanners.length > 1 && (
+                          <>
+                            <button
+                              onClick={() => setHeroSlideIndex((prev) => (prev === 0 ? activeHeroBanners.length - 1 : prev - 1))}
+                              className="absolute left-2 sm:left-4 top-1/2 -translate-y-1/2 z-30 bg-black/40 hover:bg-black/70 text-white p-2 sm:p-3 rounded-full backdrop-blur-md transition-all cursor-pointer"
+                              title="Previous Slide"
+                            >
+                              <ChevronLeft size={18} className="sm:w-5 sm:h-5" />
+                            </button>
+                            <button
+                              onClick={() => setHeroSlideIndex((prev) => (prev + 1) % activeHeroBanners.length)}
+                              className="absolute right-2 sm:right-4 top-1/2 -translate-y-1/2 z-30 bg-black/40 hover:bg-black/70 text-white p-2 sm:p-3 rounded-full backdrop-blur-md transition-all cursor-pointer"
+                              title="Next Slide"
+                            >
+                              <ChevronRight size={18} className="sm:w-5 sm:h-5" />
+                            </button>
+
+                            <div className="absolute bottom-3 sm:bottom-6 left-1/2 -translate-x-1/2 z-30 flex gap-1.5 sm:gap-2">
+                              {activeHeroBanners.map((_, dotIdx) => (
+                                <button
+                                  key={dotIdx}
+                                  onClick={() => setHeroSlideIndex(dotIdx)}
+                                  className={`h-2 sm:h-2.5 rounded-full transition-all cursor-pointer ${
+                                    heroSlideIndex % activeHeroBanners.length === dotIdx ? 'w-6 sm:w-8 bg-emerald-400' : 'w-2 sm:w-2.5 bg-white/50'
+                                  }`}
+                                />
+                              ))}
+                            </div>
+                          </>
+                        )}
+                      </>
+                    );
+                  })()}
+                </div>
+              </div>
+            )}
+
+            {/* 2. TRENDING SEARCHES BAR — desktop only (outer wrapper also hidden) */}
+            {section.id === 'trending-searches' && (
+              <div className="max-w-7xl mx-auto px-4 sm:px-6 flex flex-wrap items-center justify-center gap-3 md:gap-4">
+                <span className="text-[10px] font-mono font-black text-emerald-900 flex items-center gap-1.5 uppercase">
+                  <Flame size={12} className="text-amber-500 animate-pulse" />
+                  Trending searches BD:
+                </span>
+                {trendingKeywords.map((kw) => (
+                  <button
+                    key={kw}
+                    onClick={() => {
+                      setSelectedCategory('All');
+                      if (onSearch) onSearch(kw);
+                      setCurrentPage('listing');
+                    }}
+                    className="bg-white hover:bg-emerald-100/50 text-[10.5px] font-sans font-bold border border-emerald-100 text-emerald-900 px-3.5 py-1.5 rounded-full cursor-pointer transition-all"
+                  >
+                    {kw}
+                  </button>
+                ))}
+              </div>
+            )}
+
+            {/* 3. SHOP BY LEAGUE — 3 cards / row on mobile */}
+            {section.id === 'shop-by-league' && (
+              <div className="max-w-7xl mx-auto px-3 sm:px-6 space-y-2 sm:space-y-6">
+                <div className="text-center space-y-0.5 sm:space-y-2">
+                  <h2 className={`text-sm sm:text-xl md:text-2xl font-black uppercase tracking-tight ${headingColor}`}>{section.title || 'SHOP BY FOOTBALL LEAGUE'}</h2>
+                  <p className={`text-[9px] sm:text-xs font-mono ${subColor}`}>{section.subtitle || 'Sourced kits from leagues worldwide'}</p>
+                </div>
+                <div className="grid grid-cols-3 sm:grid-cols-3 lg:grid-cols-6 gap-1.5 sm:gap-4">
+                  {leagueItems.map((league) => {
+                    const liveCount = catalogProducts.filter((p) =>
+                      productMatchesSearchQuery(p, league.searchQuery || league.name),
+                    ).length;
+                    const displayCount = liveCount > 0 ? liveCount : league.count;
+                    return (
+                    <button
+                      key={league.id}
+                      type="button"
+                      onClick={() => {
+                        setSelectedCategory('All');
+                        if (onSearch) onSearch(league.searchQuery || league.name);
+                        else setCurrentPage('listing');
+                      }}
+                      className="bg-white hover:bg-emerald-50/80 border border-emerald-100 rounded-lg sm:rounded-2xl p-1.5 sm:p-5 text-center cursor-pointer transition-all duration-300 group hover:scale-[1.02] flex flex-col items-center justify-between min-h-[78px] sm:min-h-[160px]"
+                    >
+                      <div className="h-8 w-8 sm:h-16 sm:w-16 mb-1 sm:mb-3 flex items-center justify-center overflow-hidden rounded-md bg-white">
+                        <LeagueLogo league={league} className="h-8 w-8 sm:h-16 sm:w-16 group-hover:scale-105 transition-transform duration-300" />
+                      </div>
+                      <div className="min-w-0 w-full px-0.5">
+                        <h4 className="text-[8px] sm:text-xs font-black text-emerald-950 uppercase leading-tight line-clamp-2">{league.name}</h4>
+                        <span className="text-[7px] sm:text-[10px] text-emerald-700 font-mono font-bold mt-0.5 block">
+                          <span className="sm:hidden">{displayCount}</span>
+                          <span className="hidden sm:inline">{displayCount} verified jerseys</span>
+                        </span>
+                      </div>
+                    </button>
+                    );
+                  })}
+                </div>
+              </div>
+            )}
+
+            {/* 4. LIVE AUCTIONS — hidden (demo 4-jersey block removed) */}
+            {section.id === 'live-auction' && null}
+
+            {/* 5. SHOP BY CLUB — 3 cards / row on mobile */}
+            {section.id === 'shop-by-club' && (
+              <div className="max-w-7xl mx-auto px-3 sm:px-6 space-y-2 sm:space-y-6">
+                <div className="text-center space-y-0.5 sm:space-y-2">
+                  <h2 className={`text-sm sm:text-xl md:text-2xl font-black uppercase tracking-tight ${headingColor}`}>{section.title || 'SHOP BY CLUB'}</h2>
+                  <p className={`text-[9px] sm:text-xs font-mono ${subColor}`}>{section.subtitle || 'Authentic retro & modern club matchwear'}</p>
+                </div>
+                <div className="grid grid-cols-3 sm:grid-cols-3 lg:grid-cols-6 gap-1.5 sm:gap-4">
+                  {DEFAULT_CLUBS.filter((c) => c.status === 'Active').map((club) => {
+                    const count = catalogProducts.filter((p) =>
+                      productMatchesSearchQuery(p, club.searchQuery || club.name),
+                    ).length;
+                    return (
+                      <button
+                        key={club.id}
+                        type="button"
+                        onClick={() => {
+                          setSelectedCategory('All');
+                          if (onSearch) onSearch(club.searchQuery || club.name);
+                          else setCurrentPage('listing');
+                        }}
+                        className="bg-white hover:bg-emerald-50/80 border border-emerald-100 rounded-lg sm:rounded-2xl p-1.5 sm:p-5 text-center cursor-pointer transition-all duration-300 group hover:scale-[1.02] flex flex-col items-center justify-between min-h-[78px] sm:min-h-[160px]"
+                      >
+                        <div className="h-8 w-8 sm:h-16 sm:w-16 mb-1 sm:mb-3 flex items-center justify-center overflow-hidden rounded-md bg-white">
+                          <img
+                            src={club.logoUrl}
+                            alt={`${club.name} logo`}
+                            className="h-full w-full object-contain p-0.5 group-hover:scale-105 transition-transform duration-300"
+                            loading="lazy"
+                            referrerPolicy="no-referrer"
+                          />
+                        </div>
+                        <div className="min-w-0 w-full px-0.5">
+                          <h4 className="text-[8px] sm:text-xs font-black text-emerald-950 uppercase leading-tight line-clamp-2">
+                            {club.name}
+                          </h4>
+                          <span className="text-[7px] sm:text-[10px] text-emerald-700 font-mono font-bold mt-0.5 block">
+                            <span className="sm:hidden">{count}</span>
+                            <span className="hidden sm:inline">{count} verified jerseys</span>
+                          </span>
+                        </div>
+                      </button>
+                    );
+                  })}
+                </div>
+              </div>
+            )}
+
+            {/* 6. DAILY DEALS / HOT DEALS */}
+            {section.id === 'daily-deals' && activeFlashDeal && (
+              <div className="max-w-7xl mx-auto px-4 sm:px-6">
+                <div className="bg-white border-2 border-amber-500 rounded-2xl sm:rounded-3xl p-4 sm:p-6 md:p-8 shadow-xl relative overflow-hidden flex flex-col md:flex-row items-center gap-6 md:gap-8 w-full min-w-0">
+                  <div className="absolute top-0 right-0 bg-amber-500 text-white font-mono text-[9px] font-black uppercase tracking-widest px-4 py-1 rounded-bl-xl shadow-sm">
+                    FLASH OFFER VAULT
+                  </div>
+                  
+                  {/* Countdown Timer Visual */}
+                  <div className="space-y-4 md:border-r border-emerald-100 pr-0 md:pr-10 shrink-0">
+                    <span className="bg-amber-100 text-amber-800 text-[10px] font-mono tracking-widest px-3 py-1 rounded-full font-extrabold uppercase">
+                      {activeFlashDeal.deal.isHotDeal ? '🔥 HOT DEAL' : 'HURRY! LIMITED OFFER'}
+                    </span>
+                    <h3 className="text-2xl font-black text-emerald-950 uppercase leading-tight font-display">
+                      {section.title || 'HOT DEALS'}
+                    </h3>
+                    <p className="text-xs text-emerald-800 leading-relaxed max-w-sm">
+                      {flashDeals.length > 1
+                        ? `Admin-picked hot deals — ${flashDeals.length} kits with fixed flash prices. Switch kits below to claim yours.`
+                        : 'Admin-picked flash price on a coveted kit. Once the timer hits zero, this offer can change.'}
+                    </p>
+                    
+                    <div className="flex gap-2 font-mono text-center">
+                      <div className="bg-emerald-950 text-white p-2.5 rounded-lg min-w-[50px]">
+                        <span className="block font-black text-base">{String(dealTimeLeft.hrs).padStart(2, '0')}</span>
+                        <span className="text-[8px] text-emerald-400">HRS</span>
+                      </div>
+                      <span className="text-emerald-950 font-black self-center text-lg">:</span>
+                      <div className="bg-emerald-950 text-white p-2.5 rounded-lg min-w-[50px]">
+                        <span className="block font-black text-base">{String(dealTimeLeft.mins).padStart(2, '0')}</span>
+                        <span className="text-[8px] text-emerald-400">MINS</span>
+                      </div>
+                      <span className="text-emerald-950 font-black self-center text-lg">:</span>
+                      <div className="bg-emerald-950 text-white p-2.5 rounded-lg min-w-[50px]">
+                        <span className="block font-black text-base">{String(dealTimeLeft.secs).padStart(2, '0')}</span>
+                        <span className="text-[8px] text-emerald-400">SECS</span>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Highlight Deal Product card */}
+                  <div className="flex-1 flex flex-col gap-4 min-w-0 w-full">
+                    {flashDeals.length > 1 && (
+                      <div className="flex gap-2 overflow-x-auto pb-1">
+                        {flashDeals.map(({ deal, product }) => {
+                          const selected = product.id === activeFlashDeal.product.id;
+                          return (
+                            <button
+                              key={product.id}
+                              type="button"
+                              onClick={() => setActiveDealProductId(product.id)}
+                              className={`shrink-0 flex items-center gap-2 rounded-xl border px-2.5 py-1.5 cursor-pointer transition-colors ${
+                                selected
+                                  ? 'border-amber-500 bg-amber-50'
+                                  : 'border-emerald-100 bg-white hover:bg-emerald-50/60'
+                              }`}
+                            >
+                              <div className="h-10 w-8 rounded-md bg-emerald-50 overflow-hidden flex items-center justify-center">
+                                <JerseyRenderer
+                                  productId={product.id}
+                                  uploadedImage={product.uploadedImage}
+                                  imageKey={product.image}
+                                />
+                              </div>
+                              <div className="text-left max-w-[120px]">
+                                <p className="text-[9px] font-black text-emerald-950 uppercase truncate leading-tight">
+                                  {deal.isHotDeal ? 'HOT · ' : ''}
+                                  {product.name}
+                                </p>
+                                <p className="text-[10px] font-black text-red-600">
+                                  {formatPrice(deal.dealPrice)}
+                                </p>
+                              </div>
+                            </button>
+                          );
+                        })}
+                      </div>
+                    )}
+
+                    <div className="flex flex-col sm:flex-row items-center gap-6">
+                      <div className="h-44 w-36 rounded-xl bg-emerald-50/50 p-2 border border-emerald-100 flex items-center justify-center relative">
+                        {activeFlashDeal.deal.isHotDeal && (
+                          <span className="absolute -top-2 -left-2 z-10 bg-amber-500 text-white text-[8px] font-black uppercase tracking-wider px-2 py-0.5 rounded-full flex items-center gap-0.5 shadow">
+                            <Flame size={10} /> Hot Deal
+                          </span>
+                        )}
+                        <JerseyRenderer
+                          productId={activeFlashDeal.product.id}
+                          uploadedImage={activeFlashDeal.product.uploadedImage}
+                          imageKey={activeFlashDeal.product.image}
+                        />
+                      </div>
+                      <div className="space-y-3 flex-1 w-full">
+                        <div className="flex gap-1 text-amber-400">
+                          {[...Array(5)].map((_, i) => (
+                            <Star
+                              key={i}
+                              size={11}
+                              className={
+                                i < Math.round(Number(activeFlashDeal.product.rating) || 5)
+                                  ? 'fill-amber-400'
+                                  : ''
+                              }
+                            />
+                          ))}
+                        </div>
+                        <h4 className="text-base font-extrabold text-emerald-950 uppercase leading-snug">
+                          {activeFlashDeal.product.name}
+                        </h4>
+                        <p className="text-[10px] text-emerald-700 font-mono">
+                          Size Available:{' '}
+                          {(activeFlashDeal.product.sizes || []).join(', ') || 'M, L'} •{' '}
+                          {activeFlashDeal.product.condition} Condition
+                        </p>
+                        <div className="flex flex-wrap gap-1.5">
+                          {(activeFlashDeal.product.sizes || [...DEFAULT_FALLBACK_SIZES]).map((sz) => (
+                            <button
+                              key={sz}
+                              type="button"
+                              onClick={() => setDealSize(sz)}
+                              className={`h-8 w-8 rounded-lg text-[10px] font-black border cursor-pointer ${
+                                dealSize === sz
+                                  ? 'bg-emerald-800 border-emerald-800 text-white'
+                                  : 'bg-white border-emerald-200 text-emerald-900'
+                              }`}
+                            >
+                              {sz}
+                            </button>
+                          ))}
+                        </div>
+                        {(() => {
+                          const dealPrice = activeFlashDeal.deal.dealPrice;
+                          const compareAt = dealCompareAtPrice(
+                            activeFlashDeal.deal,
+                            activeFlashDeal.product,
+                          );
+                          const savePct = dealSavePercent(
+                            activeFlashDeal.deal,
+                            activeFlashDeal.product,
+                          );
+                          const claimed =
+                            activeFlashDeal.deal.claimedPercent != null
+                              ? activeFlashDeal.deal.claimedPercent
+                              : 80;
+                          const stockLeft =
+                            activeFlashDeal.deal.stockLeft != null
+                              ? activeFlashDeal.deal.stockLeft
+                              : Math.max(1, Number(activeFlashDeal.product.stock) || 1);
+                          const pricedProduct = productWithDealPrice(
+                            activeFlashDeal.product,
+                            activeFlashDeal.deal,
+                          );
+                          return (
+                            <>
+                              <div className="flex items-center gap-3 flex-wrap">
+                                <span className="text-2xl font-black text-red-600">
+                                  {formatPrice(dealPrice)}
+                                </span>
+                                {compareAt > dealPrice && (
+                                  <span className="text-xs text-emerald-700 line-through font-bold">
+                                    {formatPrice(compareAt)}
+                                  </span>
+                                )}
+                                {savePct > 0 && (
+                                  <span className="bg-rose-100 text-rose-800 text-[9px] font-mono font-black px-2 py-0.5 rounded">
+                                    SAVE {savePct}%
+                                  </span>
+                                )}
+                              </div>
+                              <div className="w-full bg-emerald-100 rounded-full h-1.5 overflow-hidden">
+                                <div
+                                  className="bg-amber-500 h-full transition-all"
+                                  style={{ width: `${claimed}%` }}
+                                />
+                              </div>
+                              <div className="flex justify-between text-[9px] font-mono text-emerald-800">
+                                <span>Only {stockLeft} items left in Bailey Road store</span>
+                                <span className="font-bold">{claimed}% Claimed</span>
+                              </div>
+                              <div className="grid grid-cols-2 gap-2">
+                                <button
+                                  type="button"
+                                  onClick={() => handleQuickAdd(pricedProduct, dealSize, 1)}
+                                  className="bg-emerald-50 hover:bg-emerald-100 text-emerald-800 border border-emerald-200 font-extrabold text-xs uppercase tracking-widest px-4 py-2.5 rounded-xl cursor-pointer w-full transition-all flex items-center justify-center gap-1.5"
+                                >
+                                  <ShoppingCart size={13} /> ADD TO CART
+                                </button>
+                                <button
+                                  type="button"
+                                  onClick={() => handleCheckoutDirectly(pricedProduct, dealSize, 1)}
+                                  className="bg-emerald-800 hover:bg-emerald-900 text-white font-extrabold text-xs uppercase tracking-widest px-4 py-2.5 rounded-xl cursor-pointer w-full transition-all"
+                                >
+                                  CLAIM DEAL
+                                </button>
+                              </div>
+                            </>
+                          );
+                        })()}
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            )}
+
+            {/* PRODUCT ROW SECTIONS (category-driven) — empty rows skipped above */}
+            {isProductRowSection(section) && productRowItems && productRowItems.length > 0 && (() => {
+              const rowProducts = productRowItems;
+              const category = resolveSectionCategory(section);
+              const ctaLabel = section.buttonText || 'VIEW ALL';
+              return (
+                <div className="max-w-7xl mx-auto px-4 sm:px-6 space-y-6">
+                  <div className="flex justify-between items-end border-b border-emerald-100 pb-3">
+                    <div>
+                      <h2 className={`text-xl md:text-2xl font-black uppercase tracking-tight ${headingColor}`}>
+                        {section.title || section.name}
+                      </h2>
+                      <p className={`text-xs font-mono ${subColor}`}>{section.subtitle || ''}</p>
+                    </div>
+                    {section.buttonText !== '' && (
+                      <button
+                        type="button"
+                        onClick={() => {
+                          // Pass category as destination so history + filter apply in one step
+                          // (avoids stale selectedCategory when setState hasn't flushed yet)
+                          if (category) setCurrentPage(category);
+                          else setCurrentPage(section.buttonUrl || 'listing');
+                        }}
+                        className="text-xs font-bold font-mono text-emerald-800 hover:text-emerald-900 flex items-center gap-1 cursor-pointer"
+                      >
+                        {ctaLabel} <ArrowRight size={12} />
+                      </button>
+                    )}
+                  </div>
+                  <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4 lg:gap-6">
+                    {rowProducts.map((prod) => (
+                      <ProductCard
+                        key={prod.id}
+                        product={prod}
+                        onSelect={onSelectProduct}
+                        onToggleWishlist={onToggleWishlist}
+                        isWishlisted={isProductWishlisted(wishlist, prod.id)}
+                        onQuickAdd={handleQuickAdd}
+                        onUpdateImage={handleUpdateProductImage}
+                        formatPrice={formatPrice}
+                        onCheckout={handleCheckoutDirectly}
+                      />
+                    ))}
+                  </div>
+                </div>
+              );
+            })()}
+
+            {/* 8. WORLD CUP COLLECTION — removed from storefront */}
+            {section.id === 'worldcup-collection' && null}
+
+            {/* 10. MYSTERY BOX CHALLENGE — permanently removed from storefront */}
+            {section.id === 'mystery-box' && null}
+
+            {/* 14. POPULAR TEAMS — permanently removed from storefront */}
+            {section.id === 'popular-teams' && null}
+
+            {/* 15. SHOP BY LEGENDS — removed */}
+            {section.id === 'shop-by-legends' && null}
+
+            {/* 16. COMMUNITY GALLERY — jersey showcase banners */}
+            {section.id === 'community-gallery' && (
+              <div className="max-w-7xl mx-auto px-4 sm:px-6 space-y-8">
+                <div className="text-center space-y-2">
+                  <h2 className={`text-xl md:text-2xl font-black uppercase tracking-tight ${headingColor}`}>{section.title || 'COLLECTORS IN DHAKA'}</h2>
+                  <p className={`text-xs font-mono ${subColor}`}>{section.subtitle || 'Verified kits unboxed by Bailey Road collectors'}</p>
+                </div>
+                <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                  {catalogProducts.filter((p) => p.isFeatured || p.isBestSeller).slice(0, 4).map((prod, idx) => (
+                    <button
+                      key={prod.id}
+                      type="button"
+                      onClick={() => onSelectProduct(prod)}
+                      className="bg-white border border-emerald-100 rounded-2xl overflow-hidden relative group shadow-sm text-left cursor-pointer hover:border-emerald-400 hover:-translate-y-1 transition-all"
+                    >
+                      <div className="h-48 w-full bg-gradient-to-b from-emerald-50 to-white flex items-center justify-center p-4 relative overflow-hidden">
+                        <div className="absolute inset-0 opacity-30 bg-[radial-gradient(circle_at_30%_20%,rgba(16,185,129,0.35),transparent_55%)]" />
+                        <div className="relative z-10 w-full max-w-[140px] transform group-hover:scale-105 transition-transform duration-300">
+                          <JerseyRenderer productId={prod.id} uploadedImage={prod.uploadedImage} imageKey={prod.image} />
+                        </div>
+                      </div>
+                      <div className="px-3 py-3 border-t border-emerald-50 space-y-1">
+                        <span className="text-[9px] font-mono font-black text-emerald-700 uppercase tracking-wider">
+                          {prod.brand} • Bailey Road #{idx + 1}
+                        </span>
+                        <h4 className="text-[11px] font-black text-emerald-950 uppercase leading-snug line-clamp-2">
+                          {prod.name}
+                        </h4>
+                      </div>
+                    </button>
+                  ))}
+                </div>
+              </div>
+            )}
+
+            {/* 17. TESTIMONIALS */}
+            {section.id === 'testimonials' && (
+              <div className="max-w-7xl mx-auto px-4 sm:px-6 space-y-8">
+                <div className="text-center space-y-2">
+                  <h2 className={`text-xl md:text-2xl font-black uppercase tracking-tight ${headingColor}`}>{section.title || 'VERIFIED COLLECTOR REVIEWS'}</h2>
+                  <p className={`text-xs font-mono ${subColor}`}>{section.subtitle || 'Review logs verified by Bangladesh vintage authentication experts'}</p>
+                </div>
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                  {[
+                    { id: 1, name: 'Siyam Rahman', quote: 'The AC Milan 1996 shirt has absolute perfect manufacturer stitching tags. Authentic holographic stamps included. Highly recommended for premium kit collectors in Dhaka.', rating: 5, date: '2026-07-12' },
+                    { id: 2, name: 'Fahim Chowdhury', quote: 'Been looking for the Spain 2026 Yamal jersey for literal years. Finally secured it at Jersey Addicts BD with custom physics certificates. Unrivaled experience.', rating: 5, date: '2026-07-08' },
+                    { id: 3, name: 'Anika Bushra', quote: 'Extremely fast delivery inside Dhaka (secured within 24 hours). The vacuum packaging smelled wonderful, complete with care instructions.', rating: 5, date: '2026-07-05' }
+                  ].map((t) => (
+                    <div key={t.id} className="bg-white border border-emerald-100 p-5 rounded-2xl space-y-3 relative shadow-sm">
+                      <div className="flex gap-1 text-amber-500">
+                        {[...Array(t.rating)].map((_, i) => <Star key={i} size={11} className="fill-amber-500 text-amber-500" />)}
+                      </div>
+                      <p className="text-emerald-800 text-[11.5px] italic leading-relaxed">"{t.quote}"</p>
+                      <div className="border-t border-emerald-100 pt-2 flex justify-between items-center text-[10px] font-mono">
+                        <span className="text-emerald-950 font-bold">{t.name.toUpperCase()}</span>
+                        <span className="text-emerald-700 font-bold">✓ VERIFIED COLLECTOR</span>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+
+            {/* 17b. SHOP BY INTERNATIONAL TEAM — 4 cards / row on mobile */}
+            {section.id === 'shop-by-international-team' && (
+              <div className="max-w-7xl mx-auto px-2.5 sm:px-6 space-y-2 sm:space-y-6">
+                <div className="text-center space-y-0.5 sm:space-y-2">
+                  <h2 className={`text-sm sm:text-xl md:text-2xl font-black uppercase tracking-tight ${headingColor}`}>
+                    {section.title || 'SHOP BY INTERNATIONAL TEAM'}
+                  </h2>
+                  <p className={`text-[9px] sm:text-xs font-mono ${subColor}`}>
+                    {section.subtitle || 'National team kits from around the world'}
+                  </p>
+                </div>
+                <div className="grid grid-cols-4 sm:grid-cols-4 lg:grid-cols-6 gap-1 sm:gap-4">
+                  {DEFAULT_INTERNATIONAL_TEAMS.filter((t) => t.status === 'Active').map((team) => {
+                    const count = catalogProducts.filter((p) =>
+                      productMatchesNationalTeam(p, team.searchQuery || team.name),
+                    ).length;
+                    return (
+                      <button
+                        key={team.id}
+                        type="button"
+                        onClick={() => {
+                          setSelectedCategory('All');
+                          if (onSearch) onSearch(team.searchQuery || team.name);
+                          else setCurrentPage('listing');
+                        }}
+                        className="bg-white hover:bg-emerald-50/80 border border-emerald-100 rounded-md sm:rounded-2xl p-1 sm:p-5 text-center cursor-pointer transition-all duration-300 group hover:scale-[1.02] flex flex-col items-center justify-between min-h-[68px] sm:min-h-[160px]"
+                      >
+                        <div className="h-6 w-9 sm:h-12 sm:w-[5rem] mb-0.5 sm:mb-3 flex items-center justify-center overflow-hidden rounded bg-white border border-emerald-100 shrink-0">
+                          <img
+                            src={team.flagUrl}
+                            alt={`${team.name} flag`}
+                            className="h-full w-full object-cover object-center group-hover:scale-105 transition-transform duration-300"
+                            loading="lazy"
+                            referrerPolicy="no-referrer"
+                          />
+                        </div>
+                        <div className="min-w-0 w-full px-0.5">
+                          <h4 className="text-[7px] sm:text-xs font-black text-emerald-950 uppercase leading-tight line-clamp-2">
+                            {team.name}
+                          </h4>
+                          <span className="text-[6px] sm:text-[10px] text-emerald-700 font-mono font-bold mt-0.5 block">
+                            <span className="sm:hidden">{count}</span>
+                            <span className="hidden sm:inline">{count} verified jerseys</span>
+                          </span>
+                        </div>
+                      </button>
+                    );
+                  })}
+                </div>
+              </div>
+            )}
+
+            {/* 18. VIDEO BANNER — removed from storefront */}
+            {section.id === 'video-banner' && null}
+
+            {/* 19. INSTAGRAM FEED — removed from storefront */}
+            {section.id === 'instagram-feed' && null}
+
+            {/* 20. NEWSLETTER — customer signup removed */}
+            {section.id === 'newsletter' && null}
+
+            {/* 21. STORE LOCATIONS */}
+            {section.id === 'store-locations' && (
+              <div className="max-w-7xl mx-auto px-4 sm:px-6 space-y-8">
+                <div className="text-center space-y-2">
+                  <h2 className={`text-xl md:text-2xl font-black uppercase tracking-tight ${headingColor}`}>{section.title || 'VISIT OUR OUTLET VAULTS'}</h2>
+                  <p className={`text-xs font-mono ${subColor}`}>{section.subtitle || 'Stop by for sizing configurations and physically authenticated checks'}</p>
+                </div>
+                <div className={`grid grid-cols-1 ${(appConfig.footerLocations?.length || 0) > 1 ? 'md:grid-cols-2 max-w-4xl' : 'max-w-xl'} mx-auto gap-6`}>
+                  {(appConfig.footerLocations?.length
+                    ? appConfig.footerLocations.map((loc) => ({
+                        city: loc.city,
+                        address: loc.address,
+                        phone: loc.phone,
+                        hours: '11:00 AM - 09:30 PM (Friday - Wednesday)',
+                      }))
+                    : [
+                        {
+                          city: 'Dhaka HQ Bailey Road',
+                          address: 'Shop No. 8, 3rd Floor, AQP Shopping Mall, 143/2 New Bailey Road, Dhaka 1217, Bangladesh',
+                          hours: '11:00 AM - 09:30 PM (Friday - Wednesday)',
+                          phone: '+880 1840-990700',
+                        },
+                      ]
+                  ).map((loc) => (
+                    <div key={loc.city} className="bg-white border border-emerald-100 p-6 rounded-2xl space-y-3 shadow-sm relative">
+                      <span className="absolute top-4 right-4 text-emerald-800"><MapPin size={20} /></span>
+                      <h4 className="text-xs font-black text-emerald-950 uppercase">{loc.city}</h4>
+                      <p className="text-[11px] text-emerald-800 leading-relaxed font-sans">{loc.address}</p>
+                      <div className="text-[9px] font-mono text-emerald-700 space-y-1 pt-2 border-t border-emerald-50">
+                        <span className="block">HOURS: {loc.hours}</span>
+                        <span className="block">TELEPHONE: {loc.phone}</span>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+
+          </div>
+        );
+      })}
+
+      {/* DYNAMIC POPUP BANNER MODAL OVERLAY */}
+      {showPopupBanner && activePopupBanner && (
+        <div className="fixed inset-0 z-50 bg-emerald-950/85 backdrop-blur-md flex items-center justify-center p-4 animate-in fade-in duration-300">
+          <div className="bg-white border border-emerald-100 rounded-3xl max-w-lg w-full overflow-hidden shadow-2xl relative my-auto">
+            <button
+              onClick={() => setShowPopupBanner(false)}
+              className="absolute top-4 right-4 z-20 bg-black/60 hover:bg-black text-white p-2 rounded-full backdrop-blur-md transition-all cursor-pointer"
+              title="Close Popup"
+            >
+              <X size={16} />
+            </button>
+
+            <div className="relative h-56 bg-emerald-950 overflow-hidden">
+              <picture className="w-full h-full">
+                {activePopupBanner.desktopImage && <source media="(min-width: 1024px)" srcSet={activePopupBanner.desktopImage} />}
+                {activePopupBanner.tabletImage && <source media="(min-width: 640px)" srcSet={activePopupBanner.tabletImage} />}
+                <img
+                  src={
+                    activePopupBanner.mobileImage ||
+                    activePopupBanner.desktopImage ||
+                    activePopupBanner.image ||
+                    'https://images.unsplash.com/photo-1508098682722-e99c43a406b2?auto=format&fit=crop&q=80&w=800'
+                  }
+                  alt={activePopupBanner.title}
+                  className="w-full h-full object-cover opacity-80"
+                />
+              </picture>
+              <div className="absolute inset-0 bg-gradient-to-t from-emerald-950 via-emerald-950/30 to-transparent p-6 flex flex-col justify-end">
+                <span className="bg-emerald-500 text-emerald-950 text-[9px] font-mono tracking-widest px-3 py-1 rounded-full font-black uppercase w-max mb-1">
+                  {activePopupBanner.subtitle || 'LIMITED EDITION PROMO'}
+                </span>
+                <h3 className="text-2xl font-black text-white uppercase tracking-tight font-display">
+                  {activePopupBanner.title}
+                </h3>
+              </div>
+            </div>
+
+            <div className="p-6 space-y-4 text-center">
+              <p className="text-xs text-emerald-800 leading-relaxed font-sans">
+                {activePopupBanner.description || 'Exclusive deal offer available now for vault members.'}
+              </p>
+
+              <div className="pt-2 flex flex-col gap-2">
+                <button
+                  type="button"
+                  onClick={() => {
+                    setShowPopupBanner(false);
+                    const target =
+                      activePopupBanner.productId
+                        ? `product:${activePopupBanner.productId}`
+                        : activePopupBanner.buttonUrl;
+                    navigateFromCmsUrl(target, {
+                      setCurrentPage,
+                      setSelectedCategory,
+                      products,
+                      onSelectProduct,
+                      openNewTab: activePopupBanner.openNewTab,
+                    });
+                  }}
+                  className="bg-emerald-800 hover:bg-emerald-900 text-white font-extrabold text-xs uppercase tracking-widest py-3.5 px-6 rounded-xl transition-all cursor-pointer shadow-md hover:scale-[1.02]"
+                >
+                  {activePopupBanner.cta || activePopupBanner.ctaText || 'CLAIM EXCLUSIVE ACCESS'}
+                </button>
+                <button
+                  onClick={() => setShowPopupBanner(false)}
+                  className="text-[10px] font-mono text-emerald-700 hover:underline uppercase py-1"
+                >
+                  No thanks, continue browsing
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+    </div>
+  );
+};
