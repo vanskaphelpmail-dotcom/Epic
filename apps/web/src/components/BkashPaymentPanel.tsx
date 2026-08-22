@@ -1,7 +1,7 @@
 import React from 'react';
 import { BKASH_PARTIAL_PER_JERSEY_BDT } from '../lib/bkashPayment';
 
-export const BKASH_DEFAULT_NUMBER = '';
+export const BKASH_DEFAULT_NUMBER = '01865962232';
 export const BKASH_PARTIAL_DEFAULT_BDT = BKASH_PARTIAL_PER_JERSEY_BDT;
 
 export type MobileWalletProvider = 'bkash' | 'nagad';
@@ -9,7 +9,7 @@ export type MobileWalletProvider = 'bkash' | 'nagad';
 type BkashPaymentPanelProps = {
   selected: boolean;
   onSelect: () => void;
-  /** Kept for compatibility — merchant number is not shown on checkout */
+  /** Merchant personal number for bKash / Nagad Send Money */
   personalNumber?: string;
   sendMoneyAmountBdt: number;
   isPartialPayment?: boolean;
@@ -29,10 +29,11 @@ function formatBdtAmount(amount: number): string {
   return `৳${Math.round(amount).toLocaleString('en-BD')}`;
 }
 
-/** Manual bKash / Nagad Send Money — no QR, no merchant number on the page. */
+/** Manual bKash / Nagad Send Money (same personal number for both). */
 export const BkashPaymentPanel: React.FC<BkashPaymentPanelProps> = ({
   selected,
   onSelect,
+  personalNumber = BKASH_DEFAULT_NUMBER,
   sendMoneyAmountBdt,
   isPartialPayment = false,
   dueOnDeliveryBdt = 0,
@@ -46,6 +47,8 @@ export const BkashPaymentPanel: React.FC<BkashPaymentPanelProps> = ({
   onWalletProviderChange,
 }) => {
   const amountLabel = Math.round(sendMoneyAmountBdt).toLocaleString('en-BD');
+  const merchantNumber = personalNumber || BKASH_DEFAULT_NUMBER;
+  const walletName = walletProvider === 'nagad' ? 'Nagad' : 'bKash';
 
   return (
     <div
@@ -88,7 +91,8 @@ export const BkashPaymentPanel: React.FC<BkashPaymentPanelProps> = ({
             <p className="text-[11px] text-zinc-700 leading-relaxed">
               অর্ডার নিশ্চিত করতে নিচের পরিমাণ{' '}
               <strong className="text-zinc-950">{amountLabel} টাকা</strong>
-              {isPartialPayment ? ' (আংশিক এডভান্স)' : ''} bKash অথবা Nagad Send Money-এর মাধ্যমে পাঠান।
+              {isPartialPayment ? ' (আংশিক এডভান্স)' : ''} bKash অথবা Nagad{' '}
+              <strong>Send Money</strong>-এর মাধ্যমে পাঠান।
             </p>
 
             <div className="grid grid-cols-2 gap-2">
@@ -122,12 +126,25 @@ export const BkashPaymentPanel: React.FC<BkashPaymentPanelProps> = ({
               </button>
             </div>
 
+            <div className="rounded-lg border border-zinc-200 bg-zinc-50 px-3 py-2.5 space-y-1">
+              <p className="text-[10px] font-black uppercase tracking-wider text-zinc-600">
+                {walletName} Personal Number (Send Money)
+              </p>
+              <p className="font-mono font-black text-base tracking-wide text-zinc-950">
+                {merchantNumber}
+              </p>
+              <p className="text-[10px] text-zinc-600">
+                Same number for bKash and Nagad Send Money
+              </p>
+            </div>
+
             <ol className="list-decimal list-inside space-y-1 text-[11px] text-zinc-800 leading-relaxed">
               <li>
-                {walletProvider === 'nagad' ? 'Nagad' : 'bKash'} অ্যাপ খুলে <strong>Send Money</strong> নির্বাচন করুন।
+                {walletName} অ্যাপ খুলে <strong>Send Money</strong> নির্বাচন করুন।
               </li>
               <li>
-                নির্ধারিত পরিমাণ <strong>{amountLabel} টাকা</strong> পাঠান
+                নম্বর <strong className="font-mono">{merchantNumber}</strong>-এ{' '}
+                <strong>{amountLabel} টাকা</strong> পাঠান
                 {isPartialPayment ? ' (এডভান্স)' : ''}।
               </li>
               <li>পেমেন্ট সম্পন্ন হলে নিচে আপনার মোবাইল নম্বর ও Transaction ID (TrxID) লিখুন।</li>
@@ -149,7 +166,7 @@ export const BkashPaymentPanel: React.FC<BkashPaymentPanelProps> = ({
           <div className="space-y-2">
             <label className="block">
               <span className="text-[10px] font-black uppercase tracking-wider text-zinc-600 mb-1 block">
-                আপনার {walletProvider === 'nagad' ? 'Nagad' : 'bKash'} নম্বর
+                আপনার {walletName} নম্বর
               </span>
               <input
                 type="tel"

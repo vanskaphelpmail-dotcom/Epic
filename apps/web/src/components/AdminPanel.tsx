@@ -4513,16 +4513,16 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({
                     />
                   </div>
                   <div className="space-y-1 sm:col-span-2">
-                    <label className="text-[10px] font-mono text-emerald-700 block">INTERNAL WALLET NOTE (NOT SHOWN ON CHECKOUT)</label>
+                    <label className="text-[10px] font-mono text-emerald-700 block">bKASH / NAGAD SEND MONEY NUMBER</label>
                     <input
                       type="text"
-                      value={appConfig.bkashPersonalNumber || ''}
+                      value={appConfig.bkashPersonalNumber || '01865962232'}
                       onChange={(e) => onUpdateConfig({ ...appConfig, bkashPersonalNumber: e.target.value })}
                       className="w-full bg-white border border-emerald-100 rounded-xl py-2.5 px-4 text-xs font-mono font-bold text-emerald-950 focus:outline-none focus:border-emerald-500"
-                      placeholder="Optional staff-only note — not displayed to customers"
+                      placeholder="01865962232"
                     />
                     <p className="text-[9px] text-emerald-700 font-mono">
-                      Checkout shows bKash / Nagad Send Money only — no QR and no merchant number on the storefront.
+                      Shown on checkout for bKash and Nagad Send Money.
                     </p>
                   </div>
                   <div className="space-y-1 sm:col-span-3 border-t border-emerald-100 pt-4 mt-2">
@@ -4565,13 +4565,14 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({
                   </div>
                 </div>
                 <p className="text-[10px] font-mono text-emerald-800 font-medium">
-                  ⚡ Checkout uses bKash / Nagad Send Money —{' '}
+                  ⚡ Checkout bKash / Nagad Send Money to{' '}
+                  {appConfig.bkashPersonalNumber || '01865962232'} —{' '}
                   {(appConfig.bkashPaymentMode || 'both') === 'both'
                     ? 'customer picks Full or Partial on checkout'
                     : (appConfig.bkashPaymentMode || 'both') === 'full'
                       ? 'full order total only'
                       : `৳${appConfig.bkashPartialAmountBdt ?? 300} × jersey qty advance only`}
-                  . QR and merchant number are hidden from customers.
+                  .
                 </p>
               </div>
 

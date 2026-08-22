@@ -40,7 +40,7 @@ async function main() {
     update: {
       logoText: "Epic Vanskap",
       footerCopyright: `© ${new Date().getFullYear()} Epic Vanskap`,
-      bkashPersonalNumber: "",
+      bkashPersonalNumber: "01865962232",
       bkashEnabled: true,
     },
     create: {
@@ -52,7 +52,7 @@ async function main() {
       currencySymbol: "৳",
       currencyCode: "BDT",
       exchangeRate: 115,
-      bkashPersonalNumber: "",
+      bkashPersonalNumber: "01865962232",
       bkashEnabled: true,
       deliveryInside: 70,
       deliveryOutside: 130,

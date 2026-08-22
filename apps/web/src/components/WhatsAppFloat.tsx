@@ -1,6 +1,6 @@
 import React from 'react';
 
-const WHATSAPP_NUMBER = '8801840990700';
+const WHATSAPP_NUMBER = '8801865962232';
 const WHATSAPP_URL = `https://wa.me/${WHATSAPP_NUMBER}`;
 
 function WhatsAppIcon({ className }: { className?: string }) {

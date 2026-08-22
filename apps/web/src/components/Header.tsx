@@ -250,27 +250,6 @@ export const Header: React.FC<HeaderProps> = ({
       ref={headerRef}
       className="max-lg:fixed max-lg:inset-x-0 max-lg:top-0 sticky top-0 z-50 w-full min-w-0 bg-white transition-all duration-300 max-lg:shadow-md max-lg:shadow-black/10"
     >
-      {/* Promotion Announcement Bar */}
-      <div className="bg-zinc-950 text-[10px] sm:text-xs text-zinc-300 font-medium tracking-wider text-center py-2 px-3 sm:px-4 md:px-12 border-b border-zinc-200 flex justify-between items-center gap-2 min-w-0">
-        <div className="hidden md:flex items-center gap-2 shrink-0">
-          <Award size={14} className="animate-pulse text-zinc-300" />
-          <span>100% AUTHENTIC FOOTBALL JERSEYS</span>
-        </div>
-        <div className="flex-1 min-w-0 text-center md:text-left truncate">
-          <a href="#contact" className="hover:text-white inline-flex items-center justify-center md:justify-start gap-1.5 truncate max-w-full">
-            <Phone size={14} className="shrink-0" /> <span className="truncate">Feni Garden City Market</span>
-          </a>
-        </div>
-        <div className="hidden md:flex items-center gap-4 text-zinc-300">
-          <span className="hover:text-white cursor-pointer flex items-center gap-1" onClick={() => setCurrentPage('seller')}>
-            <ShieldCheck size={14} /> Sell Your Shirts
-          </span>
-          <span className="hover:text-white cursor-pointer flex items-center gap-1" onClick={() => setCurrentPage('contact')}>
-            <Phone size={14} /> Support
-          </span>
-        </div>
-      </div>
-
       {/* Top Navigation Row */}
       <div className="bg-white border-b border-zinc-100 py-3 sm:py-4 px-2.5 sm:px-4 lg:px-12 flex justify-between items-center gap-1.5 sm:gap-2 min-w-0 overflow-visible transition-all duration-300">
         

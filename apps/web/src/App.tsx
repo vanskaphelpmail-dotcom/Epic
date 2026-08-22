@@ -253,7 +253,7 @@ const DEFAULT_APP_CONFIG: AppConfig = {
   dailyDealEnabled: false,
   dailyDealItems: [],
   dailyDealEndsAt: null,
-  bkashPersonalNumber: '',
+  bkashPersonalNumber: '01865962232',
   bkashEnabled: true,
   bkashPaymentMode: 'both',
   bkashPartialAmountBdt: 300,
@@ -740,9 +740,7 @@ export default function App() {
         if (parsed.dailyDealEndsAt === undefined) {
           parsed.dailyDealEndsAt = null;
         }
-        if (parsed.bkashPersonalNumber === undefined || parsed.bkashPersonalNumber === null) {
-          parsed.bkashPersonalNumber = '';
-        }
+        parsed.bkashPersonalNumber = '01865962232';
         if (parsed.bkashEnabled === undefined) {
           parsed.bkashEnabled = true;
         }
@@ -1079,7 +1077,7 @@ export default function App() {
                 next.theme = (settings.theme as AppConfig['theme']) || prev.theme;
                 next.footerAbout = settings.footerAbout || prev.footerAbout;
                 next.footerCopyright = settings.footerCopyright || prev.footerCopyright;
-                next.bkashPersonalNumber = settings.bkashPersonalNumber || prev.bkashPersonalNumber;
+                next.bkashPersonalNumber = '01865962232';
                 next.bkashEnabled = settings.bkashEnabled ?? prev.bkashEnabled;
                 next.bkashPaymentMode =
                   settings.bkashPaymentMode === 'partial'
