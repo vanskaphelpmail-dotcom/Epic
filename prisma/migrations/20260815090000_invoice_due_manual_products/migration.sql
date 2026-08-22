@@ -1,0 +1,9 @@
+-- Invoice/due-sale customer details, discount display metadata, and manual POS review support.
+ALTER TABLE "Product" ADD COLUMN IF NOT EXISTS "isManualEntry" BOOLEAN NOT NULL DEFAULT false;
+ALTER TABLE "Product" ADD COLUMN IF NOT EXISTS "reviewStatus" TEXT NOT NULL DEFAULT 'APPROVED';
+ALTER TABLE "Customer" ADD COLUMN IF NOT EXISTS "companyName" TEXT;
+ALTER TABLE "Customer" ADD COLUMN IF NOT EXISTS "address" TEXT;
+ALTER TABLE "Customer" ADD COLUMN IF NOT EXISTS "city" TEXT;
+ALTER TABLE "Customer" ADD COLUMN IF NOT EXISTS "location" TEXT;
+ALTER TABLE "Sale" ADD COLUMN IF NOT EXISTS "discountType" TEXT NOT NULL DEFAULT 'FIXED';
+ALTER TABLE "Sale" ADD COLUMN IF NOT EXISTS "discountPercent" DOUBLE PRECISION NOT NULL DEFAULT 0;

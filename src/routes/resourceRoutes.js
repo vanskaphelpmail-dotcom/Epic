@@ -1,0 +1,3 @@
+const router = require('express').Router(); const c = require('../controllers/resourceController'); const { protect, allow } = require('../middleware/auth');
+router.post('/attendance/clock', protect, c.clock); router.post('/products/:id/stock', protect, allow('admin','manager','employee'), c.stockMovement); router.post('/orders/create', protect, allow('admin','manager','employee'), c.createOrder);
+router.get('/:resource', protect, c.list); router.get('/:resource/:id', protect, c.get); router.post('/:resource', protect, allow('admin','manager'), c.create); router.patch('/:resource/:id', protect, allow('admin','manager'), c.update); router.delete('/:resource/:id', protect, allow('admin'), c.remove); module.exports = router;

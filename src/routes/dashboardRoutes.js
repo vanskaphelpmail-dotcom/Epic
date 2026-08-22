@@ -1,0 +1,1 @@
+const router = require('express').Router(); const { protect } = require('../middleware/auth'); const { summary } = require('../controllers/dashboardController'); router.get('/', protect, summary); module.exports = router;

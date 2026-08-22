@@ -1,0 +1,1057 @@
+generator client {
+  provider        = "prisma-client-js"
+  previewFeatures = ["driverAdapters"]
+}
+
+// Neon PostgreSQL. Vercel: pooled DATABASE_URL / POSTGRES_URL, unpooled DIRECT_URL.
+datasource db {
+  provider  = "postgresql"
+  url       = env("DATABASE_URL")
+  directUrl = env("DIRECT_URL")
+}
+
+enum Role {
+  ADMIN
+  STAFF
+  CUSTOMER
+}
+
+enum CashSessionStatus {
+  OPEN
+  CLOSED
+}
+
+enum CashTransactionType {
+  OPENING_BALANCE
+  SALE
+  REFUND
+  EXPENSE
+  CASH_IN
+  CASH_OUT
+  ADJUSTMENT
+  CLOSING_BALANCE
+}
+
+enum PaymentMethod {
+  CASH
+  CARD
+  MOBILE_BANKING
+  BANK_TRANSFER
+  MIXED
+}
+
+enum PaymentStatus {
+  PENDING
+  PAID
+  PARTIAL
+  REFUNDED
+  UNPAID
+}
+
+enum SaleStatus {
+  COMPLETED
+  REFUNDED
+  EXCHANGED
+  VOID
+}
+
+enum OrderStatus {
+  PENDING
+  PROCESSING
+  READY
+  DELIVERY
+  COMPLETED
+  CANCELLED
+}
+
+enum InventoryMovementType {
+  PURCHASE
+  SALE
+  RETURN
+  EXCHANGE
+  ADJUSTMENT
+  DAMAGE
+  TRANSFER
+  INITIAL_STOCK
+}
+
+enum DocumentCategory {
+  SUPPLIER_INVOICE
+  LETTER
+  DELIVERY_NOTE
+  SUPPLIER_DOCUMENT
+  RECEIPT
+  REPORT
+  OTHER
+}
+
+enum ExpenseCategory {
+  RENT
+  UTILITIES
+  MARKETING
+  TRANSPORT
+  SUPPLIES
+  MAINTENANCE
+  ELECTRICITY
+  EMPLOYEE_BILL
+  SUPPLIER_BILL
+  OTHER
+}
+
+enum SalesChannel {
+  IN_STORE
+  WEBSITE
+  TIKTOK
+  EBAY
+  FACEBOOK
+  INSTAGRAM
+  OTHER
+}
+
+enum DocumentDirectory {
+  INVOICE
+  EMPLOYEE
+  CONFUSED
+  OTHERS
+}
+
+enum VerificationStatus {
+  PENDING
+  APPROVED
+  REJECTED
+  EXPIRED
+  REUPLOAD_REQUESTED
+}
+
+enum DocumentRequestType {
+  HOLIDAY_LETTER
+  PAYSLIP
+  EMPLOYEE_LETTER
+  JOINING_LETTER
+  EXPERIENCE_LETTER
+  EMPLOYMENT_VERIFICATION
+  SALARY_CERTIFICATE
+  NOC
+  LEAVE_APPROVAL
+  PROMOTION_LETTER
+  APPOINTMENT_LETTER
+  WARNING_LETTER
+  RELIEVING_LETTER
+  RECOMMENDATION_LETTER
+  OTHER
+}
+
+enum AccountEntryType {
+  CASH_IN
+  CASH_OUT
+  BANK_IN
+  BANK_OUT
+  SALE
+  EXPENSE
+  LOAN
+  OPENING
+  ADJUSTMENT
+}
+
+enum SupplierLedgerType {
+  PURCHASE
+  PAYMENT
+}
+
+model Store {
+  id        String   @id @default(cuid())
+  code      String   @unique
+  name      String
+  address   String?
+  phone     String?
+  logoUrl   String?
+  currency  String   @default("GBP")
+  city      String?  @default("Cardiff")
+  location  String?
+  isActive  Boolean  @default(true)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  users               User[]
+  products            Product[]
+  inventoryMovements  InventoryMovement[]
+  suppliers           Supplier[]
+  purchases           Purchase[]
+  sales               Sale[]
+  customers           Customer[]
+  orders              Order[]
+  attendances         Attendance[]
+  cashSessions        CashSession[]
+  cashTransactions    CashTransaction[]
+  salaryRecords       SalaryRecord[]
+  expenses            Expense[]
+  documents           Document[]
+  notifications       Notification[]
+  auditLogs           AuditLog[]
+  systemSettings      SystemSetting[]
+  catalogBrands       CatalogBrand[]
+  catalogCategories   CatalogCategory[]
+  employeeVerifications EmployeeVerification[]
+  documentRequests    EmployeeDocumentRequest[]
+  shiftSchedules      ShiftSchedule[]
+  loans               Loan[]
+  accountEntries      AccountEntry[]
+  dailyCloses         DailyClose[]
+  supplierLedgerEntries SupplierLedgerEntry[]
+  moneyAccounts       MoneyAccount[]
+  moneyLedgerEntries  MoneyLedgerEntry[]
+  dailyCashCycles     DailyCashCycle[]
+}
+
+model User {
+  id              String   @id @default(cuid())
+  name            String
+  email           String    @unique
+  phone           String?
+  passwordHash    String
+  employeeId      String?   @unique
+  employeeBarcode String?   @unique
+  role            Role      @default(STAFF)
+  isActive        Boolean   @default(true)
+  avatar          String?
+  storeId         String?  
+  lastLoginAt     DateTime?
+  lastSeenAt      DateTime?
+  verificationExpiresAt DateTime?
+  createdAt       DateTime  @default(now())
+  updatedAt       DateTime  @updatedAt
+
+  store              Store?             @relation(fields: [storeId], references: [id])
+  permissions        UserPermission[]
+  attendances        Attendance[]
+  cashSessions       CashSession[]
+  cashTransactions   CashTransaction[]
+  sales              Sale[]             @relation("SaleStaff")
+  salaryRecords      SalaryRecord[]
+  expenses           Expense[]
+  documents          Document[]
+  notifications      Notification[]
+  auditLogs          AuditLog[]
+  inventoryMovements InventoryMovement[]
+  purchases          Purchase[]
+  createdProducts    Product[]  @relation("ProductCreatedBy")
+  updatedProducts    Product[]  @relation("ProductUpdatedBy")
+  verifications      EmployeeVerification[] @relation("EmployeeVerificationSubject")
+  reviewedVerifications EmployeeVerification[] @relation("EmployeeVerificationReviewer")
+  documentRequests   EmployeeDocumentRequest[]
+  requestComments    EmployeeRequestComment[]
+  requestEvents      EmployeeRequestEvent[]
+  shiftSchedules     ShiftSchedule[]
+  loansCreated       Loan[]
+  accountEntries     AccountEntry[]
+  supplierLedgerEntries SupplierLedgerEntry[]
+  moneyLedgerEntries MoneyLedgerEntry[]
+
+  @@index([storeId])
+}
+
+model UserPermission {
+  id         String   @id @default(cuid())
+  userId     String  
+  permission String
+  createdAt  DateTime @default(now())
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, permission])
+  @@index([userId])
+}
+
+model Product {
+  id            String   @id @default(cuid())
+  name          String
+  sku           String   @unique
+  barcode       String   @unique
+  brand         String?
+  category      String?
+  size          String?
+  description   String?
+  purchasePrice Float    @default(0)
+  sellingPrice  Float
+  stockQuantity Int      @default(0)
+  minimumStock  Int      @default(5)
+  image         String?
+  storeId       String  
+  supplierId    String?
+  dupe          String?
+  notes         String?
+  season        String?
+  spring        Boolean  @default(false)
+  summer        Boolean  @default(false)
+  autumn        Boolean  @default(false)
+  winter        Boolean  @default(false)
+  allSeason     Boolean  @default(false)
+  mainAccords   String?
+  lastStockUpdatedAt DateTime?
+  lastStockAddedAt   DateTime?
+  isActive      Boolean  @default(true)
+  isManualEntry Boolean  @default(false)
+  reviewStatus  String   @default("APPROVED")
+  createdById   String?
+  updatedById   String?
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  store              Store               @relation(fields: [storeId], references: [id])
+  supplier           Supplier?           @relation(fields: [supplierId], references: [id])
+  createdBy          User?               @relation("ProductCreatedBy", fields: [createdById], references: [id])
+  updatedBy          User?               @relation("ProductUpdatedBy", fields: [updatedById], references: [id])
+  inventoryMovements InventoryMovement[]
+  purchaseItems      PurchaseItem[]
+  saleItems          SaleItem[]
+  orderItems         OrderItem[]
+
+  @@index([storeId])
+  @@index([supplierId])
+  @@index([name])
+}
+
+model CatalogBrand {
+  id        String   @id @default(cuid())
+  name      String
+  storeId   String  
+  isActive  Boolean  @default(true)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  store Store @relation(fields: [storeId], references: [id])
+
+  @@unique([storeId, name])
+  @@index([storeId])
+}
+
+model CatalogCategory {
+  id        String   @id @default(cuid())
+  name      String
+  storeId   String  
+  isActive  Boolean  @default(true)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  store Store @relation(fields: [storeId], references: [id])
+
+  @@unique([storeId, name])
+  @@index([storeId])
+}
+
+model InventoryMovement {
+  id             String   @id @default(cuid())
+  productId      String               
+  storeId        String               
+  userId         String?              
+  supplierId     String?
+  type           InventoryMovementType
+  quantity       Int
+  previousStock  Int
+  newStock       Int
+  costPrice      Float?
+  sellingPrice   Float?
+  reference      String?
+  reason         String?
+  createdAt      DateTime              @default(now())
+
+  product Product @relation(fields: [productId], references: [id])
+  store   Store   @relation(fields: [storeId], references: [id])
+  user    User?   @relation(fields: [userId], references: [id])
+  supplier Supplier? @relation(fields: [supplierId], references: [id])
+
+  @@index([productId])
+  @@index([storeId])
+  @@index([supplierId])
+  @@index([createdAt])
+}
+
+model Supplier {
+  id        String   @id @default(cuid())
+  name      String
+  email     String?
+  phone     String?
+  address   String?
+  storeId   String  
+  isActive  Boolean  @default(true)
+  paidAmount   Float    @default(0)
+  unpaidAmount Float    @default(0)
+  dueDate      DateTime?
+  notes        String?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  store     Store      @relation(fields: [storeId], references: [id])
+  purchases Purchase[]
+  products  Product[]
+  inventoryMovements InventoryMovement[]
+  ledgerEntries SupplierLedgerEntry[]
+
+  @@index([storeId])
+}
+
+model SupplierLedgerEntry {
+  id               String             @id @default(cuid())
+  storeId          String
+  supplierId       String
+  userId           String
+  type             SupplierLedgerType
+  amount           Float
+  occurredAt       DateTime           @default(now())
+  dueDate          DateTime?
+  method           String?
+  reference        String?
+  invoiceNumber    String?
+  productName      String?
+  quantity         Float?
+  notes            String?
+  previousBalance  Float              @default(0)
+  updatedBalance   Float              @default(0)
+  createdAt        DateTime           @default(now())
+
+  store    Store    @relation(fields: [storeId], references: [id])
+  supplier Supplier @relation(fields: [supplierId], references: [id], onDelete: Cascade)
+  user     User     @relation(fields: [userId], references: [id])
+
+  @@index([storeId])
+  @@index([supplierId])
+  @@index([occurredAt])
+}
+
+model Purchase {
+  id              String   @id @default(cuid())
+  invoiceNumber   String
+  supplierId      String  
+  storeId         String  
+  userId          String  
+  purchaseDate    DateTime @default(now())
+  totalCost       Float    @default(0)
+  notes           String?
+  invoiceFileUrl  String?
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  supplier Supplier       @relation(fields: [supplierId], references: [id])
+  store    Store          @relation(fields: [storeId], references: [id])
+  user     User           @relation(fields: [userId], references: [id])
+  items    PurchaseItem[]
+
+  @@index([storeId])
+  @@index([supplierId])
+}
+
+model PurchaseItem {
+  id            String   @id @default(cuid())
+  purchaseId    String
+  productId     String
+  quantity      Int
+  purchaseCost  Float
+  sellingPrice  Float?
+
+  purchase Purchase @relation(fields: [purchaseId], references: [id], onDelete: Cascade)
+  product  Product  @relation(fields: [productId], references: [id])
+
+  @@index([purchaseId])
+  @@index([productId])
+}
+
+model Customer {
+  id             String   @id @default(cuid())
+  name           String
+  email          String?
+  phone          String?
+  companyName    String?
+  address        String?
+  city           String?
+  location       String?
+  storeId        String  
+  totalPurchases Int      @default(0)
+  totalSpent     Float    @default(0)
+  loyaltyPoints  Float    @default(0)
+  isActive       Boolean  @default(true)
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+
+  store  Store   @relation(fields: [storeId], references: [id])
+  sales  Sale[]
+  orders Order[]
+
+  @@index([storeId])
+  @@index([email])
+  @@index([phone])
+}
+
+model Sale {
+  id               String   @id @default(cuid())
+  invoiceNumber    String        @unique
+  storeId          String       
+  staffId          String       
+  customerId       String?      
+  subtotal         Float
+  discount         Float         @default(0)
+  discountType     String        @default("FIXED")
+  discountPercent  Float         @default(0)
+  taxRate          Float         @default(0.2)
+  tax              Float         @default(0)
+  total            Float
+  paymentMethod    PaymentMethod
+  paymentStatus    PaymentStatus @default(PAID)
+  status           SaleStatus    @default(COMPLETED)
+  cashReceived     Float?
+  changeGiven      Float?
+  currency         String        @default("GBP")
+  idempotencyKey   String?       @unique
+  clientOperationId String?
+  notes            String?
+  channel          SalesChannel  @default(IN_STORE)
+  saleDate         DateTime      @default(now())
+  deliveryCharge   Float         @default(0)
+  paidAmount       Float         @default(0)
+  recheckedAt      DateTime?
+  recheckedById    String?
+  cancelReason     String?
+  createdAt        DateTime      @default(now())
+  updatedAt        DateTime      @updatedAt
+
+  store    Store     @relation(fields: [storeId], references: [id])
+  staff    User      @relation("SaleStaff", fields: [staffId], references: [id])
+  customer Customer? @relation(fields: [customerId], references: [id])
+  items    SaleItem[]
+  revisions SaleRevision[]
+
+  @@index([storeId])
+  @@index([staffId])
+  @@index([customerId])
+  @@index([saleDate])
+}
+
+model SaleRevision {
+  id             String   @id @default(cuid())
+  saleId         String
+  userId         String
+  version        Int
+  action         String
+  reason         String?
+  notes          String?
+  previousTotal  Float
+  updatedTotal   Float
+  snapshot       Json
+  createdAt      DateTime @default(now())
+
+  sale Sale @relation(fields: [saleId], references: [id], onDelete: Cascade)
+
+  @@index([saleId])
+  @@index([createdAt])
+}
+
+model SaleItem {
+  id           String   @id @default(cuid())
+  saleId       String
+  productId    String
+  name         String
+  sku          String?
+  barcode      String?
+  quantity     Int
+  sellingPrice Float
+  lineTotal    Float
+
+  sale    Sale    @relation(fields: [saleId], references: [id], onDelete: Cascade)
+  product Product @relation(fields: [productId], references: [id])
+
+  @@index([saleId])
+  @@index([productId])
+}
+
+model Order {
+  id          String   @id @default(cuid())
+  orderNumber String      @unique
+  storeId     String     
+  customerId  String?    
+  status      OrderStatus @default(PENDING)
+  subtotal    Float       @default(0)
+  total       Float       @default(0)
+  notes       String?
+  createdAt   DateTime    @default(now())
+  updatedAt   DateTime    @updatedAt
+
+  store    Store       @relation(fields: [storeId], references: [id])
+  customer Customer?   @relation(fields: [customerId], references: [id])
+  items    OrderItem[]
+
+  @@index([storeId])
+  @@index([customerId])
+  @@index([status])
+}
+
+model OrderItem {
+  id        String   @id @default(cuid())
+  orderId   String
+  productId String
+  quantity  Int
+  price     Float
+
+  order   Order   @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  product Product @relation(fields: [productId], references: [id])
+
+  @@index([orderId])
+}
+
+model Attendance {
+  id           String   @id @default(cuid())
+  userId       String   
+  storeId      String   
+  date         DateTime
+  clockIn      DateTime?
+  clockOut     DateTime?
+  workMinutes  Int       @default(0)
+  openingCash  Float?
+  closingCash  Float?
+  expectedCash Float?
+  cashDiff     Float?
+  notes        String?
+  lateMinutes  Int       @default(0)
+  earlyMinutes Int       @default(0)
+  salaryDeduction Float  @default(0)
+  createdAt    DateTime  @default(now())
+  updatedAt    DateTime  @updatedAt
+
+  user        User         @relation(fields: [userId], references: [id])
+  store       Store        @relation(fields: [storeId], references: [id])
+  cashSession CashSession?
+
+  @@index([userId])
+  @@index([storeId])
+  @@index([date])
+}
+
+model CashSession {
+  id             String   @id @default(cuid())
+  storeId        String           
+  employeeId     String           
+  attendanceId   String            @unique
+  openingCash    Float
+  closingCash    Float?
+  expectedCash   Float?
+  cashDifference Float?
+  status         CashSessionStatus @default(OPEN)
+  openedAt       DateTime          @default(now())
+  closedAt       DateTime?
+  notes          String?
+
+  store       Store             @relation(fields: [storeId], references: [id])
+  employee    User              @relation(fields: [employeeId], references: [id])
+  attendance  Attendance        @relation(fields: [attendanceId], references: [id])
+  transactions CashTransaction[]
+
+  @@index([storeId])
+  @@index([employeeId])
+}
+
+model CashTransaction {
+  id            String   @id @default(cuid())
+  storeId       String             
+  sessionId     String?            
+  userId        String?            
+  type          CashTransactionType
+  amount        Float
+  reference     String?
+  notes         String?
+  createdAt     DateTime            @default(now())
+
+  store   Store        @relation(fields: [storeId], references: [id])
+  session CashSession? @relation(fields: [sessionId], references: [id])
+  user    User?        @relation(fields: [userId], references: [id])
+
+  @@index([storeId])
+  @@index([sessionId])
+  @@index([createdAt])
+}
+
+model SalaryRecord {
+  id               String   @id @default(cuid())
+  userId           String       
+  storeId          String       
+  periodStart      DateTime
+  periodEnd        DateTime
+  workingDays      Int           @default(0)
+  workingHours     Float         @default(0)
+  baseSalary       Float         @default(0)
+  calculatedSalary Float         @default(0)
+  paidAmount       Float         @default(0)
+  dueAmount        Float         @default(0)
+  paymentStatus    PaymentStatus @default(UNPAID)
+  notes            String?
+  createdAt        DateTime      @default(now())
+  updatedAt        DateTime      @updatedAt
+
+  user  User  @relation(fields: [userId], references: [id])
+  store Store @relation(fields: [storeId], references: [id])
+
+  @@index([userId])
+  @@index([storeId])
+  @@index([periodStart])
+  @@index([periodEnd])
+}
+
+model Expense {
+  id          String   @id @default(cuid())
+  storeId     String         
+  userId      String         
+  category    ExpenseCategory
+  categoryLabel String?
+  amount      Float
+  description String?
+  expenseDate DateTime        @default(now())
+  dueDate     DateTime?
+  paymentStatus PaymentStatus @default(UNPAID)
+  reference   String?
+  receiptUrl  String?
+  createdAt   DateTime        @default(now())
+  updatedAt   DateTime        @updatedAt
+
+  store Store @relation(fields: [storeId], references: [id])
+  user  User  @relation(fields: [userId], references: [id])
+
+  @@index([storeId])
+  @@index([expenseDate])
+}
+
+model Document {
+  id           String   @id @default(cuid())
+  storeId      String          
+  uploadedById String          
+  title        String
+  category     DocumentCategory @default(OTHER)
+  directory    DocumentDirectory @default(OTHERS)
+  periodYear   Int?
+  periodMonth  Int?
+  mimeType     String
+  sizeBytes    Int
+  status       VerificationStatus @default(PENDING)
+  reviewComment String?
+  reviewedById String?
+  employeeId   String?
+  driveFileId  String?
+  driveUrl     String?
+  localPath    String?
+  createdAt    DateTime         @default(now())
+  updatedAt    DateTime         @updatedAt
+
+  store      Store @relation(fields: [storeId], references: [id])
+  uploadedBy User  @relation(fields: [uploadedById], references: [id])
+
+  @@index([storeId])
+  @@index([category])
+  @@index([directory])
+  @@index([periodYear, periodMonth])
+  @@index([createdAt])
+}
+
+model Notification {
+  id        String   @id @default(cuid())
+  storeId   String? 
+  userId    String? 
+  title     String
+  message   String
+  type      String
+  isRead    Boolean  @default(false)
+  createdAt DateTime @default(now())
+
+  store Store? @relation(fields: [storeId], references: [id])
+  user  User?  @relation(fields: [userId], references: [id])
+
+  @@index([userId])
+  @@index([storeId])
+}
+
+model AuditLog {
+  id        String   @id @default(cuid())
+  userId    String? 
+  storeId   String? 
+  action    String
+  entity    String
+  entityId  String?
+  oldData   Json?
+  newData   Json?
+  ip        String?
+  userAgent String?
+  createdAt DateTime @default(now())
+
+  user  User?  @relation(fields: [userId], references: [id])
+  store Store? @relation(fields: [storeId], references: [id])
+
+  @@index([userId])
+  @@index([entity])
+  @@index([entityId])
+  @@index([createdAt])
+}
+
+model SystemSetting {
+  id        String   @id @default(cuid())
+  storeId   String? 
+  key       String
+  value     Json
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  store Store? @relation(fields: [storeId], references: [id])
+
+  @@unique([storeId, key])
+}
+
+model EmployeeVerification {
+  id          String   @id @default(cuid())
+  storeId     String
+  employeeId  String
+  documentId  String?
+  status      VerificationStatus @default(PENDING)
+  comment     String?
+  reviewedById String?
+  submittedAt DateTime @default(now())
+  reviewedAt  DateTime?
+  expiresAt   DateTime
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  store     Store @relation(fields: [storeId], references: [id])
+  employee  User  @relation("EmployeeVerificationSubject", fields: [employeeId], references: [id])
+  reviewedBy User? @relation("EmployeeVerificationReviewer", fields: [reviewedById], references: [id])
+
+  @@index([storeId])
+  @@index([employeeId])
+  @@index([expiresAt])
+}
+
+model EmployeeDocumentRequest {
+  id            String   @id @default(cuid())
+  requestCode   String
+  storeId       String
+  employeeId    String
+  type          DocumentRequestType
+  status        String   @default("SUBMITTED")
+  reason        String?
+  message       String?
+  requiredDate  DateTime?
+  periodMonth   Int?
+  periodYear    Int?
+  details       Json?
+  adminComment  String?
+  fileUrl       String?
+  fileName      String?
+  fileSize      Int?
+  documentId    String?
+  notes         String?
+  downloadedAt  DateTime?
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  store     Store @relation(fields: [storeId], references: [id])
+  employee  User  @relation(fields: [employeeId], references: [id])
+  comments  EmployeeRequestComment[]
+  events    EmployeeRequestEvent[]
+
+  @@unique([storeId, requestCode])
+  @@index([storeId])
+  @@index([employeeId])
+  @@index([status])
+}
+
+model EmployeeRequestComment {
+  id        String   @id @default(cuid())
+  requestId String
+  userId    String
+  body      String
+  createdAt DateTime @default(now())
+
+  request EmployeeDocumentRequest @relation(fields: [requestId], references: [id], onDelete: Cascade)
+  user    User                    @relation(fields: [userId], references: [id])
+
+  @@index([requestId])
+}
+
+model EmployeeRequestEvent {
+  id         String   @id @default(cuid())
+  requestId  String
+  userId     String
+  action     String
+  fromStatus String?
+  toStatus   String?
+  comment    String?
+  createdAt  DateTime @default(now())
+
+  request EmployeeDocumentRequest @relation(fields: [requestId], references: [id], onDelete: Cascade)
+  user    User                    @relation(fields: [userId], references: [id])
+
+  @@index([requestId])
+}
+
+model ShiftSchedule {
+  id          String   @id @default(cuid())
+  storeId     String
+  employeeId  String
+  weekday     Int
+  startMinutes Int
+  endMinutes   Int
+  durationHours Float @default(8)
+  lateGraceMinutes  Int @default(10)
+  earlyGraceMinutes Int @default(5)
+  isActive    Boolean @default(true)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  store    Store @relation(fields: [storeId], references: [id])
+  employee User  @relation(fields: [employeeId], references: [id])
+
+  @@unique([employeeId, weekday])
+  @@index([storeId])
+}
+
+model Loan {
+  id            String   @id @default(cuid())
+  storeId       String
+  createdById   String
+  lender        String
+  amount        Float
+  paidAmount    Float    @default(0)
+  remaining     Float
+  loanDate      DateTime @default(now())
+  dueDate       DateTime?
+  notes         String?
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  store     Store @relation(fields: [storeId], references: [id])
+  createdBy User  @relation(fields: [createdById], references: [id])
+
+  @@index([storeId])
+  @@index([dueDate])
+}
+
+model AccountEntry {
+  id          String   @id @default(cuid())
+  storeId     String
+  userId      String
+  type        AccountEntryType
+  amount      Float
+  method      String   @default("CASH")
+  reference   String?
+  notes       String?
+  createdAt   DateTime @default(now())
+
+  store Store @relation(fields: [storeId], references: [id])
+  user  User  @relation(fields: [userId], references: [id])
+
+  @@index([storeId])
+  @@index([createdAt])
+}
+
+model MoneyAccount {
+  id              String   @id @default(cuid())
+  storeId         String
+  name            String
+  kind            String   @default("CASH")
+  locationKey     String
+  bankName        String?
+  accountName     String?
+  accountNumber   String?
+  accountType     String?
+  branch          String?
+  sortCode        String?
+  currency        String   @default("GBP")
+  status          String   @default("ACTIVE")
+  reference       String?
+  notes           String?
+  openingBalance  Float    @default(0)
+  currentBalance  Float    @default(0)
+  isDefaultCash   Boolean  @default(false)
+  isDefaultBank   Boolean  @default(false)
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  store   Store              @relation(fields: [storeId], references: [id])
+  entries MoneyLedgerEntry[] @relation("LedgerAccount")
+  counterpartyEntries MoneyLedgerEntry[] @relation("LedgerCounterparty")
+
+  @@index([storeId])
+  @@index([locationKey])
+}
+
+model MoneyLedgerEntry {
+  id                    String   @id @default(cuid())
+  storeId               String
+  userId                String
+  accountId             String
+  counterpartyAccountId String?
+  transferGroupId       String?
+  typeKey               String
+  typeLabel             String
+  direction             String
+  amount                Float
+  method                String?
+  personName            String?
+  personPhone           String?
+  reason                String?
+  reference             String?
+  notes                 String?
+  occurredAt            DateTime @default(now())
+  previousBalance       Float    @default(0)
+  updatedBalance        Float    @default(0)
+  source                String   @default("MANUAL")
+  sourceId              String?
+  createdAt             DateTime @default(now())
+
+  store        Store         @relation(fields: [storeId], references: [id])
+  user         User          @relation(fields: [userId], references: [id])
+  account      MoneyAccount  @relation("LedgerAccount", fields: [accountId], references: [id])
+  counterparty MoneyAccount? @relation("LedgerCounterparty", fields: [counterpartyAccountId], references: [id])
+
+  @@index([storeId])
+  @@index([accountId])
+  @@index([occurredAt])
+  @@index([typeKey])
+}
+
+model DailyCashCycle {
+  id               String    @id @default(cuid())
+  storeId          String
+  cycleDate        DateTime
+  openingCash      Float     @default(0)
+  closingCash      Float?
+  expectedCash     Float?
+  actualCash       Float?
+  cashDifference   Float?
+  differenceNote   String?
+  status           String    @default("OPEN")
+  summary          Json?
+  closedAt         DateTime?
+  createdAt        DateTime  @default(now())
+  updatedAt        DateTime  @updatedAt
+
+  store Store @relation(fields: [storeId], references: [id])
+
+  @@unique([storeId, cycleDate])
+  @@index([storeId])
+}
+
+model DailyClose {
+  id              String   @id @default(cuid())
+  storeId         String
+  businessDate    DateTime
+  totalSales      Float    @default(0)
+  invoiceCount    Int      @default(0)
+  staffClockedIn  Int      @default(0)
+  staffClockedOut Int      @default(0)
+  onTimeCount     Int      @default(0)
+  stockUnits      Int      @default(0)
+  openingCash     Float    @default(0)
+  closingCash     Float    @default(0)
+  summary         Json?
+  notifiedAt      DateTime?
+  closedAt        DateTime?
+  createdAt       DateTime @default(now())
+
+  store Store @relation(fields: [storeId], references: [id])
+
+  @@unique([storeId, businessDate])
+  @@index([storeId])
+}
