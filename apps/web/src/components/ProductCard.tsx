@@ -29,6 +29,13 @@ export const ProductCard: React.FC<ProductCardProps> = ({
     )
   ).slice(0, 3);
 
+  const brandLine =
+    [product.brand, product.category]
+      .map((v) => String(v || '').trim())
+      .filter(Boolean)
+      .filter((v, i, arr) => arr.findIndex((x) => x.toLowerCase() === v.toLowerCase()) === i)
+      .join(' • ') || 'Jersey';
+
   const handleWishlist = (e: React.MouseEvent) => {
     e.stopPropagation();
     onToggleWishlist(product);
@@ -42,11 +49,12 @@ export const ProductCard: React.FC<ProductCardProps> = ({
   return (
     <div
       onClick={() => onSelect(product)}
-      className="group bg-white border border-zinc-200 hover:border-zinc-900 rounded-2xl sm:rounded-3xl p-3.5 sm:p-5 cursor-pointer shadow-sm hover:shadow-md transition-all duration-300 relative flex flex-col h-full min-w-0"
+      className="group bg-white border border-zinc-200 hover:border-zinc-900 rounded-xl lg:rounded-3xl p-1.5 sm:p-2 lg:p-5 cursor-pointer shadow-sm hover:shadow-md transition-all duration-300 relative flex flex-col h-full min-w-0"
       id={`product-card-${product.id}`}
+      title={product.name}
     >
-      <div className="min-w-0 flex-1 flex flex-col">
-        <div className="relative mb-3.5 sm:mb-4 w-full aspect-square shrink-0 overflow-hidden rounded-xl sm:rounded-2xl bg-zinc-50 ring-1 ring-zinc-100">
+      <div className="min-w-0 flex flex-col">
+        <div className="relative mb-1.5 sm:mb-2 lg:mb-4 w-full aspect-square shrink-0 overflow-hidden rounded-lg lg:rounded-2xl bg-zinc-50 ring-1 ring-zinc-100">
           <div className="absolute inset-0 pointer-events-none bg-[radial-gradient(circle_at_50%_40%,rgba(0,0,0,0.03),transparent_62%)]" />
 
           {galleryImages[0] ? (
@@ -69,13 +77,13 @@ export const ProductCard: React.FC<ProductCardProps> = ({
 
           <button
             onClick={handleWishlist}
-            className="absolute top-2.5 right-2.5 sm:top-3 sm:right-3 z-20 flex items-center justify-center w-8 h-8 sm:w-9 sm:h-9 rounded-full bg-white shadow-md border border-zinc-100 transition-transform hover:scale-105 active:scale-95 cursor-pointer"
+            className="absolute top-1.5 right-1.5 sm:top-2 sm:right-2 lg:top-3 lg:right-3 z-20 flex items-center justify-center w-7 h-7 sm:w-8 sm:h-8 lg:w-9 lg:h-9 rounded-full bg-white shadow-md border border-zinc-100 transition-transform hover:scale-105 active:scale-95 cursor-pointer"
             aria-label={isWishlisted ? 'Remove from Wishlist' : 'Add to Wishlist'}
             aria-pressed={isWishlisted}
             type="button"
           >
             <Heart
-              size={18}
+              size={16}
               strokeWidth={2.25}
               className={
                 isWishlisted
@@ -86,19 +94,16 @@ export const ProductCard: React.FC<ProductCardProps> = ({
           </button>
 
           {product.isPreOrder && (
-            <span className="absolute top-2.5 left-2.5 sm:top-3 sm:left-3 z-20 bg-zinc-900 text-white text-[9px] font-black uppercase tracking-wider px-2.5 py-1 rounded-full shadow-sm">
+            <span className="absolute top-1.5 left-1.5 sm:top-2 sm:left-2 lg:top-3 lg:left-3 z-20 bg-zinc-900 text-white text-[8px] lg:text-[9px] font-black uppercase tracking-wider px-1.5 py-0.5 lg:px-2.5 lg:py-1 rounded-full shadow-sm">
               Pre-Order
             </span>
           )}
         </div>
 
-        <div className="space-y-1">
+        {/* Brand + title: desktop only — hidden on mobile/tablet for denser catalog */}
+        <div className="hidden lg:block space-y-1 mb-0">
           <span className="text-[10px] font-mono uppercase tracking-widest text-zinc-500 font-bold">
-            {[product.brand, product.category]
-              .map((v) => String(v || '').trim())
-              .filter(Boolean)
-              .filter((v, i, arr) => arr.findIndex((x) => x.toLowerCase() === v.toLowerCase()) === i)
-              .join(' • ') || 'Jersey'}
+            {brandLine}
           </span>
           <h3 className="text-zinc-950 text-sm font-black tracking-tight line-clamp-2 group-hover:text-black transition-colors text-left">
             {product.name}
@@ -106,16 +111,16 @@ export const ProductCard: React.FC<ProductCardProps> = ({
         </div>
       </div>
 
-      <div className="pt-3 mt-3 border-t border-zinc-100">
+      <div className="mt-0 lg:mt-3 lg:pt-3 lg:border-t lg:border-zinc-100">
         <button
           onClick={handleSeeMore}
           type="button"
-          className="w-full bg-black hover:bg-zinc-800 text-white border border-black py-2.5 sm:py-3 px-3 rounded-xl text-[10px] sm:text-[11px] font-black uppercase tracking-wider flex items-center justify-center gap-2 transition-all cursor-pointer font-sans"
-          title="View product details"
+          className="w-full bg-black hover:bg-zinc-800 text-white border border-black py-1.5 sm:py-2 lg:py-3 px-2 lg:px-3 rounded-lg lg:rounded-xl text-[9px] sm:text-[10px] lg:text-[11px] font-black uppercase tracking-wider flex items-center justify-center gap-1 lg:gap-2 transition-all cursor-pointer font-sans"
+          title={product.name || 'View product details'}
           id={`see-more-${product.id}`}
         >
           <span>See More</span>
-          <ArrowRight size={12} className="shrink-0" />
+          <ArrowRight size={11} className="shrink-0" />
         </button>
       </div>
     </div>
