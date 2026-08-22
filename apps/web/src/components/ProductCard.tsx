@@ -115,7 +115,7 @@ export const ProductCard: React.FC<ProductCardProps> = ({
         <button
           onClick={handleSeeMore}
           type="button"
-          className="w-full bg-red-600 hover:bg-red-700 text-white border border-red-700 py-2.5 sm:py-3 px-3 rounded-xl text-[10px] sm:text-[11px] font-black uppercase tracking-wider flex items-center justify-center gap-2 transition-all cursor-pointer font-sans"
+          className="w-full bg-black hover:bg-zinc-800 text-white border border-black py-2.5 sm:py-3 px-3 rounded-xl text-[10px] sm:text-[11px] font-black uppercase tracking-wider flex items-center justify-center gap-2 transition-all cursor-pointer font-sans"
           title="View product details"
           id={`see-more-${product.id}`}
         >
