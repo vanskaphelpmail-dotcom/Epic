@@ -104,7 +104,7 @@ const INITIAL_SLIDES: CarouselSlide[] = [
 const INITIAL_USERS: User[] = [
   {
     id: 'usr-super-admin',
-    email: 'superadmin@jerseyaddicts.bd',
+    email: 'superadmin@epicvanskap.com',
     fullName: 'Kazi Yasin Ahmed (Super Admin Root)',
     role: 'Super Admin',
         simulatedIp: '103.230.104.5',
@@ -120,7 +120,7 @@ const INITIAL_USERS: User[] = [
   },
   {
     id: 'usr-admin-dhaka',
-    email: 'admin.dhaka@vault.bd',
+    email: 'admin@epicvanskap.com',
     fullName: 'Rashedul Bari (General Store Manager)',
     role: 'Admin',
         simulatedIp: '103.230.104.12',
@@ -136,7 +136,7 @@ const INITIAL_USERS: User[] = [
   },
   {
     id: 'usr-inv-mgr',
-    email: 'inventory@jerseyaddicts.bd',
+    email: 'inventory@epicvanskap.com',
     fullName: 'Tanvir Hossain (Inventory Captain)',
     role: 'Inventory Manager',
         simulatedIp: '103.230.104.22',
@@ -152,7 +152,7 @@ const INITIAL_USERS: User[] = [
   },
   {
     id: 'usr-order-mgr',
-    email: 'orders@jerseyaddicts.bd',
+    email: 'orders@epicvanskap.com',
     fullName: 'Farzana Chowdhury (Dispatch & Courier Lead)',
     role: 'Order Manager',
         simulatedIp: '103.230.104.33',
@@ -168,7 +168,7 @@ const INITIAL_USERS: User[] = [
   },
   {
     id: 'usr-support',
-    email: 'support@jerseyaddicts.bd',
+    email: 'support@epicvanskap.com',
     fullName: 'Sultana Parveen (VIP Customer Care)',
     role: 'Customer Support',
         simulatedIp: '103.230.104.44',
@@ -184,7 +184,7 @@ const INITIAL_USERS: User[] = [
   },
   {
     id: 'usr-content-mgr',
-    email: 'content@jerseyaddicts.bd',
+    email: 'content@epicvanskap.com',
     fullName: 'Fahim Shahriar (Creative & Media Lead)',
     role: 'Content Manager',
         simulatedIp: '103.230.104.55',
@@ -2713,7 +2713,7 @@ export default function App() {
                     Premium Authenticated Football Kits<br />
                     Shop No. 8, 3rd Floor, AQP Shopping Mall,<br />
                     143/2 New Bailey Road, Dhaka 1217, Bangladesh<br />
-                    Email: support@jerseyvault.bd • <span className="text-zinc-800 font-black">Phone: +880 1840-990700</span>
+                    Email: support@epicvanskap.com • <span className="text-zinc-800 font-black">Phone: +880 1840-990700</span>
                   </p>
                 </div>
                 <div className="text-left md:text-right font-mono text-[11px] space-y-1">

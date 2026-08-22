@@ -1607,7 +1607,7 @@ export const RolesPermissionsManager: React.FC<RolesPermissionsManagerProps> = (
                     required
                     value={formEmail}
                     onChange={(e) => setFormEmail(e.target.value)}
-                    placeholder="e.g. towhid@jerseyaddicts.bd"
+                    placeholder="e.g. towhid@epicvanskap.com"
                     className="w-full p-3 bg-emerald-50/30 border border-emerald-200 rounded-xl text-xs font-medium text-emerald-950 focus:outline-none focus:ring-2 focus:ring-emerald-500"
                   />
                 </div>

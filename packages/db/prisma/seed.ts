@@ -95,19 +95,36 @@ async function main() {
   });
 
   const passwordHash = await hash(adminPassword || "ChangeMeNow!", 12);
+  const adminEmail = "admin@epicvanskap.com";
 
-  await prisma.user.upsert({
+  const legacyAdmin = await prisma.user.findUnique({
     where: { email: "admin@jerseyaddicts.bd" },
-    update: { passwordHash, role: UserRole.SUPER_ADMIN },
-    create: {
-      email: "admin@jerseyaddicts.bd",
-      fullName: "Super Admin",
-      passwordHash,
-      role: UserRole.SUPER_ADMIN,
-      permissions: ["*"],
-      status: "ACTIVE",
-    },
   });
+  if (legacyAdmin) {
+    await prisma.user.update({
+      where: { id: legacyAdmin.id },
+      data: {
+        email: adminEmail,
+        passwordHash,
+        role: UserRole.SUPER_ADMIN,
+        permissions: ["*"],
+        status: "ACTIVE",
+      },
+    });
+  } else {
+    await prisma.user.upsert({
+      where: { email: adminEmail },
+      update: { passwordHash, role: UserRole.SUPER_ADMIN, permissions: ["*"], status: "ACTIVE" },
+      create: {
+        email: adminEmail,
+        fullName: "Super Admin",
+        passwordHash,
+        role: UserRole.SUPER_ADMIN,
+        permissions: ["*"],
+        status: "ACTIVE",
+      },
+    });
+  }
 
   const staffPassword = await hash("Admin@018", 12);
   const staffAdmins = [

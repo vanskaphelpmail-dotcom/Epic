@@ -55,7 +55,7 @@ async function main() {
 
   const adminLogin = await req("/api/auth/login", {
     method: "POST",
-    body: JSON.stringify({ email: "admin@jerseyaddicts.bd", password: "ChangeMeNow!" }),
+    body: JSON.stringify({ email: "admin@epicvanskap.com", password: "ChangeMeNow!" }),
   });
   const adminToken = adminLogin.json?.data?.token as string | undefined;
   if (adminToken) ok.push("admin login");
@@ -63,7 +63,7 @@ async function main() {
 
   const custLogin = await req("/api/auth/login", {
     method: "POST",
-    body: JSON.stringify({ email: "customer@jerseyaddicts.bd", password: "Customer123!" }),
+    body: JSON.stringify({ email: "customer@epicvanskap.com", password: "Customer123!" }),
   });
   const custToken = custLogin.json?.data?.token as string | undefined;
   if (custToken) ok.push("customer login");
@@ -170,7 +170,7 @@ async function main() {
   if (custToken) {
     const forgot = await req("/api/auth/forgot-password", {
       method: "POST",
-      body: JSON.stringify({ email: "customer@jerseyaddicts.bd" }),
+      body: JSON.stringify({ email: "customer@epicvanskap.com" }),
     });
     const resetTok = forgot.json?.data?.devResetToken as string | undefined;
     if (forgot.status === 200) ok.push("forgot-password");

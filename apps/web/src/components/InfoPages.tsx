@@ -194,7 +194,7 @@ export const InfoPages: React.FC<InfoPagesProps> = ({ pageType, onBack }) => {
               
               <div className="flex items-center gap-3">
                 <Mail size={16} className="text-emerald-700" />
-                <span>jerseyaddictsbd@gmail.com</span>
+                <span>admin@epicvanskap.com</span>
               </div>
               <div className="flex items-center gap-3">
                 <Phone size={16} className="text-emerald-700" />
