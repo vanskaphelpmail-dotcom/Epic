@@ -930,7 +930,7 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({
       subtitle: 'Save Big on Nations Jerseys',
       description: 'Save big on unique Classic 1 of 1s from nations that competed at the 2026 World Cup.',
       badge: 'LIMITED TIME CLEARANCE',
-      primaryColor: 'from-[#031d10] to-[#070e0a]',
+      primaryColor: 'from-[#2a0505] to-[#1a0303]',
       productId: products[0]?.id || 'shirt-1',
     };
     setSlides((prev) => {
@@ -987,7 +987,7 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({
         subtitle: 'Seleção Historical Authentic Reissue',
         description: 'The golden classic of Ronaldo No.9. Rare weave texture with vintage embroidery lines direct from the Rio vaults.',
         badge: 'SAMBA LEGENDS',
-        primaryColor: 'from-[#064e3b] to-[#022c22]',
+        primaryColor: 'from-[#9a0400] to-[#450a0a]',
         productId: 'shirt-3',
         customImage: 'https://images.unsplash.com/photo-1551958219-acbc608c6377?auto=format&fit=crop&q=80&w=1600'
       },
@@ -1007,7 +1007,7 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({
         subtitle: 'Exclusive Epic Vanskap BD Capsule',
         description: 'Engineered for maximum breathable comfort under Dhaka summers. Express your sheer addiction to the beautiful game.',
         badge: 'LOCAL DHAKA RELEASES',
-        primaryColor: 'from-[#065f46] to-[#022c22]',
+        primaryColor: 'from-[#e10600] to-[#450a0a]',
         productId: 'shirt-1',
         customImage: 'https://images.unsplash.com/photo-1518063319789-7217e6706b04?auto=format&fit=crop&q=80&w=1600'
       }
@@ -2182,8 +2182,8 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({
                       <svg className="w-full h-full overflow-visible" viewBox="0 0 1200 300" preserveAspectRatio="none">
                         <defs>
                           <linearGradient id="revenueGrad" x1="0" y1="0" x2="0" y2="1">
-                            <stop offset="0%" stopColor="#065f46" stopOpacity="0.45" />
-                            <stop offset="100%" stopColor="#065f46" stopOpacity="0.0" />
+                            <stop offset="0%" stopColor="#e10600" stopOpacity="0.45" />
+                            <stop offset="100%" stopColor="#e10600" stopOpacity="0.0" />
                           </linearGradient>
                         </defs>
                         {/* Area Polygon */}
@@ -2208,7 +2208,7 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({
                         {/* Smooth Line */}
                         <polyline
                           fill="none"
-                          stroke="#065f46"
+                          stroke="#e10600"
                           strokeWidth="4"
                           points={`
                             100,${300 - (monthlyData[0].revenue / 200000) * 300} 
@@ -2225,7 +2225,7 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({
                             1200,${300 - (monthlyData[11].revenue / 200000) * 300}`}
                         />
                         {/* Markers */}
-                        <circle cx="700" cy={300 - (Math.min(200000, monthlyData[6].revenue) / 200000) * 300} r="7" fill="#065f46" stroke="#ffffff" strokeWidth="2.5" />
+                        <circle cx="700" cy={300 - (Math.min(200000, monthlyData[6].revenue) / 200000) * 300} r="7" fill="#e10600" stroke="#ffffff" strokeWidth="2.5" />
                       </svg>
                       {/* Interactive indicator for active month */}
                       <div className="absolute top-2 left-[58%] -translate-x-1/2 bg-emerald-950 text-white rounded-lg p-2.5 shadow-lg border border-emerald-800 text-[10px] font-mono pointer-events-none">

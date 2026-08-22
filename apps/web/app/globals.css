@@ -5,6 +5,19 @@
   --font-sans: "DM Sans", ui-sans-serif, system-ui, sans-serif;
   --font-display: "DM Sans", ui-sans-serif, system-ui, sans-serif;
   --font-mono: "DM Sans", ui-sans-serif, system-ui, sans-serif;
+
+  /* Epic Vanskap — remap legacy emerald (green) utilities to brand red */
+  --color-emerald-50: #fff5f5;
+  --color-emerald-100: #ffe5e5;
+  --color-emerald-200: #ffc9c9;
+  --color-emerald-300: #ffa8a8;
+  --color-emerald-400: #ff6b6b;
+  --color-emerald-500: #f23030;
+  --color-emerald-600: #e10600;
+  --color-emerald-700: #c10500;
+  --color-emerald-800: #9a0400;
+  --color-emerald-900: #7a0300;
+  --color-emerald-950: #450a0a;
 }
 
 body {
@@ -70,7 +83,7 @@ h1, h2, h3, h4, h5, h6, .font-sans.font-black, .font-display {
   }
 }
 
-/* Clean black & white brand lockup */
+/* Epic Vanskap brand lockup — red + black on white */
 .brand-logo-lockup {
   letter-spacing: -0.03em;
   gap: 0.4rem;
@@ -85,7 +98,7 @@ h1, h2, h3, h4, h5, h6, .font-sans.font-black, .font-display {
 }
 
 .brand-word-jersey {
-  color: #0a0a0a;
+  color: #e10600;
   background: none;
   -webkit-background-clip: unset;
   background-clip: unset;
@@ -114,13 +127,13 @@ h1, h2, h3, h4, h5, h6, .font-sans.font-black, .font-display {
   line-height: 1;
   padding: 0.38rem 0.7rem;
   border-radius: 9999px;
-  color: #0a0a0a !important;
-  background: linear-gradient(180deg, rgba(255, 255, 255, 0.95) 0%, rgba(244, 244, 245, 0.9) 100%) !important;
-  border: 1.5px solid rgba(24, 24, 27, 0.85);
+  color: #ffffff !important;
+  background: linear-gradient(180deg, #e10600 0%, #c10500 100%) !important;
+  border: 1.5px solid #9a0400;
   box-shadow:
-    0 0 0 1px rgba(0, 0, 0, 0.04),
-    0 1px 0 rgba(255, 255, 255, 0.9) inset,
-    0 4px 14px rgba(0, 0, 0, 0.08);
+    0 0 0 1px rgba(225, 6, 0, 0.12),
+    0 1px 0 rgba(255, 255, 255, 0.25) inset,
+    0 4px 14px rgba(225, 6, 0, 0.25);
   text-shadow: none;
   backdrop-filter: blur(10px);
   -webkit-backdrop-filter: blur(10px);

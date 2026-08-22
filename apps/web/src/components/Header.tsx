@@ -306,12 +306,12 @@ export const Header: React.FC<HeaderProps> = ({
                 value={searchQuery}
                 onChange={(e) => handleSearchInput(e.target.value)}
                 onFocus={() => setShowSearchDropdown(true)}
-                className="w-full h-12 bg-zinc-50 text-zinc-950 placeholder-zinc-400 text-sm pl-12 pr-28 rounded-full border border-zinc-100/80 focus:bg-white focus:outline-none focus:border-zinc-900 focus:ring-4 focus:ring-zinc-900/10 hover:bg-zinc-50/50 hover:border-zinc-200 transition-all duration-300"
+                className="w-full h-12 bg-zinc-50 text-zinc-950 placeholder-zinc-400 text-sm pl-12 pr-28 rounded-full border border-zinc-100/80 focus:bg-white focus:outline-none focus:border-red-600 focus:ring-4 focus:ring-red-600/10 hover:bg-zinc-50/50 hover:border-zinc-200 transition-all duration-300"
               />
               <Search className="absolute left-4 text-zinc-600 w-5 h-5 pointer-events-none" />
               <button
                 type="submit"
-                className="absolute right-1.5 top-1.5 bottom-1.5 bg-zinc-800 hover:bg-zinc-700 text-white text-xs font-bold px-6 rounded-full transition-all duration-200 cursor-pointer shadow-sm hover:shadow hover:scale-[1.01] active:scale-95 uppercase tracking-wider flex items-center justify-center"
+                className="absolute right-1.5 top-1.5 bottom-1.5 bg-red-600 hover:bg-red-700 text-white text-xs font-bold px-6 rounded-full transition-all duration-200 cursor-pointer shadow-sm hover:shadow hover:scale-[1.01] active:scale-95 uppercase tracking-wider flex items-center justify-center"
               >
                 Search
               </button>
@@ -546,7 +546,7 @@ export const Header: React.FC<HeaderProps> = ({
               value={searchQuery}
               onChange={(e) => handleSearchInput(e.target.value)}
               onFocus={() => setShowMobileSearchDropdown(true)}
-              className="w-full h-11 sm:h-12 bg-zinc-50 text-zinc-950 placeholder-zinc-400 text-sm pl-11 pr-[5.75rem] rounded-full border border-zinc-100 focus:bg-white focus:outline-none focus:border-zinc-900 focus:ring-4 focus:ring-zinc-900/10 transition-all duration-300"
+              className="w-full h-11 sm:h-12 bg-zinc-50 text-zinc-950 placeholder-zinc-400 text-sm pl-11 pr-[5.75rem] rounded-full border border-zinc-100 focus:bg-white focus:outline-none focus:border-red-600 focus:ring-4 focus:ring-red-600/10 transition-all duration-300"
             />
             <Search className="absolute left-3.5 text-zinc-600 w-5 h-5 pointer-events-none" />
             <button
@@ -730,12 +730,12 @@ export const Header: React.FC<HeaderProps> = ({
                 placeholder="Club Jersey, International Jersey, League..."
                 value={searchQuery}
                 onChange={(e) => handleSearchInput(e.target.value)}
-                className="w-full h-12 bg-zinc-50 text-zinc-950 placeholder-zinc-400 text-sm pl-12 pr-28 rounded-full border border-zinc-100/80 focus:bg-white focus:outline-none focus:border-zinc-900 focus:ring-4 focus:ring-zinc-900/10 hover:bg-zinc-50/50 hover:border-zinc-200 transition-all duration-300"
+                className="w-full h-12 bg-zinc-50 text-zinc-950 placeholder-zinc-400 text-sm pl-12 pr-28 rounded-full border border-zinc-100/80 focus:bg-white focus:outline-none focus:border-red-600 focus:ring-4 focus:ring-red-600/10 hover:bg-zinc-50/50 hover:border-zinc-200 transition-all duration-300"
               />
               <Search className="absolute left-4 text-zinc-600 w-5 h-5 pointer-events-none" />
               <button
                 type="submit"
-                className="absolute right-1.5 top-1.5 bottom-1.5 bg-zinc-800 hover:bg-zinc-700 text-white text-xs font-bold px-6 rounded-full transition-all duration-200 cursor-pointer shadow-sm hover:shadow hover:scale-[1.01] active:scale-95 uppercase tracking-wider flex items-center justify-center"
+                className="absolute right-1.5 top-1.5 bottom-1.5 bg-red-600 hover:bg-red-700 text-white text-xs font-bold px-6 rounded-full transition-all duration-200 cursor-pointer shadow-sm hover:shadow hover:scale-[1.01] active:scale-95 uppercase tracking-wider flex items-center justify-center"
               >
                 Search
               </button>
@@ -892,8 +892,8 @@ export const Header: React.FC<HeaderProps> = ({
                     aria-current={active ? 'page' : undefined}
                     className={`w-full min-w-0 text-left text-xs py-3 px-3.5 rounded-xl border transition-all cursor-pointer flex items-center gap-2 font-semibold ${
                       active
-                        ? 'bg-black border-zinc-900 text-white shadow-sm'
-                        : 'bg-zinc-50 border-zinc-100 hover:border-zinc-900 hover:bg-zinc-50 text-zinc-950'
+                        ? 'bg-red-600 border-red-700 text-white shadow-sm'
+                        : 'bg-zinc-50 border-zinc-100 hover:border-red-600 hover:bg-red-50 text-zinc-950'
                     }`}
                   >
                     <span className={`shrink-0 ${active ? 'text-zinc-100' : 'text-zinc-700'}`}>

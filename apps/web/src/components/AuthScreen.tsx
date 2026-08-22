@@ -143,7 +143,7 @@ export const AuthScreen: React.FC<AuthScreenProps> = ({
       </div>
 
       <div className="text-center space-y-2 mb-8">
-        <span className="h-1.5 w-8 bg-black rounded-full inline-block" />
+        <span className="h-1.5 w-8 bg-red-600 rounded-full inline-block" />
         <h2 className="text-2xl font-black uppercase tracking-tight font-sans text-zinc-950">{titles[mode].h}</h2>
         <p className="text-xs text-zinc-700 font-mono">{titles[mode].p}</p>
       </div>
@@ -178,7 +178,7 @@ export const AuthScreen: React.FC<AuthScreenProps> = ({
           <button
             type="submit"
             disabled={busy}
-            className="w-full bg-black hover:bg-zinc-800 disabled:opacity-60 text-white font-extrabold text-xs uppercase tracking-widest py-3.5 rounded-xl"
+            className="w-full bg-red-600 hover:bg-red-700 disabled:opacity-60 text-white font-extrabold text-xs uppercase tracking-widest py-3.5 rounded-xl"
           >
             {busy ? 'Please wait…' : 'Send Reset'}
           </button>
@@ -215,7 +215,7 @@ export const AuthScreen: React.FC<AuthScreenProps> = ({
           <button
             type="submit"
             disabled={busy}
-            className="w-full bg-black hover:bg-zinc-800 disabled:opacity-60 text-white font-extrabold text-xs uppercase tracking-widest py-3.5 rounded-xl"
+            className="w-full bg-red-600 hover:bg-red-700 disabled:opacity-60 text-white font-extrabold text-xs uppercase tracking-widest py-3.5 rounded-xl"
           >
             {busy ? 'Please wait…' : 'Update Password'}
           </button>
@@ -253,7 +253,7 @@ export const AuthScreen: React.FC<AuthScreenProps> = ({
           <button
             type="submit"
             disabled={busy}
-            className="w-full bg-black hover:bg-zinc-800 disabled:opacity-60 text-white font-extrabold text-xs uppercase tracking-widest py-3.5 rounded-xl shadow-sm transition-all flex items-center justify-center gap-2 group cursor-pointer"
+            className="w-full bg-red-600 hover:bg-red-700 disabled:opacity-60 text-white font-extrabold text-xs uppercase tracking-widest py-3.5 rounded-xl shadow-sm transition-all flex items-center justify-center gap-2 group cursor-pointer"
           >
             {busy ? 'Please wait…' : 'Admin Sign In'}
             <ArrowRight size={14} className="group-hover:translate-x-1 transition-transform" />
