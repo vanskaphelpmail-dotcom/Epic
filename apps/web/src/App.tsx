@@ -270,34 +270,34 @@ const DEFAULT_APP_CONFIG: AppConfig = {
     { id: 'Clearance', name: 'Outlet', slug: 'outlet', isCustom: false, visible: true, sections: [] },
   ],
   homepageSections: [
-    { id: 'hero-slider', name: 'Hero Banner Slider', visible: true, bgColor: 'bg-white', padding: 'py-0', margin: 'my-0', title: 'WORLD CUP 2026 EDITION', subtitle: 'The Grandest Stage of Football', status: 'active' },
-    { id: 'trending-searches', name: 'Trending Searches bar', visible: true, bgColor: 'bg-zinc-50', padding: 'py-3.5', margin: 'my-2', status: 'active' },
-    { id: 'live-auction', name: 'Bidding & Live Auctions', visible: false, bgColor: 'bg-white', padding: 'py-12', margin: 'my-0', status: 'inactive' },
+    { id: 'hero-slider', name: 'Hero Banner Slider', visible: true, bgColor: 'bg-black', padding: 'py-0', margin: 'my-0', title: 'WORLD CUP 2026 EDITION', subtitle: 'The Grandest Stage of Football', status: 'active' },
+    { id: 'trending-searches', name: 'Trending Searches bar', visible: true, bgColor: 'bg-black', padding: 'py-3.5', margin: 'my-2', status: 'active' },
+    { id: 'live-auction', name: 'Bidding & Live Auctions', visible: false, bgColor: 'bg-black', padding: 'py-12', margin: 'my-0', status: 'inactive' },
     { id: 'daily-deals', name: 'Daily Deals Countdown', visible: false, bgColor: 'bg-amber-500/10', padding: 'py-12', margin: 'my-4', title: 'LIMITED DAILY DEAL DECK', subtitle: '24-hour flash sale on ultra rare collectibles', status: 'inactive' },
-    { id: 'featured-collection', name: 'Featured Collection Row', visible: true, bgColor: 'bg-white', padding: 'py-12', margin: 'my-0', title: 'VERIFIED FEATURED CLASSICS', subtitle: 'Curated 1-of-1 historic collectibles', status: 'active', sectionType: 'product-row', productCategory: 'Featured', buttonText: 'VIEW ALL', buttonUrl: 'listing', maxProducts: 4 },
-    { id: 'latest-products', name: 'Latest Products Row', visible: true, bgColor: 'bg-white', padding: 'py-12', margin: 'my-0', title: 'LATEST WORKSHOP DROPS', subtitle: 'Freshly authenticated physical catalog arrivals', status: 'active', sectionType: 'product-row', productCategory: 'New In', buttonText: '', maxProducts: 4 },
-    { id: 'retro-collection', name: 'Retro Collection Row', visible: true, bgColor: 'bg-zinc-50/25', padding: 'py-12', margin: 'my-0', title: 'RETRO', subtitle: 'Rare 80s, 90s & 2000s vintage reissues', status: 'active', sectionType: 'product-row', productCategory: 'Retro', buttonText: 'VIEW ALL', buttonUrl: 'listing', maxProducts: 4 },
-    { id: 'product-row-la-liga', name: 'La Liga Row', visible: true, bgColor: 'bg-white', padding: 'py-12', margin: 'my-0', title: 'LA LIGA', subtitle: 'Shop La Liga — curated picks for collectors', status: 'active', sectionType: 'product-row', productCategory: 'La Liga', buttonText: 'VIEW ALL', buttonUrl: 'listing', maxProducts: 4 },
-    { id: 'product-row-world-cup', name: 'World Cup Row', visible: true, bgColor: 'bg-zinc-50/25', padding: 'py-12', margin: 'my-0', title: 'WORLD CUP', subtitle: 'National team World Cup kits & vault classics', status: 'active', sectionType: 'product-row', productCategory: 'World Cup', buttonText: 'VIEW ALL', buttonUrl: 'listing', maxProducts: 4 },
-    { id: 'player-edition', name: 'Player Edition Row', visible: true, bgColor: 'bg-white', padding: 'py-12', margin: 'my-0', title: 'PLAYER EDITION', subtitle: 'Slim-fit match issue quality kits', status: 'active', sectionType: 'product-row', productCategory: 'Player Edition', buttonText: 'VIEW ALL', buttonUrl: 'listing', maxProducts: 4 },
-    { id: 'kids-collection', name: 'Kids Collection Row', visible: true, bgColor: 'bg-white', padding: 'py-12', margin: 'my-0', title: 'KIDS', subtitle: 'Junior kits sized for ages 1–14', status: 'active', sectionType: 'product-row', productCategory: 'Kids', buttonText: 'VIEW ALL', buttonUrl: 'listing', maxProducts: 4 },
-    { id: 'customised-kit', name: 'Customised Kit Row', visible: true, bgColor: 'bg-zinc-50/25', padding: 'py-12', margin: 'my-0', title: 'CUSTOMISED KIT', subtitle: 'Custom printed kits with full size guide', status: 'active', sectionType: 'product-row', productCategory: 'Customised Kit', buttonText: 'VIEW ALL', buttonUrl: 'listing', maxProducts: 4 },
-    { id: 'fan-edition', name: 'Fan Edition Row', visible: true, bgColor: 'bg-white', padding: 'py-12', margin: 'my-0', title: 'FAN EDITION', subtitle: 'Comfortable stadium fan-fit replicas', status: 'active', sectionType: 'product-row', productCategory: 'Fan Edition', buttonText: 'VIEW ALL', buttonUrl: 'listing', maxProducts: 4 },
+    { id: 'featured-collection', name: 'Featured Collection Row', visible: true, bgColor: 'bg-black', padding: 'py-12', margin: 'my-0', title: 'VERIFIED FEATURED CLASSICS', subtitle: 'Curated 1-of-1 historic collectibles', status: 'active', sectionType: 'product-row', productCategory: 'Featured', buttonText: 'VIEW ALL', buttonUrl: 'listing', maxProducts: 4 },
+    { id: 'latest-products', name: 'Latest Products Row', visible: true, bgColor: 'bg-black', padding: 'py-12', margin: 'my-0', title: 'LATEST WORKSHOP DROPS', subtitle: 'Freshly authenticated physical catalog arrivals', status: 'active', sectionType: 'product-row', productCategory: 'New In', buttonText: '', maxProducts: 4 },
+    { id: 'retro-collection', name: 'Retro Collection Row', visible: true, bgColor: 'bg-black', padding: 'py-12', margin: 'my-0', title: 'RETRO', subtitle: 'Rare 80s, 90s & 2000s vintage reissues', status: 'active', sectionType: 'product-row', productCategory: 'Retro', buttonText: 'VIEW ALL', buttonUrl: 'listing', maxProducts: 4 },
+    { id: 'product-row-la-liga', name: 'La Liga Row', visible: true, bgColor: 'bg-black', padding: 'py-12', margin: 'my-0', title: 'LA LIGA', subtitle: 'Shop La Liga — curated picks for collectors', status: 'active', sectionType: 'product-row', productCategory: 'La Liga', buttonText: 'VIEW ALL', buttonUrl: 'listing', maxProducts: 4 },
+    { id: 'product-row-world-cup', name: 'World Cup Row', visible: true, bgColor: 'bg-black', padding: 'py-12', margin: 'my-0', title: 'WORLD CUP', subtitle: 'National team World Cup kits & vault classics', status: 'active', sectionType: 'product-row', productCategory: 'World Cup', buttonText: 'VIEW ALL', buttonUrl: 'listing', maxProducts: 4 },
+    { id: 'player-edition', name: 'Player Edition Row', visible: true, bgColor: 'bg-black', padding: 'py-12', margin: 'my-0', title: 'PLAYER EDITION', subtitle: 'Slim-fit match issue quality kits', status: 'active', sectionType: 'product-row', productCategory: 'Player Edition', buttonText: 'VIEW ALL', buttonUrl: 'listing', maxProducts: 4 },
+    { id: 'kids-collection', name: 'Kids Collection Row', visible: true, bgColor: 'bg-black', padding: 'py-12', margin: 'my-0', title: 'KIDS', subtitle: 'Junior kits sized for ages 1–14', status: 'active', sectionType: 'product-row', productCategory: 'Kids', buttonText: 'VIEW ALL', buttonUrl: 'listing', maxProducts: 4 },
+    { id: 'customised-kit', name: 'Customised Kit Row', visible: true, bgColor: 'bg-black', padding: 'py-12', margin: 'my-0', title: 'CUSTOMISED KIT', subtitle: 'Custom printed kits with full size guide', status: 'active', sectionType: 'product-row', productCategory: 'Customised Kit', buttonText: 'VIEW ALL', buttonUrl: 'listing', maxProducts: 4 },
+    { id: 'fan-edition', name: 'Fan Edition Row', visible: true, bgColor: 'bg-black', padding: 'py-12', margin: 'my-0', title: 'FAN EDITION', subtitle: 'Comfortable stadium fan-fit replicas', status: 'active', sectionType: 'product-row', productCategory: 'Fan Edition', buttonText: 'VIEW ALL', buttonUrl: 'listing', maxProducts: 4 },
     { id: 'preorder-jacket', name: 'Pre-Order Jacket Row', visible: true, bgColor: 'bg-amber-50/40', padding: 'py-12', margin: 'my-0', title: 'PRE-ORDER · JACKET', subtitle: 'Reserve jackets before they land in Dhaka', status: 'active', sectionType: 'product-row', productCategory: 'Jacket', buttonText: 'VIEW ALL', buttonUrl: 'listing', maxProducts: 4 },
-    { id: 'preorder-track-suit', name: 'Pre-Order Track Suit Row', visible: true, bgColor: 'bg-white', padding: 'py-12', margin: 'my-0', title: 'PRE-ORDER · TRACK SUIT', subtitle: 'Upcoming track suit drops — reserve yours', status: 'active', sectionType: 'product-row', productCategory: 'Track Suit', buttonText: 'VIEW ALL', buttonUrl: 'listing', maxProducts: 4 },
+    { id: 'preorder-track-suit', name: 'Pre-Order Track Suit Row', visible: true, bgColor: 'bg-black', padding: 'py-12', margin: 'my-0', title: 'PRE-ORDER · TRACK SUIT', subtitle: 'Upcoming track suit drops — reserve yours', status: 'active', sectionType: 'product-row', productCategory: 'Track Suit', buttonText: 'VIEW ALL', buttonUrl: 'listing', maxProducts: 4 },
     { id: 'preorder-badminton', name: 'Pre-Order Badminton Row', visible: true, bgColor: 'bg-amber-50/40', padding: 'py-12', margin: 'my-0', title: 'PRE-ORDER · BADMINTON RACKET', subtitle: 'Badminton rackets available for pre-order', status: 'active', sectionType: 'product-row', productCategory: 'Badminton Racket', buttonText: 'VIEW ALL', buttonUrl: 'listing', maxProducts: 4 },
     { id: 'worldcup-collection', name: 'World Cup Vault Section', visible: false, bgColor: 'bg-zinc-900/5', padding: 'py-12', margin: 'my-0', title: 'WORLD CUP HERITAGE VAULT', subtitle: 'Historical match issue kits from 1970 to 2026', status: 'inactive' },
-    { id: 'current-season', name: 'Current Season Row', visible: true, bgColor: 'bg-white', padding: 'py-12', margin: 'my-0', title: 'CURRENT SEASON STOCK', subtitle: 'Direct from authorized team supplier docks', status: 'active', sectionType: 'product-row', productCategory: 'Current Season', buttonText: 'EXPLORE MODERN', buttonUrl: 'listing', maxProducts: 4 },
+    { id: 'current-season', name: 'Current Season Row', visible: true, bgColor: 'bg-black', padding: 'py-12', margin: 'my-0', title: 'CURRENT SEASON STOCK', subtitle: 'Direct from authorized team supplier docks', status: 'active', sectionType: 'product-row', productCategory: 'Current Season', buttonText: 'EXPLORE MODERN', buttonUrl: 'listing', maxProducts: 4 },
     { id: 'mystery-box', name: 'Mystery Box Challenge', visible: false, bgColor: 'bg-gradient-to-r from-purple-950 to-indigo-950', padding: 'py-14', margin: 'my-6', title: 'THE VAULT MYSTERY BOX', subtitle: 'Receive one random 100% authentic retro or modern kit with premium certificates', status: 'inactive' },
-    { id: 'clearance', name: 'Clearance & Sale Rack', visible: true, bgColor: 'bg-white', padding: 'py-12', margin: 'my-0', title: 'OUTLET CLEARANCE SALE', subtitle: 'End of collection deadstock at cost prices', status: 'active', sectionType: 'product-row', productCategory: 'Clearance', buttonText: 'EXPLORE OUTLET', buttonUrl: 'listing', maxProducts: 4 },
-    { id: 'best-sellers', name: 'Best Sellers Grid', visible: true, bgColor: 'bg-zinc-50/25', padding: 'py-12', margin: 'my-0', title: 'BEST SELLERS', subtitle: 'Most reviewed and requested reissues', status: 'active', sectionType: 'product-row', productCategory: 'Best Sellers', buttonText: 'VIEW ALL', buttonUrl: 'listing', maxProducts: 4 },
-    { id: 'shop-by-legends', name: 'Shop by Legends portraits', visible: false, bgColor: 'bg-white', padding: 'py-12', margin: 'my-0', title: 'THE LEGENDS STORE', subtitle: 'Embroidered match prints of historical deities', status: 'inactive' },
-    { id: 'community-gallery', name: 'Dhaka Fan Community Gallery', visible: true, bgColor: 'bg-zinc-50', padding: 'py-12', margin: 'my-0', title: 'COLLECTORS IN DHAKA', subtitle: 'Fan gallery sharing local unboxings on Bailey Road', status: 'active' },
-    { id: 'testimonials', name: 'Testimonials Deck', visible: true, bgColor: 'bg-white', padding: 'py-12', margin: 'my-0', title: 'WHAT COLLECTORS DECLARE', subtitle: 'Genuine reviews from verified buyers', status: 'active' },
+    { id: 'clearance', name: 'Clearance & Sale Rack', visible: true, bgColor: 'bg-black', padding: 'py-12', margin: 'my-0', title: 'OUTLET CLEARANCE SALE', subtitle: 'End of collection deadstock at cost prices', status: 'active', sectionType: 'product-row', productCategory: 'Clearance', buttonText: 'EXPLORE OUTLET', buttonUrl: 'listing', maxProducts: 4 },
+    { id: 'best-sellers', name: 'Best Sellers Grid', visible: true, bgColor: 'bg-black', padding: 'py-12', margin: 'my-0', title: 'BEST SELLERS', subtitle: 'Most reviewed and requested reissues', status: 'active', sectionType: 'product-row', productCategory: 'Best Sellers', buttonText: 'VIEW ALL', buttonUrl: 'listing', maxProducts: 4 },
+    { id: 'shop-by-legends', name: 'Shop by Legends portraits', visible: false, bgColor: 'bg-black', padding: 'py-12', margin: 'my-0', title: 'THE LEGENDS STORE', subtitle: 'Embroidered match prints of historical deities', status: 'inactive' },
+    { id: 'community-gallery', name: 'Dhaka Fan Community Gallery', visible: true, bgColor: 'bg-black', padding: 'py-12', margin: 'my-0', title: 'COLLECTORS IN DHAKA', subtitle: 'Fan gallery sharing local unboxings on Bailey Road', status: 'active' },
+    { id: 'testimonials', name: 'Testimonials Deck', visible: true, bgColor: 'bg-black', padding: 'py-12', margin: 'my-0', title: 'WHAT COLLECTORS DECLARE', subtitle: 'Genuine reviews from verified buyers', status: 'active' },
     { id: 'video-banner', name: 'Video Feature Banner', visible: false, bgColor: 'bg-zinc-950', padding: 'py-16', margin: 'my-0', title: 'THE ART OF AUTHENTICATION', subtitle: 'A look inside our 12-point micro-fabric check laboratory in Dhaka', status: 'inactive' },
-    { id: 'instagram-feed', name: 'Instagram Feed Mockup', visible: false, bgColor: 'bg-white', padding: 'py-12', margin: 'my-0', title: 'FOLLOW @JERSEYADDICTS_BD', subtitle: 'Daily vintage drops, buyer photos, and restocks', status: 'inactive' },
-    { id: 'newsletter', name: 'Newsletter Subscription', visible: true, bgColor: 'bg-zinc-900', padding: 'py-12', margin: 'my-4', title: 'JOIN THE EXCLUSIVE CIRCLE', subtitle: 'Be first to receive physical workshop inventory arrivals', status: 'active' },
-    { id: 'store-locations', name: 'Physical Store Maps', visible: true, bgColor: 'bg-white', padding: 'py-12', margin: 'my-0', title: 'PHYSICAL OUTLET POINTS', subtitle: 'Visit us for physical sizing and authentications', status: 'active' }
+    { id: 'instagram-feed', name: 'Instagram Feed Mockup', visible: false, bgColor: 'bg-black', padding: 'py-12', margin: 'my-0', title: 'FOLLOW @JERSEYADDICTS_BD', subtitle: 'Daily vintage drops, buyer photos, and restocks', status: 'inactive' },
+    { id: 'newsletter', name: 'Newsletter Subscription', visible: true, bgColor: 'bg-black', padding: 'py-12', margin: 'my-4', title: 'JOIN THE EXCLUSIVE CIRCLE', subtitle: 'Be first to receive physical workshop inventory arrivals', status: 'active' },
+    { id: 'store-locations', name: 'Physical Store Maps', visible: true, bgColor: 'bg-black', padding: 'py-12', margin: 'my-0', title: 'PHYSICAL OUTLET POINTS', subtitle: 'Visit us for physical sizing and authentications', status: 'active' }
   ],
   banners: [
     {
@@ -796,7 +796,7 @@ export default function App() {
             if (s.id === 'current-season') return { ...s, sectionType: 'product-row', productCategory: s.productCategory || 'Current Season', buttonText: s.buttonText ?? 'EXPLORE MODERN', buttonUrl: s.buttonUrl || 'listing', maxProducts: s.maxProducts ?? 4 };
             if (s.id === 'clearance') return { ...s, sectionType: 'product-row', productCategory: s.productCategory || 'Clearance', buttonText: s.buttonText ?? 'EXPLORE OUTLET', buttonUrl: s.buttonUrl || 'listing', maxProducts: s.maxProducts ?? 4 };
             if (s.id === 'latest-products') return { ...s, sectionType: 'product-row', productCategory: s.productCategory || 'New In', buttonText: s.buttonText ?? '', maxProducts: s.maxProducts ?? 4 };
-            if (s.id === 'hero-slider') return { ...s, visible: true, status: 'active', bgColor: 'bg-white', padding: 'py-0', margin: 'my-0' };
+            if (s.id === 'hero-slider') return { ...s, visible: true, status: 'active', bgColor: 'bg-black', padding: 'py-0', margin: 'my-0' };
             if (s.id === 'community-gallery') {
               return { ...s, visible: true, status: 'active', title: 'COLLECTORS IN DHAKA', subtitle: 'Fan gallery sharing local unboxings on Bailey Road' };
             }
@@ -2211,7 +2211,7 @@ export default function App() {
   };
 
   const getThemeBgClass = () => {
-    return 'bg-white';
+    return 'bg-[#121212]';
   };
 
   const formatPrice = (amount: number): string => {
@@ -2223,7 +2223,7 @@ export default function App() {
   const isAdminShell = currentPage === 'admin' || currentPage === 'auth';
 
   return (
-    <div className={`min-h-screen w-full min-w-0 overflow-x-hidden bg-white text-zinc-950 selection:bg-black selection:text-white flex flex-col justify-between`}>
+    <div className={`min-h-screen w-full min-w-0 overflow-x-hidden bg-black text-white selection:bg-red-600 selection:text-white flex flex-col justify-between`}>
       <UiFeedbackHost />
 
       {/* Storefront chrome — hidden on secret admin portal */}
@@ -2280,7 +2280,7 @@ export default function App() {
                 </button>
               )}
             </div>
-            <div className="flex-1 bg-white">
+            <div className="flex-1 bg-black">
               {currentPage === 'auth' && (
                 <AuthScreen
                   onLoginSuccess={handleLoginSuccess}
@@ -2365,16 +2365,16 @@ export default function App() {
           <section className="max-w-7xl mx-auto px-4 md:px-12 py-6 sm:py-10 min-h-screen w-full min-w-0 overflow-x-hidden">
             
             {/* Catalog Banner */}
-            <div className="border-b border-zinc-100 pb-6 mb-6 sm:mb-8 flex flex-col md:flex-row justify-between items-start md:items-end gap-4">
+            <div className="border-b border-zinc-800 pb-6 mb-6 sm:mb-8 flex flex-col md:flex-row justify-between items-start md:items-end gap-4">
               <div className="min-w-0">
-                <h1 className="text-xl sm:text-2xl md:text-3xl font-black uppercase tracking-tight text-zinc-950 font-display break-words">
+                <h1 className="text-xl sm:text-2xl md:text-3xl font-black uppercase tracking-tight text-white font-display break-words">
                   {selectedCategory && selectedCategory !== 'All'
                     ? resolveStorefrontPage(selectedCategory)
                       ? canonicalTargetPageName(selectedCategory)
                       : selectedCategory
                     : 'All Jerseys'}
                 </h1>
-                <p className="text-xs text-zinc-700 font-mono mt-1">
+                <p className="text-xs text-zinc-400 font-mono mt-1">
                   Showing {filteredProducts.length} verified original jerseys
                   {selectedBrand !== 'All' ? ` · ${selectedBrand}` : ''}
                   {selectedCondition !== 'All' ? ` · ${selectedCondition}` : ''}
@@ -2400,7 +2400,7 @@ export default function App() {
                 <button
                   type="button"
                   onClick={() => setMobileFiltersOpen((open) => !open)}
-                  className="w-full flex items-center justify-center gap-2 bg-zinc-50 border border-zinc-200 text-zinc-900 text-xs font-bold uppercase tracking-wider py-3 rounded-xl cursor-pointer"
+                  className="w-full flex items-center justify-center gap-2 bg-zinc-900 border border-zinc-800 text-zinc-100 text-xs font-bold uppercase tracking-wider py-3 rounded-xl cursor-pointer"
                 >
                   <SlidersHorizontal size={14} />
                   {mobileFiltersOpen ? 'Hide Filters' : 'Show Filters'}
@@ -2411,32 +2411,32 @@ export default function App() {
               </div>
               
               {/* Left Column: Filter Sidebar */}
-              <div className={`lg:col-span-3 bg-white border border-zinc-100 rounded-2xl p-4 sm:p-6 space-y-6 shadow-sm w-full min-w-0 ${mobileFiltersOpen ? 'block' : 'hidden lg:block'}`}>
+              <div className={`lg:col-span-3 bg-[#121212] border border-zinc-800 rounded-2xl p-4 sm:p-6 space-y-6 shadow-sm w-full min-w-0 ${mobileFiltersOpen ? 'block' : 'hidden lg:block'}`}>
                 
-                <div className="flex justify-between items-center border-b border-zinc-100 pb-2">
-                  <h3 className="text-xs font-mono font-black text-zinc-700 uppercase tracking-widest flex items-center gap-1.5">
+                <div className="flex justify-between items-center border-b border-zinc-800 pb-2">
+                  <h3 className="text-xs font-mono font-black text-zinc-400 uppercase tracking-widest flex items-center gap-1.5">
                     <SlidersHorizontal size={13} /> Filter Engine
                   </h3>
-                  <button onClick={resetFilters} className="text-[10px] text-zinc-600 hover:text-zinc-900 font-mono uppercase">
+                  <button onClick={resetFilters} className="text-[10px] text-zinc-600 hover:text-zinc-100 font-mono uppercase">
                     Reset
                   </button>
                 </div>
 
                 {/* Search */}
                 <div className="space-y-2">
-                  <span className="text-[10px] text-zinc-800 font-mono font-bold uppercase tracking-wider block">Keyword Search:</span>
+                  <span className="text-[10px] text-zinc-300 font-mono font-bold uppercase tracking-wider block">Keyword Search:</span>
                   <input
                     type="text"
                     placeholder="Search player, club, SKU..."
                     value={searchQuery}
                     onChange={(e) => setSearchQuery(e.target.value)}
-                    className="w-full bg-zinc-50 border border-zinc-100 rounded-xl py-2 px-3 text-zinc-950 placeholder-zinc-400 text-xs focus:outline-none focus:border-zinc-900 focus:ring-1 focus:ring-zinc-900/10 font-mono"
+                    className="w-full bg-zinc-900 border border-zinc-800 rounded-xl py-2 px-3 text-white placeholder-zinc-500 text-xs focus:outline-none focus:border-red-600 focus:ring-1 focus:ring-red-600/10 font-mono"
                   />
                 </div>
 
                 {/* Brands */}
                 <div className="space-y-2">
-                  <span className="text-[10px] text-zinc-800 font-mono font-bold uppercase tracking-wider block">Brands:</span>
+                  <span className="text-[10px] text-zinc-300 font-mono font-bold uppercase tracking-wider block">Brands:</span>
                   <div className="space-y-1.5 max-h-48 overflow-y-auto pr-1">
                     {listingFilterOptions.brands.map((b) => (
                       <button
@@ -2444,7 +2444,7 @@ export default function App() {
                         key={b}
                         onClick={() => setSelectedBrand(b)}
                         className={`w-full text-left text-xs px-2.5 py-1.5 rounded-lg cursor-pointer transition-colors ${
-                          selectedBrand === b ? 'bg-black text-white font-extrabold shadow-sm' : 'hover:bg-zinc-50 text-zinc-900'
+                          selectedBrand === b ? 'bg-black text-white font-extrabold shadow-sm' : 'hover:bg-zinc-900 text-zinc-100'
                         }`}
                       >
                         {b}
@@ -2455,7 +2455,7 @@ export default function App() {
 
                 {/* Categories — live values from catalog */}
                 <div className="space-y-2">
-                  <span className="text-[10px] text-zinc-800 font-mono font-bold uppercase tracking-wider block">Category:</span>
+                  <span className="text-[10px] text-zinc-300 font-mono font-bold uppercase tracking-wider block">Category:</span>
                   <div className="space-y-1.5 max-h-56 overflow-y-auto pr-1">
                     {listingFilterOptions.categories.map((cat) => {
                       const label = canonicalTargetPageName(cat) || cat;
@@ -2468,7 +2468,7 @@ export default function App() {
                           key={cat}
                           onClick={() => setSelectedCategory(cat)}
                           className={`w-full text-left text-xs px-2.5 py-1.5 rounded-lg cursor-pointer transition-colors ${
-                            selected ? 'bg-black text-white font-extrabold shadow-sm' : 'hover:bg-zinc-50 text-zinc-900'
+                            selected ? 'bg-black text-white font-extrabold shadow-sm' : 'hover:bg-zinc-900 text-zinc-100'
                           }`}
                         >
                           {label}
@@ -2480,7 +2480,7 @@ export default function App() {
 
                 {/* Conditions */}
                 <div className="space-y-2">
-                  <span className="text-[10px] text-zinc-800 font-mono font-bold uppercase tracking-wider block">Condition Matrix:</span>
+                  <span className="text-[10px] text-zinc-300 font-mono font-bold uppercase tracking-wider block">Condition Matrix:</span>
                   <div className="space-y-1.5">
                     {listingFilterOptions.conditions.map((cond) => (
                       <button
@@ -2488,7 +2488,7 @@ export default function App() {
                         key={cond}
                         onClick={() => setSelectedCondition(cond)}
                         className={`w-full text-left text-xs px-2.5 py-1.5 rounded-lg cursor-pointer transition-colors ${
-                          selectedCondition === cond ? 'bg-black text-white font-extrabold shadow-sm' : 'hover:bg-zinc-50 text-zinc-900'
+                          selectedCondition === cond ? 'bg-black text-white font-extrabold shadow-sm' : 'hover:bg-zinc-900 text-zinc-100'
                         }`}
                       >
                         {cond}
@@ -2499,11 +2499,11 @@ export default function App() {
 
                 {/* Sorting Select */}
                 <div className="space-y-2">
-                  <span className="text-[10px] text-zinc-800 font-mono font-bold uppercase tracking-wider block">Sort Catalogue:</span>
+                  <span className="text-[10px] text-zinc-300 font-mono font-bold uppercase tracking-wider block">Sort Catalogue:</span>
                   <select
                     value={sortBy}
                     onChange={(e) => setSortBy(e.target.value)}
-                    className="w-full bg-zinc-50 border border-zinc-100 rounded-xl py-2 px-3 text-zinc-950 text-xs focus:outline-none focus:border-zinc-900"
+                    className="w-full bg-zinc-900 border border-zinc-800 rounded-xl py-2 px-3 text-white text-xs focus:outline-none focus:border-red-600"
                   >
                     <option value="featured">Sourced Featured</option>
                     <option value="price-low">Price: Low-to-High</option>
@@ -2519,13 +2519,13 @@ export default function App() {
               {/* Right Column: Active catalog items matching filters */}
               <div className="lg:col-span-9 w-full min-w-0">
                 {filteredProducts.length === 0 ? (
-                  <div className="bg-white border border-zinc-100 rounded-2xl p-12 text-center space-y-4 shadow-sm">
-                    <p className="text-zinc-800 text-sm max-w-sm mx-auto">
+                  <div className="bg-[#121212] border border-zinc-800 rounded-2xl p-12 text-center space-y-4 shadow-sm">
+                    <p className="text-zinc-300 text-sm max-w-sm mx-auto">
                       No vintage jerseys found matching the selected search query or category parameters inside the database.
                     </p>
                     <button
                       onClick={resetFilters}
-                      className="bg-black hover:bg-zinc-800 text-white font-extrabold text-xs uppercase tracking-widest px-6 py-2.5 rounded-full cursor-pointer transition-all shadow-md shadow-black/10"
+                      className="bg-red-600 hover:bg-red-700 text-white font-extrabold text-xs uppercase tracking-widest px-6 py-2.5 rounded-full cursor-pointer transition-all shadow-md shadow-black/10"
                     >
                       Clear Active Filters
                     </button>
@@ -2597,21 +2597,21 @@ export default function App() {
           />
         )}
         {currentPage === 'order-success' && lastPlacedOrder && (
-          <section className="max-w-3xl mx-auto px-4 md:px-6 py-12 md:py-16 space-y-8 text-black animate-fadeIn">
+          <section className="max-w-3xl mx-auto px-4 md:px-6 py-12 md:py-16 space-y-8 text-white animate-fadeIn">
             {/* STAGE 1: SUCCESS CELEBRATION CARD */}
-            <div className="bg-white border-2 border-zinc-300 rounded-3xl p-6 md:p-8 text-center space-y-6 shadow-xl max-w-xl mx-auto">
-              <div className="w-16 h-16 bg-zinc-50 border-2 border-zinc-500 text-zinc-800 rounded-full flex items-center justify-center mx-auto shadow-sm">
-                <CheckCircle size={32} className="text-zinc-700" />
+            <div className="bg-[#121212] border-2 border-zinc-700 rounded-3xl p-6 md:p-8 text-center space-y-6 shadow-xl max-w-xl mx-auto">
+              <div className="w-16 h-16 bg-zinc-900 border-2 border-zinc-8000 text-zinc-300 rounded-full flex items-center justify-center mx-auto shadow-sm">
+                <CheckCircle size={32} className="text-zinc-400" />
               </div>
 
               <div className="space-y-2">
-                <h1 className="text-2xl md:text-3xl font-black uppercase tracking-tight text-black">Order Placed Successfully!</h1>
-                <p className="text-xs text-zinc-700 font-mono font-bold uppercase tracking-wider">
+                <h1 className="text-2xl md:text-3xl font-black uppercase tracking-tight text-white">Order Placed Successfully!</h1>
+                <p className="text-xs text-zinc-400 font-mono font-bold uppercase tracking-wider">
                   Reference ID: {lastPlacedOrder.id} • STATUS: CONFIRMED
                 </p>
               </div>
 
-              <p className="text-zinc-800 text-xs md:text-sm font-medium leading-relaxed max-w-sm mx-auto">
+              <p className="text-zinc-300 text-xs md:text-sm font-medium leading-relaxed max-w-sm mx-auto">
                 Thank you for your order! Your vintage jersey package is being prepared for secure delivery. You will pay the bill upon doorstep arrival. Below is your official invoice.
               </p>
 
@@ -2623,17 +2623,17 @@ export default function App() {
                       invoiceElement.scrollIntoView({ behavior: 'smooth' });
                     }
                   }}
-                  className="flex-1 bg-black hover:bg-zinc-800 text-white font-extrabold text-xs uppercase tracking-widest py-3 rounded-xl cursor-pointer transition-all flex items-center justify-center gap-2"
+                  className="flex-1 bg-red-600 hover:bg-red-700 text-white font-extrabold text-xs uppercase tracking-widest py-3 rounded-xl cursor-pointer transition-all flex items-center justify-center gap-2"
                 >
                   <Receipt size={14} /> View Invoice & Bill
                 </button>
                 <button
                   onClick={handleDownloadPDF}
                   disabled={isGeneratingPDF}
-                  className={`flex-1 font-extrabold text-xs uppercase tracking-wider py-3 rounded-xl cursor-pointer transition-all border-2 border-zinc-300 flex items-center justify-center gap-2 ${
+                  className={`flex-1 font-extrabold text-xs uppercase tracking-wider py-3 rounded-xl cursor-pointer transition-all border-2 border-zinc-700 flex items-center justify-center gap-2 ${
                     isGeneratingPDF 
-                      ? 'bg-zinc-100 text-zinc-400 border-zinc-200 cursor-not-allowed' 
-                      : 'bg-white hover:bg-zinc-100 text-black'
+                      ? 'bg-zinc-800 text-zinc-400 border-zinc-800 cursor-not-allowed' 
+                      : 'bg-[#121212] hover:bg-zinc-800 text-white'
                   }`}
                 >
                   <Download size={14} className={isGeneratingPDF ? 'animate-pulse' : ''} />
@@ -2645,13 +2645,13 @@ export default function App() {
             {/* STAGE 2: THE PHYSICAL INVOICE & BILL RECEIPT */}
             <div 
               id="printable-invoice" 
-              className="bg-white border-2 border-zinc-400 p-6 md:p-10 rounded-2xl shadow-2xl space-y-8 relative overflow-hidden font-mono text-xs text-black max-w-2xl mx-auto"
+              className="bg-[#121212] border-2 border-zinc-400 p-6 md:p-10 rounded-2xl shadow-2xl space-y-8 relative overflow-hidden font-mono text-xs text-white max-w-2xl mx-auto"
             >
               {/* Paper Top Dotted Pattern */}
               <div className="absolute top-0 left-0 right-0 h-1 bg-[radial-gradient(#000_1px,transparent_1px)] [background-size:8px_8px] opacity-20" />
               
               {/* Receipt Header */}
-              <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 border-b-2 border-zinc-200 pb-6">
+              <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 border-b-2 border-zinc-800 pb-6">
                 <div>
                   <div className="flex items-center gap-2">
                     <BrandMark className="p-1 rounded-xl" imgClassName="w-8 h-8" />
@@ -2660,7 +2660,7 @@ export default function App() {
                         <span className="text-red-600 font-sans font-black text-sm md:text-base tracking-tight leading-none uppercase">
                           Epic
                         </span>
-                        <span className="text-black font-sans font-black text-sm md:text-base tracking-tight leading-none uppercase">
+                        <span className="text-white font-sans font-black text-sm md:text-base tracking-tight leading-none uppercase">
                           Vanskap
                         </span>
                       </div>
@@ -2670,30 +2670,30 @@ export default function App() {
                     Premium Authenticated Football Kits<br />
                     Shop No. 8, 3rd Floor, AQP Shopping Mall,<br />
                     143/2 New Bailey Road, Dhaka 1217, Bangladesh<br />
-                    Email: support@epicvanskap.com • <span className="text-zinc-800 font-black">Phone: +880 1840-990700</span>
+                    Email: support@epicvanskap.com • <span className="text-zinc-300 font-black">Phone: +880 1840-990700</span>
                   </p>
                 </div>
                 <div className="text-left md:text-right font-mono text-[11px] space-y-1">
                   <p><span className="font-bold">INVOICE:</span> #{lastPlacedOrder.id.slice(0, 8).toUpperCase()}</p>
                   <p><span className="font-bold">DATE:</span> {new Date().toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' })}</p>
                   <p><span className="font-bold">TRACKING:</span> {lastPlacedOrder.trackingNumber}</p>
-                  <p><span className="font-bold text-zinc-700">METHOD:</span> {lastPlacedOrder.paymentMethod}</p>
+                  <p><span className="font-bold text-zinc-400">METHOD:</span> {lastPlacedOrder.paymentMethod}</p>
                 </div>
               </div>
 
               {/* Billed To Customer Details */}
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6 bg-zinc-50 border border-zinc-200 p-4 rounded-xl">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6 bg-zinc-900 border border-zinc-800 p-4 rounded-xl">
                 <div className="space-y-1">
                   <span className="text-[9px] font-black text-zinc-500 uppercase tracking-widest block">CLIENT DETAILS:</span>
-                  <p className="font-black text-sm text-black uppercase">{lastPlacedOrder.shippingAddress.fullName}</p>
-                  <p className="text-[11px] text-zinc-800 leading-normal font-bold">Phone: {lastPlacedOrder.shippingAddress.phone}</p>
+                  <p className="font-black text-sm text-white uppercase">{lastPlacedOrder.shippingAddress.fullName}</p>
+                  <p className="text-[11px] text-zinc-300 leading-normal font-bold">Phone: {lastPlacedOrder.shippingAddress.phone}</p>
                   {lastPlacedOrder.shippingAddress.email && (
                     <p className="text-[11px] text-zinc-600 truncate">Email: {lastPlacedOrder.shippingAddress.email}</p>
                   )}
                 </div>
                 <div className="space-y-1">
                   <span className="text-[9px] font-black text-zinc-500 uppercase tracking-widest block">DELIVERY DESTINATION:</span>
-                  <p className="font-medium text-zinc-800 leading-relaxed">
+                  <p className="font-medium text-zinc-300 leading-relaxed">
                     {lastPlacedOrder.shippingAddress.addressLine1}<br />
                     {lastPlacedOrder.shippingAddress.city} {lastPlacedOrder.shippingAddress.postalCode ? `- ${lastPlacedOrder.shippingAddress.postalCode}` : ''}
                   </p>
@@ -2707,18 +2707,18 @@ export default function App() {
               <div className="space-y-3">
                 <span className="text-[9px] font-black text-zinc-500 uppercase tracking-widest block">ITEMIZED DESCRIPTION:</span>
                 
-                <div className="border-t border-b border-zinc-300 py-2">
-                  <div className="grid grid-cols-12 gap-2 font-black text-black pb-1.5 uppercase tracking-wider text-[10px]">
+                <div className="border-t border-b border-zinc-700 py-2">
+                  <div className="grid grid-cols-12 gap-2 font-black text-white pb-1.5 uppercase tracking-wider text-[10px]">
                     <div className="col-span-6">JERSEY NAME</div>
                     <div className="col-span-2 text-center">SIZE</div>
                     <div className="col-span-1 text-center">QTY</div>
                     <div className="col-span-3 text-right">PRICE</div>
                   </div>
                   
-                  <div className="divide-y divide-dashed divide-zinc-200">
+                  <div className="divide-y divide-dashed divide-zinc-800">
                     {lastPlacedOrder.items.map((item, index) => (
-                      <div key={index} className="grid grid-cols-12 gap-2 py-2 items-center text-[11px] text-zinc-950 font-semibold">
-                        <div className="col-span-6 truncate font-extrabold text-black" title={item.product.name}>
+                      <div key={index} className="grid grid-cols-12 gap-2 py-2 items-center text-[11px] text-white font-semibold">
+                        <div className="col-span-6 truncate font-extrabold text-white" title={item.product.name}>
                           {item.product.name}
                         </div>
                         <div className="col-span-2 text-center font-mono font-black">{item.selectedSize}</div>
@@ -2732,22 +2732,22 @@ export default function App() {
 
               {/* Billing Breakdown Bill */}
               <div className="flex flex-col items-end pt-2">
-                <div className="w-full md:w-80 space-y-2.5 font-mono text-zinc-900 text-xs">
-                  <div className="flex justify-between border-b border-zinc-200 pb-2">
+                <div className="w-full md:w-80 space-y-2.5 font-mono text-zinc-100 text-xs">
+                  <div className="flex justify-between border-b border-zinc-800 pb-2">
                     <span className="font-bold">Subtotal:</span>
-                    <span className="font-black text-black">{formatPrice(lastPlacedOrder.subtotal)}</span>
+                    <span className="font-black text-white">{formatPrice(lastPlacedOrder.subtotal)}</span>
                   </div>
-                  <div className="flex justify-between border-b border-zinc-200 pb-2">
+                  <div className="flex justify-between border-b border-zinc-800 pb-2">
                     <span className="font-bold">Delivery Charge:</span>
-                    <span className="font-black text-black">৳{lastPlacedOrder.deliveryCharge || (lastPlacedOrder.deliveryRegion === 'inside' ? 70 : 130)}</span>
+                    <span className="font-black text-white">৳{lastPlacedOrder.deliveryCharge || (lastPlacedOrder.deliveryRegion === 'inside' ? 70 : 130)}</span>
                   </div>
-                  <div className="flex justify-between border-b border-zinc-200 pb-2">
+                  <div className="flex justify-between border-b border-zinc-800 pb-2">
                     <span className="font-bold">Order Total:</span>
-                    <span className="font-black text-black">{formatPrice(lastPlacedOrder.total)}</span>
+                    <span className="font-black text-white">{formatPrice(lastPlacedOrder.total)}</span>
                   </div>
                   {lastPlacedOrder.bkashPaymentType === 'partial' ? (
                     <>
-                      <div className="flex justify-between border-b border-zinc-200 pb-2 text-[10px] text-zinc-600">
+                      <div className="flex justify-between border-b border-zinc-800 pb-2 text-[10px] text-zinc-600">
                         <span className="font-bold">Advance rate:</span>
                         <span className="font-mono font-black">
                           ৳{(appConfig.bkashPartialAmountBdt ?? 300).toLocaleString('en-BD')} ×{' '}
@@ -2758,15 +2758,15 @@ export default function App() {
                             : 's'}
                         </span>
                       </div>
-                      <div className="flex justify-between border-b border-zinc-200 pb-2 text-[#E2136E]">
+                      <div className="flex justify-between border-b border-zinc-800 pb-2 text-[#E2136E]">
                         <span className="font-bold">bKash advance paid now:</span>
                         <span className="font-black">
                           {formatPrice(lastPlacedOrder.bkashPaidAmount ?? 0)}
                         </span>
                       </div>
-                      <div className="flex justify-between border-b border-zinc-200 pb-2">
+                      <div className="flex justify-between border-b border-zinc-800 pb-2">
                         <span className="font-bold">Due on delivery:</span>
-                        <span className="font-black text-black">
+                        <span className="font-black text-white">
                           {formatPrice(
                             Math.max(
                               0,
@@ -2786,10 +2786,10 @@ export default function App() {
                     </>
                   ) : (
                     <div className="flex justify-between text-sm pt-1">
-                      <span className="font-black text-black uppercase tracking-wide">
+                      <span className="font-black text-white uppercase tracking-wide">
                         Grand Total to Pay:
                       </span>
-                      <span className="font-black text-black underline decoration-double decoration-2 underline-offset-4">
+                      <span className="font-black text-white underline decoration-double decoration-2 underline-offset-4">
                         {formatPrice(
                           lastPlacedOrder.bkashPaidAmount ?? lastPlacedOrder.total,
                         )}
@@ -2802,19 +2802,19 @@ export default function App() {
               {/* Mobile wallet payment receipt details */}
               {(lastPlacedOrder.paymentMethod?.toLowerCase().includes('bkash') ||
                 lastPlacedOrder.paymentMethod?.toLowerCase().includes('nagad')) && (
-                <div className="border-2 border-zinc-300 bg-zinc-50 rounded-xl p-4 space-y-2">
+                <div className="border-2 border-zinc-700 bg-zinc-900 rounded-xl p-4 space-y-2">
                   <div className="flex items-center gap-2">
                     <span className="inline-flex items-center justify-center w-7 h-7 rounded-md bg-black text-white font-black text-[9px]">SM</span>
-                    <span className="font-black text-xs uppercase tracking-wider text-zinc-950">
+                    <span className="font-black text-xs uppercase tracking-wider text-white">
                       {lastPlacedOrder.paymentMethod?.toLowerCase().includes('nagad') ? 'Nagad' : 'bKash'} Send Money
                       {lastPlacedOrder.bkashPaymentType === 'partial'
                         ? ' · Partial Advance'
                         : ' · Full Pay'}
                     </span>
                   </div>
-                  <p className="text-[11px] font-bold text-zinc-800">
+                  <p className="text-[11px] font-bold text-zinc-300">
                     Amount sent:{' '}
-                    <span className="font-mono text-zinc-950">
+                    <span className="font-mono text-white">
                       {formatPrice(lastPlacedOrder.bkashPaidAmount ?? lastPlacedOrder.total)}
                     </span>
                     {lastPlacedOrder.bkashPaymentType === 'partial' && (
@@ -2832,12 +2832,12 @@ export default function App() {
                     )}
                   </p>
                   {lastPlacedOrder.bkashNumber && (
-                    <p className="text-[11px] font-bold text-zinc-800">
+                    <p className="text-[11px] font-bold text-zinc-300">
                       From: <span className="font-mono">{lastPlacedOrder.bkashNumber}</span>
                     </p>
                   )}
                   {lastPlacedOrder.bkashTransactionId && (
-                    <p className="text-[11px] font-bold text-zinc-800">
+                    <p className="text-[11px] font-bold text-zinc-300">
                       TrxID: <span className="font-mono uppercase">{lastPlacedOrder.bkashTransactionId}</span>
                     </p>
                   )}
@@ -2845,7 +2845,7 @@ export default function App() {
               )}
 
               {/* Decorative Authentic Elements */}
-              <div className="flex flex-col sm:flex-row justify-between items-center gap-6 pt-6 border-t-2 border-zinc-200">
+              <div className="flex flex-col sm:flex-row justify-between items-center gap-6 pt-6 border-t-2 border-zinc-800">
                 {/* Simulated Barcode */}
                 <div className="flex flex-col items-start gap-1">
                   <div className="h-10 w-44 flex gap-[2px] items-stretch opacity-85">
@@ -2865,7 +2865,7 @@ export default function App() {
                 {/* Vault Stamp / Guarantee */}
                 <div className="border-4 border-double border-zinc-400 rounded-full px-5 py-2 text-center text-zinc-500 select-none scale-90 rotate-[-2deg]">
                   <p className="text-[8px] font-black tracking-widest uppercase">OFFICIAL SEAL</p>
-                  <p className="text-[11px] font-black tracking-tight text-zinc-800 uppercase">Epic Vanskap BD AUTHENTIC</p>
+                  <p className="text-[11px] font-black tracking-tight text-zinc-300 uppercase">Epic Vanskap BD AUTHENTIC</p>
                   <p className="text-[8px] font-mono tracking-widest uppercase font-bold">100% DEADSTOCK CO.</p>
                 </div>
               </div>
@@ -2884,7 +2884,7 @@ export default function App() {
                   setLastPlacedOrder(null);
                   goToPage('listing');
                 }}
-                className="flex-1 bg-black hover:bg-zinc-800 text-white font-extrabold text-xs uppercase tracking-widest py-3.5 rounded-xl cursor-pointer transition-all flex items-center justify-center gap-2"
+                className="flex-1 bg-red-600 hover:bg-red-700 text-white font-extrabold text-xs uppercase tracking-widest py-3.5 rounded-xl cursor-pointer transition-all flex items-center justify-center gap-2"
               >
                 <ShoppingBag size={14} /> Continue Shopping
               </button>
@@ -2893,7 +2893,7 @@ export default function App() {
                   setLastPlacedOrder(null);
                   goToPage('dashboard');
                 }}
-                className="flex-1 bg-white hover:bg-zinc-100 text-black font-extrabold text-xs uppercase tracking-wider py-3.5 rounded-xl cursor-pointer transition-all border-2 border-zinc-300 flex items-center justify-center gap-2"
+                className="flex-1 bg-[#121212] hover:bg-zinc-800 text-white font-extrabold text-xs uppercase tracking-wider py-3.5 rounded-xl cursor-pointer transition-all border-2 border-zinc-700 flex items-center justify-center gap-2"
               >
                 View My Purchase History
               </button>

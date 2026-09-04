@@ -40,13 +40,13 @@ export const Cart: React.FC<CartProps> = ({ cart, setCart, onCheckout, onBackToC
 
   if (cart.length === 0) {
     return (
-      <section className="max-w-4xl mx-auto px-6 py-16 text-center text-zinc-950 space-y-6">
-        <div className="w-20 h-20 bg-zinc-50 border border-zinc-100 rounded-full flex items-center justify-center mx-auto text-zinc-700 shadow-xl">
+      <section className="max-w-4xl mx-auto px-6 py-16 text-center text-white space-y-6">
+        <div className="w-20 h-20 bg-zinc-900 border border-zinc-800 rounded-full flex items-center justify-center mx-auto text-zinc-400 shadow-xl">
           <ShoppingCart size={32} />
         </div>
         <div className="space-y-2">
           <h1 className="text-2xl font-black uppercase tracking-tight">Your Jersey Bag is Empty</h1>
-          <p className="text-zinc-800 text-sm max-w-md mx-auto leading-relaxed">
+          <p className="text-zinc-300 text-sm max-w-md mx-auto leading-relaxed">
             There are currently no vintage items inside your bag. Explore our historical collections and secure a piece of football legacy today.
           </p>
         </div>
@@ -61,18 +61,18 @@ export const Cart: React.FC<CartProps> = ({ cart, setCart, onCheckout, onBackToC
   }
 
   return (
-    <section className="bg-white text-zinc-950 py-10 px-4 md:px-12 max-w-7xl mx-auto min-h-screen">
+    <section className="bg-black text-white py-10 px-4 md:px-12 max-w-7xl mx-auto min-h-screen">
       
-      <div className="flex justify-between items-end border-b border-zinc-100 pb-4 mb-8">
+      <div className="flex justify-between items-end border-b border-zinc-800 pb-4 mb-8">
         <div>
-          <h1 className="text-3xl font-black uppercase tracking-tight text-zinc-950">Shopping Bag</h1>
+          <h1 className="text-3xl font-black uppercase tracking-tight text-white">Shopping Bag</h1>
           <p className="text-xs text-zinc-600 font-mono">
             {cart.length} unique item{cart.length > 1 ? 's' : ''} • Checked & sanitized
           </p>
         </div>
         <button
           onClick={onBackToCatalog}
-          className="text-xs text-zinc-700 hover:text-black font-mono font-semibold uppercase cursor-pointer"
+          className="text-xs text-zinc-400 hover:text-white font-mono font-semibold uppercase cursor-pointer"
         >
           + Continue Shopping
         </button>
@@ -83,18 +83,18 @@ export const Cart: React.FC<CartProps> = ({ cart, setCart, onCheckout, onBackToC
         {/* Left Col: Cart Items list */}
         <div className="lg:col-span-8 space-y-4">
           {/* Free Shipping Tracker */}
-          <div className="bg-zinc-50 border border-zinc-100 p-4 rounded-2xl space-y-2 text-xs">
+          <div className="bg-zinc-900 border border-zinc-800 p-4 rounded-2xl space-y-2 text-xs">
             <div className="flex justify-between items-center font-semibold">
-              <span className="text-zinc-900">
+              <span className="text-zinc-100">
                 {isEligibleForFreeShipping
                   ? '✓ Congratulations! You qualify for Free Premium Sourced Shipping.'
                   : `Add ${formatPrice(150 - subtotal)} more to unlock Free Premium Sourced Shipping`}
               </span>
-              <span className="text-zinc-800 font-mono">{progressToFreeShipping}%</span>
+              <span className="text-zinc-300 font-mono">{progressToFreeShipping}%</span>
             </div>
-            <div className="w-full bg-zinc-100 h-2 rounded-full overflow-hidden">
+            <div className="w-full bg-zinc-800 h-2 rounded-full overflow-hidden">
               <div
-                className="bg-gradient-to-r from-zinc-800 to-zinc-900 h-full transition-all duration-500"
+                className="bg-gradient-to-r from-red-600 to-red-700 h-full transition-all duration-500"
                 style={{ width: `${progressToFreeShipping}%` }}
               />
             </div>
@@ -105,11 +105,11 @@ export const Cart: React.FC<CartProps> = ({ cart, setCart, onCheckout, onBackToC
             {cart.map((item, index) => (
               <div
                 key={index}
-                className="bg-white border border-zinc-100 rounded-2xl p-4 md:p-6 flex flex-col sm:flex-row gap-5 items-start sm:items-center justify-between"
+                className="bg-[#121212] border border-zinc-800 rounded-2xl p-4 md:p-6 flex flex-col sm:flex-row gap-5 items-start sm:items-center justify-between"
               >
                 {/* Product Detail Thumbnail and Info */}
                 <div className="flex gap-4 items-center">
-                  <div className="w-20 h-20 bg-zinc-50 rounded-xl p-1.5 flex items-center justify-center border border-zinc-100 relative flex-shrink-0 overflow-hidden">
+                  <div className="w-20 h-20 bg-zinc-900 rounded-xl p-1.5 flex items-center justify-center border border-zinc-800 relative flex-shrink-0 overflow-hidden">
                     <JerseyRenderer
                       productId={item.product.id}
                       uploadedImage={
@@ -124,20 +124,20 @@ export const Cart: React.FC<CartProps> = ({ cart, setCart, onCheckout, onBackToC
                     />
                   </div>
                   <div>
-                    <span className="text-[9px] font-mono uppercase text-zinc-700 font-black">
+                    <span className="text-[9px] font-mono uppercase text-zinc-400 font-black">
                       {item.product.brand} • {item.product.season}
                     </span>
-                    <h3 className="text-sm font-bold tracking-tight text-zinc-950 hover:text-zinc-700 cursor-pointer">
+                    <h3 className="text-sm font-bold tracking-tight text-white hover:text-zinc-400 cursor-pointer">
                       {item.product.name}
                     </h3>
                     
                     {/* Display customization details */}
                     <div className="flex flex-wrap gap-2 pt-1">
-                      <span className="bg-zinc-100 text-zinc-800 text-[10px] font-mono px-2 py-0.5 rounded">
+                      <span className="bg-zinc-800 text-zinc-300 text-[10px] font-mono px-2 py-0.5 rounded">
                         Size: {item.selectedSize}
                       </span>
                       {item.customPrint?.name && (
-                        <span className="bg-zinc-50 text-zinc-700 text-[10px] font-mono px-2 py-0.5 rounded border border-zinc-100">
+                        <span className="bg-zinc-900 text-zinc-400 text-[10px] font-mono px-2 py-0.5 rounded border border-zinc-800">
                           Print: {item.customPrint.name} #{item.customPrint.number}
                         </span>
                       )}
@@ -150,14 +150,14 @@ export const Cart: React.FC<CartProps> = ({ cart, setCart, onCheckout, onBackToC
                         return (
                           <span
                             key={label}
-                            className="bg-zinc-50 text-zinc-700 text-[10px] font-mono px-2 py-0.5 rounded border border-zinc-100"
+                            className="bg-zinc-900 text-zinc-400 text-[10px] font-mono px-2 py-0.5 rounded border border-zinc-800"
                           >
                             + {label}{custom ? `: ${custom}` : ''}
                           </span>
                         );
                       })}
                       {!item.selectedBadges?.length && item.addBadge && (
-                        <span className="bg-zinc-50 text-zinc-700 text-[10px] font-mono px-2 py-0.5 rounded border border-zinc-100">
+                        <span className="bg-zinc-900 text-zinc-400 text-[10px] font-mono px-2 py-0.5 rounded border border-zinc-800">
                           + Sleeve Badge
                         </span>
                       )}
@@ -169,7 +169,7 @@ export const Cart: React.FC<CartProps> = ({ cart, setCart, onCheckout, onBackToC
                         return (
                           <span
                             key={`text-${id}`}
-                            className="bg-zinc-50 text-zinc-700 text-[10px] font-mono px-2 py-0.5 rounded border border-zinc-100"
+                            className="bg-zinc-900 text-zinc-400 text-[10px] font-mono px-2 py-0.5 rounded border border-zinc-800"
                           >
                             + Badge: {text}
                           </span>
@@ -183,17 +183,17 @@ export const Cart: React.FC<CartProps> = ({ cart, setCart, onCheckout, onBackToC
                 <div className="flex items-center justify-between sm:justify-end gap-6 w-full sm:w-auto">
                   
                   {/* Quantity adjustment */}
-                  <div className="flex items-center gap-1.5 bg-zinc-50 border border-zinc-100 p-1.5 rounded-full text-zinc-950">
+                  <div className="flex items-center gap-1.5 bg-zinc-900 border border-zinc-800 p-1.5 rounded-full text-white">
                     <button
                       onClick={() => updateQuantity(index, -1)}
-                      className="p-1 bg-white hover:bg-zinc-100 text-zinc-800 rounded-full transition-all"
+                      className="p-1 bg-[#121212] hover:bg-zinc-800 text-zinc-300 rounded-full transition-all"
                     >
                       <Minus size={11} />
                     </button>
                     <span className="text-xs font-mono font-bold px-2">{item.quantity}</span>
                     <button
                       onClick={() => updateQuantity(index, 1)}
-                      className="p-1 bg-white hover:bg-zinc-100 text-zinc-800 rounded-full transition-all"
+                      className="p-1 bg-[#121212] hover:bg-zinc-800 text-zinc-300 rounded-full transition-all"
                     >
                       <Plus size={11} />
                     </button>
@@ -201,7 +201,7 @@ export const Cart: React.FC<CartProps> = ({ cart, setCart, onCheckout, onBackToC
 
                   {/* Price */}
                   <div className="text-right">
-                    <p className="text-sm font-black text-zinc-800">
+                    <p className="text-sm font-black text-zinc-300">
                       {formatPrice(item.product.price * item.quantity)}
                     </p>
                     <p className="text-[10px] text-zinc-600 font-mono">
@@ -227,37 +227,37 @@ export const Cart: React.FC<CartProps> = ({ cart, setCart, onCheckout, onBackToC
 
         {/* Right Col: Checkout Order summary */}
         <div className="lg:col-span-4 space-y-6">
-          <div className="bg-zinc-50 border border-zinc-100 rounded-2xl p-6 space-y-4">
-            <h4 className="text-xs font-mono font-black text-zinc-800 uppercase tracking-widest border-b border-zinc-100 pb-2">
+          <div className="bg-zinc-900 border border-zinc-800 rounded-2xl p-6 space-y-4">
+            <h4 className="text-xs font-mono font-black text-zinc-300 uppercase tracking-widest border-b border-zinc-800 pb-2">
               Order Pricing Summary
             </h4>
-            <div className="space-y-2.5 text-xs text-zinc-800">
+            <div className="space-y-2.5 text-xs text-zinc-300">
               <div className="flex justify-between">
                 <span>Original Subtotal:</span>
-                <span className="text-zinc-950 font-mono">{formatPrice(subtotal)}</span>
+                <span className="text-white font-mono">{formatPrice(subtotal)}</span>
               </div>
               <div className="flex justify-between">
                 <span>Curated Sourced Shipping:</span>
-                <span className="text-zinc-950 font-mono">
-                  {shippingCost === 0 ? <span className="text-zinc-700 font-bold uppercase">FREE</span> : formatPrice(shippingCost)}
+                <span className="text-white font-mono">
+                  {shippingCost === 0 ? <span className="text-zinc-400 font-bold uppercase">FREE</span> : formatPrice(shippingCost)}
                 </span>
               </div>
-              <div className="border-t border-zinc-100 pt-3 flex justify-between items-end text-sm">
-                <span className="text-zinc-900 font-bold">Estimated Grand Total:</span>
-                <span className="text-zinc-800 font-black text-xl font-mono">{formatPrice(grandTotal)}</span>
+              <div className="border-t border-zinc-800 pt-3 flex justify-between items-end text-sm">
+                <span className="text-zinc-100 font-bold">Estimated Grand Total:</span>
+                <span className="text-zinc-300 font-black text-xl font-mono">{formatPrice(grandTotal)}</span>
               </div>
             </div>
 
             <button
               onClick={onCheckout}
-              className="w-full bg-gradient-to-r from-zinc-800 to-zinc-900 hover:from-zinc-800 hover:to-zinc-900 text-white font-black text-xs uppercase tracking-widest py-4 rounded-full flex items-center justify-center gap-2 cursor-pointer shadow-lg shadow-black/10 transition-all"
+              className="w-full bg-red-600 hover:bg-red-700 text-white font-black text-xs uppercase tracking-widest py-4 rounded-full flex items-center justify-center gap-2 cursor-pointer shadow-lg shadow-red-600/25 transition-all"
               id="proceed-to-checkout-btn"
             >
               Proceed to Secure Checkout <ArrowRight size={15} />
             </button>
 
             <div className="flex items-center justify-center gap-2 text-[10px] text-zinc-600 font-mono pt-2">
-              <CreditCard size={12} className="text-zinc-700" />
+              <CreditCard size={12} className="text-zinc-400" />
               <span>Checkout processes are 256-bit encrypted</span>
             </div>
           </div>

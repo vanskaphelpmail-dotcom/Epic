@@ -215,17 +215,17 @@ export const Hero: React.FC<HeroProps> = ({
       
       {/* COUNTDOWN TIMER BAR ABOVE SLIDER */}
       {(appConfig?.timerEnabled !== false) && (
-        <div className="w-full bg-slate-50/50 border-b border-zinc-100 py-3 px-2 sm:px-4 flex justify-center items-center">
-          <div className="inline-flex items-center justify-center gap-1 sm:gap-2.5 bg-white border-2 border-zinc-900/90 text-[9px] min-[480px]:text-[10px] sm:text-xs font-bold text-zinc-950 px-3 py-1.5 sm:px-6 sm:py-2.5 rounded-full shadow-md animate-fadeIn max-w-full">
-            <span className="text-zinc-700 font-mono flex items-center gap-0.5 sm:gap-1 flex-shrink-0">
+        <div className="w-full bg-slate-50/50 border-b border-zinc-800 py-3 px-2 sm:px-4 flex justify-center items-center">
+          <div className="inline-flex items-center justify-center gap-1 sm:gap-2.5 bg-[#121212] border-2 border-zinc-900/90 text-[9px] min-[480px]:text-[10px] sm:text-xs font-bold text-white px-3 py-1.5 sm:px-6 sm:py-2.5 rounded-full shadow-md animate-fadeIn max-w-full">
+            <span className="text-zinc-400 font-mono flex items-center gap-0.5 sm:gap-1 flex-shrink-0">
               <span className="text-xs sm:text-sm leading-none">{team1Emoji}</span> <span className="uppercase tracking-tight">{team1}</span>
             </span>
             <span className="text-zinc-300 font-light mx-0.5 sm:mx-1.5">|</span>
-            <span className="text-zinc-800 font-black tracking-wider uppercase text-[8px] sm:text-[10px] truncate max-w-[80px] min-[480px]:max-w-none">
+            <span className="text-zinc-300 font-black tracking-wider uppercase text-[8px] sm:text-[10px] truncate max-w-[80px] min-[480px]:max-w-none">
               {timerLabel}
             </span>
             <span className="text-zinc-300 font-light mx-0.5 sm:mx-1.5">|</span>
-            <span className="font-mono text-zinc-950 tracking-tight sm:tracking-wider text-[10px] sm:text-xs font-black flex items-center gap-0.5 sm:gap-1 justify-center">
+            <span className="font-mono text-white tracking-tight sm:tracking-wider text-[10px] sm:text-xs font-black flex items-center gap-0.5 sm:gap-1 justify-center">
               <span>{pad(timer.days)}</span>
               <span className="text-[8px] sm:text-[9px] text-zinc-600 font-mono font-bold lowercase mr-0.5 sm:mr-1">
                 <span className="hidden min-[480px]:inline">days</span><span className="min-[480px]:hidden">d</span>
@@ -244,7 +244,7 @@ export const Hero: React.FC<HeroProps> = ({
               </span>
             </span>
             <span className="text-zinc-300 font-light mx-0.5 sm:mx-1.5">|</span>
-            <span className="text-zinc-700 font-mono flex items-center gap-0.5 sm:gap-1 flex-shrink-0">
+            <span className="text-zinc-400 font-mono flex items-center gap-0.5 sm:gap-1 flex-shrink-0">
               <span className="uppercase tracking-tight">{team2}</span> <span className="text-xs sm:text-sm leading-none">{team2Emoji}</span>
             </span>
           </div>
@@ -288,7 +288,7 @@ export const Hero: React.FC<HeroProps> = ({
                 <button
                   type="button"
                   onClick={() => handleSlideClick(currentSlide.productId)}
-                  className="border border-white hover:bg-white hover:text-black text-white font-extrabold text-[11px] sm:text-xs md:text-sm uppercase tracking-widest px-8 py-3.5 transition-all duration-300 shadow-lg hover:shadow-white/10 cursor-pointer rounded-none font-sans"
+                  className="border border-white hover:bg-[#121212] hover:text-white text-white font-extrabold text-[11px] sm:text-xs md:text-sm uppercase tracking-widest px-8 py-3.5 transition-all duration-300 shadow-lg hover:shadow-white/10 cursor-pointer rounded-none font-sans"
                 >
                   SHOP NOW
                 </button>
@@ -324,7 +324,7 @@ export const Hero: React.FC<HeroProps> = ({
                 key={idx}
                 onClick={() => setActiveSlide(idx)}
                 className={`h-1.5 rounded-full transition-all duration-300 ${
-                  activeSlide === idx ? 'w-8 bg-white' : 'w-1.5 bg-white/40 hover:bg-white'
+                  activeSlide === idx ? 'w-8 bg-[#121212]' : 'w-1.5 bg-[#121212]/40 hover:bg-[#121212]'
                 }`}
                 aria-label={`Go to slide ${idx + 1}`}
               />
@@ -341,12 +341,12 @@ export const Hero: React.FC<HeroProps> = ({
             <Star className="w-3.5 h-3.5 text-amber-400 fill-amber-400" />
             <span>Rated Excellent on Trustpilot</span>
           </div>
-          <span className="hidden md:inline text-zinc-800">•</span>
+          <span className="hidden md:inline text-zinc-300">•</span>
           <div className="flex items-center gap-2">
             <Users className="w-3.5 h-3.5 text-zinc-300" />
             <span>A community of over 2 million</span>
           </div>
-          <span className="hidden md:inline text-zinc-800">•</span>
+          <span className="hidden md:inline text-zinc-300">•</span>
           <div className="flex items-center gap-2">
             <Truck className="w-3.5 h-3.5 text-zinc-300" />
             <span>Free domestic shipping on orders over £50</span>
@@ -355,11 +355,11 @@ export const Hero: React.FC<HeroProps> = ({
       </section>
 
       {/* 3. TOP SELLING CLUB JERSEYS HORIZONTAL SELECTOR ROW */}
-      <section className="bg-white py-12 border-b border-zinc-100">
+      <section className="bg-[#121212] py-12 border-b border-zinc-800">
         <div className="max-w-7xl mx-auto px-6 md:px-12 space-y-8">
           
-          <div className="text-center md:text-left border-b border-zinc-100 pb-4">
-            <h2 className="text-2xl font-black uppercase tracking-tight text-zinc-950 font-sans">
+          <div className="text-center md:text-left border-b border-zinc-800 pb-4">
+            <h2 className="text-2xl font-black uppercase tracking-tight text-white font-sans">
               Top Selling Club Jerseys
             </h2>
             <div className="h-1 w-16 bg-black mt-2 mx-auto md:mx-0" />
@@ -378,10 +378,10 @@ export const Hero: React.FC<HeroProps> = ({
               <div
                 key={idx}
                 onClick={() => onExplore(team.cat)}
-                className="group flex flex-col items-center justify-center space-y-3 cursor-pointer p-4 rounded-2xl bg-zinc-50 border border-zinc-100 hover:border-zinc-900 transition-all hover:-translate-y-1.5 duration-300"
+                className="group flex flex-col items-center justify-center space-y-3 cursor-pointer p-4 rounded-2xl bg-zinc-900 border border-zinc-800 hover:border-red-600 transition-all hover:-translate-y-1.5 duration-300"
               >
                 {renderClubJersey(team.name)}
-                <span className="text-[11px] font-black uppercase tracking-wider text-zinc-950 group-hover:text-zinc-700 text-center transition-colors">
+                <span className="text-[11px] font-black uppercase tracking-wider text-white group-hover:text-zinc-400 text-center transition-colors">
                   {team.name}
                 </span>
               </div>
@@ -392,10 +392,10 @@ export const Hero: React.FC<HeroProps> = ({
       </section>
 
       {/* 4. TRENDING SEARCHES SECTION */}
-      <section className="bg-zinc-50 py-8 border-b border-zinc-100">
+      <section className="bg-zinc-900 py-8 border-b border-zinc-800">
         <div className="max-w-7xl mx-auto px-6 md:px-12 space-y-4">
           <div className="flex flex-col md:flex-row items-center gap-3">
-            <span className="text-[10px] font-mono font-black text-zinc-800 uppercase tracking-widest bg-zinc-100 px-3 py-1 rounded border border-zinc-200 flex-shrink-0">
+            <span className="text-[10px] font-mono font-black text-zinc-300 uppercase tracking-widest bg-zinc-800 px-3 py-1 rounded border border-zinc-800 flex-shrink-0">
               Trending Searches
             </span>
             <div className="flex flex-wrap gap-2.5 justify-center md:justify-start">
@@ -413,7 +413,7 @@ export const Hero: React.FC<HeroProps> = ({
                   key={term}
                   type="button"
                   onClick={() => onExplore('All')}
-                  className="bg-white hover:bg-zinc-900 hover:text-white border border-zinc-100 text-[10px] md:text-xs text-zinc-800 font-bold uppercase px-4 py-1.5 rounded-full transition-all duration-200 cursor-pointer"
+                  className="bg-[#121212] hover:bg-zinc-900 hover:text-white border border-zinc-800 text-[10px] md:text-xs text-zinc-300 font-bold uppercase px-4 py-1.5 rounded-full transition-all duration-200 cursor-pointer"
                 >
                   {term}
                 </button>

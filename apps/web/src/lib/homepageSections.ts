@@ -23,14 +23,26 @@ export function normalizeHomepageSections(sections: PageSection[]): PageSection[
     seen.add(s.id);
     return true;
   });
-  return ensureJerseyHomepageOrder(filtered);
+  const darkened = filtered.map((s) => {
+    const bg = String(s.bgColor || '');
+    const isLight =
+      !bg ||
+      /\bbg-white\b/.test(bg) ||
+      /\bbg-zinc-50\b/.test(bg) ||
+      /\bbg-gray-50\b/.test(bg) ||
+      /\bbg-amber-50\b/.test(bg) ||
+      /\bbg-emerald-50\b/.test(bg) ||
+      /from-purple|to-indigo/.test(bg);
+    return isLight ? { ...s, bgColor: 'bg-black' } : s;
+  });
+  return ensureJerseyHomepageOrder(darkened);
 }
 
 const LATEST_PRODUCTS_SECTION: PageSection = {
   id: 'latest-products',
   name: 'Latest Products Row',
   visible: true,
-  bgColor: 'bg-white',
+  bgColor: 'bg-black',
   padding: 'py-12',
   margin: 'my-0',
   title: 'LATEST WORKSHOP DROPS',
@@ -46,7 +58,7 @@ const RETRO_SECTION: PageSection = {
   id: 'retro-collection',
   name: 'Retro Collection Row',
   visible: true,
-  bgColor: 'bg-zinc-50/50',
+  bgColor: 'bg-black',
   padding: 'py-12',
   margin: 'my-0',
   title: 'RETRO',
@@ -63,7 +75,7 @@ const LA_LIGA_SECTION: PageSection = {
   id: 'product-row-la-liga',
   name: 'La Liga Row',
   visible: true,
-  bgColor: 'bg-white',
+  bgColor: 'bg-black',
   padding: 'py-12',
   margin: 'my-0',
   title: 'LA LIGA',
@@ -81,7 +93,7 @@ const WORLD_CUP_SECTION: PageSection = {
   id: 'product-row-world-cup',
   name: 'World Cup Row',
   visible: true,
-  bgColor: 'bg-zinc-50/50',
+  bgColor: 'bg-black',
   padding: 'py-12',
   margin: 'my-0',
   title: 'WORLD CUP',
@@ -99,7 +111,7 @@ const PLAYER_EDITION_SECTION: PageSection = {
   id: 'player-edition',
   name: 'Player Edition Row',
   visible: true,
-  bgColor: 'bg-white',
+  bgColor: 'bg-black',
   padding: 'py-12',
   margin: 'my-0',
   title: 'PLAYER EDITION',
@@ -434,7 +446,7 @@ export function ensureHomepageRowsForCategories(
       id,
       name: `${name} Row`,
       visible: true,
-      bgColor: 'bg-white',
+      bgColor: 'bg-black',
       padding: 'py-12',
       margin: 'my-0',
       title: name.toUpperCase(),

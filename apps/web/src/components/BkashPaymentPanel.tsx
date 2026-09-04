@@ -53,7 +53,7 @@ export const BkashPaymentPanel: React.FC<BkashPaymentPanelProps> = ({
   return (
     <div
       className={`rounded-xl border-2 transition-all ${
-        selected ? 'border-zinc-900 bg-zinc-50' : 'border-zinc-200 bg-white'
+        selected ? 'border-zinc-900 bg-zinc-900' : 'border-zinc-800 bg-[#121212]'
       }`}
     >
       <button
@@ -72,10 +72,10 @@ export const BkashPaymentPanel: React.FC<BkashPaymentPanelProps> = ({
           <span className="inline-flex items-center justify-center w-8 h-8 rounded-lg bg-black text-white font-black text-[9px] tracking-tight flex-shrink-0">
             SM
           </span>
-          <span className="font-black text-sm text-zinc-950 uppercase tracking-wide">
+          <span className="font-black text-sm text-white uppercase tracking-wide">
             bKash / Nagad
           </span>
-          <span className="text-[10px] font-mono font-bold text-zinc-700 ml-auto">
+          <span className="text-[10px] font-mono font-bold text-zinc-400 ml-auto">
             {formatBdtAmount(sendMoneyAmountBdt)}
             {isPartialPayment ? ' (advance)' : ''}
           </span>
@@ -84,13 +84,13 @@ export const BkashPaymentPanel: React.FC<BkashPaymentPanelProps> = ({
 
       {selected && (
         <div className={`px-3 pb-3 space-y-4 ${compact ? 'pt-0' : 'pt-1'}`}>
-          <div className="rounded-xl border border-zinc-200 bg-white p-4 space-y-3">
-            <p className="text-sm font-black text-zinc-950 leading-snug">
+          <div className="rounded-xl border border-zinc-800 bg-[#121212] p-4 space-y-3">
+            <p className="text-sm font-black text-white leading-snug">
               Send Money দিয়ে পেমেন্ট করুন
             </p>
-            <p className="text-[11px] text-zinc-700 leading-relaxed">
+            <p className="text-[11px] text-zinc-400 leading-relaxed">
               অর্ডার নিশ্চিত করতে নিচের পরিমাণ{' '}
-              <strong className="text-zinc-950">{amountLabel} টাকা</strong>
+              <strong className="text-white">{amountLabel} টাকা</strong>
               {isPartialPayment ? ' (আংশিক এডভান্স)' : ''} bKash অথবা Nagad{' '}
               <strong>Send Money</strong>-এর মাধ্যমে পাঠান।
             </p>
@@ -102,7 +102,7 @@ export const BkashPaymentPanel: React.FC<BkashPaymentPanelProps> = ({
                 className={`rounded-lg border-2 px-3 py-2.5 text-left transition-all cursor-pointer ${
                   walletProvider === 'bkash'
                     ? 'border-zinc-900 bg-zinc-900 text-white'
-                    : 'border-zinc-200 bg-white text-zinc-900 hover:border-zinc-400'
+                    : 'border-zinc-800 bg-[#121212] text-zinc-100 hover:border-zinc-400'
                 }`}
               >
                 <span className="block text-[10px] font-black uppercase tracking-wider">bKash</span>
@@ -116,7 +116,7 @@ export const BkashPaymentPanel: React.FC<BkashPaymentPanelProps> = ({
                 className={`rounded-lg border-2 px-3 py-2.5 text-left transition-all cursor-pointer ${
                   walletProvider === 'nagad'
                     ? 'border-zinc-900 bg-zinc-900 text-white'
-                    : 'border-zinc-200 bg-white text-zinc-900 hover:border-zinc-400'
+                    : 'border-zinc-800 bg-[#121212] text-zinc-100 hover:border-zinc-400'
                 }`}
               >
                 <span className="block text-[10px] font-black uppercase tracking-wider">Nagad</span>
@@ -126,11 +126,11 @@ export const BkashPaymentPanel: React.FC<BkashPaymentPanelProps> = ({
               </button>
             </div>
 
-            <div className="rounded-lg border border-zinc-200 bg-zinc-50 px-3 py-2.5 space-y-1">
+            <div className="rounded-lg border border-zinc-800 bg-zinc-900 px-3 py-2.5 space-y-1">
               <p className="text-[10px] font-black uppercase tracking-wider text-zinc-600">
                 {walletName} Personal Number (Send Money)
               </p>
-              <p className="font-mono font-black text-base tracking-wide text-zinc-950">
+              <p className="font-mono font-black text-base tracking-wide text-white">
                 {merchantNumber}
               </p>
               <p className="text-[10px] text-zinc-600">
@@ -138,7 +138,7 @@ export const BkashPaymentPanel: React.FC<BkashPaymentPanelProps> = ({
               </p>
             </div>
 
-            <ol className="list-decimal list-inside space-y-1 text-[11px] text-zinc-800 leading-relaxed">
+            <ol className="list-decimal list-inside space-y-1 text-[11px] text-zinc-300 leading-relaxed">
               <li>
                 {walletName} অ্যাপ খুলে <strong>Send Money</strong> নির্বাচন করুন।
               </li>
@@ -151,12 +151,12 @@ export const BkashPaymentPanel: React.FC<BkashPaymentPanelProps> = ({
             </ol>
 
             {isPartialPayment && partialBreakdownLabel && (
-              <p className="font-mono font-bold text-zinc-900 text-[11px]">
+              <p className="font-mono font-bold text-zinc-100 text-[11px]">
                 Advance breakdown: {partialBreakdownLabel}
               </p>
             )}
             {isPartialPayment && dueOnDeliveryBdt > 0 && (
-              <p className="text-[11px] text-zinc-800">
+              <p className="text-[11px] text-zinc-300">
                 <strong>ডেলিভারিতে বাকি:</strong>{' '}
                 <strong className="font-mono">{formatBdtAmount(dueOnDeliveryBdt)}</strong>
               </p>
@@ -174,7 +174,7 @@ export const BkashPaymentPanel: React.FC<BkashPaymentPanelProps> = ({
                 placeholder="017XXXXXXXX"
                 value={customerBkashNumber}
                 onChange={(e) => onCustomerBkashNumberChange(e.target.value)}
-                className="w-full border-2 border-zinc-300 rounded-lg px-3 py-2 text-sm font-mono font-bold text-zinc-950 focus:outline-none focus:border-zinc-900 bg-white"
+                className="w-full border-2 border-zinc-700 rounded-lg px-3 py-2 text-sm font-mono font-bold text-white focus:outline-none focus:border-red-600 bg-[#121212]"
                 required={selected}
               />
             </label>
@@ -187,7 +187,7 @@ export const BkashPaymentPanel: React.FC<BkashPaymentPanelProps> = ({
                 placeholder="8N7A6D5EE7M"
                 value={transactionId}
                 onChange={(e) => onTransactionIdChange(e.target.value.toUpperCase())}
-                className="w-full border-2 border-zinc-300 rounded-lg px-3 py-2 text-sm font-mono font-bold text-zinc-950 focus:outline-none focus:border-zinc-900 bg-white uppercase"
+                className="w-full border-2 border-zinc-700 rounded-lg px-3 py-2 text-sm font-mono font-bold text-white focus:outline-none focus:border-red-600 bg-[#121212] uppercase"
                 required={selected}
               />
             </label>

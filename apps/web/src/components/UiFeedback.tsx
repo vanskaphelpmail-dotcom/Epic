@@ -93,16 +93,16 @@ export function UiFeedbackHost() {
             t.tone === 'success' ? CheckCircle2 : t.tone === 'error' ? XCircle : Info;
           const toneCls =
             t.tone === 'success'
-              ? 'border-zinc-200 bg-white text-zinc-950'
+              ? 'border-zinc-800 bg-[#121212] text-white'
               : t.tone === 'error'
-                ? 'border-red-200 bg-white text-red-950'
-                : 'border-zinc-100 bg-white text-zinc-950';
+                ? 'border-red-200 bg-[#121212] text-red-950'
+                : 'border-zinc-800 bg-[#121212] text-white';
           const iconCls =
             t.tone === 'success'
-              ? 'text-zinc-700'
+              ? 'text-zinc-400'
               : t.tone === 'error'
                 ? 'text-red-600'
-                : 'text-zinc-700';
+                : 'text-zinc-400';
           return (
             <div
               key={t.id}
@@ -113,7 +113,7 @@ export function UiFeedbackHost() {
               <p className="text-xs font-semibold leading-relaxed flex-1 whitespace-pre-line">{t.message}</p>
               <button
                 type="button"
-                className="text-zinc-500 hover:text-black cursor-pointer shrink-0"
+                className="text-zinc-500 hover:text-white cursor-pointer shrink-0"
                 onClick={() => setToasts((prev) => prev.filter((x) => x.id !== t.id))}
                 aria-label="Dismiss"
               >
@@ -133,31 +133,31 @@ export function UiFeedbackHost() {
           onClick={() => closeConfirm(false)}
         >
           <div
-            className="bg-white rounded-2xl border border-zinc-100 shadow-2xl w-full max-w-md overflow-hidden"
+            className="bg-[#121212] rounded-2xl border border-zinc-800 shadow-2xl w-full max-w-md overflow-hidden"
             onClick={(e) => e.stopPropagation()}
           >
             <div className="px-6 pt-6 pb-4 flex gap-4">
               <div
                 className={`shrink-0 h-11 w-11 rounded-xl flex items-center justify-center ${
-                  confirm.danger ? 'bg-red-50 text-red-600' : 'bg-zinc-50 text-zinc-800'
+                  confirm.danger ? 'bg-red-50 text-red-600' : 'bg-zinc-900 text-zinc-300'
                 }`}
               >
                 <AlertTriangle size={22} />
               </div>
               <div className="min-w-0 space-y-1.5">
-                <h3 className="text-base font-black text-zinc-950 uppercase tracking-tight">
+                <h3 className="text-base font-black text-white uppercase tracking-tight">
                   {confirm.title || (confirm.danger ? 'Confirm delete' : 'Please confirm')}
                 </h3>
-                <p className="text-sm text-zinc-800/90 leading-relaxed whitespace-pre-line">
+                <p className="text-sm text-zinc-300/90 leading-relaxed whitespace-pre-line">
                   {confirm.message}
                 </p>
               </div>
             </div>
-            <div className="px-6 py-4 bg-zinc-50 border-t border-zinc-100 flex justify-end gap-2">
+            <div className="px-6 py-4 bg-zinc-900 border-t border-zinc-800 flex justify-end gap-2">
               <button
                 type="button"
                 onClick={() => closeConfirm(false)}
-                className="px-4 py-2.5 rounded-xl text-xs font-extrabold uppercase text-zinc-800 hover:bg-white cursor-pointer transition-colors"
+                className="px-4 py-2.5 rounded-xl text-xs font-extrabold uppercase text-zinc-300 hover:bg-[#121212] cursor-pointer transition-colors"
               >
                 {confirm.cancelText || 'Cancel'}
               </button>
@@ -167,7 +167,7 @@ export function UiFeedbackHost() {
                 className={`px-5 py-2.5 rounded-xl text-xs font-extrabold uppercase tracking-wider text-white cursor-pointer transition-colors ${
                   confirm.danger
                     ? 'bg-red-600 hover:bg-red-700'
-                    : 'bg-black hover:bg-zinc-800'
+                    : 'bg-red-600 hover:bg-red-700'
                 }`}
               >
                 {confirm.confirmText || (confirm.danger ? 'Delete' : 'OK')}

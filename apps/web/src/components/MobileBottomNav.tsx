@@ -27,7 +27,6 @@ function resolveActiveTab(currentPage: string, searchQuery?: string): MobileTab 
 
 /**
  * Always-fixed bottom tab bar — mobile / tablet only (hidden from lg up).
- * Stays visible while scrolling; top header is unchanged.
  */
 export const MobileBottomNav: React.FC<MobileBottomNavProps> = ({
   currentPage,
@@ -56,7 +55,7 @@ export const MobileBottomNav: React.FC<MobileBottomNavProps> = ({
 
   const itemClass = (tab: MobileTab) =>
     `flex flex-1 flex-col items-center justify-center gap-0.5 py-1.5 min-w-0 transition-colors cursor-pointer ${
-      active === tab ? 'text-red-600' : 'text-zinc-500'
+      active === tab ? 'text-red-500' : 'text-zinc-500'
     }`;
 
   const go = (tab: MobileTab, action: () => void) => {
@@ -67,7 +66,7 @@ export const MobileBottomNav: React.FC<MobileBottomNavProps> = ({
   return (
     <nav
       aria-label="Mobile primary"
-      className="lg:hidden fixed inset-x-0 bottom-0 z-[45] bg-white border-t border-zinc-100 shadow-[0_-4px_20px_rgba(225,6,0,0.08)]"
+      className="lg:hidden fixed inset-x-0 bottom-0 z-[45] bg-black border-t border-zinc-800 shadow-[0_-4px_24px_rgba(0,0,0,0.65)]"
       style={{ paddingBottom: 'env(safe-area-inset-bottom, 0px)' }}
     >
       <div className="flex items-stretch justify-between px-1 pt-1 max-w-lg mx-auto">
@@ -88,9 +87,9 @@ export const MobileBottomNav: React.FC<MobileBottomNavProps> = ({
 
         <button type="button" className={itemClass('wishlist')} onClick={() => go('wishlist', onWishlist)} aria-current={active === 'wishlist' ? 'page' : undefined}>
           <span className="relative inline-flex">
-            <Heart size={22} strokeWidth={active === 'wishlist' ? 2.5 : 1.75} />
+            <Heart size={22} strokeWidth={active === 'wishlist' ? 2.5 : 1.75} className={active === 'wishlist' ? 'fill-red-500' : undefined} />
             {wishlistCount > 0 && (
-              <span className="absolute -top-1 -right-2 min-w-[14px] h-[14px] px-0.5 rounded-full bg-zinc-700 text-white text-[8px] font-black flex items-center justify-center">
+              <span className="absolute -top-1 -right-2 min-w-[14px] h-[14px] px-0.5 rounded-full bg-red-600 text-white text-[8px] font-black flex items-center justify-center">
                 {wishlistCount > 9 ? '9+' : wishlistCount}
               </span>
             )}
@@ -102,7 +101,7 @@ export const MobileBottomNav: React.FC<MobileBottomNavProps> = ({
           <span className="relative inline-flex">
             <ShoppingBag size={22} strokeWidth={active === 'cart' ? 2.5 : 1.75} />
             {cartCount > 0 && (
-              <span className="absolute -top-1 -right-2 min-w-[14px] h-[14px] px-0.5 rounded-full bg-zinc-700 text-white text-[8px] font-black flex items-center justify-center">
+              <span className="absolute -top-1 -right-2 min-w-[14px] h-[14px] px-0.5 rounded-full bg-red-600 text-white text-[8px] font-black flex items-center justify-center">
                 {cartCount > 9 ? '9+' : cartCount}
               </span>
             )}

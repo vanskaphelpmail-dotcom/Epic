@@ -1,9 +1,9 @@
 import type { Product, ProductBadgeOption } from '../types';
 
-export const DEFAULT_NAMESET_PRICE_BDT = 15;
+export const DEFAULT_NAMESET_PRICE_BDT = 300;
 export const DEFAULT_BADGE_PRICE_BDT = 100;
 export const DEFAULT_NAMESET_LABEL = 'Custom Nameset Printing';
-export const DEFAULT_BADGE_LABEL = 'Tournament Sleeve Badge';
+export const DEFAULT_BADGE_LABEL = 'Tournament Sleeve Badges';
 
 export function getNamesetPriceBdt(product: Pick<Product, 'namesetPriceBdt'>): number {
   const n = Number(product.namesetPriceBdt);
@@ -23,7 +23,7 @@ export function getBadgeLabel(product: Pick<Product, 'badgeLabel'>): string {
   return (product.badgeLabel || '').trim() || DEFAULT_BADGE_LABEL;
 }
 
-/** Always two fixed ৳100 sleeve badge slots for every product. */
+/** Standard tournament sleeve badges for every jersey product. */
 export function getProductBadgeOptions(
   _product?: Pick<Product, 'badgeAvailable' | 'badgeOptions' | 'badgeLabel' | 'badgePriceBdt'>,
 ): ProductBadgeOption[] {
@@ -61,8 +61,10 @@ export function getSelectedBadgeLabels(
 
 export function createDefaultBadgeOptions(): ProductBadgeOption[] {
   return [
-    { id: 'badge-1', label: 'Tournament Sleeve Badge 1', priceBdt: DEFAULT_BADGE_PRICE_BDT },
-    { id: 'badge-2', label: 'Tournament Sleeve Badge 2', priceBdt: DEFAULT_BADGE_PRICE_BDT },
+    { id: 'badge-wc26', label: 'WC 26', priceBdt: DEFAULT_BADGE_PRICE_BDT },
+    { id: 'badge-ucl', label: 'UCL', priceBdt: DEFAULT_BADGE_PRICE_BDT },
+    { id: 'badge-pl', label: 'Premier League', priceBdt: DEFAULT_BADGE_PRICE_BDT },
+    { id: 'badge-laliga', label: 'La Liga', priceBdt: DEFAULT_BADGE_PRICE_BDT },
   ];
 }
 

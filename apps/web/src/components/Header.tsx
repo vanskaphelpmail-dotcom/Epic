@@ -248,10 +248,10 @@ export const Header: React.FC<HeaderProps> = ({
     <>
     <header
       ref={headerRef}
-      className="max-lg:fixed max-lg:inset-x-0 max-lg:top-0 sticky top-0 z-50 w-full min-w-0 bg-white transition-all duration-300 max-lg:shadow-md max-lg:shadow-black/10"
+      className="max-lg:fixed max-lg:inset-x-0 max-lg:top-0 sticky top-0 z-50 w-full min-w-0 bg-black transition-all duration-300 max-lg:shadow-md max-lg:shadow-black/40"
     >
       {/* Top Navigation Row */}
-      <div className="bg-white border-b border-zinc-100 py-3 sm:py-4 px-2.5 sm:px-4 lg:px-12 flex justify-between items-center gap-1.5 sm:gap-2 min-w-0 overflow-visible transition-all duration-300">
+      <div className="bg-black border-b border-zinc-800 py-3 sm:py-4 px-2.5 sm:px-4 lg:px-12 flex justify-between items-center gap-1.5 sm:gap-2 min-w-0 overflow-visible transition-all duration-300">
         
         {/* Brand Logo */}
         <div
@@ -291,7 +291,7 @@ export const Header: React.FC<HeaderProps> = ({
               })()}
             </div>
             {appConfig.logoSubtext ? (
-              <span className="hidden sm:block text-[9px] font-mono text-zinc-700/80 tracking-wider uppercase mt-0.5 truncate">{appConfig.logoSubtext}</span>
+              <span className="hidden sm:block text-[9px] font-mono text-zinc-400/80 tracking-wider uppercase mt-0.5 truncate">{appConfig.logoSubtext}</span>
             ) : null}
           </div>
         </div>
@@ -306,7 +306,7 @@ export const Header: React.FC<HeaderProps> = ({
                 value={searchQuery}
                 onChange={(e) => handleSearchInput(e.target.value)}
                 onFocus={() => setShowSearchDropdown(true)}
-                className="w-full h-12 bg-zinc-50 text-zinc-950 placeholder-zinc-400 text-sm pl-12 pr-28 rounded-full border border-zinc-100/80 focus:bg-white focus:outline-none focus:border-red-600 focus:ring-4 focus:ring-red-600/10 hover:bg-zinc-50/50 hover:border-zinc-200 transition-all duration-300"
+                className="w-full h-12 bg-zinc-900 text-white placeholder-zinc-500 text-sm pl-12 pr-28 rounded-full border border-zinc-800 focus:bg-[#121212] focus:outline-none focus:border-red-600 focus:ring-4 focus:ring-red-600/10 hover:bg-zinc-900/60 hover:border-zinc-800 transition-all duration-300"
               />
               <Search className="absolute left-4 text-zinc-600 w-5 h-5 pointer-events-none" />
               <button
@@ -320,15 +320,15 @@ export const Header: React.FC<HeaderProps> = ({
 
           {/* Autocomplete / Popular Searches Dropdown */}
           {showSearchDropdown && (
-            <div className="absolute top-full left-0 right-0 mt-2 bg-white border border-zinc-100 rounded-2xl shadow-2xl p-5 z-50 text-zinc-950 animate-fadeIn">
+            <div className="absolute top-full left-0 right-0 mt-2 bg-[#121212] border border-zinc-800 rounded-2xl shadow-2xl p-5 z-50 text-white animate-fadeIn">
               <div className="flex justify-between items-center mb-3">
-                <span className="text-xs font-bold text-zinc-800/80 tracking-wider uppercase">
+                <span className="text-xs font-bold text-zinc-300/80 tracking-wider uppercase">
                   {searchQuery.trim().length >= 2 ? 'Matching jerseys' : 'Popular Searches'}
                 </span>
                 <button
                   type="button"
                   onClick={() => setShowSearchDropdown(false)}
-                  className="text-zinc-600 hover:text-black text-xs"
+                  className="text-zinc-600 hover:text-white text-xs"
                 >
                   Close
                 </button>
@@ -343,7 +343,7 @@ export const Header: React.FC<HeaderProps> = ({
                         onSelectProduct(p);
                         setShowSearchDropdown(false);
                       }}
-                      className="w-full text-left px-3 py-2 rounded-xl hover:bg-zinc-50 text-xs font-semibold text-zinc-950 cursor-pointer flex items-center justify-between gap-2"
+                      className="w-full text-left px-3 py-2 rounded-xl hover:bg-zinc-900 text-xs font-semibold text-white cursor-pointer flex items-center justify-between gap-2"
                     >
                       <span className="truncate">{p.name}</span>
                       <span className="text-[10px] font-mono text-zinc-600 shrink-0">
@@ -359,13 +359,13 @@ export const Header: React.FC<HeaderProps> = ({
                     key={term}
                     type="button"
                     onClick={() => handlePopularSearchClick(term)}
-                    className="bg-zinc-50 hover:bg-zinc-100 border border-zinc-100 hover:border-zinc-300 text-xs px-3.5 py-1.5 rounded-full text-zinc-800 hover:text-black transition-all cursor-pointer"
+                    className="bg-zinc-900 hover:bg-zinc-800 border border-zinc-800 hover:border-zinc-700 text-xs px-3.5 py-1.5 rounded-full text-zinc-300 hover:text-white transition-all cursor-pointer"
                   >
                     {term}
                   </button>
                 ))}
               </div>
-              <div className="border-t border-zinc-100 pt-3">
+              <div className="border-t border-zinc-800 pt-3">
                 <span className="text-[11px] text-zinc-600 font-mono flex items-center gap-1">
                   <ShieldCheck size={12} /> Search is secured & real-time
                 </span>
@@ -375,17 +375,17 @@ export const Header: React.FC<HeaderProps> = ({
         </div>
 
         {/* Icons Right Side */}
-        <div className="hidden lg:flex items-center gap-4 text-zinc-950">
+        <div className="hidden lg:flex items-center gap-4 text-white">
           {/* Staff session only — customer login removed */}
           {currentUser && canUseAdminPanel(currentUser.role, !!getToken(), isApiEnabled()) ? (
             <div className="flex items-center gap-2">
               <div className="hidden lg:flex flex-col text-right pr-2">
                 <span className="text-[9px] text-zinc-600 font-mono font-bold uppercase tracking-wider">{currentUser.role}</span>
-                <span className="text-xs text-zinc-950 font-bold truncate max-w-[100px]">{currentUser.fullName}</span>
+                <span className="text-xs text-white font-bold truncate max-w-[100px]">{currentUser.fullName}</span>
               </div>
               <button
                 onClick={() => setCurrentPage('admin')}
-                className="bg-zinc-50 border border-zinc-200 hover:border-zinc-900 text-zinc-800 text-[10px] uppercase font-mono tracking-widest px-3 py-1.5 rounded cursor-pointer transition-colors"
+                className="bg-zinc-900 border border-zinc-800 hover:border-red-600 text-zinc-300 text-[10px] uppercase font-mono tracking-widest px-3 py-1.5 rounded cursor-pointer transition-colors"
                 id="admin-dashboard-shortcut"
               >
                 Admin Room
@@ -394,7 +394,7 @@ export const Header: React.FC<HeaderProps> = ({
                 onClick={() => {
                   if (onLogout) onLogout();
                 }}
-                className="text-[10px] font-mono text-zinc-700 hover:text-red-600 uppercase tracking-wider px-2 py-1 transition-colors cursor-pointer"
+                className="text-[10px] font-mono text-zinc-400 hover:text-red-600 uppercase tracking-wider px-2 py-1 transition-colors cursor-pointer"
               >
                 Sign Out
               </button>
@@ -407,7 +407,7 @@ export const Header: React.FC<HeaderProps> = ({
               setSelectedCategory('All');
               setCurrentPage('dashboard');
             }}
-            className="relative p-2 hover:bg-zinc-50 rounded-full hover:text-zinc-700 transition-all cursor-pointer"
+            className="relative p-2 hover:bg-zinc-900 rounded-full hover:text-zinc-400 transition-all cursor-pointer"
             id="wishlist-btn"
           >
             <Heart size={20} className={wishlist.length > 0 ? 'fill-red-500 text-red-500' : ''} />
@@ -423,7 +423,7 @@ export const Header: React.FC<HeaderProps> = ({
             <button
               onClick={() => setCurrentPage('cart')}
               onMouseEnter={() => setShowCartDropdown(true)}
-              className="relative p-2.5 bg-zinc-50 border border-zinc-100 rounded-full hover:border-zinc-300 text-zinc-800 hover:text-black transition-all cursor-pointer"
+              className="relative p-2.5 bg-zinc-900 border border-zinc-800 rounded-full hover:border-zinc-700 text-zinc-300 hover:text-white transition-all cursor-pointer"
               id="shopping-bag-btn"
             >
               <ShoppingBag size={18} />
@@ -438,23 +438,23 @@ export const Header: React.FC<HeaderProps> = ({
             {showCartDropdown && cart.length > 0 && (
               <div
                 onMouseLeave={() => setShowCartDropdown(false)}
-                className="absolute right-0 mt-2 w-80 bg-white border border-zinc-100 rounded-2xl shadow-2xl p-4 z-50 animate-fadeIn text-zinc-950"
+                className="absolute right-0 mt-2 w-80 bg-[#121212] border border-zinc-800 rounded-2xl shadow-2xl p-4 z-50 animate-fadeIn text-white"
               >
-                <div className="flex justify-between items-center border-b border-zinc-100 pb-2 mb-3">
-                  <span className="text-xs font-bold text-zinc-800 uppercase tracking-wider">
+                <div className="flex justify-between items-center border-b border-zinc-800 pb-2 mb-3">
+                  <span className="text-xs font-bold text-zinc-300 uppercase tracking-wider">
                     My Jersey Bag ({cartCount})
                   </span>
                   <button
                     onClick={() => setCurrentPage('cart')}
-                    className="text-zinc-600 hover:text-zinc-900 text-xs font-semibold"
+                    className="text-zinc-600 hover:text-zinc-100 text-xs font-semibold"
                   >
                     View Bag
                   </button>
                 </div>
                 <div className="space-y-3 max-h-60 overflow-y-auto pr-1">
                   {cart.map((item, index) => (
-                    <div key={index} className="flex gap-3 text-zinc-950 border-b border-zinc-50 pb-2">
-                      <div className="w-12 h-12 bg-zinc-50 rounded p-1 flex items-center justify-center border border-zinc-100/30">
+                    <div key={index} className="flex gap-3 text-white border-b border-zinc-800 pb-2">
+                      <div className="w-12 h-12 bg-zinc-900 rounded p-1 flex items-center justify-center border border-zinc-800/30">
                         {/* Tiny Preview */}
                         <svg viewBox="0 0 200 240" className="w-full h-full">
                           <rect width="200" height="240" rx="10" fill="#f0fdf4" />
@@ -462,13 +462,13 @@ export const Header: React.FC<HeaderProps> = ({
                         </svg>
                       </div>
                       <div className="flex-1 min-w-0">
-                        <p className="text-xs font-bold truncate hover:text-zinc-700 cursor-pointer" onClick={() => { onSelectProduct(item.product); setCurrentPage('details'); }}>
+                        <p className="text-xs font-bold truncate hover:text-zinc-400 cursor-pointer" onClick={() => { onSelectProduct(item.product); setCurrentPage('details'); }}>
                           {item.product.name}
                         </p>
-                        <p className="text-[10px] text-zinc-700 font-mono">
+                        <p className="text-[10px] text-zinc-400 font-mono">
                           Size: {item.selectedSize} | Qty: {item.quantity}
                         </p>
-                        <p className="text-xs font-black text-zinc-800 mt-0.5">
+                        <p className="text-xs font-black text-zinc-300 mt-0.5">
                           {formatPrice(item.product.price)}
                         </p>
                       </div>
@@ -481,10 +481,10 @@ export const Header: React.FC<HeaderProps> = ({
                     </div>
                   ))}
                 </div>
-                <div className="border-t border-zinc-100 pt-3 mt-3">
+                <div className="border-t border-zinc-800 pt-3 mt-3">
                   <div className="flex justify-between items-center text-sm font-semibold mb-3">
-                    <span className="text-zinc-700">Subtotal:</span>
-                    <span className="text-zinc-900 font-black">{formatPrice(cartTotal)}</span>
+                    <span className="text-zinc-400">Subtotal:</span>
+                    <span className="text-zinc-100 font-black">{formatPrice(cartTotal)}</span>
                   </div>
                   <button
                     onClick={() => {
@@ -509,15 +509,15 @@ export const Header: React.FC<HeaderProps> = ({
           <button
             type="button"
             onClick={() => setIsMobileMenuOpen((open) => !open)}
-            className="relative z-[60] shrink-0 w-10 h-10 hover:bg-zinc-50 rounded-xl text-zinc-950 border border-zinc-200 bg-white shadow-sm inline-flex items-center justify-center cursor-pointer transition-all duration-200"
+            className="relative z-[60] shrink-0 w-10 h-10 hover:bg-zinc-900 rounded-xl text-white border border-zinc-800 bg-[#121212] shadow-sm inline-flex items-center justify-center cursor-pointer transition-all duration-200"
             id="mobile-hamburger-btn"
             aria-label="Toggle Menu"
             aria-expanded={isMobileMenuOpen}
           >
             {isMobileMenuOpen ? (
-              <X size={20} className="text-zinc-800 shrink-0" strokeWidth={2.5} />
+              <X size={20} className="text-zinc-300 shrink-0" strokeWidth={2.5} />
             ) : (
-              <Menu size={20} className="text-zinc-800 shrink-0" strokeWidth={2.5} />
+              <Menu size={20} className="text-zinc-300 shrink-0" strokeWidth={2.5} />
             )}
           </button>
         </div>
@@ -527,7 +527,7 @@ export const Header: React.FC<HeaderProps> = ({
       {/* Mobile search — always visible above banner / page content */}
       <div
         ref={mobileSearchPanelRef}
-        className="lg:hidden px-3 sm:px-4 pt-2.5 pb-3 bg-white border-b border-zinc-100 relative"
+        className="lg:hidden px-3 sm:px-4 pt-2.5 pb-3 bg-[#121212] border-b border-zinc-800 relative"
         id="mobile-search-bar"
       >
         <form
@@ -546,7 +546,7 @@ export const Header: React.FC<HeaderProps> = ({
               value={searchQuery}
               onChange={(e) => handleSearchInput(e.target.value)}
               onFocus={() => setShowMobileSearchDropdown(true)}
-              className="w-full h-11 sm:h-12 bg-zinc-50 text-zinc-950 placeholder-zinc-400 text-sm pl-11 pr-[5.75rem] rounded-full border border-zinc-100 focus:bg-white focus:outline-none focus:border-red-600 focus:ring-4 focus:ring-red-600/10 transition-all duration-300"
+              className="w-full h-11 sm:h-12 bg-zinc-900 text-white placeholder-zinc-500 text-sm pl-11 pr-[5.75rem] rounded-full border border-zinc-800 focus:bg-[#121212] focus:outline-none focus:border-red-600 focus:ring-4 focus:ring-red-600/10 transition-all duration-300"
             />
             <Search className="absolute left-3.5 text-zinc-600 w-5 h-5 pointer-events-none" />
             <button
@@ -558,9 +558,9 @@ export const Header: React.FC<HeaderProps> = ({
           </div>
         </form>
         {showMobileSearchDropdown && (
-          <div className="absolute top-full left-3 right-3 sm:left-4 sm:right-4 mt-2 bg-white border border-zinc-100 rounded-2xl shadow-2xl p-4 z-50 text-zinc-950 animate-fadeIn">
+          <div className="absolute top-full left-3 right-3 sm:left-4 sm:right-4 mt-2 bg-[#121212] border border-zinc-800 rounded-2xl shadow-2xl p-4 z-50 text-white animate-fadeIn">
             <div className="flex justify-between items-center mb-2">
-              <span className="text-[10px] font-bold text-zinc-800/80 tracking-wider uppercase">
+              <span className="text-[10px] font-bold text-zinc-300/80 tracking-wider uppercase">
                 {searchQuery.trim().length >= 2 ? 'Matching jerseys' : 'Popular Searches'}
               </span>
               <button
@@ -581,7 +581,7 @@ export const Header: React.FC<HeaderProps> = ({
                       onSelectProduct(p);
                       setShowMobileSearchDropdown(false);
                     }}
-                    className="w-full text-left px-2 py-1.5 rounded-lg hover:bg-zinc-50 text-[11px] font-semibold text-zinc-950 cursor-pointer truncate"
+                    className="w-full text-left px-2 py-1.5 rounded-lg hover:bg-zinc-900 text-[11px] font-semibold text-white cursor-pointer truncate"
                   >
                     {p.name}
                   </button>
@@ -594,7 +594,7 @@ export const Header: React.FC<HeaderProps> = ({
                   key={term}
                   type="button"
                   onClick={() => handlePopularSearchClick(term)}
-                  className="bg-zinc-50 hover:bg-zinc-100 border border-zinc-100 text-[11px] px-3 py-1.5 rounded-full text-zinc-800 cursor-pointer"
+                  className="bg-zinc-900 hover:bg-zinc-800 border border-zinc-800 text-[11px] px-3 py-1.5 rounded-full text-zinc-300 cursor-pointer"
                 >
                   {term}
                 </button>
@@ -608,7 +608,7 @@ export const Header: React.FC<HeaderProps> = ({
       </div>
 
       {/* Dynamic Main & Mega Navigation Row */}
-      <nav className="bg-zinc-50/80 border-b border-zinc-100/80 py-2.5 px-4 lg:px-12 hidden lg:flex items-center justify-center gap-2 xl:gap-3 relative flex-wrap">
+      <nav className="bg-black border-b border-zinc-800 py-2.5 px-4 lg:px-12 hidden lg:flex items-center justify-center gap-2 xl:gap-3 relative flex-wrap">
         {mainNavItems.map((item) => {
           const active = isStorefrontNavActive(item.url, selectedCategory, currentPage);
           return (
@@ -619,15 +619,15 @@ export const Header: React.FC<HeaderProps> = ({
               aria-current={active ? 'page' : undefined}
               className={`text-xs font-sans tracking-widest font-bold uppercase relative py-1.5 px-2.5 rounded-full transition-all cursor-pointer group flex items-center gap-1.5 ${
                 active
-                  ? 'bg-black text-white shadow-sm'
-                  : 'text-zinc-950 hover:text-zinc-700 hover:bg-zinc-100/70'
+                  ? 'bg-red-600 text-white shadow-sm'
+                  : 'text-white hover:text-zinc-400 hover:bg-zinc-800/70'
               }`}
             >
               <span>{item.name}</span>
               {item.badgeText && (
                 <span
                   className={`font-mono text-[8px] font-black px-1.5 py-0.5 rounded tracking-normal ${
-                    active ? 'bg-white/20 text-white' : 'bg-black text-white'
+                    active ? 'bg-white/20 text-white' : 'bg-red-600 text-white'
                   }`}
                 >
                   {item.badgeText}
@@ -648,8 +648,8 @@ export const Header: React.FC<HeaderProps> = ({
               type="button"
               className={`text-xs font-sans tracking-widest font-bold uppercase relative py-1.5 px-2.5 rounded-full transition-all cursor-pointer flex items-center gap-1.5 ${
                 showMegaMenuDropdown
-                  ? 'bg-black text-white shadow-sm'
-                  : 'text-zinc-950 hover:text-zinc-700 hover:bg-zinc-100/70'
+                  ? 'bg-red-600 text-white shadow-sm'
+                  : 'text-white hover:text-zinc-400 hover:bg-zinc-800/70'
               }`}
             >
               <span>More</span>
@@ -658,17 +658,17 @@ export const Header: React.FC<HeaderProps> = ({
 
             {/* Mega Menu Dropdown Board */}
             {showMegaMenuDropdown && (
-              <div className="absolute top-full right-0 w-[680px] bg-white border border-zinc-100 rounded-2xl shadow-2xl p-6 z-50 animate-fadeIn grid grid-cols-3 gap-6 text-zinc-950">
+              <div className="absolute top-full right-0 w-[680px] bg-[#121212] border border-zinc-800 rounded-2xl shadow-2xl p-6 z-50 animate-fadeIn grid grid-cols-3 gap-6 text-white">
                 {megaParents.map((parent) => {
                   const children = megaNavItems.filter(c => c.parentId === parent.id);
 
                   return (
                     <div key={parent.id} className="space-y-3">
-                      <div className="flex items-center gap-2 border-b border-zinc-100 pb-2">
-                        <div className="p-1 bg-zinc-50 text-zinc-800 rounded">
+                      <div className="flex items-center gap-2 border-b border-zinc-800 pb-2">
+                        <div className="p-1 bg-zinc-900 text-zinc-300 rounded">
                           {renderNavIcon(parent.icon, 16)}
                         </div>
-                        <h5 className="font-extrabold text-xs uppercase tracking-tight text-zinc-950 font-display">
+                        <h5 className="font-extrabold text-xs uppercase tracking-tight text-white font-display">
                           {parent.name}
                         </h5>
                       </div>
@@ -677,9 +677,9 @@ export const Header: React.FC<HeaderProps> = ({
                           <button
                             key={child.id}
                             onClick={() => handleMenuClick(child.url)}
-                            className="w-full text-left p-2 rounded-xl hover:bg-zinc-50/80 transition-all cursor-pointer flex items-center justify-between group text-xs"
+                            className="w-full text-left p-2 rounded-xl hover:bg-zinc-900/90 transition-all cursor-pointer flex items-center justify-between group text-xs"
                           >
-                            <div className="flex items-center gap-2 text-zinc-900 group-hover:text-zinc-700">
+                            <div className="flex items-center gap-2 text-zinc-100 group-hover:text-zinc-400">
                               {renderNavIcon(child.icon, 14)}
                               <span className="font-semibold">{child.name}</span>
                             </div>
@@ -709,13 +709,13 @@ export const Header: React.FC<HeaderProps> = ({
             className="fixed inset-0 z-[55] bg-zinc-950/40 lg:hidden"
             onClick={() => setIsMobileMenuOpen(false)}
           />
-          <div className="fixed top-0 right-0 z-[60] h-full w-[min(100%,320px)] max-w-[100vw] bg-white border-l border-zinc-100 shadow-2xl py-5 px-4 sm:px-5 space-y-5 animate-slideDown lg:hidden text-zinc-950 overflow-y-auto pb-[calc(5.5rem+env(safe-area-inset-bottom,0px))]">
-            <div className="flex items-center justify-between pb-2 border-b border-zinc-100">
-              <span className="text-[10px] font-mono font-black uppercase tracking-widest text-zinc-700">Menu</span>
+          <div className="fixed top-0 right-0 z-[60] h-full w-[min(100%,320px)] max-w-[100vw] bg-[#121212] border-l border-zinc-800 shadow-2xl py-5 px-4 sm:px-5 space-y-5 animate-slideDown lg:hidden text-white overflow-y-auto pb-[calc(5.5rem+env(safe-area-inset-bottom,0px))]">
+            <div className="flex items-center justify-between pb-2 border-b border-zinc-800">
+              <span className="text-[10px] font-mono font-black uppercase tracking-widest text-zinc-400">Menu</span>
               <button
                 type="button"
                 onClick={() => setIsMobileMenuOpen(false)}
-                className="p-2 rounded-lg border border-zinc-100 text-zinc-800"
+                className="p-2 rounded-lg border border-zinc-800 text-zinc-300"
                 aria-label="Close"
               >
                 <X size={18} />
@@ -730,7 +730,7 @@ export const Header: React.FC<HeaderProps> = ({
                 placeholder="Club Jersey, International Jersey, League..."
                 value={searchQuery}
                 onChange={(e) => handleSearchInput(e.target.value)}
-                className="w-full h-12 bg-zinc-50 text-zinc-950 placeholder-zinc-400 text-sm pl-12 pr-28 rounded-full border border-zinc-100/80 focus:bg-white focus:outline-none focus:border-red-600 focus:ring-4 focus:ring-red-600/10 hover:bg-zinc-50/50 hover:border-zinc-200 transition-all duration-300"
+                className="w-full h-12 bg-zinc-900 text-white placeholder-zinc-500 text-sm pl-12 pr-28 rounded-full border border-zinc-800 focus:bg-[#121212] focus:outline-none focus:border-red-600 focus:ring-4 focus:ring-red-600/10 hover:bg-zinc-900/60 hover:border-zinc-800 transition-all duration-300"
               />
               <Search className="absolute left-4 text-zinc-600 w-5 h-5 pointer-events-none" />
               <button
@@ -744,14 +744,14 @@ export const Header: React.FC<HeaderProps> = ({
 
           {/* Popular searches in mobile menu */}
           <div className="space-y-2">
-            <span className="text-[10px] font-mono tracking-widest text-zinc-700 font-bold uppercase block text-left">Popular Searches</span>
+            <span className="text-[10px] font-mono tracking-widest text-zinc-400 font-bold uppercase block text-left">Popular Searches</span>
             <div className="flex flex-wrap gap-1.5">
               {popularSearchTerms.map((term) => (
                 <button
                   key={term}
                   type="button"
                   onClick={() => handlePopularSearchClick(term)}
-                  className="bg-zinc-50 hover:bg-zinc-100 border border-zinc-100 text-[11px] px-3 py-1.5 rounded-full text-zinc-800 cursor-pointer"
+                  className="bg-zinc-900 hover:bg-zinc-800 border border-zinc-800 text-[11px] px-3 py-1.5 rounded-full text-zinc-300 cursor-pointer"
                 >
                   {term}
                 </button>
@@ -761,7 +761,7 @@ export const Header: React.FC<HeaderProps> = ({
 
           {/* Quick Stats / Direct Pages Options — always 1 col: drawer is ~320px; viewport sm: would crush 2-col cards */}
           <div className="space-y-3">
-            <span className="text-[10px] font-mono tracking-widest text-zinc-700 font-bold uppercase block text-left">
+            <span className="text-[10px] font-mono tracking-widest text-zinc-400 font-bold uppercase block text-left">
               My Personal Room
             </span>
             <div className="grid grid-cols-1 gap-2.5">
@@ -772,18 +772,18 @@ export const Header: React.FC<HeaderProps> = ({
                   setCurrentPage('cart');
                   setIsMobileMenuOpen(false);
                 }}
-                className="w-full min-w-0 flex items-center gap-3 p-3.5 bg-zinc-50 hover:bg-zinc-50 border border-zinc-100 rounded-2xl transition-all text-left cursor-pointer"
+                className="w-full min-w-0 flex items-center gap-3 p-3.5 bg-zinc-900 hover:bg-zinc-900 border border-zinc-800 rounded-2xl transition-all text-left cursor-pointer"
               >
-                <div className="shrink-0 p-2.5 bg-zinc-100/60 text-zinc-800 rounded-xl">
+                <div className="shrink-0 p-2.5 bg-zinc-800/60 text-zinc-300 rounded-xl">
                   <ShoppingBag size={18} />
                 </div>
                 <div className="min-w-0 flex-1">
                   <div className="flex items-baseline justify-between gap-2">
-                    <p className="text-xs font-black uppercase tracking-wider text-zinc-950 truncate">Cart Bag</p>
-                    <p className="shrink-0 text-xs font-black text-zinc-900 font-mono tabular-nums">{formatPrice(cartTotal)}</p>
+                    <p className="text-xs font-black uppercase tracking-wider text-white truncate">Cart Bag</p>
+                    <p className="shrink-0 text-xs font-black text-zinc-100 font-mono tabular-nums">{formatPrice(cartTotal)}</p>
                   </div>
                   <div className="flex items-center justify-between gap-2 mt-0.5">
-                    <p className="text-[10px] text-zinc-700/80 font-mono font-bold truncate">{cartCount} items</p>
+                    <p className="text-[10px] text-zinc-400/80 font-mono font-bold truncate">{cartCount} items</p>
                     <span className="shrink-0 text-[9px] text-zinc-600 font-extrabold uppercase tracking-widest">View →</span>
                   </div>
                 </div>
@@ -797,15 +797,15 @@ export const Header: React.FC<HeaderProps> = ({
                   setCurrentPage('dashboard');
                   setIsMobileMenuOpen(false);
                 }}
-                className="w-full min-w-0 flex items-center gap-3 p-3.5 bg-zinc-50 hover:bg-zinc-50 border border-zinc-100 rounded-2xl transition-all text-left cursor-pointer"
+                className="w-full min-w-0 flex items-center gap-3 p-3.5 bg-zinc-900 hover:bg-zinc-900 border border-zinc-800 rounded-2xl transition-all text-left cursor-pointer"
               >
                 <div className="shrink-0 p-2.5 bg-red-50 text-red-600 rounded-xl">
                   <Heart size={18} className={wishlist.length > 0 ? "fill-red-500 text-red-500" : ""} />
                 </div>
                 <div className="min-w-0 flex-1">
-                  <p className="text-xs font-black uppercase tracking-wider text-zinc-950 truncate">Favorites</p>
+                  <p className="text-xs font-black uppercase tracking-wider text-white truncate">Favorites</p>
                   <div className="flex items-center justify-between gap-2 mt-0.5">
-                    <p className="text-[10px] text-zinc-700/80 font-mono font-bold truncate">{wishlist.length} saved</p>
+                    <p className="text-[10px] text-zinc-400/80 font-mono font-bold truncate">{wishlist.length} saved</p>
                     <span className="shrink-0 text-[9px] text-zinc-600 font-extrabold uppercase tracking-widest">View →</span>
                   </div>
                 </div>
@@ -817,15 +817,15 @@ export const Header: React.FC<HeaderProps> = ({
           <div className="space-y-3">
             {currentUser && canUseAdminPanel(currentUser.role, !!getToken(), isApiEnabled()) ? (
               <>
-                <span className="text-[10px] font-mono tracking-widest text-zinc-700 font-bold uppercase block text-left">
+                <span className="text-[10px] font-mono tracking-widest text-zinc-400 font-bold uppercase block text-left">
                   Admin Control
                 </span>
-                <div className="p-4 bg-slate-50/60 border border-zinc-100 rounded-2xl space-y-3">
+                <div className="p-4 bg-slate-50/60 border border-zinc-800 rounded-2xl space-y-3">
                   <div className="flex items-start justify-between gap-3">
                     <div className="text-left min-w-0 flex-1">
                       <p className="text-[9px] text-zinc-600 font-mono font-bold uppercase tracking-wider leading-none">{currentUser.role}</p>
-                      <p className="text-xs font-black text-zinc-950 mt-1 truncate">{currentUser.fullName}</p>
-                      <p className="text-[10px] text-zinc-700/70 font-mono truncate">{currentUser.email}</p>
+                      <p className="text-xs font-black text-white mt-1 truncate">{currentUser.fullName}</p>
+                      <p className="text-[10px] text-zinc-400/70 font-mono truncate">{currentUser.email}</p>
                     </div>
                     <button
                       type="button"
@@ -838,14 +838,14 @@ export const Header: React.FC<HeaderProps> = ({
                       Sign Out
                     </button>
                   </div>
-                  <div className="grid grid-cols-2 gap-2 pt-2 border-t border-zinc-100">
+                  <div className="grid grid-cols-2 gap-2 pt-2 border-t border-zinc-800">
                     <button
                       type="button"
                       onClick={() => {
                         setCurrentPage('admin');
                         setIsMobileMenuOpen(false);
                       }}
-                      className="w-full min-w-0 bg-zinc-950 hover:bg-zinc-800 text-white py-2.5 px-2 rounded-xl text-center text-[10px] font-mono font-bold uppercase tracking-wider cursor-pointer leading-tight"
+                      className="w-full min-w-0 bg-red-600 hover:bg-red-700 text-white py-2.5 px-2 rounded-xl text-center text-[10px] font-mono font-bold uppercase tracking-wider cursor-pointer leading-tight"
                     >
                       Admin Room
                     </button>
@@ -878,7 +878,7 @@ export const Header: React.FC<HeaderProps> = ({
 
           {/* Main Navigation Categories in Mobile */}
           <div className="space-y-3">
-            <span className="text-[10px] font-mono tracking-widest text-zinc-700 font-bold uppercase block text-left">
+            <span className="text-[10px] font-mono tracking-widest text-zinc-400 font-bold uppercase block text-left">
               Main Navigation Menu
             </span>
             <div className="grid grid-cols-1 gap-2">
@@ -893,17 +893,17 @@ export const Header: React.FC<HeaderProps> = ({
                     className={`w-full min-w-0 text-left text-xs py-3 px-3.5 rounded-xl border transition-all cursor-pointer flex items-center gap-2 font-semibold ${
                       active
                         ? 'bg-red-600 border-red-700 text-white shadow-sm'
-                        : 'bg-zinc-50 border-zinc-100 hover:border-red-600 hover:bg-red-50 text-zinc-950'
+                        : 'bg-zinc-900 border-zinc-800 hover:border-red-600 hover:bg-red-50 text-white'
                     }`}
                   >
-                    <span className={`shrink-0 ${active ? 'text-zinc-100' : 'text-zinc-700'}`}>
+                    <span className={`shrink-0 ${active ? 'text-zinc-100' : 'text-zinc-400'}`}>
                       {renderNavIcon(item.icon, 14)}
                     </span>
                     <span className="min-w-0 flex-1 leading-snug break-words">{item.name}</span>
                     {item.badgeText ? (
                       <span
                         className={`shrink-0 font-mono text-[8px] px-1.5 py-0.5 rounded font-black ${
-                          active ? 'bg-white/20 text-white' : 'bg-black text-white'
+                          active ? 'bg-white/20 text-white' : 'bg-red-600 text-white'
                         }`}
                       >
                         {item.badgeText}
@@ -917,16 +917,16 @@ export const Header: React.FC<HeaderProps> = ({
 
           {/* Mega Menu Options in Mobile */}
           {megaParents.length > 0 && (
-            <div className="space-y-3 border-t border-zinc-100 pt-3">
-              <span className="text-[10px] font-mono tracking-widest text-zinc-700 font-bold uppercase block text-left">
+            <div className="space-y-3 border-t border-zinc-800 pt-3">
+              <span className="text-[10px] font-mono tracking-widest text-zinc-400 font-bold uppercase block text-left">
                 More
               </span>
               <div className="space-y-3">
                 {megaParents.map((parent) => {
                   const children = megaNavItems.filter((c) => c.parentId === parent.id);
                   return (
-                    <div key={parent.id} className="bg-zinc-50 p-3 rounded-2xl border border-zinc-100 space-y-2">
-                      <div className="flex items-center gap-2 font-bold text-xs text-zinc-950 uppercase">
+                    <div key={parent.id} className="bg-zinc-900 p-3 rounded-2xl border border-zinc-800 space-y-2">
+                      <div className="flex items-center gap-2 font-bold text-xs text-white uppercase">
                         {renderNavIcon(parent.icon, 14)}
                         <span>{parent.name}</span>
                       </div>
@@ -936,7 +936,7 @@ export const Header: React.FC<HeaderProps> = ({
                             key={child.id}
                             type="button"
                             onClick={() => handleMenuClick(child.url)}
-                            className="text-left text-xs py-1.5 px-2.5 bg-white border border-zinc-100 rounded-lg hover:border-zinc-900 text-zinc-900 font-medium flex items-center justify-between"
+                            className="text-left text-xs py-1.5 px-2.5 bg-[#121212] border border-zinc-800 rounded-lg hover:border-red-600 text-zinc-100 font-medium flex items-center justify-between"
                           >
                             <div className="flex items-center gap-2">
                               {renderNavIcon(child.icon, 12)}
