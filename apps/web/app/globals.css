@@ -1,4 +1,4 @@
-@import url('https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,400;0,9..40,500;0,9..40,600;0,9..40,700;0,9..40,800;0,9..40,900;1,9..40,400&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,400;0,9..40,500;0,9..40,600;0,9..40,700;0,9..40,800;0,9..40,900;1,9..40,400&family=Inter:wght@400;500;600;700;800;900&display=swap');
 @import "tailwindcss";
 
 @theme {
@@ -279,4 +279,483 @@ main, section, header, footer, nav {
 .btn-brand:hover {
   background-color: var(--ev-red-hover);
   border-color: var(--ev-red-hover);
+}
+
+/* ---------------------------------------------------------------------------
+   Admin Command Room — black / white / Inter (scoped; storefront unchanged)
+--------------------------------------------------------------------------- */
+.admin-shell,
+.admin-shell *,
+.admin-shell input,
+.admin-shell button,
+.admin-shell select,
+.admin-shell textarea,
+.admin-shell th,
+.admin-shell td,
+.admin-shell label,
+.admin-shell p,
+.admin-shell span,
+.admin-shell h1,
+.admin-shell h2,
+.admin-shell h3,
+.admin-shell h4,
+.admin-shell h5 {
+  font-family: "Inter", ui-sans-serif, system-ui, sans-serif !important;
+  letter-spacing: -0.011em;
+}
+
+.admin-shell {
+  color-scheme: light;
+  background: #f4f4f5;
+  color: #0a0a0a;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  font-size: 14px;
+  line-height: 1.5;
+  font-weight: 500;
+}
+
+.admin-shell .font-mono,
+.admin-shell .font-sans {
+  font-family: "Inter", ui-sans-serif, system-ui, sans-serif !important;
+  letter-spacing: -0.01em;
+}
+
+/* Bump tiny type for readability */
+.admin-shell .text-\[7px\],
+.admin-shell .text-\[8px\],
+.admin-shell .text-\[9px\] {
+  font-size: 12px !important;
+  line-height: 1.4 !important;
+  font-weight: 600 !important;
+}
+.admin-shell .text-\[10px\] {
+  font-size: 12.5px !important;
+  line-height: 1.45 !important;
+  font-weight: 600 !important;
+}
+.admin-shell .text-\[11px\] {
+  font-size: 13px !important;
+  line-height: 1.45 !important;
+  font-weight: 500 !important;
+}
+.admin-shell .text-xs {
+  font-size: 13.5px !important;
+  line-height: 1.5 !important;
+}
+.admin-shell .text-sm {
+  font-size: 14.5px !important;
+  line-height: 1.5 !important;
+}
+
+/* Force muted greys → readable near-black (never pale-on-white) */
+.admin-shell :is(
+  .text-zinc-300,
+  .text-zinc-400,
+  .text-zinc-500,
+  .text-zinc-600,
+  .text-gray-300,
+  .text-gray-400,
+  .text-gray-500,
+  .text-gray-600,
+  .text-neutral-400,
+  .text-neutral-500,
+  .text-slate-400,
+  .text-slate-500,
+  .placeholder-zinc-400,
+  .placeholder-emerald-400,
+  .placeholder-gray-400,
+  .placeholder-gray-600
+) {
+  color: #27272a !important;
+  font-weight: 600;
+}
+.admin-shell :is(.text-zinc-700, .text-gray-700, .text-neutral-700) {
+  color: #18181b !important;
+  font-weight: 600;
+}
+.admin-shell :is(.text-zinc-800, .text-zinc-900, .text-zinc-950) {
+  color: #0a0a0a !important;
+}
+.admin-shell ::placeholder {
+  color: #52525b !important;
+  opacity: 1;
+}
+
+/* Emerald → grayscale (legacy admin classes) */
+.admin-shell :is(
+  .bg-emerald-50,
+  .bg-emerald-50\/20,
+  .bg-emerald-50\/30,
+  .bg-emerald-50\/40,
+  .bg-emerald-50\/50,
+  .bg-emerald-50\/60,
+  .hover\:bg-emerald-50:hover,
+  .hover\:bg-emerald-50\/30:hover,
+  .hover\:bg-emerald-50\/50:hover
+) {
+  background-color: #f4f4f5 !important;
+}
+.admin-shell :is(.bg-emerald-100, .bg-emerald-100\/50, .hover\:bg-emerald-100:hover, .hover\:bg-emerald-100\/80:hover) {
+  background-color: #e4e4e7 !important;
+}
+.admin-shell :is(.bg-emerald-200, .bg-emerald-200\/60) {
+  background-color: #d4d4d8 !important;
+}
+.admin-shell :is(.bg-emerald-600, .bg-emerald-700, .hover\:bg-emerald-700:hover) {
+  background-color: #27272a !important;
+  color: #ffffff !important;
+}
+.admin-shell :is(
+  .bg-emerald-800,
+  .bg-emerald-800\/80,
+  .hover\:bg-emerald-800:hover,
+  .hover\:bg-emerald-900:hover,
+  .bg-emerald-900,
+  .bg-emerald-950
+) {
+  background-color: #0a0a0a !important;
+  color: #ffffff !important;
+}
+.admin-shell .bg-gradient-to-br {
+  background-image: none !important;
+  background-color: #0a0a0a !important;
+}
+
+/* All emerald text → dark readable on light surfaces */
+.admin-shell :is(
+  .text-emerald-50,
+  .text-emerald-100,
+  .text-emerald-200,
+  .text-emerald-300,
+  .text-emerald-400,
+  .text-emerald-500,
+  .text-emerald-600,
+  .text-emerald-700,
+  .text-emerald-800,
+  .text-emerald-850,
+  .text-emerald-900,
+  .text-emerald-950,
+  .hover\:text-emerald-950:hover,
+  .hover\:text-emerald-700:hover,
+  .hover\:text-emerald-900:hover,
+  .text-amber-200,
+  .text-amber-300,
+  .text-amber-400
+) {
+  color: #0a0a0a !important;
+  font-weight: 600;
+}
+.admin-shell .text-emerald-800\/60 {
+  color: #27272a !important;
+}
+
+/* Solid dark surfaces → white text (fixes black-on-black buttons) */
+.admin-shell :is(
+  .bg-zinc-950,
+  .bg-zinc-900,
+  .bg-black,
+  .bg-emerald-950,
+  .bg-emerald-900,
+  .bg-emerald-800,
+  .bg-amber-400,
+  .bg-amber-500
+),
+.admin-shell button.bg-emerald-950,
+.admin-shell button[class*="bg-emerald-950"],
+.admin-shell button[class*="bg-emerald-800"],
+.admin-shell button[class*="bg-zinc-950"] {
+  background-color: #0a0a0a !important;
+  color: #ffffff !important;
+}
+.admin-shell :is(
+  .bg-zinc-950,
+  .bg-zinc-900,
+  .bg-black,
+  .bg-emerald-950,
+  .bg-emerald-900,
+  .bg-emerald-800,
+  .bg-amber-400,
+  .bg-amber-500
+) :is(h1, h2, h3, h4, p, span, label, svg, small, strong, b, em, code),
+.admin-shell :is(
+  .bg-zinc-950,
+  .bg-zinc-900,
+  .bg-black,
+  .bg-emerald-950,
+  .bg-emerald-900,
+  .bg-emerald-800
+) :is(.text-white, .text-black, .text-zinc-50, .text-zinc-100, .text-zinc-200, .text-zinc-300,
+      .text-emerald-50, .text-emerald-100, .text-emerald-200, .text-emerald-300, .text-emerald-400,
+      .text-amber-200, .text-amber-300, .text-amber-400, .text-gray-300, .text-gray-400) {
+  color: #ffffff !important;
+  font-weight: 600;
+}
+
+.admin-shell :is(
+  .border-emerald-50,
+  .border-emerald-100,
+  .border-emerald-100\/50,
+  .border-emerald-100\/60,
+  .border-emerald-200,
+  .hover\:border-emerald-200:hover,
+  .focus\:border-emerald-500:focus,
+  .focus\:border-emerald-600:focus
+) {
+  border-color: #d4d4d8 !important;
+}
+.admin-shell :is(.border-emerald-300, .border-emerald-600, .border-emerald-700, .border-emerald-800, .border-emerald-950) {
+  border-color: #a1a1aa !important;
+}
+.admin-shell :is(.accent-emerald-600, .accent-emerald-700) {
+  accent-color: #0a0a0a !important;
+}
+
+/* Color chips → B&W only */
+.admin-shell :is(
+  .bg-amber-50,
+  .bg-amber-100,
+  .bg-rose-50,
+  .bg-rose-100,
+  .bg-red-50,
+  .bg-blue-50,
+  .bg-blue-100,
+  .bg-indigo-100,
+  .bg-purple-100,
+  .bg-sky-100,
+  .bg-violet-100,
+  .bg-orange-100
+) {
+  background-color: #f4f4f5 !important;
+}
+.admin-shell :is(.bg-amber-400, .bg-amber-500, .hover\:bg-amber-300:hover, .hover\:bg-amber-400:hover) {
+  background-color: #0a0a0a !important;
+  color: #ffffff !important;
+}
+.admin-shell :is(
+  .text-amber-600,
+  .text-amber-800,
+  .text-amber-900,
+  .text-rose-600,
+  .text-rose-700,
+  .text-rose-800,
+  .text-rose-900,
+  .text-red-600,
+  .text-red-700,
+  .text-red-800,
+  .text-red-950,
+  .text-blue-700,
+  .text-blue-800,
+  .text-blue-900,
+  .text-indigo-900,
+  .text-purple-900,
+  .text-sky-900,
+  .text-violet-900,
+  .text-orange-900
+) {
+  color: #0a0a0a !important;
+  font-weight: 700;
+}
+.admin-shell :is(
+  .border-amber-100,
+  .border-amber-200,
+  .border-amber-300,
+  .border-amber-400,
+  .border-rose-100,
+  .border-rose-200,
+  .border-rose-300,
+  .border-red-100,
+  .border-red-200,
+  .border-blue-300,
+  .border-indigo-300,
+  .border-purple-300,
+  .border-sky-300,
+  .border-violet-300,
+  .border-orange-300
+) {
+  border-color: #a1a1aa !important;
+}
+
+/* Legacy dark inventory modals → light B&W */
+.admin-shell .bg-\[\#0c120f\],
+.admin-shell .bg-\[\#050906\],
+.admin-shell .bg-black\/85 {
+  background-color: #ffffff !important;
+  color: #0a0a0a !important;
+}
+.admin-shell .bg-\[\#0c120f\] :is(.text-white, .text-gray-300, .text-gray-400, .text-gray-600),
+.admin-shell .bg-\[\#050906\] :is(.text-white, .text-gray-300, .text-gray-400, .text-gray-600),
+.admin-shell .bg-\[\#0c120f\] input,
+.admin-shell .bg-\[\#050906\] input,
+.admin-shell .bg-\[\#0c120f\] textarea,
+.admin-shell .bg-\[\#050906\] textarea,
+.admin-shell .bg-\[\#0c120f\] select,
+.admin-shell .bg-\[\#050906\] select {
+  color: #0a0a0a !important;
+}
+.admin-shell .bg-\[\#0c120f\] :is(.border-emerald-950, .border-emerald-900),
+.admin-shell .bg-\[\#050906\] :is(.border-emerald-950, .border-emerald-900) {
+  border-color: #d4d4d8 !important;
+}
+.admin-shell .bg-\[\#0c120f\] .bg-\[\#050906\],
+.admin-shell .bg-\[\#050906\] {
+  background-color: #fafafa !important;
+}
+.admin-shell .bg-amber-400,
+.admin-shell .hover\:bg-amber-300:hover {
+  background-color: #0a0a0a !important;
+  color: #ffffff !important;
+  border-color: #0a0a0a !important;
+}
+
+/* Tables & forms */
+.admin-shell table {
+  color: #0a0a0a;
+}
+.admin-shell th {
+  color: #0a0a0a !important;
+  font-weight: 700 !important;
+}
+.admin-shell td {
+  color: #18181b !important;
+}
+.admin-shell input,
+.admin-shell select,
+.admin-shell textarea {
+  color: #0a0a0a !important;
+  background-color: #ffffff !important;
+  border-color: #d4d4d8 !important;
+}
+.admin-shell input:focus,
+.admin-shell select:focus,
+.admin-shell textarea:focus {
+  border-color: #0a0a0a !important;
+  outline: none;
+  box-shadow: 0 0 0 2px rgba(0, 0, 0, 0.12);
+}
+
+/* Toasts inside / over admin — high contrast B&W */
+.admin-shell .fixed[class*="z-\[80\]"],
+.admin-shell .fixed[class*="z-\[100\]"] {
+  color: #0a0a0a;
+}
+
+/* Opacity / leftover colored fills → neutral */
+.admin-shell [class*="bg-emerald-950\/"],
+.admin-shell [class*="bg-emerald-900\/"],
+.admin-shell [class*="bg-rose-950\/"] {
+  background-color: #f4f4f5 !important;
+  color: #0a0a0a !important;
+}
+.admin-shell [class*="shadow-emerald"],
+.admin-shell [class*="shadow-amber"] {
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.08) !important;
+}
+
+/* Active nav / primary chips stay high-contrast */
+.admin-shell .bg-zinc-950.text-white,
+.admin-shell button.bg-zinc-950 {
+  color: #ffffff !important;
+}
+
+/* Sidebar labels */
+.admin-shell aside span,
+.admin-shell aside p,
+.admin-shell nav span,
+.admin-shell nav p {
+  font-weight: 600;
+}
+
+/* Left nav: fill viewport height, no scrollbar */
+.admin-shell > aside.admin-sidebar {
+  height: 100dvh;
+  max-height: 100dvh;
+  overflow: hidden;
+}
+.admin-shell > aside.admin-sidebar .admin-sidebar-nav {
+  overflow: hidden;
+  scrollbar-width: none;
+}
+.admin-shell > aside.admin-sidebar .admin-sidebar-nav::-webkit-scrollbar {
+  display: none;
+  width: 0;
+  height: 0;
+}
+
+/* ---------------------------------------------------------------------------
+   Print: POS invoice only (hide admin shell / website)
+--------------------------------------------------------------------------- */
+@media print {
+  @page {
+    margin: 8mm;
+  }
+
+  body.print-pos-invoice {
+    background: #fff !important;
+  }
+
+  body.print-pos-invoice * {
+    visibility: hidden !important;
+  }
+
+  body.print-pos-invoice #pos-invoice-print,
+  body.print-pos-invoice #pos-invoice-print * {
+    visibility: visible !important;
+  }
+
+  body.print-pos-invoice #pos-invoice-print {
+    position: absolute !important;
+    left: 0 !important;
+    top: 0 !important;
+    width: 80mm !important;
+    max-width: 100% !important;
+    margin: 0 !important;
+    padding: 4mm !important;
+    background: #fff !important;
+    color: #0a0a0a !important;
+    box-shadow: none !important;
+    border: none !important;
+  }
+
+  body.print-pos-invoice .print\:hidden {
+    display: none !important;
+    visibility: hidden !important;
+  }
+}
+
+/* Print: barcode labels only — full A4 sheet */
+@media print {
+  @page {
+    size: A4;
+    margin: 8mm;
+  }
+
+  body.print-barcode-labels * {
+    visibility: hidden !important;
+  }
+  body.print-barcode-labels #barcode-labels-print,
+  body.print-barcode-labels #barcode-labels-print * {
+    visibility: visible !important;
+  }
+  body.print-barcode-labels #barcode-labels-print {
+    position: absolute !important;
+    left: 0 !important;
+    top: 0 !important;
+    width: 100% !important;
+    max-width: none !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    background: #fff !important;
+    box-shadow: none !important;
+    border: none !important;
+  }
+  body.print-barcode-labels .barcode-label-card {
+    border-color: #d4d4d8 !important;
+    -webkit-print-color-adjust: exact;
+    print-color-adjust: exact;
+  }
+  body.print-barcode-labels .print\:hidden {
+    display: none !important;
+    visibility: hidden !important;
+  }
 }

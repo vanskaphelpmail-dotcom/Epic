@@ -9,7 +9,9 @@
 import path from "node:path";
 import { fileURLToPath } from "node:url";
 import { config as loadEnv } from "dotenv";
-import { PrismaClient } from "@prisma/client";
+import { Pool } from "pg";
+import { PrismaPg } from "@prisma/adapter-pg";
+import { PrismaClient } from "../generated/prisma/client.ts";
 import { ensureMigrateDatabaseUrls } from "../../../scripts/neon-direct-url.mjs";
 
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "../../..");
@@ -27,7 +29,11 @@ if (process.env.DATABASE_URL_UNPOOLED) {
   process.env.DATABASE_URL = process.env.DATABASE_URL_UNPOOLED;
 }
 
-const prisma = new PrismaClient();
+const pool = new Pool({
+  connectionString: process.env.DATABASE_URL,
+  ssl: { rejectUnauthorized: false },
+});
+const prisma = new PrismaClient({ adapter: new PrismaPg(pool) });
 
 async function wipe() {
   const usersBefore = await prisma.user.count();
@@ -84,4 +90,5 @@ wipe()
   })
   .finally(async () => {
     await prisma.$disconnect();
+    await pool.end();
   });

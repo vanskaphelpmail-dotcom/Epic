@@ -103,6 +103,7 @@ productsRouter.get("/", optionalAuth, async (req: AuthedRequest, res) => {
           name: true,
           slug: true,
           sku: true,
+          barcode: true,
           price: true,
           originalPrice: true,
           ...(includeDraft ? { costPrice: true } : {}),
@@ -230,6 +231,7 @@ const upsertSchema = z.object({
   name: z.string().min(2),
   slug: z.string().min(2),
   sku: z.string().min(2),
+  barcode: z.string().min(4).max(32).optional().nullable(),
   price: z.number().positive(),
   originalPrice: z.number().nonnegative().nullable().optional(),
   costPrice: z.number().optional(),
@@ -338,6 +340,7 @@ function productCreateData(body: z.infer<typeof upsertSchema>, categoryId?: stri
     name: body.name,
     slug: body.slug,
     sku: body.sku,
+    barcode: body.barcode?.trim() || null,
     price: body.price,
     originalPrice:
       body.originalPrice == null || body.originalPrice <= 0 ? null : body.originalPrice,
@@ -481,6 +484,9 @@ productsRouter.put("/:id", requirePermission("can_manage_products"), async (req:
         ...(body.name != null ? { name: body.name } : {}),
         ...(body.slug != null ? { slug: body.slug } : {}),
         ...(body.sku != null ? { sku: body.sku } : {}),
+        ...(body.barcode !== undefined
+          ? { barcode: body.barcode?.trim() ? body.barcode.trim() : null }
+          : {}),
         ...(body.price != null ? { price: body.price } : {}),
         ...(body.originalPrice !== undefined
           ? { originalPrice: body.originalPrice == null || body.originalPrice <= 0 ? null : body.originalPrice }

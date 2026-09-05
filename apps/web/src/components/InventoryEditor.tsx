@@ -14,12 +14,15 @@ import {
   type DiscountMode,
 } from '../lib/productPricing';
 import { confirmAsync, toast } from './UiFeedback';
+import { generateEan13, normalizeBarcode } from '../lib/retailCodes';
+import { BarcodeLabelPrint } from './admin/BarcodeLabelPrint';
 
 interface InventoryEditorProps {
   products: Product[];
   setProducts: React.Dispatch<React.SetStateAction<Product[]>>;
   formatPrice: (amount: number) => string;
   onRequireStaffLogin?: () => void;
+  shopName?: string;
 }
 
 export const InventoryEditor: React.FC<InventoryEditorProps> = ({
@@ -27,6 +30,7 @@ export const InventoryEditor: React.FC<InventoryEditorProps> = ({
   setProducts,
   formatPrice,
   onRequireStaffLogin,
+  shopName = 'Epic Vanskap',
 }) => {
   // Search and filter states
   const [searchTerm, setSearchTerm] = useState('');
@@ -61,6 +65,14 @@ export const InventoryEditor: React.FC<InventoryEditorProps> = ({
   const [formColor, setFormColor] = useState('Green/Red');
   const [formSizes, setFormSizes] = useState<string[]>([...DEFAULT_FALLBACK_SIZES]);
   const [formSku, setFormSku] = useState('');
+  const [formBarcode, setFormBarcode] = useState('');
+  const [formBarcodeMode, setFormBarcodeMode] = useState<'none' | 'auto' | 'manual'>('none');
+  const [labelPrint, setLabelPrint] = useState<{
+    barcode: string;
+    sellPrice: number;
+    name: string;
+    category?: string;
+  } | null>(null);
   const [formDescription, setFormDescription] = useState('');
   const [formMaterial, setFormMaterial] = useState('100% Curated Polyester Mesh');
   const [formMadeIn, setFormMadeIn] = useState('Bangladesh');
@@ -85,6 +97,8 @@ export const InventoryEditor: React.FC<InventoryEditorProps> = ({
     setFormColor('Green/Red');
     setFormSizes([...DEFAULT_FALLBACK_SIZES]);
     setFormSku('');
+    setFormBarcode('');
+    setFormBarcodeMode('none');
     setFormDescription('');
     setFormMaterial('100% Curated Polyester Mesh');
     setFormMadeIn('Bangladesh');
@@ -120,6 +134,8 @@ export const InventoryEditor: React.FC<InventoryEditorProps> = ({
     setFormColor(product.color || 'Green/Red');
     setFormSizes(product.sizes || [...DEFAULT_FALLBACK_SIZES]);
     setFormSku(product.sku);
+    setFormBarcode(product.barcode || '');
+    setFormBarcodeMode(product.barcode ? 'manual' : 'none');
     setFormDescription(product.description || '');
     setFormMaterial(product.specification?.material || '100% Curated Polyester Mesh');
     setFormMadeIn(product.specification?.madeIn || 'Bangladesh');
@@ -148,10 +164,18 @@ export const InventoryEditor: React.FC<InventoryEditorProps> = ({
       ? calcDiscountAmount(formOriginalPrice, salePrice)
       : 0;
 
+    const resolvedBarcode =
+      formBarcodeMode === 'none'
+        ? undefined
+        : formBarcodeMode === 'manual'
+          ? normalizeBarcode(formBarcode) || undefined
+          : normalizeBarcode(formBarcode) || generateEan13(formSku || Date.now());
+
     const payload = {
       name: formName,
       slug: formName.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, '') || `product-${Date.now()}`,
       sku: formSku || `BD-SKU-${Math.floor(100000 + Math.random() * 900000)}`,
+      barcode: resolvedBarcode || null,
       price: salePrice,
       originalPrice: formHasDiscount ? formOriginalPrice : null,
       discount: formHasDiscount ? discountAmount : null,
@@ -215,10 +239,18 @@ export const InventoryEditor: React.FC<InventoryEditorProps> = ({
       ? calcDiscountAmount(formOriginalPrice, salePrice)
       : 0;
 
+    const resolvedBarcode =
+      formBarcodeMode === 'none'
+        ? null
+        : formBarcodeMode === 'manual'
+          ? normalizeBarcode(formBarcode) || null
+          : normalizeBarcode(formBarcode) || generateEan13(formSku || editingProduct.sku);
+
     const payload = {
       name: formName,
       slug: formName.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, '') || editingProduct.slug,
       sku: formSku,
+      barcode: resolvedBarcode,
       price: salePrice,
       originalPrice: formHasDiscount ? formOriginalPrice : null,
       discount: formHasDiscount ? discountAmount : null,
@@ -317,7 +349,11 @@ export const InventoryEditor: React.FC<InventoryEditorProps> = ({
       const matchesSearch =
         p.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
         p.sku.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        p.brand.toLowerCase().includes(searchTerm.toLowerCase());
+        (p.barcode || '').toLowerCase().includes(searchTerm.toLowerCase()) ||
+        p.brand.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        (p.club || '').toLowerCase().includes(searchTerm.toLowerCase()) ||
+        (p.player?.name || '').toLowerCase().includes(searchTerm.toLowerCase()) ||
+        (p.player?.number != null && String(p.player.number).includes(searchTerm));
       const matchesCategory = categoryFilter === 'All' || p.category === categoryFilter;
       return matchesSearch && matchesCategory;
     });
@@ -335,11 +371,11 @@ export const InventoryEditor: React.FC<InventoryEditorProps> = ({
       {/* Header and Controls */}
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 bg-emerald-50/40 border border-emerald-100 p-6 rounded-2xl">
         <div className="space-y-1">
-          <h3 className="text-base font-extrabold text-emerald-950 flex items-center gap-2">
-            <span className="h-2 w-2 rounded-full bg-emerald-600" />
+          <h3 className="text-base font-extrabold text-zinc-950 flex items-center gap-2">
+            <span className="h-2 w-2 rounded-full bg-zinc-950" />
             Vault Catalog Inventory Registry
           </h3>
-          <p className="text-[11px] text-emerald-800 font-mono">
+          <p className="text-[13px] text-zinc-700 font-medium">
             Create custom releases, adjust collector prices, restock sizing availability, or purge discontinued products.
           </p>
         </div>
@@ -390,12 +426,18 @@ export const InventoryEditor: React.FC<InventoryEditorProps> = ({
         </div>
 
         {/* Inventory Summary */}
-        <div className="bg-emerald-50/40 border border-emerald-100 rounded-xl p-3 flex justify-between items-center text-xs font-mono text-emerald-800">
+        <div className="bg-emerald-50/40 border border-emerald-100 rounded-xl p-3 flex justify-between items-center text-xs font-mono text-emerald-800 gap-2">
           <div>
             Total Models: <span className="text-emerald-950 font-bold">{filteredProducts.length}</span>
           </div>
           <div>
-            Low Stock: <span className="text-red-600 font-bold">{products.filter((p) => p.stock <= 3).length}</span>
+            Units in stock:{' '}
+            <span className="text-emerald-950 font-bold">
+              {products.reduce((s, p) => s + (Number(p.stock) || 0), 0)}
+            </span>
+          </div>
+          <div>
+            Low Stock: <span className="text-red-600 font-bold">{products.filter((p) => p.stock > 0 && p.stock <= 3).length}</span>
           </div>
         </div>
       </div>
@@ -415,6 +457,7 @@ export const InventoryEditor: React.FC<InventoryEditorProps> = ({
                 <tr className="bg-emerald-50/60 border-b border-emerald-100 text-emerald-850 font-mono uppercase text-[10px]">
                   <th className="p-4 w-16">Preview</th>
                   <th className="p-4">SKU / Model</th>
+                  <th className="p-4">Barcode</th>
                   <th className="p-4">Vintage Season</th>
                   <th className="p-4">Condition</th>
                   <th className="p-4 text-center">Stock Limit</th>
@@ -450,11 +493,21 @@ export const InventoryEditor: React.FC<InventoryEditorProps> = ({
                         <p className="font-extrabold text-emerald-950 text-sm hover:text-emerald-700 transition-colors cursor-pointer" onClick={() => handleOpenEdit(p)}>
                           {p.name}
                         </p>
-                        <div className="flex gap-3.5 mt-1 font-mono text-[10px]">
-                          <span className="text-emerald-700">SKU: <span className="text-emerald-850">{p.sku}</span></span>
-                          <span className="text-emerald-800 font-semibold">{p.brand}</span>
+                        <div className="flex gap-3.5 mt-1 font-mono text-[12px] font-semibold text-zinc-800">
+                          <span>SKU: <span className="text-zinc-950">{p.sku}</span></span>
+                          <span className="text-zinc-950">{p.brand}</span>
                         </div>
                       </div>
+                    </td>
+
+                    <td className="p-4">
+                      {p.barcode ? (
+                        <span className="inline-block bg-zinc-950 text-white text-[12px] font-mono font-bold px-2.5 py-1 rounded-full">
+                          {p.barcode}
+                        </span>
+                      ) : (
+                        <span className="text-[12px] text-zinc-700 font-semibold">Optional — none</span>
+                      )}
                     </td>
 
                     {/* Season / Category */}
@@ -506,12 +559,26 @@ export const InventoryEditor: React.FC<InventoryEditorProps> = ({
 
                     {/* Actions panel */}
                     <td className="p-4 text-right">
-                      <div className="flex justify-end gap-2">
+                      <div className="flex justify-end gap-2 flex-wrap">
                         <button
                           onClick={() => handleOpenEdit(p)}
                           className="bg-emerald-50 hover:bg-emerald-100 border border-emerald-200 text-emerald-850 px-3 py-2 rounded-xl flex items-center gap-1.5 text-[11px] font-extrabold cursor-pointer transition-all"
                         >
-                          <Edit size={12} /> Edit Details
+                          <Edit size={12} /> Edit
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => {
+                            setLabelPrint({
+                              barcode: p.barcode || '',
+                              sellPrice: p.sellingPrice || p.price,
+                              name: p.name,
+                              category: p.category,
+                            });
+                          }}
+                          className="bg-white hover:bg-zinc-50 border border-zinc-300 text-zinc-900 px-3 py-2 rounded-xl text-[11px] font-extrabold cursor-pointer transition-all"
+                        >
+                          Barcode
                         </button>
                         <button
                           onClick={() => handleDeleteProduct(p.id)}
@@ -532,19 +599,19 @@ export const InventoryEditor: React.FC<InventoryEditorProps> = ({
 
       {/* ADD PRODUCT MODAL */}
       {isAddModalOpen && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/85 backdrop-blur-sm p-4 overflow-y-auto">
-          <div className="bg-[#0c120f] border border-emerald-900 rounded-3xl p-6 w-full max-w-2xl max-h-[90vh] overflow-y-auto shadow-2xl space-y-6 animate-scaleUp">
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm p-4 overflow-y-auto">
+          <div className="bg-white border border-zinc-200 rounded-2xl p-6 w-full max-w-2xl max-h-[90vh] overflow-y-auto shadow-2xl space-y-6 animate-scaleUp text-zinc-950">
             
             {/* Header */}
-            <div className="flex justify-between items-center border-b border-emerald-950 pb-3.5">
+            <div className="flex justify-between items-center border-b border-zinc-300 pb-3.5">
               <div>
-                <h3 className="text-lg font-black uppercase text-amber-400">Add New Vault Jersey</h3>
-                <p className="text-[10px] text-gray-400 font-mono">Provide vintage specifications, dimensions & custom pictures.</p>
+                <h3 className="text-lg font-black uppercase text-zinc-950">Add New Vault Jersey</h3>
+                <p className="text-[10px] text-zinc-700 font-mono">Provide vintage specifications, dimensions & custom pictures.</p>
               </div>
               <button
                 type="button"
                 onClick={() => setIsAddModalOpen(false)}
-                className="p-1.5 hover:bg-emerald-950 rounded-full text-gray-400 hover:text-white transition-colors cursor-pointer"
+                className="p-1.5 hover:bg-emerald-950 rounded-full text-zinc-700 hover:text-white transition-colors cursor-pointer"
               >
                 <X size={18} />
               </button>
@@ -557,35 +624,35 @@ export const InventoryEditor: React.FC<InventoryEditorProps> = ({
                 {/* Left block fields */}
                 <div className="space-y-3.5">
                   <div className="space-y-1">
-                    <label className="text-[10px] font-mono text-gray-400 block uppercase font-bold">Jersey Catalog Name *</label>
+                    <label className="text-[10px] font-mono text-zinc-700 block uppercase font-bold">Jersey Catalog Name *</label>
                     <input
                       type="text"
                       required
                       placeholder="e.g. Manchester United 1999 Treble Vintage"
                       value={formName}
                       onChange={(e) => setFormName(e.target.value)}
-                      className="w-full bg-[#050906] border border-emerald-950 rounded-xl py-2.5 px-3.5 text-xs text-white focus:outline-none focus:border-amber-400 placeholder-gray-600 font-medium"
+                      className="w-full bg-zinc-50 border border-zinc-300 rounded-xl py-2.5 px-3.5 text-xs text-zinc-950 focus:outline-none focus:border-amber-400 placeholder-zinc-500 font-medium"
                     />
                   </div>
 
                   <div className="grid grid-cols-2 gap-3">
                     <div className="space-y-1">
-                      <label className="text-[10px] font-mono text-gray-400 block uppercase font-bold">Brand *</label>
+                      <label className="text-[10px] font-mono text-zinc-700 block uppercase font-bold">Brand *</label>
                       <input
                         type="text"
                         required
                         placeholder="e.g. Adidas / Umbro"
                         value={formBrand}
                         onChange={(e) => setFormBrand(e.target.value)}
-                        className="w-full bg-[#050906] border border-emerald-950 rounded-xl py-2.5 px-3.5 text-xs text-white focus:outline-none focus:border-amber-400 placeholder-gray-600"
+                        className="w-full bg-zinc-50 border border-zinc-300 rounded-xl py-2.5 px-3.5 text-xs text-zinc-950 focus:outline-none focus:border-amber-400 placeholder-zinc-500"
                       />
                     </div>
                     <div className="space-y-1">
-                      <label className="text-[10px] font-mono text-gray-400 block uppercase font-bold">Category</label>
+                      <label className="text-[10px] font-mono text-zinc-700 block uppercase font-bold">Category</label>
                       <select
                         value={formCategory}
                         onChange={(e) => setFormCategory(e.target.value as any)}
-                        className="w-full bg-[#050906] border border-emerald-950 rounded-xl py-2.5 px-3 text-xs text-white focus:outline-none focus:border-amber-400 font-mono"
+                        className="w-full bg-zinc-50 border border-zinc-300 rounded-xl py-2.5 px-3 text-xs text-zinc-950 focus:outline-none focus:border-amber-400 font-mono"
                       >
                         <option value="Classic">Classic Vintage</option>
                         <option value="Current Season">Current Season</option>
@@ -600,19 +667,19 @@ export const InventoryEditor: React.FC<InventoryEditorProps> = ({
 
                   <div className="grid grid-cols-2 gap-3">
                     <div className="space-y-1">
-                      <label className="text-[10px] font-mono text-gray-400 block uppercase font-bold">Original Price (BDT) *</label>
+                      <label className="text-[10px] font-mono text-zinc-700 block uppercase font-bold">Original Price (BDT) *</label>
                       <input
                         type="number"
                         required
                         min={0}
                         value={formOriginalPrice || ''}
                         onChange={(e) => setFormOriginalPrice(Math.max(0, Number(e.target.value) || 0))}
-                        className="w-full bg-[#050906] border border-emerald-950 rounded-xl py-2.5 px-3.5 text-xs text-white focus:outline-none focus:border-amber-400 font-mono"
+                        className="w-full bg-zinc-50 border border-zinc-300 rounded-xl py-2.5 px-3.5 text-xs text-zinc-950 focus:outline-none focus:border-amber-400 font-mono"
                       />
                     </div>
                     <div className="space-y-1">
-                      <label className="text-[10px] font-mono text-gray-400 block uppercase font-bold">Final Selling Price</label>
-                      <div className="w-full bg-emerald-950/40 border border-emerald-900 rounded-xl py-2.5 px-3.5 text-xs text-amber-300 font-mono font-bold">
+                      <label className="text-[10px] font-mono text-zinc-700 block uppercase font-bold">Final Selling Price</label>
+                      <div className="w-full bg-zinc-100 border border-zinc-300 rounded-xl py-2.5 px-3.5 text-xs text-zinc-950 font-mono font-bold">
                         {formatPrice(formHasDiscount ? formFinalPrice : formOriginalPrice || 0)}
                       </div>
                       {formHasDiscount && (
@@ -626,13 +693,13 @@ export const InventoryEditor: React.FC<InventoryEditorProps> = ({
                   </div>
 
                   <div className="space-y-2">
-                    <label className="text-[10px] font-mono text-gray-400 block uppercase font-bold">Discount</label>
-                    <div className="flex rounded-xl border border-emerald-900 overflow-hidden">
+                    <label className="text-[10px] font-mono text-zinc-700 block uppercase font-bold">Discount</label>
+                    <div className="flex rounded-xl border border-zinc-300 overflow-hidden">
                       <button
                         type="button"
                         onClick={() => setFormDiscountMode('amount')}
                         className={`flex-1 px-3 py-1.5 text-[10px] font-black uppercase ${
-                          formDiscountMode === 'amount' ? 'bg-amber-400 text-emerald-950' : 'bg-[#050906] text-emerald-400'
+                          formDiscountMode === 'amount' ? 'bg-zinc-950 text-emerald-950' : 'bg-zinc-50 text-emerald-400'
                         }`}
                       >
                         Amount
@@ -641,7 +708,7 @@ export const InventoryEditor: React.FC<InventoryEditorProps> = ({
                         type="button"
                         onClick={() => setFormDiscountMode('percent')}
                         className={`flex-1 px-3 py-1.5 text-[10px] font-black uppercase ${
-                          formDiscountMode === 'percent' ? 'bg-amber-400 text-emerald-950' : 'bg-[#050906] text-emerald-400'
+                          formDiscountMode === 'percent' ? 'bg-zinc-950 text-emerald-950' : 'bg-zinc-50 text-emerald-400'
                         }`}
                       >
                         Percent
@@ -654,7 +721,7 @@ export const InventoryEditor: React.FC<InventoryEditorProps> = ({
                         value={formDiscountAmount || ''}
                         onChange={(e) => setFormDiscountAmount(Math.max(0, Number(e.target.value) || 0))}
                         placeholder="Discount amount (৳)"
-                        className="w-full bg-[#050906] border border-emerald-950 rounded-xl py-2.5 px-3.5 text-xs text-white focus:outline-none focus:border-amber-400 font-mono"
+                        className="w-full bg-zinc-50 border border-zinc-300 rounded-xl py-2.5 px-3.5 text-xs text-zinc-950 focus:outline-none focus:border-amber-400 font-mono"
                       />
                     ) : (
                       <input
@@ -666,52 +733,52 @@ export const InventoryEditor: React.FC<InventoryEditorProps> = ({
                           setFormDiscountPercent(Math.min(100, Math.max(0, Number(e.target.value) || 0)))
                         }
                         placeholder="Discount percent (%)"
-                        className="w-full bg-[#050906] border border-emerald-950 rounded-xl py-2.5 px-3.5 text-xs text-white focus:outline-none focus:border-amber-400 font-mono"
+                        className="w-full bg-zinc-50 border border-zinc-300 rounded-xl py-2.5 px-3.5 text-xs text-zinc-950 focus:outline-none focus:border-amber-400 font-mono"
                       />
                     )}
                   </div>
 
                   <div className="grid grid-cols-2 gap-3">
                     <div className="space-y-1">
-                      <label className="text-[10px] font-mono text-gray-400 block uppercase font-bold">Stock Units *</label>
+                      <label className="text-[10px] font-mono text-zinc-700 block uppercase font-bold">Stock Units *</label>
                       <input
                         type="number"
                         required
                         min={0}
                         value={formStock}
                         onChange={(e) => setFormStock(Number(e.target.value))}
-                        className="w-full bg-[#050906] border border-emerald-950 rounded-xl py-2.5 px-3.5 text-xs text-white focus:outline-none focus:border-amber-400 font-mono"
+                        className="w-full bg-zinc-50 border border-zinc-300 rounded-xl py-2.5 px-3.5 text-xs text-zinc-950 focus:outline-none focus:border-amber-400 font-mono"
                       />
                     </div>
                     <div className="space-y-1">
-                      <label className="text-[10px] font-mono text-gray-400 block uppercase font-bold">Vintage Season *</label>
+                      <label className="text-[10px] font-mono text-zinc-700 block uppercase font-bold">Vintage Season *</label>
                       <input
                         type="text"
                         required
                         placeholder="e.g. 1998/1999"
                         value={formSeason}
                         onChange={(e) => setFormSeason(e.target.value)}
-                        className="w-full bg-[#050906] border border-emerald-950 rounded-xl py-2.5 px-3.5 text-xs text-white focus:outline-none focus:border-amber-400 placeholder-gray-600 font-mono"
+                        className="w-full bg-zinc-50 border border-zinc-300 rounded-xl py-2.5 px-3.5 text-xs text-zinc-950 focus:outline-none focus:border-amber-400 placeholder-zinc-500 font-mono"
                       />
                     </div>
                   </div>
 
                   <div className="grid grid-cols-2 gap-3">
                     <div className="space-y-1">
-                      <label className="text-[10px] font-mono text-gray-400 block uppercase font-bold">Release Year</label>
+                      <label className="text-[10px] font-mono text-zinc-700 block uppercase font-bold">Release Year</label>
                       <input
                         type="number"
                         value={formYear}
                         onChange={(e) => setFormYear(Number(e.target.value))}
-                        className="w-full bg-[#050906] border border-emerald-950 rounded-xl py-2.5 px-3.5 text-xs text-white focus:outline-none focus:border-amber-400 font-mono"
+                        className="w-full bg-zinc-50 border border-zinc-300 rounded-xl py-2.5 px-3.5 text-xs text-zinc-950 focus:outline-none focus:border-amber-400 font-mono"
                       />
                     </div>
                     <div className="space-y-1">
-                      <label className="text-[10px] font-mono text-gray-400 block uppercase font-bold">Condition Grade *</label>
+                      <label className="text-[10px] font-mono text-zinc-700 block uppercase font-bold">Condition Grade *</label>
                       <select
                         value={formCondition}
                         onChange={(e) => setFormCondition(e.target.value as any)}
-                        className="w-full bg-[#050906] border border-emerald-950 rounded-xl py-2.5 px-3 text-xs text-white focus:outline-none focus:border-amber-400 font-mono"
+                        className="w-full bg-zinc-50 border border-zinc-300 rounded-xl py-2.5 px-3 text-xs text-zinc-950 focus:outline-none focus:border-amber-400 font-mono"
                       >
                         <option value="Mint">Mint (Like New)</option>
                         <option value="Excellent">Excellent</option>
@@ -727,83 +794,121 @@ export const InventoryEditor: React.FC<InventoryEditorProps> = ({
                 {/* Right block fields */}
                 <div className="space-y-3.5">
                   <div className="space-y-1">
-                    <label className="text-[10px] font-mono text-gray-400 block uppercase font-bold">SKU Reference Number</label>
+                    <label className="text-[10px] font-mono text-zinc-700 block uppercase font-bold">SKU Reference Number</label>
                     <input
                       type="text"
                       placeholder="Leave empty for auto-generated SKU"
                       value={formSku}
                       onChange={(e) => setFormSku(e.target.value)}
-                      className="w-full bg-[#050906] border border-emerald-950 rounded-xl py-2.5 px-3.5 text-xs text-white focus:outline-none focus:border-amber-400 font-mono placeholder-gray-600"
+                      className="w-full bg-zinc-50 border border-zinc-300 rounded-xl py-2.5 px-3.5 text-xs text-zinc-950 focus:outline-none focus:border-amber-400 font-mono placeholder-zinc-500"
+                    />
+                  </div>
+
+                  <div className="space-y-2 rounded-xl border border-zinc-300 p-3 bg-zinc-50">
+                    <div className="flex items-center justify-between gap-2 flex-wrap">
+                      <label className="text-[10px] font-mono text-zinc-700 uppercase font-bold">
+                        Barcode <span className="text-zinc-600 normal-case">(optional)</span>
+                      </label>
+                      <div className="flex rounded-lg overflow-hidden border border-zinc-300">
+                        {(['none', 'auto', 'manual'] as const).map((mode) => (
+                          <button
+                            key={mode}
+                            type="button"
+                            onClick={() => {
+                              setFormBarcodeMode(mode);
+                              if (mode === 'none') setFormBarcode('');
+                              if (mode === 'auto') setFormBarcode(generateEan13(formSku || Date.now()));
+                            }}
+                            className={`px-2.5 py-1 text-[9px] font-bold uppercase cursor-pointer ${
+                              formBarcodeMode === mode ? 'bg-white text-black' : 'bg-transparent text-zinc-700'
+                            }`}
+                          >
+                            {mode}
+                          </button>
+                        ))}
+                      </div>
+                    </div>
+                    <input
+                      type="text"
+                      placeholder={formBarcodeMode === 'none' ? 'No barcode' : 'EAN-13 or CODE128'}
+                      value={formBarcode}
+                      disabled={formBarcodeMode === 'none'}
+                      readOnly={formBarcodeMode === 'auto'}
+                      onChange={(e) => {
+                        setFormBarcodeMode('manual');
+                        setFormBarcode(e.target.value);
+                      }}
+                      className="w-full bg-zinc-50 border border-zinc-300 rounded-xl py-2.5 px-3.5 text-xs text-zinc-950 focus:outline-none focus:border-amber-400 font-mono placeholder-zinc-500 disabled:opacity-40"
                     />
                   </div>
 
                   <div className="space-y-1">
-                    <label className="text-[10px] font-mono text-gray-400 block uppercase font-bold">Condition Detail Notes</label>
+                    <label className="text-[10px] font-mono text-zinc-700 block uppercase font-bold">Condition Detail Notes</label>
                     <input
                       type="text"
                       placeholder="e.g. Sourced from archives with original tags..."
                       value={formConditionDetail}
                       onChange={(e) => setFormConditionDetail(e.target.value)}
-                      className="w-full bg-[#050906] border border-emerald-950 rounded-xl py-2.5 px-3.5 text-xs text-white focus:outline-none focus:border-amber-400 placeholder-gray-600"
+                      className="w-full bg-zinc-50 border border-zinc-300 rounded-xl py-2.5 px-3.5 text-xs text-zinc-950 focus:outline-none focus:border-amber-400 placeholder-zinc-500"
                     />
                   </div>
 
                   <div className="grid grid-cols-2 gap-3">
                     <div className="space-y-1">
-                      <label className="text-[10px] font-mono text-gray-400 block uppercase font-bold">Colorway</label>
+                      <label className="text-[10px] font-mono text-zinc-700 block uppercase font-bold">Colorway</label>
                       <input
                         type="text"
                         value={formColor}
                         onChange={(e) => setFormColor(e.target.value)}
-                        className="w-full bg-[#050906] border border-emerald-950 rounded-xl py-2.5 px-3.5 text-xs text-white focus:outline-none focus:border-amber-400"
+                        className="w-full bg-zinc-50 border border-zinc-300 rounded-xl py-2.5 px-3.5 text-xs text-zinc-950 focus:outline-none focus:border-amber-400"
                       />
                     </div>
                     <div className="space-y-1">
-                      <label className="text-[10px] font-mono text-gray-400 block uppercase font-bold">Made In Country</label>
+                      <label className="text-[10px] font-mono text-zinc-700 block uppercase font-bold">Made In Country</label>
                       <input
                         type="text"
                         value={formMadeIn}
                         onChange={(e) => setFormMadeIn(e.target.value)}
-                        className="w-full bg-[#050906] border border-emerald-950 rounded-xl py-2.5 px-3.5 text-xs text-white focus:outline-none focus:border-amber-400"
+                        className="w-full bg-zinc-50 border border-zinc-300 rounded-xl py-2.5 px-3.5 text-xs text-zinc-950 focus:outline-none focus:border-amber-400"
                       />
                     </div>
                   </div>
 
                   <div className="grid grid-cols-2 gap-3">
                     <div className="space-y-1">
-                      <label className="text-[10px] font-mono text-gray-400 block uppercase font-bold">Material Composition</label>
+                      <label className="text-[10px] font-mono text-zinc-700 block uppercase font-bold">Material Composition</label>
                       <input
                         type="text"
                         value={formMaterial}
                         onChange={(e) => setFormMaterial(e.target.value)}
-                        className="w-full bg-[#050906] border border-emerald-950 rounded-xl py-2.5 px-3.5 text-xs text-white focus:outline-none focus:border-amber-400"
+                        className="w-full bg-zinc-50 border border-zinc-300 rounded-xl py-2.5 px-3.5 text-xs text-zinc-950 focus:outline-none focus:border-amber-400"
                       />
                     </div>
                     <div className="space-y-1">
-                      <label className="text-[10px] font-mono text-gray-400 block uppercase font-bold">Fit Spec Type</label>
+                      <label className="text-[10px] font-mono text-zinc-700 block uppercase font-bold">Fit Spec Type</label>
                       <input
                         type="text"
                         value={formFit}
                         onChange={(e) => setFormFit(e.target.value)}
-                        className="w-full bg-[#050906] border border-emerald-950 rounded-xl py-2.5 px-3.5 text-xs text-white focus:outline-none focus:border-amber-400"
+                        className="w-full bg-zinc-50 border border-zinc-300 rounded-xl py-2.5 px-3.5 text-xs text-zinc-950 focus:outline-none focus:border-amber-400"
                       />
                     </div>
                   </div>
 
                   <div className="space-y-1">
-                    <label className="text-[10px] font-mono text-gray-400 block uppercase font-bold">Description Narrative</label>
+                    <label className="text-[10px] font-mono text-zinc-700 block uppercase font-bold">Description Narrative</label>
                     <textarea
                       rows={2}
                       placeholder="Historical records, key design aspects, legendary players..."
                       value={formDescription}
                       onChange={(e) => setFormDescription(e.target.value)}
-                      className="w-full bg-[#050906] border border-emerald-950 rounded-xl py-2.5 px-3.5 text-xs text-white focus:outline-none focus:border-amber-400 placeholder-gray-600"
+                      className="w-full bg-zinc-50 border border-zinc-300 rounded-xl py-2.5 px-3.5 text-xs text-zinc-950 focus:outline-none focus:border-amber-400 placeholder-zinc-500"
                     />
                   </div>
 
                   {/* Sizes Grid */}
                   <div className="space-y-1">
-                    <label className="text-[10px] text-gray-400 font-mono uppercase block font-bold">Available Sizes Sizing:</label>
+                    <label className="text-[10px] text-zinc-700 font-mono uppercase block font-bold">Available Sizes Sizing:</label>
                     <div className="flex flex-wrap gap-1.5 pt-0.5">
                       {[...STANDARD_PRODUCT_SIZES].map((sz) => {
                         const hasSize = formSizes.includes(sz);
@@ -820,8 +925,8 @@ export const InventoryEditor: React.FC<InventoryEditorProps> = ({
                             }}
                             className={`px-3 py-1 text-[11px] rounded-lg font-mono border transition-all cursor-pointer ${
                               hasSize
-                                ? 'bg-amber-400 border-amber-400 text-black font-extrabold shadow-sm'
-                                : 'bg-[#050906] border-emerald-950 text-gray-400 hover:border-emerald-800'
+                                ? 'bg-zinc-950 border-amber-400 text-white font-extrabold shadow-sm'
+                                : 'bg-zinc-50 border-zinc-300 text-zinc-700 hover:border-emerald-800'
                             }`}
                           >
                             {sz}
@@ -833,9 +938,9 @@ export const InventoryEditor: React.FC<InventoryEditorProps> = ({
 
                   {/* Image manual uploader with base64 string storage */}
                   <div className="space-y-2 pt-1">
-                    <label className="text-[10px] text-gray-400 font-mono uppercase block font-bold">Jersey Illustration Image (Base64):</label>
-                    <label className="flex items-center gap-4 bg-[#050906] hover:bg-[#090f0b] border border-emerald-950 hover:border-emerald-800 p-4 rounded-2xl cursor-pointer transition-all group">
-                      <div className="w-16 h-16 rounded-xl bg-emerald-950/20 border border-emerald-900/60 flex items-center justify-center overflow-hidden flex-shrink-0 group-hover:scale-105 transition-transform">
+                    <label className="text-[10px] text-zinc-700 font-mono uppercase block font-bold">Jersey Illustration Image (Base64):</label>
+                    <label className="flex items-center gap-4 bg-zinc-50 hover:bg-zinc-100 border border-zinc-300 hover:border-emerald-800 p-4 rounded-2xl cursor-pointer transition-all group">
+                      <div className="w-16 h-16 rounded-xl bg-zinc-100 border border-zinc-300/60 flex items-center justify-center overflow-hidden flex-shrink-0 group-hover:scale-105 transition-transform">
                         {formUploadedImage ? (
                           <img
                             src={formUploadedImage}
@@ -843,18 +948,18 @@ export const InventoryEditor: React.FC<InventoryEditorProps> = ({
                             className="w-full h-full object-contain filter drop-shadow"
                           />
                         ) : (
-                          <ImageIcon size={20} className="text-emerald-600 group-hover:text-amber-400 transition-colors" />
+                          <ImageIcon size={20} className="text-emerald-600 group-hover:text-zinc-950 transition-colors" />
                         )}
                       </div>
                       <div className="flex-1 min-w-0">
-                        <div className="bg-emerald-950/60 group-hover:bg-amber-400 group-hover:text-black border border-emerald-800/50 text-emerald-400 text-[10px] font-extrabold uppercase px-4 py-2.5 rounded-xl transition-all inline-flex items-center gap-1.5 shadow-sm">
+                        <div className="bg-zinc-100 group-hover:bg-zinc-950 group-hover:text-white border border-zinc-300 text-emerald-400 text-[10px] font-extrabold uppercase px-4 py-2.5 rounded-xl transition-all inline-flex items-center gap-1.5 shadow-sm">
                           <Plus size={11} />
                           Browse Local Jersey Photo
                         </div>
                         {formUploadedImage ? (
                           <p className="text-[9px] text-emerald-500 font-mono mt-1">✓ Image loaded successfully</p>
                         ) : (
-                          <p className="text-[9px] text-gray-500 font-mono leading-tight mt-1">PNG/JPG with resolution limits of up to 2MB</p>
+                          <p className="text-[9px] text-zinc-600 font-mono leading-tight mt-1">PNG/JPG with resolution limits of up to 2MB</p>
                         )}
                       </div>
                       <input
@@ -871,7 +976,7 @@ export const InventoryEditor: React.FC<InventoryEditorProps> = ({
                           e.stopPropagation();
                           setFormUploadedImage('');
                         }}
-                        className="text-[10px] text-red-400 hover:text-red-300 hover:underline font-mono mt-1 flex items-center gap-1"
+                        className="text-[12px] text-zinc-700 hover:text-zinc-950 hover:underline font-semibold mt-1 flex items-center gap-1"
                       >
                         ✕ Remove Uploaded Photo
                       </button>
@@ -882,17 +987,17 @@ export const InventoryEditor: React.FC<InventoryEditorProps> = ({
               </div>
 
               {/* Footer submission */}
-              <div className="flex justify-end gap-3 border-t border-emerald-950/80 pt-4 mt-2">
+              <div className="flex justify-end gap-3 border-t border-zinc-300/80 pt-4 mt-2">
                 <button
                   type="button"
                   onClick={() => setIsAddModalOpen(false)}
-                  className="bg-emerald-950/25 hover:bg-emerald-950 border border-emerald-950 text-gray-300 text-xs px-5 py-2.5 rounded-xl uppercase font-bold cursor-pointer transition-colors"
+                  className="bg-zinc-100 hover:bg-emerald-950 border border-zinc-300 text-zinc-700 text-xs px-5 py-2.5 rounded-xl uppercase font-bold cursor-pointer transition-colors"
                 >
                   Close
                 </button>
                 <button
                   type="submit"
-                  className="bg-amber-400 hover:bg-amber-300 text-black text-xs px-6 py-2.5 rounded-xl uppercase tracking-wider font-black cursor-pointer shadow-lg shadow-amber-400/10 transition-all"
+                  className="bg-zinc-950 hover:bg-zinc-800 text-white text-xs px-6 py-2.5 rounded-xl uppercase tracking-wider font-black cursor-pointer shadow-lg shadow-amber-400/10 transition-all"
                 >
                   Inject Jersey to Database
                 </button>
@@ -905,14 +1010,14 @@ export const InventoryEditor: React.FC<InventoryEditorProps> = ({
 
       {/* EDIT PRODUCT MODAL */}
       {isEditModalOpen && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/85 backdrop-blur-sm p-4 overflow-y-auto">
-          <div className="bg-[#0c120f] border border-emerald-900 rounded-3xl p-6 w-full max-w-2xl max-h-[90vh] overflow-y-auto shadow-2xl space-y-6 animate-scaleUp">
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm p-4 overflow-y-auto">
+          <div className="bg-white border border-zinc-200 rounded-2xl p-6 w-full max-w-2xl max-h-[90vh] overflow-y-auto shadow-2xl space-y-6 animate-scaleUp text-zinc-950">
             
             {/* Header */}
-            <div className="flex justify-between items-center border-b border-emerald-950 pb-3.5">
+            <div className="flex justify-between items-center border-b border-zinc-300 pb-3.5">
               <div>
-                <h3 className="text-lg font-black uppercase text-amber-400">Edit Vault Jersey Details</h3>
-                <p className="text-[10px] text-gray-400 font-mono">ID: {editingProduct?.id} | SKU: {editingProduct?.sku}</p>
+                <h3 className="text-lg font-black uppercase text-zinc-950">Edit Vault Jersey Details</h3>
+                <p className="text-[10px] text-zinc-700 font-mono">ID: {editingProduct?.id} | SKU: {editingProduct?.sku}</p>
               </div>
               <button
                 type="button"
@@ -920,7 +1025,7 @@ export const InventoryEditor: React.FC<InventoryEditorProps> = ({
                   setIsEditModalOpen(false);
                   setEditingProduct(null);
                 }}
-                className="p-1.5 hover:bg-emerald-950 rounded-full text-gray-400 hover:text-white transition-colors cursor-pointer"
+                className="p-1.5 hover:bg-emerald-950 rounded-full text-zinc-700 hover:text-white transition-colors cursor-pointer"
               >
                 <X size={18} />
               </button>
@@ -933,35 +1038,35 @@ export const InventoryEditor: React.FC<InventoryEditorProps> = ({
                 {/* Left block fields */}
                 <div className="space-y-3.5">
                   <div className="space-y-1">
-                    <label className="text-[10px] font-mono text-gray-400 block uppercase font-bold">Jersey Catalog Name *</label>
+                    <label className="text-[10px] font-mono text-zinc-700 block uppercase font-bold">Jersey Catalog Name *</label>
                     <input
                       type="text"
                       required
                       placeholder="e.g. Manchester United 1999 Treble Vintage"
                       value={formName}
                       onChange={(e) => setFormName(e.target.value)}
-                      className="w-full bg-[#050906] border border-emerald-950 rounded-xl py-2.5 px-3.5 text-xs text-white focus:outline-none focus:border-amber-400 font-medium"
+                      className="w-full bg-zinc-50 border border-zinc-300 rounded-xl py-2.5 px-3.5 text-xs text-zinc-950 focus:outline-none focus:border-amber-400 font-medium"
                     />
                   </div>
 
                   <div className="grid grid-cols-2 gap-3">
                     <div className="space-y-1">
-                      <label className="text-[10px] font-mono text-gray-400 block uppercase font-bold">Brand *</label>
+                      <label className="text-[10px] font-mono text-zinc-700 block uppercase font-bold">Brand *</label>
                       <input
                         type="text"
                         required
                         placeholder="e.g. Umbro"
                         value={formBrand}
                         onChange={(e) => setFormBrand(e.target.value)}
-                        className="w-full bg-[#050906] border border-emerald-950 rounded-xl py-2.5 px-3.5 text-xs text-white focus:outline-none focus:border-amber-400"
+                        className="w-full bg-zinc-50 border border-zinc-300 rounded-xl py-2.5 px-3.5 text-xs text-zinc-950 focus:outline-none focus:border-amber-400"
                       />
                     </div>
                     <div className="space-y-1">
-                      <label className="text-[10px] font-mono text-gray-400 block uppercase font-bold">Category</label>
+                      <label className="text-[10px] font-mono text-zinc-700 block uppercase font-bold">Category</label>
                       <select
                         value={formCategory}
                         onChange={(e) => setFormCategory(e.target.value as any)}
-                        className="w-full bg-[#050906] border border-emerald-950 rounded-xl py-2.5 px-3 text-xs text-white focus:outline-none focus:border-amber-400 font-mono"
+                        className="w-full bg-zinc-50 border border-zinc-300 rounded-xl py-2.5 px-3 text-xs text-zinc-950 focus:outline-none focus:border-amber-400 font-mono"
                       >
                         <option value="Classic">Classic Vintage</option>
                         <option value="Current Season">Current Season</option>
@@ -976,19 +1081,19 @@ export const InventoryEditor: React.FC<InventoryEditorProps> = ({
 
                   <div className="grid grid-cols-2 gap-3">
                     <div className="space-y-1">
-                      <label className="text-[10px] font-mono text-gray-400 block uppercase font-bold">Original Price (BDT) *</label>
+                      <label className="text-[10px] font-mono text-zinc-700 block uppercase font-bold">Original Price (BDT) *</label>
                       <input
                         type="number"
                         required
                         min={0}
                         value={formOriginalPrice || ''}
                         onChange={(e) => setFormOriginalPrice(Math.max(0, Number(e.target.value) || 0))}
-                        className="w-full bg-[#050906] border border-emerald-950 rounded-xl py-2.5 px-3.5 text-xs text-white focus:outline-none focus:border-amber-400 font-mono"
+                        className="w-full bg-zinc-50 border border-zinc-300 rounded-xl py-2.5 px-3.5 text-xs text-zinc-950 focus:outline-none focus:border-amber-400 font-mono"
                       />
                     </div>
                     <div className="space-y-1">
-                      <label className="text-[10px] font-mono text-gray-400 block uppercase font-bold">Final Selling Price</label>
-                      <div className="w-full bg-emerald-950/40 border border-emerald-900 rounded-xl py-2.5 px-3.5 text-xs text-amber-300 font-mono font-bold">
+                      <label className="text-[10px] font-mono text-zinc-700 block uppercase font-bold">Final Selling Price</label>
+                      <div className="w-full bg-zinc-100 border border-zinc-300 rounded-xl py-2.5 px-3.5 text-xs text-zinc-950 font-mono font-bold">
                         {formatPrice(formHasDiscount ? formFinalPrice : formOriginalPrice || 0)}
                       </div>
                       {formHasDiscount && (
@@ -1002,13 +1107,13 @@ export const InventoryEditor: React.FC<InventoryEditorProps> = ({
                   </div>
 
                   <div className="space-y-2">
-                    <label className="text-[10px] font-mono text-gray-400 block uppercase font-bold">Discount</label>
-                    <div className="flex rounded-xl border border-emerald-900 overflow-hidden">
+                    <label className="text-[10px] font-mono text-zinc-700 block uppercase font-bold">Discount</label>
+                    <div className="flex rounded-xl border border-zinc-300 overflow-hidden">
                       <button
                         type="button"
                         onClick={() => setFormDiscountMode('amount')}
                         className={`flex-1 px-3 py-1.5 text-[10px] font-black uppercase ${
-                          formDiscountMode === 'amount' ? 'bg-amber-400 text-emerald-950' : 'bg-[#050906] text-emerald-400'
+                          formDiscountMode === 'amount' ? 'bg-zinc-950 text-emerald-950' : 'bg-zinc-50 text-emerald-400'
                         }`}
                       >
                         Amount
@@ -1017,7 +1122,7 @@ export const InventoryEditor: React.FC<InventoryEditorProps> = ({
                         type="button"
                         onClick={() => setFormDiscountMode('percent')}
                         className={`flex-1 px-3 py-1.5 text-[10px] font-black uppercase ${
-                          formDiscountMode === 'percent' ? 'bg-amber-400 text-emerald-950' : 'bg-[#050906] text-emerald-400'
+                          formDiscountMode === 'percent' ? 'bg-zinc-950 text-emerald-950' : 'bg-zinc-50 text-emerald-400'
                         }`}
                       >
                         Percent
@@ -1030,7 +1135,7 @@ export const InventoryEditor: React.FC<InventoryEditorProps> = ({
                         value={formDiscountAmount || ''}
                         onChange={(e) => setFormDiscountAmount(Math.max(0, Number(e.target.value) || 0))}
                         placeholder="Discount amount (৳)"
-                        className="w-full bg-[#050906] border border-emerald-950 rounded-xl py-2.5 px-3.5 text-xs text-white focus:outline-none focus:border-amber-400 font-mono"
+                        className="w-full bg-zinc-50 border border-zinc-300 rounded-xl py-2.5 px-3.5 text-xs text-zinc-950 focus:outline-none focus:border-amber-400 font-mono"
                       />
                     ) : (
                       <input
@@ -1042,52 +1147,52 @@ export const InventoryEditor: React.FC<InventoryEditorProps> = ({
                           setFormDiscountPercent(Math.min(100, Math.max(0, Number(e.target.value) || 0)))
                         }
                         placeholder="Discount percent (%)"
-                        className="w-full bg-[#050906] border border-emerald-950 rounded-xl py-2.5 px-3.5 text-xs text-white focus:outline-none focus:border-amber-400 font-mono"
+                        className="w-full bg-zinc-50 border border-zinc-300 rounded-xl py-2.5 px-3.5 text-xs text-zinc-950 focus:outline-none focus:border-amber-400 font-mono"
                       />
                     )}
                   </div>
 
                   <div className="grid grid-cols-2 gap-3">
                     <div className="space-y-1">
-                      <label className="text-[10px] font-mono text-gray-400 block uppercase font-bold">Stock Units *</label>
+                      <label className="text-[10px] font-mono text-zinc-700 block uppercase font-bold">Stock Units *</label>
                       <input
                         type="number"
                         required
                         min={0}
                         value={formStock}
                         onChange={(e) => setFormStock(Number(e.target.value))}
-                        className="w-full bg-[#050906] border border-emerald-950 rounded-xl py-2.5 px-3.5 text-xs text-white focus:outline-none focus:border-amber-400 font-mono"
+                        className="w-full bg-zinc-50 border border-zinc-300 rounded-xl py-2.5 px-3.5 text-xs text-zinc-950 focus:outline-none focus:border-amber-400 font-mono"
                       />
                     </div>
                     <div className="space-y-1">
-                      <label className="text-[10px] font-mono text-gray-400 block uppercase font-bold">Vintage Season *</label>
+                      <label className="text-[10px] font-mono text-zinc-700 block uppercase font-bold">Vintage Season *</label>
                       <input
                         type="text"
                         required
                         placeholder="e.g. 1998/1999"
                         value={formSeason}
                         onChange={(e) => setFormSeason(e.target.value)}
-                        className="w-full bg-[#050906] border border-emerald-950 rounded-xl py-2.5 px-3.5 text-xs text-white focus:outline-none focus:border-amber-400 font-mono"
+                        className="w-full bg-zinc-50 border border-zinc-300 rounded-xl py-2.5 px-3.5 text-xs text-zinc-950 focus:outline-none focus:border-amber-400 font-mono"
                       />
                     </div>
                   </div>
 
                   <div className="grid grid-cols-2 gap-3">
                     <div className="space-y-1">
-                      <label className="text-[10px] font-mono text-gray-400 block uppercase font-bold">Release Year</label>
+                      <label className="text-[10px] font-mono text-zinc-700 block uppercase font-bold">Release Year</label>
                       <input
                         type="number"
                         value={formYear}
                         onChange={(e) => setFormYear(Number(e.target.value))}
-                        className="w-full bg-[#050906] border border-emerald-950 rounded-xl py-2.5 px-3.5 text-xs text-white focus:outline-none focus:border-amber-400 font-mono"
+                        className="w-full bg-zinc-50 border border-zinc-300 rounded-xl py-2.5 px-3.5 text-xs text-zinc-950 focus:outline-none focus:border-amber-400 font-mono"
                       />
                     </div>
                     <div className="space-y-1">
-                      <label className="text-[10px] font-mono text-gray-400 block uppercase font-bold">Condition *</label>
+                      <label className="text-[10px] font-mono text-zinc-700 block uppercase font-bold">Condition *</label>
                       <select
                         value={formCondition}
                         onChange={(e) => setFormCondition(e.target.value as any)}
-                        className="w-full bg-[#050906] border border-emerald-950 rounded-xl py-2.5 px-3 text-xs text-white focus:outline-none focus:border-amber-400 font-mono"
+                        className="w-full bg-zinc-50 border border-zinc-300 rounded-xl py-2.5 px-3 text-xs text-zinc-950 focus:outline-none focus:border-amber-400 font-mono"
                       >
                         <option value="Mint">Mint (Like New)</option>
                         <option value="Excellent">Excellent</option>
@@ -1103,83 +1208,121 @@ export const InventoryEditor: React.FC<InventoryEditorProps> = ({
                 {/* Right block fields */}
                 <div className="space-y-3.5">
                   <div className="space-y-1">
-                    <label className="text-[10px] font-mono text-gray-400 block uppercase font-bold">SKU Reference Number</label>
+                    <label className="text-[10px] font-mono text-zinc-700 block uppercase font-bold">SKU Reference Number</label>
                     <input
                       type="text"
                       required
                       value={formSku}
                       onChange={(e) => setFormSku(e.target.value)}
-                      className="w-full bg-[#050906] border border-emerald-950 rounded-xl py-2.5 px-3.5 text-xs text-white focus:outline-none focus:border-amber-400 font-mono"
+                      className="w-full bg-zinc-50 border border-zinc-300 rounded-xl py-2.5 px-3.5 text-xs text-zinc-950 focus:outline-none focus:border-amber-400 font-mono"
+                    />
+                  </div>
+
+                  <div className="space-y-2 rounded-xl border border-zinc-300 p-3 bg-zinc-50">
+                    <div className="flex items-center justify-between gap-2 flex-wrap">
+                      <label className="text-[10px] font-mono text-zinc-700 uppercase font-bold">
+                        Barcode <span className="text-zinc-600 normal-case">(optional)</span>
+                      </label>
+                      <div className="flex rounded-lg overflow-hidden border border-zinc-300">
+                        {(['none', 'auto', 'manual'] as const).map((mode) => (
+                          <button
+                            key={mode}
+                            type="button"
+                            onClick={() => {
+                              setFormBarcodeMode(mode);
+                              if (mode === 'none') setFormBarcode('');
+                              if (mode === 'auto') setFormBarcode(generateEan13(formSku || Date.now()));
+                            }}
+                            className={`px-2.5 py-1 text-[9px] font-bold uppercase cursor-pointer ${
+                              formBarcodeMode === mode ? 'bg-white text-black' : 'bg-transparent text-zinc-700'
+                            }`}
+                          >
+                            {mode}
+                          </button>
+                        ))}
+                      </div>
+                    </div>
+                    <input
+                      type="text"
+                      placeholder={formBarcodeMode === 'none' ? 'No barcode' : 'EAN-13 or CODE128'}
+                      value={formBarcode}
+                      disabled={formBarcodeMode === 'none'}
+                      readOnly={formBarcodeMode === 'auto'}
+                      onChange={(e) => {
+                        setFormBarcodeMode('manual');
+                        setFormBarcode(e.target.value);
+                      }}
+                      className="w-full bg-zinc-50 border border-zinc-300 rounded-xl py-2.5 px-3.5 text-xs text-zinc-950 focus:outline-none focus:border-amber-400 font-mono placeholder-zinc-500 disabled:opacity-40"
                     />
                   </div>
 
                   <div className="space-y-1">
-                    <label className="text-[10px] font-mono text-gray-400 block uppercase font-bold">Condition Detail Notes</label>
+                    <label className="text-[10px] font-mono text-zinc-700 block uppercase font-bold">Condition Detail Notes</label>
                     <input
                       type="text"
                       placeholder="e.g. Sourced from archives with original tags..."
                       value={formConditionDetail}
                       onChange={(e) => setFormConditionDetail(e.target.value)}
-                      className="w-full bg-[#050906] border border-emerald-950 rounded-xl py-2.5 px-3.5 text-xs text-white focus:outline-none focus:border-amber-400"
+                      className="w-full bg-zinc-50 border border-zinc-300 rounded-xl py-2.5 px-3.5 text-xs text-zinc-950 focus:outline-none focus:border-amber-400"
                     />
                   </div>
 
                   <div className="grid grid-cols-2 gap-3">
                     <div className="space-y-1">
-                      <label className="text-[10px] font-mono text-gray-400 block uppercase font-bold">Colorway</label>
+                      <label className="text-[10px] font-mono text-zinc-700 block uppercase font-bold">Colorway</label>
                       <input
                         type="text"
                         value={formColor}
                         onChange={(e) => setFormColor(e.target.value)}
-                        className="w-full bg-[#050906] border border-emerald-950 rounded-xl py-2.5 px-3.5 text-xs text-white focus:outline-none focus:border-amber-400"
+                        className="w-full bg-zinc-50 border border-zinc-300 rounded-xl py-2.5 px-3.5 text-xs text-zinc-950 focus:outline-none focus:border-amber-400"
                       />
                     </div>
                     <div className="space-y-1">
-                      <label className="text-[10px] font-mono text-gray-400 block uppercase font-bold">Made In Country</label>
+                      <label className="text-[10px] font-mono text-zinc-700 block uppercase font-bold">Made In Country</label>
                       <input
                         type="text"
                         value={formMadeIn}
                         onChange={(e) => setFormMadeIn(e.target.value)}
-                        className="w-full bg-[#050906] border border-emerald-950 rounded-xl py-2.5 px-3.5 text-xs text-white focus:outline-none focus:border-amber-400"
+                        className="w-full bg-zinc-50 border border-zinc-300 rounded-xl py-2.5 px-3.5 text-xs text-zinc-950 focus:outline-none focus:border-amber-400"
                       />
                     </div>
                   </div>
 
                   <div className="grid grid-cols-2 gap-3">
                     <div className="space-y-1">
-                      <label className="text-[10px] font-mono text-gray-400 block uppercase font-bold">Material Composition</label>
+                      <label className="text-[10px] font-mono text-zinc-700 block uppercase font-bold">Material Composition</label>
                       <input
                         type="text"
                         value={formMaterial}
                         onChange={(e) => setFormMaterial(e.target.value)}
-                        className="w-full bg-[#050906] border border-emerald-950 rounded-xl py-2.5 px-3.5 text-xs text-white focus:outline-none focus:border-amber-400"
+                        className="w-full bg-zinc-50 border border-zinc-300 rounded-xl py-2.5 px-3.5 text-xs text-zinc-950 focus:outline-none focus:border-amber-400"
                       />
                     </div>
                     <div className="space-y-1">
-                      <label className="text-[10px] font-mono text-gray-400 block uppercase font-bold">Fit Spec Type</label>
+                      <label className="text-[10px] font-mono text-zinc-700 block uppercase font-bold">Fit Spec Type</label>
                       <input
                         type="text"
                         value={formFit}
                         onChange={(e) => setFormFit(e.target.value)}
-                        className="w-full bg-[#050906] border border-emerald-950 rounded-xl py-2.5 px-3.5 text-xs text-white focus:outline-none focus:border-amber-400"
+                        className="w-full bg-zinc-50 border border-zinc-300 rounded-xl py-2.5 px-3.5 text-xs text-zinc-950 focus:outline-none focus:border-amber-400"
                       />
                     </div>
                   </div>
 
                   <div className="space-y-1">
-                    <label className="text-[10px] font-mono text-gray-400 block uppercase font-bold">Description Narrative</label>
+                    <label className="text-[10px] font-mono text-zinc-700 block uppercase font-bold">Description Narrative</label>
                     <textarea
                       rows={2}
                       placeholder="Historical records, key design aspects..."
                       value={formDescription}
                       onChange={(e) => setFormDescription(e.target.value)}
-                      className="w-full bg-[#050906] border border-emerald-950 rounded-xl py-2.5 px-3.5 text-xs text-white focus:outline-none focus:border-amber-400"
+                      className="w-full bg-zinc-50 border border-zinc-300 rounded-xl py-2.5 px-3.5 text-xs text-zinc-950 focus:outline-none focus:border-amber-400"
                     />
                   </div>
 
                   {/* Sizes Grid */}
                   <div className="space-y-1">
-                    <label className="text-[10px] text-gray-400 font-mono uppercase block font-bold">Available Sizes Sizing:</label>
+                    <label className="text-[10px] text-zinc-700 font-mono uppercase block font-bold">Available Sizes Sizing:</label>
                     <div className="flex flex-wrap gap-1.5 pt-0.5">
                       {[...STANDARD_PRODUCT_SIZES].map((sz) => {
                         const hasSize = formSizes.includes(sz);
@@ -1196,8 +1339,8 @@ export const InventoryEditor: React.FC<InventoryEditorProps> = ({
                             }}
                             className={`px-3 py-1 text-[11px] rounded-lg font-mono border transition-all cursor-pointer ${
                               hasSize
-                                ? 'bg-amber-400 border-amber-400 text-black font-extrabold shadow-sm'
-                                : 'bg-[#050906] border-emerald-950 text-gray-400 hover:border-emerald-800'
+                                ? 'bg-zinc-950 border-amber-400 text-white font-extrabold shadow-sm'
+                                : 'bg-zinc-50 border-zinc-300 text-zinc-700 hover:border-emerald-800'
                             }`}
                           >
                             {sz}
@@ -1209,9 +1352,9 @@ export const InventoryEditor: React.FC<InventoryEditorProps> = ({
 
                   {/* Image manual uploader with base64 string storage */}
                   <div className="space-y-2 pt-1">
-                    <label className="text-[10px] text-gray-400 font-mono uppercase block font-bold">Jersey Illustration Image (Base64):</label>
-                    <label className="flex items-center gap-4 bg-[#050906] hover:bg-[#090f0b] border border-emerald-950 hover:border-emerald-800 p-4 rounded-2xl cursor-pointer transition-all group">
-                      <div className="w-16 h-16 rounded-xl bg-emerald-950/20 border border-emerald-900/60 flex items-center justify-center overflow-hidden flex-shrink-0 group-hover:scale-105 transition-transform">
+                    <label className="text-[10px] text-zinc-700 font-mono uppercase block font-bold">Jersey Illustration Image (Base64):</label>
+                    <label className="flex items-center gap-4 bg-zinc-50 hover:bg-zinc-100 border border-zinc-300 hover:border-emerald-800 p-4 rounded-2xl cursor-pointer transition-all group">
+                      <div className="w-16 h-16 rounded-xl bg-zinc-100 border border-zinc-300/60 flex items-center justify-center overflow-hidden flex-shrink-0 group-hover:scale-105 transition-transform">
                         {formUploadedImage ? (
                           <img
                             src={formUploadedImage}
@@ -1219,18 +1362,18 @@ export const InventoryEditor: React.FC<InventoryEditorProps> = ({
                             className="w-full h-full object-contain filter drop-shadow"
                           />
                         ) : (
-                          <ImageIcon size={20} className="text-emerald-600 group-hover:text-amber-400 transition-colors" />
+                          <ImageIcon size={20} className="text-emerald-600 group-hover:text-zinc-950 transition-colors" />
                         )}
                       </div>
                       <div className="flex-1 min-w-0">
-                        <div className="bg-emerald-950/60 group-hover:bg-amber-400 group-hover:text-black border border-emerald-800/50 text-emerald-400 text-[10px] font-extrabold uppercase px-4 py-2.5 rounded-xl transition-all inline-flex items-center gap-1.5 shadow-sm">
+                        <div className="bg-zinc-100 group-hover:bg-zinc-950 group-hover:text-white border border-zinc-300 text-emerald-400 text-[10px] font-extrabold uppercase px-4 py-2.5 rounded-xl transition-all inline-flex items-center gap-1.5 shadow-sm">
                           <Plus size={11} />
                           Replace Jersey Photo
                         </div>
                         {formUploadedImage ? (
                           <p className="text-[9px] text-emerald-500 font-mono mt-1">✓ Image loaded successfully</p>
                         ) : (
-                          <p className="text-[9px] text-gray-500 font-mono leading-tight mt-1">PNG/JPG with resolution limits of up to 2MB</p>
+                          <p className="text-[9px] text-zinc-600 font-mono leading-tight mt-1">PNG/JPG with resolution limits of up to 2MB</p>
                         )}
                       </div>
                       <input
@@ -1247,7 +1390,7 @@ export const InventoryEditor: React.FC<InventoryEditorProps> = ({
                           e.stopPropagation();
                           setFormUploadedImage('');
                         }}
-                        className="text-[10px] text-red-400 hover:text-red-300 hover:underline font-mono mt-1 flex items-center gap-1"
+                        className="text-[12px] text-zinc-700 hover:text-zinc-950 hover:underline font-semibold mt-1 flex items-center gap-1"
                       >
                         ✕ Remove Uploaded Photo
                       </button>
@@ -1258,20 +1401,20 @@ export const InventoryEditor: React.FC<InventoryEditorProps> = ({
               </div>
 
               {/* Footer submission */}
-              <div className="flex justify-end gap-3 border-t border-emerald-950/80 pt-4 mt-2">
+              <div className="flex justify-end gap-3 border-t border-zinc-300/80 pt-4 mt-2">
                 <button
                   type="button"
                   onClick={() => {
                     setIsEditModalOpen(false);
                     setEditingProduct(null);
                   }}
-                  className="bg-emerald-950/25 hover:bg-emerald-950 border border-emerald-950 text-gray-300 text-xs px-5 py-2.5 rounded-xl uppercase font-bold cursor-pointer transition-colors"
+                  className="bg-zinc-100 hover:bg-emerald-950 border border-zinc-300 text-zinc-700 text-xs px-5 py-2.5 rounded-xl uppercase font-bold cursor-pointer transition-colors"
                 >
                   Cancel
                 </button>
                 <button
                   type="submit"
-                  className="bg-amber-400 hover:bg-amber-300 text-black text-xs px-6 py-2.5 rounded-xl uppercase tracking-wider font-black cursor-pointer shadow-lg shadow-amber-400/10 transition-all"
+                  className="bg-zinc-950 hover:bg-zinc-800 text-white text-xs px-6 py-2.5 rounded-xl uppercase tracking-wider font-black cursor-pointer shadow-lg shadow-amber-400/10 transition-all"
                 >
                   Save Specification Changes
                 </button>
@@ -1281,6 +1424,25 @@ export const InventoryEditor: React.FC<InventoryEditorProps> = ({
           </div>
         </div>
       )}
+
+      <BarcodeLabelPrint
+        open={!!labelPrint}
+        onClose={() => setLabelPrint(null)}
+        items={
+          labelPrint
+            ? [
+                {
+                  shopName,
+                  barcode: labelPrint.barcode,
+                  sellPriceLabel: formatPrice(labelPrint.sellPrice),
+                  productName: labelPrint.name,
+                  category: labelPrint.category,
+                  location: 'Dhaka',
+                },
+              ]
+            : []
+        }
+      />
 
     </div>
   );

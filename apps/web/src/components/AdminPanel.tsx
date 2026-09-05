@@ -1,10 +1,9 @@
 import React, { useState, useEffect, useMemo, useRef } from 'react';
 import { AreaChart, Users, Shirt, ShoppingBag, Check, X, ShieldAlert, BadgeCheck, FileText, Plus, Save, Sparkles, Download, Upload, AlertTriangle, Image, Trash2, Edit, Search, Smartphone, Monitor, ChevronLeft, ChevronRight, SlidersHorizontal, TrendingUp, ArrowUpRight, ArrowDownRight, RefreshCw, BarChart3, Clock, CheckCircle, AlertOctagon, HelpCircle, UserCheck, PlusCircle, Activity, Trophy, Star, Flame, Globe, Tag, Box, Compass, Heart, Phone, MapPin, Mail, Layers, Grid, ArrowUp, ArrowDown, ShieldCheck, Award, Printer, Truck, RotateCcw, DollarSign, CheckCircle2, PackageCheck, Send, Copy, ExternalLink, XCircle, Eye, Bell } from 'lucide-react';
-import { Product, SellerRequest, Order, CarouselSlide, AppConfig, BannerConfig, BannerType, MenuItem, MenuPlacement, User, UserRole, PageSection, DailyDealItem } from '../types';
+import { Product, SellerRequest, Order, CarouselSlide, AppConfig, BannerConfig, BannerType, MenuItem, MenuPlacement, PageSection, DailyDealItem } from '../types';
 import { JerseyRenderer } from './JerseyRenderer';
 import { InventoryEditor } from './InventoryEditor';
 import { ProductManager } from './ProductManager';
-import { RolesPermissionsManager, STAFF_ROLE_DEFINITIONS } from './RolesPermissionsManager';
 import { TEAMS_LIST, RIVALRY_PRESETS, TeamItem } from '../data/teamsData';
 import { DEFAULT_LEAGUES } from '../data/leaguesData';
 import { LeagueLogo } from './LeagueLogo';
@@ -12,6 +11,7 @@ import { LeagueConfigItem } from '../types';
 import { api, getToken, isApiEnabled } from '../lib/apiClient';
 import { uploadStoreImage } from '../lib/cloudinaryUpload';
 import { confirmAsync, toast } from './UiFeedback';
+import { BrandMark } from './BrandMark';
 import { isBannerLive } from '../lib/bannerVisibility';
 import { persistOrders } from '../lib/orderStorage';
 import { DEFAULT_HOMEPAGE_SECTIONS } from './DynamicPageRenderer';
@@ -31,6 +31,11 @@ import {
   suggestDealPrice,
 } from '../lib/dailyDeals';
 import { calcDiscountPercent, roundMoney } from '../lib/productPricing';
+import { formatBannerPx, getBannerPixelSpecs } from '../lib/bannerImageSpecs';
+import { PosPanel } from './admin/PosPanel';
+import { SalesPanel } from './admin/SalesPanel';
+import { CustomersPanel } from './admin/CustomersPanel';
+import { AccountsExpensesPanel } from './admin/AccountsExpensesPanel';
 export interface CustomerProfile {
   id: string;
   fullName: string;
@@ -43,6 +48,42 @@ export interface CustomerProfile {
   ordersCount: number;
   totalSpent: number;
   joinedDate: string;
+}
+
+function parseOrderDate(order: Pick<Order, 'createdAt' | 'date'>): Date | null {
+  const raw = String(order.createdAt || order.date || '').trim();
+  if (!raw) return null;
+  const d = new Date(raw);
+  return Number.isNaN(d.getTime()) ? null : d;
+}
+
+/** Human wait / age since order was placed (e.g. "12m", "3h 20m", "2d 4h"). */
+function formatOrderWait(order: Pick<Order, 'createdAt' | 'date'>, nowMs = Date.now()): string {
+  const d = parseOrderDate(order);
+  if (!d) return '—';
+  const mins = Math.max(0, Math.floor((nowMs - d.getTime()) / 60_000));
+  if (mins < 1) return 'Just now';
+  if (mins < 60) return `${mins}m`;
+  const hours = Math.floor(mins / 60);
+  const remM = mins % 60;
+  if (hours < 24) return remM ? `${hours}h ${remM}m` : `${hours}h`;
+  const days = Math.floor(hours / 24);
+  const remH = hours % 24;
+  return remH ? `${days}d ${remH}h` : `${days}d`;
+}
+
+function formatOrderClock(order: Pick<Order, 'createdAt' | 'date'>): string {
+  const d = parseOrderDate(order);
+  if (!d) return '—';
+  return d.toLocaleString(undefined, {
+    year: 'numeric',
+    month: 'short',
+    day: '2-digit',
+    hour: '2-digit',
+    minute: '2-digit',
+    second: '2-digit',
+    hour12: true,
+  });
 }
 
 interface AdminPanelProps {
@@ -59,6 +100,9 @@ interface AdminPanelProps {
   onUpdateConfig: (newConfig: AppConfig | ((prev: AppConfig) => AppConfig)) => void;
   formatPrice: (amount: number) => string;
   onRequireStaffLogin?: () => void;
+  /** Signed-in staff for header identity strip */
+  staffUser?: { fullName?: string; email?: string; role?: string } | null;
+  onSignOut?: () => void;
   /** URL-synced admin module (browser Back support) */
   initialAdminTab?: string;
   onAdminTabChange?: (tab: string) => void;
@@ -87,6 +131,8 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({
   onUpdateConfig,
   formatPrice,
   onRequireStaffLogin,
+  staffUser,
+  onSignOut,
   initialAdminTab,
   onAdminTabChange,
 }) => {
@@ -122,20 +168,6 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({
     }
     onAdminTabChange?.(itemId);
   };
-  // Staff Roles & Permissions state
-  const [activeUserRole, setActiveUserRole] = useState<UserRole>('Super Admin');
-  const [staffUsers, setStaffUsers] = useState<User[]>([]);
-
-  // Persist staffUsers only in offline/demo mode
-  useEffect(() => {
-    if (isApiEnabled() && getToken()) return;
-    try {
-      localStorage.setItem('vault_staff_users', JSON.stringify(staffUsers));
-    } catch (e) {
-      console.error('Failed storing staff users in localStorage', e);
-    }
-  }, [staffUsers]);
-
   // Custom pages and custom sections local form state
   const [editingSectionId, setEditingSectionId] = useState<string | null>(null);
   const [sectionFormBg, setSectionFormBg] = useState('bg-white');
@@ -160,10 +192,6 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({
   const [newPageSlug, setNewPageSlug] = useState('');
 
   // Sourced entities list mock states
-  const [collections, setCollections] = useState([
-    { id: 'col-1', name: 'Vintage 90s Deadstock', itemsCount: 14, banner: 'https://images.unsplash.com/photo-1518063319789-7217e6706b04?auto=format&fit=crop&q=80&w=800' },
-    { id: 'col-2', name: 'Qatar 2022 Matchwear', itemsCount: 8, banner: 'https://images.unsplash.com/photo-1508098682722-e99c43a406b2?auto=format&fit=crop&q=80&w=800' },
-  ]);
   const [clubsList, setClubsList] = useState([
     { id: 'c-1', name: 'Real Madrid', badge: '⚪', status: 'Active' },
     { id: 'c-2', name: 'FC Barcelona', badge: '🔵', status: 'Active' },
@@ -171,12 +199,6 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({
     { id: 'c-4', name: 'Liverpool', badge: '🔴', status: 'Active' },
     { id: 'c-5', name: 'Arsenal', badge: '🔴', status: 'Active' },
     { id: 'c-6', name: 'Bayern Munich', badge: '🔴', status: 'Active' },
-  ]);
-  const [playersList, setPlayersList] = useState([
-    { id: 'p-1', name: 'Messi', number: 10, country: 'Argentina' },
-    { id: 'p-2', name: 'Ronaldo', number: 7, country: 'Portugal' },
-    { id: 'p-3', name: 'Beckham', number: 7, country: 'England' },
-    { id: 'p-4', name: 'Yamal', number: 10, country: 'Spain' },
   ]);
 
   // Coupons disabled store-wide — no generator state
@@ -187,24 +209,7 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({
     void api
       .listUsers()
       .then((data) => {
-        if (data?.staff) setStaffUsers(data.staff as User[]);
         if (data?.customers) setCustomers(data.customers as CustomerProfile[]);
-      })
-      .catch(() => undefined);
-
-    void api
-      .listReviews(undefined, true)
-      .then(({ items }) => {
-        setDbReviews(
-          (items || []).map((r: any) => ({
-            id: r.id,
-            userName: r.userName,
-            rating: r.rating,
-            comment: r.comment,
-            approved: !!r.approved,
-            productId: r.productId,
-          })),
-        );
       })
       .catch(() => undefined);
 
@@ -423,9 +428,6 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({
 
   // Customer Profile State — loaded from Neon
   const [customers, setCustomers] = useState<CustomerProfile[]>([]);
-  const [dbReviews, setDbReviews] = useState<
-    Array<{ id: string; userName: string; rating: number; comment: string; approved: boolean; productId?: string }>
-  >([]);
   const [sellerRequestsDb, setSellerRequestsDb] = useState<
     Array<{ id: string; shirtName: string; brand: string; season: string; condition: string; expectedPrice: number; status: string; adminNote?: string }>
   >([]);
@@ -1426,198 +1428,255 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({
 
   const SIDEBAR_GROUPS = [
     {
-      title: '📊 Core Analytics',
+      title: 'Command',
       items: [
-        { id: 'dashboard', label: 'Overview Dashboard' },
-        { id: 'analytics', label: 'Revenue & Sales Trends' },
-        { id: 'backup-restore', label: 'Database Snapshot' },
+        { id: 'dashboard', label: 'Overview' },
+        { id: 'pos', label: 'POS' },
+        { id: 'sales', label: 'Sales' },
+        { id: 'orders', label: 'Online Orders' },
+        { id: 'analytics', label: 'Sales Trends' },
       ]
     },
     {
-      title: '🎨 Full Dynamic CMS',
+      title: 'Stock Product',
       items: [
-        { id: 'homepage-builder', label: 'Homepage Sections' },
-        { id: 'page-builder', label: 'Custom Page Builder' },
-        { id: 'menu-builder', label: 'Navigation Menu Builder' },
-        { id: 'mega-menu', label: 'Mega Menu dropdown' },
-        { id: 'header-builder', label: 'Header Customizer' },
-        { id: 'footer-builder', label: 'Footer Builder' },
-        { id: 'announcement-bar', label: 'Announcement Ticker' },
-        { id: 'banner-management', label: 'Banner Management Deck' },
-        { id: 'hero-slider', label: 'Hero Slides & Banners' },
+        { id: 'product-management', label: 'Product' },
+        { id: 'inventory', label: 'Inventory' },
       ]
     },
     {
-      title: '⚽ Sports Entity Registrars',
+      title: 'Operations',
       items: [
-        { id: 'collections', label: 'Collections Curator' },
-        { id: 'categories', label: 'Category Registry' },
-        { id: 'leagues', label: 'League Registry' },
-        { id: 'clubs', label: 'Club Vaults' },
+        { id: 'customers', label: 'Customers' },
+        { id: 'expenses', label: 'Expenses' },
+        { id: 'accounts', label: 'Accounts' },
+      ]
+    },
+    {
+      title: 'Catalog Meta',
+      items: [
+        { id: 'leagues', label: 'Leagues' },
+        { id: 'clubs', label: 'Clubs' },
         { id: 'national-teams', label: 'National Teams' },
-        { id: 'brands', label: 'Brand Registry' },
-        { id: 'players', label: 'Player Print Legend' },
+        { id: 'locations', label: 'Outlets' },
       ]
     },
     {
-      title: '🛍 E-Commerce Docks',
+      title: 'Storefront CMS',
       items: [
-        { id: 'product-management', label: 'Product Manager' },
-        { id: 'inventory', label: 'Inventory & Bins' },
-        { id: 'orders', label: 'Orders Ledger' },
-        { id: 'customers', label: 'Collector CRM' },
-        { id: 'reviews', label: 'Buyer Reviews Desk' },
+        { id: 'homepage-builder', label: 'Homepage' },
+        { id: 'page-builder', label: 'Pages' },
+        { id: 'menu-builder', label: 'Navigation' },
+        { id: 'mega-menu', label: 'Mega Menu' },
+        { id: 'header-builder', label: 'Header' },
+        { id: 'footer-builder', label: 'Footer' },
+        { id: 'announcement-bar', label: 'Announcement' },
+        { id: 'banner-management', label: 'Banners' },
+        { id: 'hero-slider', label: 'Hero Slides' },
       ]
     },
     {
-      title: '📣 Sourced Marketing Room',
+      title: 'Settings',
       items: [
-        { id: 'blogs', label: 'Vintage Journal Blogs' },
-        { id: 'gallery', label: 'Fan Unboxing Gallery' },
-        { id: 'videos', label: 'Video Showcase Banners' },
-        { id: 'testimonials', label: 'Buyer Quotes Desk' },
-        { id: 'newsletter', label: 'Newsletter Captains' },
-        { id: 'locations', label: 'Outlet Locations' },
-      ]
-    },
-    {
-      title: '⚙ Platform System Controllers',
-      items: [
-        { id: 'brand-customizer', label: 'Theme & Colors' },
-        { id: 'media-library', label: 'Base64 Asset Library' },
-        { id: 'roles-permissions', label: 'Staff Roles Security' },
-        { id: 'system-settings', label: 'Delivery & Gateway' },
+        { id: 'brand-customizer', label: 'Theme' },
       ]
     }
   ];
 
+  const activeModuleLabel =
+    SIDEBAR_GROUPS.flatMap((g) => g.items).find((i) => i.id === activeSidebarTab)?.label || 'Dashboard';
+
+  const hour = new Date().getHours();
+  const greeting = hour < 12 ? 'Good morning' : hour < 18 ? 'Good afternoon' : 'Good evening';
+  const staffName = staffUser?.fullName || 'Shop Admin';
+  const staffId = staffUser?.email?.split('@')[0]?.toUpperCase() || 'EV-ADMIN';
+  const staffRole = staffUser?.role || 'Admin';
+
+  const REMOVED_ADMIN_TABS = new Set([
+    'backup-restore',
+    'collections',
+    'categories',
+    'brands',
+    'players',
+    'reviews',
+    'blogs',
+    'gallery',
+    'videos',
+    'testimonials',
+    'newsletter',
+    'media-library',
+    'roles-permissions',
+    'system-settings',
+  ]);
+
+  useEffect(() => {
+    if (REMOVED_ADMIN_TABS.has(activeSidebarTab)) {
+      setActiveSidebarTab('dashboard');
+    }
+  }, [activeSidebarTab]);
+
   return (
-    <section className="bg-white text-emerald-950 py-6 md:py-10 px-3 sm:px-4 md:px-8 lg:px-10 xl:px-12 max-w-[1600px] mx-auto min-h-screen overflow-x-hidden">
+    <section className="admin-shell flex w-full min-h-screen bg-[#f5f5f5] text-zinc-950 overflow-x-hidden">
       
       {saveFeedback && (
-        <div className="fixed top-4 right-4 z-[80] bg-emerald-800 text-white text-xs font-bold px-4 py-3 rounded-xl shadow-lg flex items-center gap-2 animate-fadeIn max-w-[90vw]">
+        <div className="fixed top-4 right-4 z-[80] bg-white text-zinc-950 border border-zinc-300 text-[13px] font-semibold px-4 py-3 rounded-xl shadow-lg flex items-center gap-2 animate-fadeIn max-w-[90vw]">
           <CheckCircle size={16} /> {saveFeedback}
         </div>
       )}
       {orderNotify && (
-        <div className="fixed top-4 left-4 z-[80] bg-amber-500 text-white text-xs font-bold px-4 py-3 rounded-xl shadow-lg flex items-center gap-2 animate-fadeIn max-w-[90vw]">
+        <div className="fixed top-4 left-4 z-[80] bg-white text-zinc-950 border border-zinc-300 text-[13px] font-semibold px-4 py-3 rounded-xl shadow-lg flex items-center gap-2 animate-fadeIn max-w-[90vw]">
           <ShoppingBag size={16} /> {orderNotify}
         </div>
       )}
 
-      {/* Title Header */}
-      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 border-b border-emerald-100 pb-6 mb-6 md:mb-8">
-        <div className="flex items-start gap-3 w-full sm:w-auto">
-          <button
-            type="button"
-            onClick={() => setSidebarOpen((v) => !v)}
-            className="lg:hidden mt-1 p-2.5 rounded-xl bg-emerald-50 border border-emerald-200 text-emerald-900 cursor-pointer"
-            aria-label="Toggle CMS menu"
-          >
-            <Layers size={18} />
-          </button>
-          <div>
-            <div className="flex items-center gap-2">
-              <span className="h-2.5 w-2.5 rounded-full bg-red-500 animate-ping" />
-              <h1 className="text-2xl md:text-3xl font-black uppercase tracking-tight text-emerald-950">Admin Command Room</h1>
-            </div>
-            <p className="text-xs text-emerald-800 font-mono">
-              Platform Engine • Secure Control Tower 2026
-            </p>
-          </div>
-        </div>
-      </div>
+      {/* Mobile sidebar overlay */}
+      {sidebarOpen && (
+        <button
+          type="button"
+          className="fixed inset-0 bg-black/40 z-40 lg:hidden"
+          aria-label="Close menu overlay"
+          onClick={() => setSidebarOpen(false)}
+        />
+      )}
 
-      {/* Admin Two-Column CMS Suite */}
-      <div className="w-full flex flex-col lg:flex-row gap-6 lg:gap-8 items-start relative">
-        
-        {/* Mobile sidebar overlay */}
-        {sidebarOpen && (
+      {/* Left sidebar — full viewport height, no internal scroll */}
+      <aside
+        className={`admin-sidebar w-[248px] shrink-0 bg-[#efefef] border-r border-zinc-200 flex flex-col z-50
+          max-lg:fixed max-lg:inset-y-0 max-lg:left-0 max-lg:shadow-2xl max-lg:h-dvh
+          transition-transform duration-300
+          ${sidebarOpen ? 'max-lg:translate-x-0' : 'max-lg:-translate-x-full'}
+          lg:translate-x-0 lg:sticky lg:top-0 lg:h-dvh lg:max-h-dvh lg:self-start
+          overflow-hidden
+        `}
+      >
+        <div className="px-3 pt-3 pb-2 border-b border-zinc-200/80 flex items-center justify-between gap-2 shrink-0">
+          <div className="flex items-center gap-2 min-w-0">
+            <BrandMark imgClassName="w-7 h-7" />
+            <div className="min-w-0">
+              <p className="text-[12px] font-bold text-zinc-950 leading-tight truncate">Epic Vanskap</p>
+              <p className="text-[11px] text-zinc-700 truncate font-semibold">Management</p>
+            </div>
+          </div>
           <button
             type="button"
-            className="fixed inset-0 bg-emerald-950/50 z-40 lg:hidden"
-            aria-label="Close menu overlay"
+            className="lg:hidden p-1.5 rounded-md hover:bg-zinc-200 text-zinc-700 cursor-pointer"
             onClick={() => setSidebarOpen(false)}
-          />
-        )}
+          >
+            <X size={15} />
+          </button>
+        </div>
 
-        {/* Left Column: Collapsible CMS Sidebar tree */}
-        <div
-          className={`w-full lg:w-80 flex-shrink-0 bg-emerald-50/20 border border-emerald-100/50 p-5 rounded-3xl space-y-5 z-50 lg:z-auto
-            max-lg:fixed max-lg:top-0 max-lg:left-0 max-lg:h-full max-lg:max-w-[85vw] max-lg:overflow-y-auto max-lg:rounded-none max-lg:rounded-r-3xl max-lg:shadow-2xl max-lg:bg-white
-            transition-transform duration-300
-            ${sidebarOpen ? 'max-lg:translate-x-0' : 'max-lg:-translate-x-full lg:translate-x-0'}
-            lg:relative lg:translate-x-0 lg:block
-          `}
-        >
-          <div className="flex items-start justify-between gap-2">
-            <div className="space-y-1.5">
-              <h4 className="text-xs font-mono font-black text-emerald-950 uppercase tracking-widest">
-                Epic Vanskap CMS
-              </h4>
-              <p className="text-[10px] text-emerald-800 font-mono">Select a module to manage live Dhaka platform data.</p>
-            </div>
-            <button
-              type="button"
-              className="lg:hidden p-2 rounded-lg hover:bg-emerald-50 text-emerald-800 cursor-pointer"
-              onClick={() => setSidebarOpen(false)}
-            >
-              <X size={16} />
-            </button>
-          </div>
-
+        <div className="px-2.5 pt-2.5 pb-1.5 shrink-0">
           <div className="relative">
+            <Search size={13} className="absolute left-2.5 top-1/2 -translate-y-1/2 text-zinc-700" />
             <input
               type="text"
-              placeholder="Search CMS modules..."
+              placeholder="Search modules..."
               value={sidebarSearch}
               onChange={(e) => setSidebarSearch(e.target.value)}
-              className="w-full text-xs py-2.5 pl-9 pr-3 bg-white border border-emerald-100 rounded-xl focus:outline-none focus:border-emerald-500 font-mono text-emerald-950 transition-all"
+              className="w-full text-[12px] py-1.5 pl-8 pr-2.5 bg-white border border-zinc-300 rounded-md focus:outline-none focus:border-zinc-950 text-zinc-950 placeholder:text-zinc-600 font-medium"
             />
-            <Search size={13} className="absolute left-3.5 top-3.5 text-emerald-800/60" />
-          </div>
-
-          <div className="space-y-5 max-h-[75vh] lg:max-h-[75vh] overflow-y-auto pr-1 scrollbar-thin">
-            {SIDEBAR_GROUPS.map((group) => {
-              const filteredItems = group.items.filter(item =>
-                item.label.toLowerCase().includes(sidebarSearch.toLowerCase())
-              );
-              if (filteredItems.length === 0) return null;
-
-              return (
-                <div key={group.title} className="space-y-1.5">
-                  <span className="text-[9px] font-mono tracking-widest text-emerald-800 font-black uppercase block px-1">
-                    {group.title}
-                  </span>
-                  <div className="space-y-1">
-                    {filteredItems.map((item) => {
-                      const isActive = activeSidebarTab === item.id;
-                      return (
-                        <button
-                          key={item.id}
-                          onClick={() => selectAdminModule(item.id)}
-                          className={`w-full flex items-center gap-2 px-3 py-2 rounded-xl text-left text-xs font-semibold tracking-wide transition-all cursor-pointer border ${
-                            isActive
-                              ? 'bg-emerald-800 text-white border-emerald-800 shadow-md shadow-emerald-800/10'
-                              : 'bg-white hover:bg-emerald-50 text-emerald-950 border-emerald-100/50'
-                          }`}
-                        >
-                          <SlidersHorizontal size={12} className={isActive ? 'text-white' : 'text-emerald-700'} />
-                          <span className="truncate">{item.label}</span>
-                        </button>
-                      );
-                    })}
-                  </div>
-                </div>
-              );
-            })}
           </div>
         </div>
 
-        {/* Right Column: Active CMS Detail Panel */}
-        <div className="flex-grow flex-1 w-full min-w-0">
+        <nav className="admin-sidebar-nav flex-1 min-h-0 overflow-hidden px-2 pb-2 pt-1 flex flex-col justify-between gap-1">
+          {SIDEBAR_GROUPS.map((group) => {
+            const filteredItems = group.items.filter((item) =>
+              item.label.toLowerCase().includes(sidebarSearch.toLowerCase()),
+            );
+            if (filteredItems.length === 0) return null;
 
-      {/* RENDER ACTIVE TAB */}
+            return (
+              <div key={group.title} className="min-h-0 flex flex-col justify-center">
+                <span className="text-[10px] font-bold tracking-wide text-zinc-600 uppercase block px-2.5 mb-0.5">
+                  {group.title}
+                </span>
+                <div className="flex flex-col gap-px">
+                  {filteredItems.map((item) => {
+                    const isActive = activeSidebarTab === item.id;
+                    return (
+                      <button
+                        key={item.id}
+                        type="button"
+                        onClick={() => selectAdminModule(item.id)}
+                        className={`w-full flex items-center gap-2 px-2.5 py-[5px] rounded-md text-left text-[12px] font-medium transition-colors cursor-pointer leading-tight ${
+                          isActive
+                            ? 'bg-zinc-950 text-white'
+                            : 'text-zinc-800 hover:bg-zinc-200/80'
+                        }`}
+                      >
+                        <span className="truncate">{item.label}</span>
+                      </button>
+                    );
+                  })}
+                </div>
+              </div>
+            );
+          })}
+        </nav>
+      </aside>
+
+      {/* Main column */}
+      <div className="flex-1 min-w-0 flex flex-col min-h-screen">
+        {/* Top header bar */}
+        <header className="sticky top-0 z-30 bg-[#f5f5f5]/95 backdrop-blur border-b border-zinc-200 px-4 sm:px-6 lg:px-8 py-3">
+          <div className="flex flex-wrap items-center justify-between gap-3">
+            <div className="flex items-center gap-3 min-w-0">
+              <button
+                type="button"
+                onClick={() => setSidebarOpen(true)}
+                className="lg:hidden p-2 rounded-lg bg-white border border-zinc-200 text-zinc-900 cursor-pointer"
+                aria-label="Open menu"
+              >
+                <Layers size={18} />
+              </button>
+              <div className="min-w-0">
+                <p className="text-[12px] text-zinc-700 truncate font-semibold">
+                  epic vanskap / {activeSidebarTab === 'dashboard' ? 'dashboard' : activeModuleLabel.toLowerCase()}
+                </p>
+                <h1 className="text-xl sm:text-2xl font-bold text-zinc-950 tracking-tight leading-tight">
+                  {activeSidebarTab === 'dashboard' ? 'Dashboard' : activeModuleLabel}
+                </h1>
+                {activeSidebarTab === 'dashboard' && (
+                  <p className="text-[13px] text-zinc-800 mt-0.5 hidden sm:block font-medium">
+                    {greeting}, {staffName.split(' ')[0]}. Here&apos;s what&apos;s happening today.
+                  </p>
+                )}
+              </div>
+            </div>
+
+            <div className="flex items-center gap-3 sm:gap-5 ml-auto">
+              <div className="hidden md:flex items-center gap-4 text-[12px]">
+                <div>
+                  <p className="text-zinc-700 uppercase tracking-wide text-[11px] font-bold">Employee ID</p>
+                  <p className="font-semibold text-zinc-950">{staffId}</p>
+                </div>
+                <div className="h-8 w-px bg-zinc-300" />
+                <div>
+                  <p className="text-zinc-700 uppercase tracking-wide text-[11px] font-bold">Employee Name</p>
+                  <p className="font-semibold text-zinc-950">{staffName}</p>
+                </div>
+                <div className="h-8 w-px bg-zinc-300" />
+                <div>
+                  <p className="text-zinc-700 uppercase tracking-wide text-[11px] font-bold">Role</p>
+                  <p className="font-semibold text-zinc-950">{staffRole}</p>
+                </div>
+              </div>
+              {onSignOut && (
+                <button
+                  type="button"
+                  onClick={onSignOut}
+                  className="text-[12px] font-semibold px-3 py-2 rounded-lg border border-zinc-300 bg-white text-zinc-900 hover:bg-zinc-100 cursor-pointer"
+                >
+                  Sign out
+                </button>
+              )}
+            </div>
+          </div>
+        </header>
+
+        <div className="flex-1 w-full min-w-0 px-4 sm:px-6 lg:px-8 py-5 md:py-6">
+
       {/* RENDER ACTIVE TAB */}
       {activeSidebarTab === 'dashboard' && (() => {
         // Live KPIs from Neon — when API is connected, trust adminStats / live props (no seed pads)
@@ -1636,9 +1695,40 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({
         const totalOrdersCount = adminStats?.orderCount ?? orders.length;
 
         const todayStr = new Date().toISOString().slice(0, 10);
-        const todayOrders = orders.filter((o) => (o.createdAt || '').startsWith(todayStr));
+        const todayOrders = orders.filter((o) => {
+          const raw = o.createdAt || o.date || '';
+          return raw.startsWith(todayStr) || (parseOrderDate(o)?.toISOString().slice(0, 10) === todayStr);
+        });
         const todayOrdersCount = todayOrders.length;
         const todayOrdersRevenue = todayOrders.reduce((sum, o) => sum + o.total, 0);
+
+        const openQueueOrders = orders.filter(
+          (o) => !['Delivered', 'Cancelled', 'Returned'].includes(o.status),
+        );
+        const nowMs = Date.now();
+        const queueAgesMin = openQueueOrders
+          .map((o) => {
+            const d = parseOrderDate(o);
+            return d ? Math.max(0, Math.floor((nowMs - d.getTime()) / 60_000)) : null;
+          })
+          .filter((n): n is number => n != null);
+        const avgQueueWaitMin =
+          queueAgesMin.length > 0
+            ? Math.round(queueAgesMin.reduce((a, b) => a + b, 0) / queueAgesMin.length)
+            : 0;
+        const oldestQueueOrder = openQueueOrders.reduce<(typeof openQueueOrders)[number] | null>((oldest, o) => {
+          const d = parseOrderDate(o);
+          const od = oldest ? parseOrderDate(oldest) : null;
+          if (!d) return oldest;
+          if (!od || d.getTime() < od.getTime()) return o;
+          return oldest;
+        }, null);
+        const formatMinutes = (mins: number) => {
+          if (mins < 60) return `${mins}m`;
+          const h = Math.floor(mins / 60);
+          const m = mins % 60;
+          return m ? `${h}h ${m}m` : `${h}h`;
+        };
 
         const warehouseUnits = products.reduce((sum, p) => sum + (Number(p.stock) || 0), 0);
         const dynamicLowStockCount =
@@ -1968,114 +2058,127 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({
         return (
           <div className="space-y-8 animate-fadeIn">
             
-            {/* KPI STATS CARDS GRID */}
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-              
-              {/* Gross Sales, Expense & Net Profit Card */}
-              <div className="col-span-1 md:col-span-3 bg-gradient-to-br from-emerald-950 via-emerald-900 to-emerald-950 text-white rounded-3xl p-6 relative overflow-hidden shadow-xl border border-emerald-800">
-                <div className="absolute top-0 right-0 p-8 opacity-10 font-black text-9xl select-none font-mono">৳</div>
-                <div className="relative z-10 flex flex-col md:flex-row md:items-center justify-between gap-6">
-                  <div>
-                    <span className="bg-emerald-800/80 text-emerald-100 text-[9px] font-mono uppercase tracking-widest px-3 py-1 rounded-full border border-emerald-600/50">
-                      FINANCIAL VAULT CONTROL
-                    </span>
-                    <h2 className="text-[11px] font-mono text-emerald-300 mt-3 uppercase tracking-wider">Gross Sourced Store Revenue</h2>
-                    <h1 className="text-4xl md:text-5xl font-black mt-1 text-emerald-50 tracking-tight">{formatPrice(dynamicRevenue)}</h1>
-                  </div>
-                  
-                  <div className="grid grid-cols-2 md:grid-cols-2 gap-8 md:gap-12 border-t md:border-t-0 md:border-l border-emerald-800/80 pt-4 md:pt-0 md:pl-12">
-                    <div>
-                      <p className="text-[10px] text-emerald-300 font-mono flex items-center gap-1.5 uppercase">
-                        <TrendingUp size={11} className="text-emerald-400" />
-                        Projected Profit (58%)
+            {/* Summary cards — Ouds-style */}
+            {(() => {
+              const stockValueAtCost = products.reduce(
+                (sum, p) => sum + (Number(p.price) || 0) * 0.42 * (Number(p.stock) || 0),
+                0,
+              );
+              const lastMonthLabel = prevTrend.month && prevTrend.month !== '—' ? prevTrend.month : 'Prior month';
+              const lastMonthRevenue = prevTrend.revenue || 0;
+              const lastMonthOrders = prevTrend.sales || 0;
+              return (
+                <>
+                  <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-3 md:gap-4">
+                    <div className="bg-white border border-zinc-200 rounded-xl p-5">
+                      <p className="text-[13px] text-zinc-600">Today&apos;s sales</p>
+                      <p className="text-2xl font-bold text-zinc-950 mt-1 tracking-tight">
+                        {formatPrice(todayOrdersRevenue)}
                       </p>
-                      <h3 className="text-xl md:text-2xl font-black text-emerald-400 mt-1">{formatPrice(dynamicProfit)}</h3>
-                    </div>
-                    <div>
-                      <p className="text-[10px] text-emerald-300 font-mono flex items-center gap-1.5 uppercase">
-                        <ShoppingBag size={11} className="text-amber-400" />
-                        Sourcing Cost (42%)
+                      <p className="text-[12px] text-zinc-500 mt-1">
+                        {todayOrdersCount} invoice{todayOrdersCount === 1 ? '' : 's'}
+                        {openQueueOrders.length
+                          ? ` · avg wait ${formatMinutes(avgQueueWaitMin)}`
+                          : ''}
                       </p>
-                      <h3 className="text-xl md:text-2xl font-black text-amber-200 mt-1">{formatPrice(dynamicExpense)}</h3>
+                    </div>
+                    <div className="bg-white border border-zinc-200 rounded-xl p-5">
+                      <p className="text-[13px] text-zinc-600">Last month sales</p>
+                      <p className="text-2xl font-bold text-zinc-950 mt-1 tracking-tight">
+                        {formatPrice(lastMonthRevenue)}
+                      </p>
+                      <p className="text-[12px] text-zinc-500 mt-1">
+                        {lastMonthOrders} invoice{lastMonthOrders === 1 ? '' : 's'}
+                        {lastMonthLabel !== 'Prior month' ? ` · ${lastMonthLabel}` : ''}
+                      </p>
+                    </div>
+                    <div className="bg-white border border-zinc-200 rounded-xl p-5">
+                      <p className="text-[13px] text-zinc-600">Stock value</p>
+                      <p className="text-2xl font-bold text-zinc-950 mt-1 tracking-tight">
+                        {formatPrice(stockValueAtCost)}
+                      </p>
+                      <p className="text-[12px] text-zinc-500 mt-1">
+                        At cost · {warehouseUnits} units · {catalogProductCount} SKUs
+                      </p>
+                    </div>
+                    <div className="bg-white border border-zinc-200 rounded-xl p-5">
+                      <p className="text-[13px] text-zinc-600">Open queue</p>
+                      <p className="text-2xl font-bold text-zinc-950 mt-1 tracking-tight">
+                        {pendingOrdersCount}
+                      </p>
+                      <p className="text-[12px] text-zinc-500 mt-1">
+                        Pending / processing
+                        {oldestQueueOrder
+                          ? ` · oldest ${formatOrderWait(oldestQueueOrder, nowMs)}`
+                          : ''}
+                      </p>
                     </div>
                   </div>
-                </div>
-              </div>
 
-              {/* Today's Sales Alert */}
-              <div className="bg-emerald-50/40 border border-emerald-100 p-5 rounded-2xl relative overflow-hidden shadow-sm flex flex-col justify-between">
-                <div className="flex justify-between items-start">
-                  <div>
-                    <p className="text-emerald-800 text-[10px] font-mono tracking-wider uppercase font-bold">Today's Orders Desk</p>
-                    <h2 className="text-3xl font-black text-emerald-950 mt-1">{todayOrdersCount}</h2>
+                  <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 md:gap-4">
+                    <div className="bg-white border border-zinc-200 rounded-xl p-5">
+                      <p className="text-[13px] text-zinc-600">All-time revenue</p>
+                      <p className="text-xl font-bold text-zinc-950 mt-1">{formatPrice(dynamicRevenue)}</p>
+                      <p className="text-[12px] text-zinc-500 mt-1">
+                        Profit {formatPrice(dynamicProfit)} · Cost {formatPrice(dynamicExpense)}
+                      </p>
+                    </div>
+                    <div className="bg-white border border-zinc-200 rounded-xl p-5">
+                      <p className="text-[13px] text-zinc-600">Orders</p>
+                      <p className="text-xl font-bold text-zinc-950 mt-1">{totalOrdersCount}</p>
+                      <p className="text-[12px] text-zinc-500 mt-1">
+                        {completedOrdersCount} delivered · {cancelledOrdersCount} cancelled
+                      </p>
+                    </div>
+                    <div className="bg-white border border-zinc-200 rounded-xl p-5">
+                      <p className="text-[13px] text-zinc-600">Stock alerts</p>
+                      <p className="text-xl font-bold text-zinc-950 mt-1">
+                        {dynamicLowStockCount + dynamicOutOfStockCount}
+                      </p>
+                      <p className="text-[12px] text-zinc-500 mt-1">
+                        {dynamicLowStockCount} low · {dynamicOutOfStockCount} out of stock
+                      </p>
+                    </div>
                   </div>
-                  <span className="p-2.5 rounded-xl bg-emerald-100/50 text-emerald-800"><ShoppingBag size={18} /></span>
-                </div>
-                <div className="mt-4 pt-3 border-t border-emerald-100/60 flex items-center justify-between text-[10px] text-emerald-800 font-mono">
-                  <span>Gross intake today:</span>
-                  <span className="font-extrabold text-emerald-950">{formatPrice(todayOrdersRevenue)}</span>
-                </div>
-              </div>
 
-              {/* Order Status Breakdown KPIs */}
-              <div className="bg-emerald-50/40 border border-emerald-100 p-5 rounded-2xl relative overflow-hidden shadow-sm flex flex-col justify-between">
-                <div className="flex justify-between items-start">
-                  <div>
-                    <p className="text-emerald-800 text-[10px] font-mono tracking-wider uppercase font-bold">Order Queue Status</p>
-                    <h2 className="text-3xl font-black text-emerald-950 mt-1">{totalOrdersCount} Total</h2>
+                  {/* Trending products */}
+                  <div className="bg-white border border-zinc-200 rounded-xl overflow-hidden">
+                    <div className="px-5 py-4 border-b border-zinc-100 flex items-center justify-between">
+                      <h3 className="text-[15px] font-semibold text-zinc-950">Trending products</h3>
+                      <button
+                        type="button"
+                        onClick={() => selectAdminModule('product-management')}
+                        className="text-[12px] font-medium text-zinc-600 hover:text-zinc-950 cursor-pointer"
+                      >
+                        View catalog
+                      </button>
+                    </div>
+                    {topProducts.length === 0 ? (
+                      <p className="px-5 py-8 text-[13px] text-zinc-500">No sales yet.</p>
+                    ) : (
+                      <ul className="divide-y divide-zinc-100">
+                        {topProducts.map((p, i) => (
+                          <li key={p.id} className="px-5 py-3.5 flex items-center gap-3">
+                            <span className="text-[12px] font-semibold text-zinc-400 w-5">{i + 1}</span>
+                            <div className="min-w-0 flex-1">
+                              <p className="text-[13px] font-medium text-zinc-950 truncate">{p.name}</p>
+                              <p className="text-[12px] text-zinc-500">{p.sales} sold</p>
+                            </div>
+                            <p className="text-[13px] font-semibold text-zinc-950 tabular-nums">
+                              {formatPrice(p.revenue)}
+                            </p>
+                          </li>
+                        ))}
+                      </ul>
+                    )}
                   </div>
-                  <span className="p-2.5 rounded-xl bg-emerald-100/50 text-emerald-800"><RefreshCw size={18} className="animate-spin" style={{ animationDuration: '8s' }} /></span>
-                </div>
-                <div className="mt-4 pt-3 border-t border-emerald-100/60 grid grid-cols-3 gap-2 text-[9px] font-mono text-center">
-                  <div className="bg-amber-50 text-amber-800 border border-amber-100 p-1 rounded-lg">
-                    <span className="block font-black text-xs">{pendingOrdersCount}</span>
-                    PENDING
-                  </div>
-                  <div className="bg-emerald-50 text-emerald-800 border border-emerald-100 p-1 rounded-lg">
-                    <span className="block font-black text-xs">{completedOrdersCount}</span>
-                    COMPLETED
-                  </div>
-                  <div className="bg-rose-50 text-rose-800 border border-rose-100 p-1 rounded-lg">
-                    <span className="block font-black text-xs">{cancelledOrdersCount}</span>
-                    CANCELLED
-                  </div>
-                </div>
-              </div>
+                </>
+              );
+            })()}
 
-              {/* Stock Alerts KPI */}
-              <div className="bg-emerald-50/40 border border-emerald-100 p-5 rounded-2xl relative overflow-hidden shadow-sm flex flex-col justify-between">
-                <div className="flex justify-between items-start">
-                  <div>
-                    <p className="text-emerald-800 text-[10px] font-mono tracking-wider uppercase font-bold">Warehouse Stocks</p>
-                    <h2 className="text-3xl font-black text-emerald-950 mt-1">
-                      {warehouseUnits} <span className="text-[10px] text-emerald-700 font-normal">items</span>
-                      <span className="block text-[10px] text-emerald-700 font-mono font-normal mt-0.5">
-                        {catalogProductCount} SKUs in catalog
-                      </span>
-                    </h2>
-                  </div>
-                  <span className="p-2.5 rounded-xl bg-emerald-100/50 text-emerald-800"><Shirt size={18} /></span>
-                </div>
-                <div className="mt-4 pt-3 border-t border-emerald-100/60 grid grid-cols-2 gap-3 text-[9px] font-mono text-center">
-                  <div className={`p-1 rounded-lg border ${dynamicLowStockCount > 0 ? 'bg-amber-50 text-amber-800 border-amber-200 animate-pulse' : 'bg-emerald-50 text-emerald-800 border-emerald-100'}`}>
-                    <span className="block font-black text-xs">{dynamicLowStockCount}</span>
-                    LOW STOCK (≤3)
-                  </div>
-                  <div className={`p-1 rounded-lg border ${dynamicOutOfStockCount > 0 ? 'bg-rose-50 text-rose-800 border-rose-200' : 'bg-emerald-50 text-emerald-800 border-emerald-100'}`}>
-                    <span className="block font-black text-xs">{dynamicOutOfStockCount}</span>
-                    OUT OF STOCK
-                  </div>
-                </div>
-              </div>
-
-            </div>
-
-            {/* QUICK ACTIONS PANEL */}
-            <div className="bg-emerald-50/30 border border-emerald-100 rounded-2xl p-4 md:p-6 shadow-sm">
-              <h3 className="text-xs font-bold uppercase text-emerald-950 font-mono flex items-center gap-2 mb-4">
-                <ShieldAlert size={14} className="text-emerald-700" />
-                ADMIN SYSTEM QUICK CONTROL DESK
-              </h3>
+            {/* Quick actions */}
+            <div className="bg-white border border-zinc-200 rounded-xl p-4 md:p-5">
+              <h3 className="text-[15px] font-semibold text-zinc-950 mb-3">Quick actions</h3>
               <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
                 {!liveDb && (
                   <>
@@ -2134,29 +2237,26 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({
               )}
             </div>
 
-            {/* SALES AND REVENUE GRAPH ROOM */}
-            <div className="bg-white border border-emerald-100 rounded-3xl p-6 shadow-sm">
-              <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-6 border-b border-emerald-50 pb-4">
+            {/* Sales performance */}
+            <div className="bg-white border border-zinc-200 rounded-xl p-5 md:p-6">
+              <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-5 border-b border-zinc-100 pb-4">
                 <div>
-                  <h3 className="text-sm font-black uppercase text-emerald-950 flex items-center gap-2">
-                    <BarChart3 size={16} className="text-emerald-800" />
-                    Advanced Analytics & Performance Room
-                  </h3>
-                  <p className="text-[10px] text-emerald-700 font-mono">Interactive tracking charts for June - July 2026 sales logs</p>
+                  <h3 className="text-[15px] font-semibold text-zinc-950">Sales performance</h3>
+                  <p className="text-[12px] text-zinc-500 mt-0.5">Monthly revenue and order volume</p>
                 </div>
                 
-                <div className="flex bg-emerald-50 p-1 rounded-xl border border-emerald-100">
+                <div className="flex bg-zinc-100 p-1 rounded-lg border border-zinc-200">
                   <button
                     onClick={() => setChartMetric('revenue')}
-                    className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-all cursor-pointer ${chartMetric === 'revenue' ? 'bg-emerald-800 text-white shadow-sm' : 'text-emerald-800 hover:text-emerald-900'}`}
+                    className={`px-3 py-1.5 rounded-md text-[12px] font-semibold transition-all cursor-pointer ${chartMetric === 'revenue' ? 'bg-zinc-950 text-white shadow-sm' : 'text-zinc-700 hover:text-zinc-950'}`}
                   >
-                    Revenue Graph
+                    Revenue
                   </button>
                   <button
                     onClick={() => setChartMetric('sales')}
-                    className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-all cursor-pointer ${chartMetric === 'sales' ? 'bg-emerald-800 text-white shadow-sm' : 'text-emerald-800 hover:text-emerald-900'}`}
+                    className={`px-3 py-1.5 rounded-md text-[12px] font-semibold transition-all cursor-pointer ${chartMetric === 'sales' ? 'bg-zinc-950 text-white shadow-sm' : 'text-zinc-700 hover:text-zinc-950'}`}
                   >
-                    Sales Volume Graph
+                    Volume
                   </button>
                 </div>
               </div>
@@ -2182,8 +2282,8 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({
                       <svg className="w-full h-full overflow-visible" viewBox="0 0 1200 300" preserveAspectRatio="none">
                         <defs>
                           <linearGradient id="revenueGrad" x1="0" y1="0" x2="0" y2="1">
-                            <stop offset="0%" stopColor="#e10600" stopOpacity="0.45" />
-                            <stop offset="100%" stopColor="#e10600" stopOpacity="0.0" />
+                            <stop offset="0%" stopColor="#18181b" stopOpacity="0.35" />
+                            <stop offset="100%" stopColor="#18181b" stopOpacity="0.0" />
                           </linearGradient>
                         </defs>
                         {/* Area Polygon */}
@@ -2208,8 +2308,8 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({
                         {/* Smooth Line */}
                         <polyline
                           fill="none"
-                          stroke="#e10600"
-                          strokeWidth="4"
+                          stroke="#18181b"
+                          strokeWidth="3"
                           points={`
                             100,${300 - (monthlyData[0].revenue / 200000) * 300} 
                             200,${300 - (monthlyData[1].revenue / 200000) * 300} 
@@ -2225,7 +2325,7 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({
                             1200,${300 - (monthlyData[11].revenue / 200000) * 300}`}
                         />
                         {/* Markers */}
-                        <circle cx="700" cy={300 - (Math.min(200000, monthlyData[6].revenue) / 200000) * 300} r="7" fill="#e10600" stroke="#ffffff" strokeWidth="2.5" />
+                        <circle cx="700" cy={300 - (Math.min(200000, monthlyData[6].revenue) / 200000) * 300} r="6" fill="#18181b" stroke="#ffffff" strokeWidth="2" />
                       </svg>
                       {/* Interactive indicator for active month */}
                       <div className="absolute top-2 left-[58%] -translate-x-1/2 bg-emerald-950 text-white rounded-lg p-2.5 shadow-lg border border-emerald-800 text-[10px] font-mono pointer-events-none">
@@ -2780,6 +2880,7 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({
                   <thead>
                     <tr className="bg-emerald-950 text-white text-[10px] font-mono uppercase tracking-wider">
                       <th className="py-3 px-4">Order ID & Date</th>
+                      <th className="py-3 px-4">Wait / Time</th>
                       <th className="py-3 px-4">Customer & Address</th>
                       <th className="py-3 px-4">Purchased Items</th>
                       <th className="py-3 px-4">Tracking & Carrier</th>
@@ -2825,7 +2926,9 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({
                             {/* Order ID & Date */}
                             <td className="py-3.5 px-4">
                               <span className="font-mono font-black text-emerald-950 block text-xs">{o.id}</span>
-                              <span className="text-[10px] text-emerald-700 font-mono block">Date: {o.date}</span>
+                              <span className="text-[12px] text-zinc-950 font-bold block mt-0.5">
+                                {formatOrderClock(o)}
+                              </span>
                               <div className="flex items-center gap-1 mt-1">
                                 <span className="text-[9px] font-mono text-emerald-900 bg-emerald-100 border border-emerald-200 px-1.5 py-0.2 rounded font-extrabold uppercase">
                                   {o.paymentMethod || 'Cash on Delivery'}
@@ -2844,6 +2947,25 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({
                                   </span>
                                 )}
                               </div>
+                            </td>
+
+                            {/* Wait / Time Needed */}
+                            <td className="py-3.5 px-4 whitespace-nowrap">
+                              <span
+                                className={`inline-flex items-center gap-1 text-xs font-black font-mono ${
+                                  ['Delivered', 'Cancelled', 'Returned'].includes(o.status)
+                                    ? 'text-emerald-700'
+                                    : 'text-amber-800'
+                                }`}
+                              >
+                                <Clock size={12} />
+                                {formatOrderWait(o)}
+                              </span>
+                              <span className="block text-[9px] text-emerald-700 font-mono mt-0.5">
+                                {['Delivered', 'Cancelled', 'Returned'].includes(o.status)
+                                  ? 'Closed'
+                                  : 'Needs action'}
+                              </span>
                             </td>
 
                             {/* Customer & Address */}
@@ -2965,41 +3087,41 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({
             </div>
 
             {/* SECURE ACTIVITY LOGS CONSOLE */}
-            <div className="bg-zinc-950 text-zinc-100 border border-zinc-800 rounded-3xl p-6 relative overflow-hidden shadow-2xl">
-              <div className="flex justify-between items-center mb-4 border-b border-zinc-800 pb-3">
-                <h3 className="text-xs font-black uppercase text-zinc-300 font-mono flex items-center gap-2">
-                  <Activity size={14} className="text-emerald-500 animate-pulse" />
+            <div className="bg-white text-zinc-950 border border-zinc-200 rounded-3xl p-6 relative overflow-hidden shadow-sm">
+              <div className="flex justify-between items-center mb-4 border-b border-zinc-200 pb-3">
+                <h3 className="text-xs font-black uppercase text-zinc-950 font-mono flex items-center gap-2">
+                  <Activity size={14} className="text-zinc-950 animate-pulse" />
                   Live Secured Database Activity Console Logs
                 </h3>
-                <span className="bg-emerald-950 text-emerald-400 font-mono text-[8px] px-2 py-0.5 rounded border border-emerald-800">
+                <span className="bg-zinc-950 text-white font-mono text-[8px] px-2 py-0.5 rounded border border-zinc-800">
                   SECURE CONNECTION • 128-BIT
                 </span>
               </div>
               
-              <div className="max-h-48 overflow-y-auto space-y-2 font-mono text-[10px] text-zinc-400 select-all pr-2">
+              <div className="max-h-48 overflow-y-auto space-y-2 font-mono text-[12px] text-zinc-800 select-all pr-2 font-semibold">
                 {logs.map((log, i) => (
-                  <p key={i} className="flex justify-between hover:bg-zinc-900/50 p-1 rounded transition-colors">
-                    <span className="truncate max-w-[80%]">{log}</span>
-                    <span className="text-emerald-500 font-bold flex-shrink-0">STATUS: OK</span>
+                  <p key={i} className="flex justify-between hover:bg-zinc-100 p-1 rounded transition-colors">
+                    <span className="truncate max-w-[80%] text-zinc-950">{log}</span>
+                    <span className="text-zinc-950 font-bold flex-shrink-0">STATUS: OK</span>
                   </p>
                 ))}
               </div>
               
-              <div className="mt-5 pt-3 border-t border-zinc-900 flex justify-between items-center">
-                <p className="text-[9px] text-zinc-500 font-mono">
+              <div className="mt-5 pt-3 border-t border-zinc-200 flex justify-between items-center">
+                <p className="text-[12px] text-zinc-700 font-mono font-semibold">
                   MongoDB Cloud Partition • Node Ingress Active on Port 3000
                 </p>
                 {!liveDb && (
                   <button
                     onClick={handleResetDatabase}
-                    className="bg-rose-950/40 hover:bg-rose-950 text-rose-400 border border-rose-900 font-mono text-[9px] px-3 py-1.5 rounded-xl transition-all cursor-pointer inline-flex items-center gap-1.5"
+                    className="bg-zinc-100 hover:bg-zinc-200 text-zinc-950 border border-zinc-300 font-mono text-[12px] px-3 py-1.5 rounded-xl transition-all cursor-pointer inline-flex items-center gap-1.5 font-bold"
                   >
                     <Trash2 size={11} />
                     Reset Admin Simulated Data
                   </button>
                 )}
                 {liveDb && (
-                  <span className="text-[9px] text-emerald-400 font-mono">Live Neon mode — reset disabled</span>
+                  <span className="text-[12px] text-zinc-700 font-mono font-semibold">Live Neon mode — reset disabled</span>
                 )}
               </div>
             </div>
@@ -3014,6 +3136,7 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({
           setProducts={setProducts}
           formatPrice={formatPrice}
           onRequireStaffLogin={onRequireStaffLogin}
+          shopName={appConfig?.logoText || 'Epic Vanskap'}
         />
       )}
 
@@ -5148,44 +5271,6 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({
             </div>
           )}
 
-          {/* MODULE: backup-restore */}
-          {activeSidebarTab === 'backup-restore' && (
-            <div className="space-y-6">
-              <div className="border-b border-emerald-100 pb-4">
-                <h3 className="text-base font-bold uppercase text-emerald-950">DATABASE SNAPSHOT BACKUP & RESTORE</h3>
-                <p className="text-[10px] text-emerald-700 font-mono">Export fully-formed JSON database tables or restore custom platform backups safely.</p>
-              </div>
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                <div className="bg-emerald-50/30 border border-emerald-100 p-5 rounded-2xl space-y-4">
-                  <h4 className="text-xs font-bold text-emerald-950 uppercase">EXPORT DATABASE SNAPSHOT</h4>
-                  <p className="text-xs text-emerald-800">Downloads secure data backup containing Products catalog, Customer profile logs, and AppConfigs.</p>
-                  <a href={`data:text/json;charset=utf-8,${encodeURIComponent(JSON.stringify({ products, orders, appConfig }))}`} download="dhaka_jersey_backup.json" className="inline-block bg-emerald-800 hover:bg-emerald-900 text-white font-extrabold text-xs px-5 py-3 rounded-xl">✓ EXPORT BACKUP (.JSON)</a>
-                </div>
-                <div className="bg-emerald-50/30 border border-emerald-100 p-5 rounded-2xl space-y-4">
-                  <h4 className="text-xs font-bold text-emerald-950 uppercase">RESTORE DATABASE SNAPSHOT</h4>
-                  <p className="text-xs text-emerald-800">Upload a pre-existing `.json` backup file to override live stock data and dynamic layout settings.</p>
-                  <input type="file" accept=".json" onChange={(e) => {
-                    const file = e.target.files?.[0];
-                    if (file) {
-                      const r = new FileReader();
-                      r.onload = (ev) => {
-                        try {
-                          const parsed = JSON.parse(ev.target?.result as string);
-                          if (parsed.products && parsed.appConfig) {
-                            setProducts(parsed.products);
-                            onUpdateConfig(parsed.appConfig);
-                            alert('Database restored successfully!');
-                          } else { alert('Invalid structure!'); }
-                        } catch { alert('Parse error!'); }
-                      };
-                      r.readAsText(file);
-                    }
-                  }} className="text-xs text-emerald-800 file:mr-4 file:py-2 file:px-4 file:rounded-xl file:bg-emerald-800 file:text-white" />
-                </div>
-              </div>
-            </div>
-          )}
-
           {/* MODULE: page-builder */}
           {activeSidebarTab === 'page-builder' && (
             <div className="space-y-6">
@@ -6510,9 +6595,45 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({
                       <div className="flex items-center justify-between gap-3">
                         <div>
                           <h4 className="text-sm font-bold text-zinc-900">Cover image</h4>
-                          <p className="text-xs text-zinc-500 mt-0.5">Upload once — tablet/mobile can copy desktop</p>
+                          <p className="text-xs text-zinc-500 mt-0.5">
+                            Exact sizes for web, tablet &amp; mobile — always use width × height in px
+                          </p>
                         </div>
                       </div>
+
+                      {(() => {
+                        const specs = getBannerPixelSpecs(editingBanner.type);
+                        return (
+                          <div className="rounded-xl border border-zinc-200 bg-white p-3 grid grid-cols-1 sm:grid-cols-3 gap-2">
+                            {([
+                              ['desktop', specs.desktop],
+                              ['tablet', specs.tablet],
+                              ['mobile', specs.mobile],
+                            ] as const).map(([key, spec]) => (
+                              <button
+                                key={key}
+                                type="button"
+                                onClick={() => setBannerImageTab(key)}
+                                className={`text-left rounded-lg border px-3 py-2.5 cursor-pointer transition-colors ${
+                                  bannerImageTab === key
+                                    ? 'border-zinc-950 bg-zinc-950 text-white'
+                                    : 'border-zinc-200 bg-zinc-50 text-zinc-800 hover:border-zinc-400'
+                                }`}
+                              >
+                                <p className="text-[11px] font-semibold uppercase tracking-wide opacity-80">
+                                  {spec.label}
+                                </p>
+                                <p className="text-[13px] font-bold tabular-nums mt-0.5">
+                                  {formatBannerPx(spec)}
+                                </p>
+                                <p className={`text-[10px] mt-0.5 ${bannerImageTab === key ? 'text-zinc-300' : 'text-zinc-500'}`}>
+                                  Height {spec.height}px · Width {spec.width}px
+                                </p>
+                              </button>
+                            ))}
+                          </div>
+                        );
+                      })()}
 
                       <div className="inline-flex rounded-lg bg-white border border-zinc-200 p-1 gap-0.5">
                         {([
@@ -6526,6 +6647,7 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({
                               : tab.key === 'tablet'
                                 ? !!editingBanner.tabletImage
                                 : !!editingBanner.mobileImage;
+                          const spec = getBannerPixelSpecs(editingBanner.type)[tab.key];
                           return (
                             <button
                               key={tab.key}
@@ -6539,18 +6661,23 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({
                             >
                               {tab.label}
                               {hasImg ? ' ·' : ''}
+                              <span className={`ml-1 font-mono font-semibold ${bannerImageTab === tab.key ? 'text-emerald-100' : 'text-zinc-400'}`}>
+                                {spec.height}px
+                              </span>
                             </button>
                           );
                         })}
                       </div>
 
                       {(() => {
+                        const specs = getBannerPixelSpecs(editingBanner.type);
+                        const activeSpec = specs[bannerImageTab];
                         const slot =
                           bannerImageTab === 'desktop'
                             ? {
                                 key: 'desktop' as const,
                                 label: 'Desktop',
-                                hint: 'Main hero cover · recommended 1600px+',
+                                hint: `${activeSpec.label} cover · exact ${formatBannerPx(activeSpec)} (height ${activeSpec.height}px)`,
                                 value: editingBanner.desktopImage,
                                 onUrl: (v: string) =>
                                   setEditingBanner({
@@ -6560,7 +6687,7 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({
                                     tabletImage: editingBanner.tabletImage || v,
                                     mobileImage: editingBanner.mobileImage || v,
                                   }),
-                                maxEdge: 1600,
+                                maxEdge: Math.max(activeSpec.width, activeSpec.height),
                                 quality: 0.8,
                                 maxBytes: 900_000,
                                 canCopy: false,
@@ -6569,10 +6696,10 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({
                               ? {
                                   key: 'tablet' as const,
                                   label: 'Tablet',
-                                  hint: 'Optional · copy from desktop if empty',
+                                  hint: `${activeSpec.label} cover · exact ${formatBannerPx(activeSpec)} (height ${activeSpec.height}px)`,
                                   value: editingBanner.tabletImage,
                                   onUrl: (v: string) => setEditingBanner({ ...editingBanner, tabletImage: v }),
-                                  maxEdge: 1400,
+                                  maxEdge: Math.max(activeSpec.width, activeSpec.height),
                                   quality: 0.78,
                                   maxBytes: 850_000,
                                   canCopy: true,
@@ -6580,10 +6707,10 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({
                               : {
                                   key: 'mobile' as const,
                                   label: 'Mobile',
-                                  hint: 'Optional · copy from desktop if empty',
+                                  hint: `${activeSpec.label} cover · exact ${formatBannerPx(activeSpec)} (height ${activeSpec.height}px)`,
                                   value: editingBanner.mobileImage,
                                   onUrl: (v: string) => setEditingBanner({ ...editingBanner, mobileImage: v }),
-                                  maxEdge: 1200,
+                                  maxEdge: Math.max(activeSpec.width, activeSpec.height),
                                   quality: 0.78,
                                   maxBytes: 750_000,
                                   canCopy: true,
@@ -6598,7 +6725,9 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({
 
                         return (
                           <div className="space-y-3">
-                            <div className="relative rounded-xl overflow-hidden border border-zinc-200 bg-zinc-200/60 aspect-[16/8] shadow-inner">
+                            <div
+                              className={`relative rounded-xl overflow-hidden border border-zinc-200 bg-zinc-200/60 shadow-inner ${activeSpec.aspectClass}`}
+                            >
                               {preview ? (
                                 <img
                                   src={preview}
@@ -6612,6 +6741,9 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({
                                 <div className="absolute inset-0 flex flex-col items-center justify-center gap-2 text-zinc-400">
                                   <Image size={32} strokeWidth={1.5} />
                                   <p className="text-xs font-medium">No image yet</p>
+                                  <p className="text-[11px] font-mono font-semibold text-zinc-500">
+                                    {formatBannerPx(activeSpec)}
+                                  </p>
                                 </div>
                               )}
                               {bannerUploading && (
@@ -6619,9 +6751,22 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({
                                   Uploading…
                                 </div>
                               )}
+                              <div className="absolute bottom-2 left-2 right-2 flex flex-wrap gap-1.5 justify-between pointer-events-none">
+                                <span className="inline-flex items-center rounded-md bg-black/75 text-white text-[11px] font-bold px-2 py-1 tabular-nums">
+                                  {formatBannerPx(activeSpec)}
+                                </span>
+                                <span className="inline-flex items-center rounded-md bg-black/75 text-white text-[11px] font-semibold px-2 py-1">
+                                  Height {activeSpec.height}px
+                                </span>
+                              </div>
                             </div>
 
-                            <p className="text-xs text-zinc-500">{slot.hint}</p>
+                            <div className="rounded-lg border border-emerald-200 bg-emerald-50/80 px-3 py-2.5 space-y-1">
+                              <p className="text-[12px] font-bold text-emerald-950">{slot.hint}</p>
+                              <p className="text-[11px] text-emerald-800 font-mono">
+                                Width {activeSpec.width}px · Height {activeSpec.height}px · JPG/PNG/WebP
+                              </p>
+                            </div>
 
                             <div className="flex flex-col sm:flex-row gap-2">
                               <input
@@ -6685,11 +6830,11 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({
                             <div className="grid grid-cols-3 gap-2 pt-1">
                               {(
                                 [
-                                  ['desktop', editingBanner.desktopImage, 'Desktop'],
-                                  ['tablet', editingBanner.tabletImage, 'Tablet'],
-                                  ['mobile', editingBanner.mobileImage, 'Mobile'],
+                                  ['desktop', editingBanner.desktopImage, specs.desktop],
+                                  ['tablet', editingBanner.tabletImage, specs.tablet],
+                                  ['mobile', editingBanner.mobileImage, specs.mobile],
                                 ] as const
-                              ).map(([key, src, label]) => (
+                              ).map(([key, src, spec]) => (
                                 <button
                                   key={key}
                                   type="button"
@@ -6700,7 +6845,7 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({
                                       : 'border-zinc-200 hover:border-zinc-300'
                                   }`}
                                 >
-                                  <div className="h-12 bg-zinc-100 relative">
+                                  <div className={`bg-zinc-100 relative ${spec.aspectClass} max-h-16`}>
                                     {src && (src.startsWith('http') || src.startsWith('/')) ? (
                                       <img src={src} alt="" className="absolute inset-0 w-full h-full object-cover" />
                                     ) : (
@@ -6709,7 +6854,13 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({
                                       </div>
                                     )}
                                   </div>
-                                  <p className="text-[10px] font-bold text-zinc-600 px-2 py-1 bg-white">{label}</p>
+                                  <div className="px-2 py-1.5 bg-white">
+                                    <p className="text-[10px] font-bold text-zinc-700">{spec.label}</p>
+                                    <p className="text-[10px] font-mono font-semibold text-zinc-950 tabular-nums">
+                                      {formatBannerPx(spec)}
+                                    </p>
+                                    <p className="text-[9px] text-zinc-500">H {spec.height}px</p>
+                                  </div>
                                 </button>
                               ))}
                             </div>
@@ -6722,7 +6873,9 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({
 
                 {/* Footer */}
                 <div className="flex items-center justify-between gap-3 px-5 sm:px-7 py-4 border-t border-zinc-100 bg-white shrink-0">
-                  <p className="text-xs text-zinc-500 hidden sm:block">Desktop cover is required · other fields optional</p>
+                  <p className="text-xs text-zinc-500 hidden sm:block">
+                    Desktop cover required · sizes show exact width × height px (height always listed)
+                  </p>
                   <div className="flex gap-2 ml-auto">
                     <button
                       type="button"
@@ -6768,8 +6921,8 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({
             </div>
           )}
 
-          {/* MODULES: collections, categories, leagues, clubs, national-teams, brands, players */}
-          {['collections', 'categories', 'leagues', 'clubs', 'national-teams', 'brands', 'players'].includes(activeSidebarTab) && (
+          {/* MODULES: leagues, clubs, national-teams */}
+          {['leagues', 'clubs', 'national-teams'].includes(activeSidebarTab) && (
             <div className="space-y-6">
               <div className="border-b border-emerald-100 pb-4">
                 <h3 className="text-base font-bold uppercase text-emerald-950">{activeSidebarTab.toUpperCase()} REGISTRY & DATABASE</h3>
@@ -6903,13 +7056,7 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({
                       <span className="font-mono text-emerald-700 text-[10px]">Status: {item.status}</span>
                     </div>
                   ))}
-                  {activeSidebarTab === 'players' && playersList.map((item) => (
-                    <div key={item.id} className="bg-white p-3 rounded-xl border border-emerald-100 flex justify-between items-center text-xs">
-                      <span className="font-bold">👤 {item.name} (No. {item.number})</span>
-                      <span className="font-mono text-emerald-700 text-[10px]">{item.country}</span>
-                    </div>
-                  ))}
-                  {['collections', 'categories', 'national-teams', 'brands'].includes(activeSidebarTab) && (
+                  {activeSidebarTab === 'national-teams' && (
                     <p className="text-[10px] text-emerald-700 font-mono py-4 text-center">
                       Manage homepage banners, products, and league logos from Banner Management / Product Management / Leagues tabs.
                     </p>
@@ -6932,32 +7079,50 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({
             />
           )}
 
+          {activeSidebarTab === 'pos' && (
+            <PosPanel
+              products={products}
+              setProducts={setProducts}
+              orders={orders}
+              setOrders={setOrders}
+              customers={customers}
+              setCustomers={setCustomers}
+              formatPrice={formatPrice}
+              staffName={staffName}
+              shopName={appConfig?.logoText || 'Epic Vanskap'}
+              shopAddress={appConfig?.footerLocations?.[0]?.address}
+              shopPhone={appConfig?.footerLocations?.[0]?.phone}
+            />
+          )}
+
+          {activeSidebarTab === 'sales' && (
+            <SalesPanel
+              orders={orders}
+              setOrders={setOrders}
+              formatPrice={formatPrice}
+              staffName={staffName}
+              shopName={appConfig?.logoText || 'Epic Vanskap'}
+              shopAddress={appConfig?.footerLocations?.[0]?.address}
+              shopPhone={appConfig?.footerLocations?.[0]?.phone}
+            />
+          )}
+
+          {activeSidebarTab === 'expenses' && (
+            <AccountsExpensesPanel formatPrice={formatPrice} initialTab="expenses" />
+          )}
+
+          {activeSidebarTab === 'accounts' && (
+            <AccountsExpensesPanel formatPrice={formatPrice} initialTab="accounts" />
+          )}
+
           {/* MODULE: customers */}
           {activeSidebarTab === 'customers' && (
-            <div className="space-y-6">
-              <div className="border-b border-emerald-100 pb-4">
-                <h3 className="text-base font-bold uppercase text-emerald-950">COLLECTOR CRM PROFILE LEDGER</h3>
-                <p className="text-[10px] text-emerald-700 font-mono">Detailed records of regular buyers in Dhaka with transaction histories.</p>
-              </div>
-              <div className="bg-emerald-50/30 p-5 rounded-2xl border border-emerald-100 space-y-4">
-                <div className="space-y-2">
-                  <div className="bg-white p-4 rounded-xl border border-emerald-100 flex justify-between items-center">
-                    <div>
-                      <p className="text-xs font-bold text-emerald-950">Tanvir Rahman</p>
-                      <p className="text-[10px] text-emerald-700 font-mono">tanvir@retrojersey.bd • Dhaka HQ Club</p>
-                    </div>
-                    <span className="text-xs font-bold text-emerald-950">৳145,500 Spent</span>
-                  </div>
-                  <div className="bg-white p-4 rounded-xl border border-emerald-100 flex justify-between items-center">
-                    <div>
-                      <p className="text-xs font-bold text-emerald-950">Zubayer Al-Arafat</p>
-                      <p className="text-[10px] text-emerald-700 font-mono">zubayer@collector.bd • Premium member</p>
-                    </div>
-                    <span className="text-xs font-bold text-emerald-950">৳98,200 Spent</span>
-                  </div>
-                </div>
-              </div>
-            </div>
+            <CustomersPanel
+              customers={customers}
+              setCustomers={setCustomers}
+              orders={orders}
+              formatPrice={formatPrice}
+            />
           )}
 
           {/* MODULE: orders (Order Management Hub) */}
@@ -7184,7 +7349,9 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({
                 <table className="w-full text-left border-collapse text-xs">
                   <thead>
                     <tr className="bg-emerald-950 text-white text-[10px] font-mono uppercase tracking-wider">
-                      <th className="py-3.5 px-4">Order ID & Date</th>
+                      <th className="py-3.5 px-4">Order ID</th>
+                      <th className="py-3.5 px-4">Sale Date / Time</th>
+                      <th className="py-3.5 px-4">Wait</th>
                       <th className="py-3.5 px-4">Customer & Address</th>
                       <th className="py-3.5 px-4">Items & Custom Print</th>
                       <th className="py-3.5 px-4">Carrier & Tracking</th>
@@ -7207,7 +7374,7 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({
                       return matchesStatus && matchesSearch;
                     }).length === 0 ? (
                       <tr>
-                        <td colSpan={7} className="py-12 text-center text-xs font-mono text-emerald-700 bg-emerald-50/20">
+                        <td colSpan={8} className="py-12 text-center text-xs font-mono text-emerald-700 bg-emerald-50/20">
                           No orders matched current filter "{orderFilterStatus}". Click "Load 9 Orders" above to populate test data!
                         </td>
                       </tr>
@@ -7225,13 +7392,18 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({
                             o.items?.some(i => (i.product?.name || '').toLowerCase().includes(q));
                           return matchesStatus && matchesSearch;
                         })
+                        .slice()
+                        .sort((a, b) => {
+                          const ta = parseOrderDate(a)?.getTime() || 0;
+                          const tb = parseOrderDate(b)?.getTime() || 0;
+                          return tb - ta;
+                        })
                         .map((o) => (
                           <tr key={o.id} className="hover:bg-emerald-50/40 transition-colors">
-                            {/* Order ID & Date */}
+                            {/* Order ID */}
                             <td className="py-3.5 px-4">
                               <span className="font-mono font-black text-emerald-950 block text-xs">{o.id}</span>
-                              <span className="text-[10px] text-emerald-700 font-mono block">Date: {o.date}</span>
-                              <div className="flex items-center gap-1 mt-1">
+                              <div className="flex items-center gap-1 mt-1 flex-wrap">
                                 <span className="text-[9px] font-mono text-emerald-900 bg-emerald-100 border border-emerald-200 px-1.5 py-0.2 rounded font-extrabold uppercase">
                                   {o.paymentMethod || 'Cash on Delivery'}
                                 </span>
@@ -7249,6 +7421,35 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({
                                   </span>
                                 )}
                               </div>
+                            </td>
+
+                            {/* Sale Date / Time — always shown */}
+                            <td className="py-3.5 px-4 whitespace-nowrap">
+                              <span className="text-[13px] font-bold text-zinc-950 block">
+                                {formatOrderClock(o)}
+                              </span>
+                              <span className="text-[10px] text-zinc-700 font-semibold block mt-0.5">
+                                Online order
+                              </span>
+                            </td>
+
+                            {/* Wait / Time Needed */}
+                            <td className="py-3.5 px-4 whitespace-nowrap">
+                              <span
+                                className={`inline-flex items-center gap-1 text-xs font-black font-mono ${
+                                  ['Delivered', 'Cancelled', 'Returned'].includes(o.status)
+                                    ? 'text-emerald-700'
+                                    : 'text-amber-800'
+                                }`}
+                              >
+                                <Clock size={12} />
+                                {formatOrderWait(o)}
+                              </span>
+                              <span className="block text-[9px] text-emerald-700 font-mono mt-0.5">
+                                {['Delivered', 'Cancelled', 'Returned'].includes(o.status)
+                                  ? 'Closed'
+                                  : 'Needs action'}
+                              </span>
                             </td>
 
                             {/* Customer & Address */}
@@ -7363,96 +7564,6 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({
             </div>
           )}
 
-          {/* MODULE: Staff Roles & Permissions Center */}
-          {activeSidebarTab === 'roles-permissions' && (
-            <RolesPermissionsManager
-              users={staffUsers}
-              setUsers={setStaffUsers}
-              activeUserRole={activeUserRole}
-              setActiveUserRole={setActiveUserRole}
-              currentUser={staffUsers[0] || null}
-              handleAddLog={handleAddLog}
-            />
-          )}
-
-          {/* MODULE: Buyer Reviews Desk (Neon) */}
-          {activeSidebarTab === 'reviews' && (
-            <div className="space-y-4">
-              <div className="border-b border-emerald-100 pb-4">
-                <h3 className="text-base font-bold uppercase text-emerald-950">Buyer Reviews Desk</h3>
-                <p className="text-[10px] text-emerald-700 font-mono">
-                  Live reviews from Neon — approve or remove before they appear on product pages.
-                </p>
-              </div>
-              {dbReviews.length === 0 ? (
-                <div className="bg-emerald-50/40 border border-emerald-100 rounded-2xl p-8 text-center text-sm text-emerald-800">
-                  No reviews in the database yet.
-                </div>
-              ) : (
-                <div className="space-y-3">
-                  {dbReviews.map((r) => (
-                    <div
-                      key={r.id}
-                      className="bg-white border border-emerald-100 rounded-2xl p-4 flex flex-col sm:flex-row sm:items-center gap-3 justify-between"
-                    >
-                      <div>
-                        <div className="flex items-center gap-2">
-                          <span className="font-bold text-emerald-950 text-sm">{r.userName}</span>
-                          <span className="text-[10px] font-mono uppercase px-2 py-0.5 rounded bg-emerald-50 text-emerald-800">
-                            {r.approved ? 'Approved' : 'Pending'}
-                          </span>
-                          <span className="text-xs text-amber-600 font-bold">{r.rating}/5</span>
-                        </div>
-                        <p className="text-xs text-emerald-800 mt-1 max-w-2xl">{r.comment}</p>
-                      </div>
-                      <div className="flex gap-2 shrink-0">
-                        <button
-                          type="button"
-                          className="text-[10px] font-bold px-3 py-1.5 rounded-lg bg-emerald-900 text-white"
-                          onClick={async () => {
-                            try {
-                              await api.approveReview(r.id, !r.approved);
-                              setDbReviews((prev) =>
-                                prev.map((x) =>
-                                  x.id === r.id ? { ...x, approved: !r.approved } : x,
-                                ),
-                              );
-                            } catch (err) {
-                              alert(err instanceof Error ? err.message : 'Failed to update review');
-                            }
-                          }}
-                        >
-                          {r.approved ? 'Unapprove' : 'Approve'}
-                        </button>
-                        <button
-                          type="button"
-                          className="text-[10px] font-bold px-3 py-1.5 rounded-lg bg-red-50 text-red-700 border border-red-100"
-                          onClick={async () => {
-                            const ok = await confirmAsync({
-                              title: 'Delete review',
-                              message: 'Delete this review? This cannot be undone.',
-                              danger: true,
-                              confirmText: 'Delete',
-                            });
-                            if (!ok) return;
-                            try {
-                              await api.deleteReview(r.id);
-                              setDbReviews((prev) => prev.filter((x) => x.id !== r.id));
-                            } catch (err) {
-                              alert(err instanceof Error ? err.message : 'Failed to delete review');
-                            }
-                          }}
-                        >
-                          Delete
-                        </button>
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              )}
-            </div>
-          )}
-
           {/* Locations: multi-outlet cards (same data as storefront footer / homepage) */}
           {activeSidebarTab === 'locations' && (
             <div className="space-y-6">
@@ -7533,18 +7644,6 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({
             </div>
           )}
 
-          {/* MODULES: blogs, gallery, videos, testimonials, newsletter, theme-settings, media-library, system-settings */}
-          {!['analytics', 'backup-restore', 'page-builder', 'menu-builder', 'mega-menu', 'header-builder', 'footer-builder', 'announcement-bar', 'hero-slider', 'collections', 'categories', 'leagues', 'clubs', 'national-teams', 'brands', 'players', 'product-management', 'customers', 'orders', 'roles-permissions', 'reviews', 'seller-requests', 'locations', 'brand-customizer'].includes(activeSidebarTab) && (
-            <div className="space-y-6">
-              <div className="border-b border-emerald-100 pb-4">
-                <h3 className="text-base font-bold uppercase text-emerald-950">{activeSidebarTab.toUpperCase()} CONTROLLER</h3>
-                <p className="text-[10px] text-emerald-700 font-mono">
-                  This module is not yet backed by a Neon table. Core commerce (products, orders, users, coupons, reviews, CMS settings) uses the live database.
-                </p>
-              </div>
-            </div>
-          )}
-
         </div>
       )}
 
@@ -7569,7 +7668,7 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({
                   )}
                 </div>
                 <p className="text-xs text-emerald-700 font-mono mt-0.5">
-                  Placed on {selectedOrderForModal.date} • Customer: <span className="font-bold text-emerald-950">{selectedOrderForModal.shippingAddress?.fullName}</span>
+                  Placed on {formatOrderClock(selectedOrderForModal)} • Customer: <span className="font-bold text-emerald-950">{selectedOrderForModal.shippingAddress?.fullName}</span>
                 </p>
               </div>
 

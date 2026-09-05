@@ -35,6 +35,8 @@ export interface Product {
   /** Per-size stock counts, e.g. { S: 2, M: 5, XL: 0 } */
   sizeStocks?: Record<string, number>;
   sku: string;
+  /** Retail barcode (EAN-13 / CODE128). Manual or auto-generated. */
+  barcode?: string;
   badgeAvailable: boolean;
   printAvailable: boolean;
   /** BDT add-on price for custom name + number printing */

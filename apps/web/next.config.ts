@@ -19,7 +19,7 @@ const nextConfig: NextConfig = {
   // Vercel project Output Directory is locked to "dist" (legacy). Match it.
   distDir: process.env.VERCEL ? "dist" : ".next",
   transpilePackages: ["@jab/server", "@jab/db", "@jab/shared"],
-  serverExternalPackages: ["cloudinary", "@prisma/client", "prisma"],
+  serverExternalPackages: ["cloudinary", "@prisma/client", "prisma", "pg", "@prisma/adapter-pg"],
   outputFileTracingRoot: root,
   typescript: {
     ignoreBuildErrors: true,

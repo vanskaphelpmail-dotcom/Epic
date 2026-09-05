@@ -82,6 +82,7 @@ export function toSpaProduct(
       return undefined;
     })(),
     sku: p.sku,
+    barcode: (p as { barcode?: string | null }).barcode ?? undefined,
     badgeAvailable: p.badgeAvailable,
     printAvailable: p.printAvailable,
     namesetPriceBdt: p.namesetPriceBdt,

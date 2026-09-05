@@ -1,25 +1,22 @@
 // =============================================================================
 // Epic Vanskap BD — Enterprise Prisma Schema (Neon PostgreSQL)
 // =============================================================================
+// Prisma 7: connection URLs live in prisma.config.ts (CLI) and packages/db/src/index.ts (runtime).
 // Neon setup:
-//   DATABASE_URL       = pooled connection string (runtime / Prisma Client)
-//   DATABASE_URL_UNPOOLED = direct connection (migrations / prisma migrate)
+//   DATABASE_URL           = pooled connection string (runtime / Prisma Client + pg adapter)
+//   DATABASE_URL_UNPOOLED  = direct connection (migrations via prisma.config.ts)
 //
-// Recommended Neon flags:
-//   ?sslmode=require&pgbouncer=true   on pooled URL
-//   ?sslmode=require                  on unpooled / direct URL
+// Recommended Neon flags on pooled URL:
+//   ?sslmode=require&pgbouncer=true&uselibpqcompat=true
 // =============================================================================
 
 generator client {
-  provider      = "prisma-client-js"
-  // native = local Windows/Mac; rhel-openssl-3.0.x = Vercel Node serverless
-  binaryTargets = ["native", "rhel-openssl-3.0.x"]
+  provider = "prisma-client"
+  output   = "../generated/prisma"
 }
 
 datasource db {
-  provider  = "postgresql"
-  url       = env("DATABASE_URL")
-  directUrl = env("DATABASE_URL_UNPOOLED")
+  provider = "postgresql"
 }
 
 // ---------------------------------------------------------------------------
@@ -325,6 +322,8 @@ model Product {
   name             String
   slug             String           @unique
   sku              String           @unique
+  /// Retail barcode (EAN-13 / CODE128). Optional unique when set.
+  barcode          String?          @unique
   description      String           @db.Text
   shortDescription String?
   longDescription  String?          @db.Text
@@ -427,6 +426,7 @@ model Product {
   @@index([deletedAt])
   @@index([slug])
   @@index([sku])
+  @@index([barcode])
   @@index([stock])
   @@map("products")
 }

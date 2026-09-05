@@ -147,13 +147,15 @@ async function main() {
   }
 
   console.log(`[seed] Super admin ready: ${adminEmail}`);
-  console.log(`[seed] Staff admins: rokib@admin.com, sabbir@admin.com, akib@admin.com (password: Admin@018)`);
+  console.log(
+    `[seed] Staff admins: hasanrahinn@gmail.com, yaqubislam71@gmail.com, epicvanskap@gmail.com (same password as main admin)`,
+  );
 
-  const staffPassword = await hash("Admin@018", 12);
+  const staffPassword = passwordHash;
   const staffAdmins = [
-    { email: "rokib@admin.com", fullName: "Rokib Admin" },
-    { email: "sabbir@admin.com", fullName: "Sabbir Admin" },
-    { email: "akib@admin.com", fullName: "Akib Admin" },
+    { email: "hasanrahinn@gmail.com", fullName: "Rahin" },
+    { email: "yaqubislam71@gmail.com", fullName: "Yaqub" },
+    { email: "epicvanskap@gmail.com", fullName: "Vanskap" },
   ] as const;
 
   for (const admin of staffAdmins) {
@@ -164,6 +166,7 @@ async function main() {
         role: UserRole.ADMIN,
         status: "ACTIVE",
         permissions: ["*"],
+        fullName: admin.fullName,
       },
       create: {
         email: admin.email,

@@ -1,7 +1,7 @@
-import React, { useState, useMemo, useEffect } from 'react';
+import React, { useState, useMemo, useEffect, useRef } from 'react';
 import { createPortal } from 'react-dom';
 import { 
-  Plus, Edit, Trash2, Copy, Archive, Upload, Download, 
+  Plus, Edit, Trash2, Copy, Upload, Download, 
   Search, Filter, Layers, Grid, FileText, Check, X, AlertTriangle, 
   Shirt, Tag, Trophy, Star, Sparkles, Image as ImageIcon, CheckCircle, 
   ChevronRight, ArrowUp, ArrowDown, FolderPlus, Eye, ShieldCheck, DollarSign,
@@ -49,6 +49,8 @@ import {
   STANDARD_PRODUCT_SIZES,
 } from '../lib/productSizes';
 import { confirmAsync, toast } from './UiFeedback';
+import { generateEan13, nextSkuSequence, normalizeBarcode } from '../lib/retailCodes';
+import { BarcodeLabelPrint } from './admin/BarcodeLabelPrint';
 
 interface ProductManagerProps {
   products: Product[];
@@ -87,8 +89,8 @@ export const ProductManager: React.FC<ProductManagerProps> = ({
   // Main Navigation Tabs
   const [activeTab, setActiveTab] = useState<'products' | 'inventory' | 'categories' | 'import-export'>('products');
   
-  // Product Status Filter
-  const [productStatusFilter, setProductStatusFilter] = useState<'Active' | 'Draft' | 'Archived'>('Active');
+  // Product Status Filter (Active | Draft only)
+  const [productStatusFilter, setProductStatusFilter] = useState<'Active' | 'Draft'>('Active');
   
   // Inventory Sub-Filter State
   const [inventorySubTab, setInventorySubTab] = useState<'all' | 'low-stock' | 'out-of-stock' | 'clearance' | 'damaged' | 'history'>('all');
@@ -289,6 +291,10 @@ export const ProductManager: React.FC<ProductManagerProps> = ({
   const [pCustomSize, setPCustomSize] = useState('');
   const [pColor, setPColor] = useState('Red/White');
   const [pSku, setPSku] = useState('');
+  const [pBarcode, setPBarcode] = useState('');
+  const [pSkuMode, setPSkuMode] = useState<'auto' | 'manual'>('auto');
+  const [pBarcodeMode, setPBarcodeMode] = useState<'none' | 'auto' | 'manual'>('none');
+  const [labelPrint, setLabelPrint] = useState<{ barcode: string; sellPrice: number; name: string } | null>(null);
   const [pCostPrice, setPCostPrice] = useState<number>(1200);
   const [pOriginalPrice, setPOriginalPrice] = useState<number>(1850);
   const [pDiscountMode, setPDiscountMode] = useState<DiscountMode>('amount');
@@ -317,7 +323,8 @@ export const ProductManager: React.FC<ProductManagerProps> = ({
   const [pMainImage, setPMainImage] = useState<string>('');
   const [pGallery, setPGallery] = useState<string[]>([]);
   const [pGalleryInput, setPGalleryInput] = useState<string>('');
-  const [pStatus, setPStatus] = useState<'Active' | 'Draft' | 'Archived'>('Active');
+  const [pStatus, setPStatus] = useState<'Active' | 'Draft'>('Active');
+  const pendingSaveStatusRef = useRef<'Active' | 'Draft' | null>(null);
   /** Exactly 3 product images: main + 2 additional (PC/mobile file upload) */
   const [pImageSlots, setPImageSlots] = useState<[string, string, string]>(['', '', '']);
   const [galleryViewer, setGalleryViewer] = useState<{ product: Product; index: number } | null>(null);
@@ -397,7 +404,10 @@ export const ProductManager: React.FC<ProductManagerProps> = ({
     setPSizeStocks(defaultSizeStocks());
     setPCustomSize('');
     setPColor('Red/White');
-    setPSku(`JAB-${Math.floor(1000 + Math.random() * 9000)}`);
+    setPSku(nextSkuSequence(products.map((p) => p.sku), 'EV'));
+    setPBarcode('');
+    setPSkuMode('auto');
+    setPBarcodeMode('none');
     setPCostPrice(1200);
     setPOriginalPrice(1850);
     setPDiscountMode('amount');
@@ -465,6 +475,9 @@ export const ProductManager: React.FC<ProductManagerProps> = ({
     setPCustomSize('');
     setPColor(product.color || '');
     setPSku(product.sku || '');
+    setPBarcode(product.barcode || '');
+    setPSkuMode('manual');
+    setPBarcodeMode(product.barcode ? 'manual' : 'none');
     setPCostPrice(product.costPrice || Math.round((product.price || 1500) * 0.65));
     const sale = product.sellingPrice || product.price || 0;
     const original =
@@ -525,13 +538,7 @@ export const ProductManager: React.FC<ProductManagerProps> = ({
       gallerySrc[1] || '',
       gallerySrc[2] || '',
     ]);
-    setPStatus(
-      product.status === 'Draft' || product.status === 'Archived' || product.status === 'Active'
-        ? product.status
-        : product.isArchived
-          ? 'Archived'
-          : 'Active',
-    );
+    setPStatus(product.status === 'Draft' ? 'Draft' : 'Active');
     setIsProductModalOpen(true);
   };
 
@@ -600,12 +607,23 @@ export const ProductManager: React.FC<ProductManagerProps> = ({
 
     setIsSavingProduct(true);
     try {
+    const saveStatus = pendingSaveStatusRef.current ?? pStatus;
+    pendingSaveStatusRef.current = null;
     const calculatedPrice = pFinalPrice > 0 ? pFinalPrice : 1000;
     const discountAmount = pHasDiscount ? calcDiscountAmount(pOriginalPrice, calculatedPrice) : 0;
     const uniqueSuffix = `${Date.now().toString(36)}${Math.floor(Math.random() * 900 + 100)}`;
     const baseSlug = pName.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '') || 'jersey';
     const finalSlug = editingProduct?.slug || `${baseSlug}-${uniqueSuffix}`;
-    const autoSku = editingProduct?.sku || `JAB-${uniqueSuffix.toUpperCase()}`;
+    const resolvedSku =
+      pSkuMode === 'manual' && pSku.trim()
+        ? pSku.trim()
+        : editingProduct?.sku || nextSkuSequence(products.map((p) => p.sku), 'EV');
+    const resolvedBarcode =
+      pBarcodeMode === 'none'
+        ? undefined
+        : pBarcodeMode === 'manual'
+          ? normalizeBarcode(pBarcode) || undefined
+          : normalizeBarcode(pBarcode) || generateEan13(resolvedSku);
     const featuresArr = pFeatures ? pFeatures.split(',').map(f => f.trim()).filter(Boolean) : [];
     const selectedPageObj = storefrontPages.find(
       (p) => p.id === pTargetPage || p.name === pTargetPage,
@@ -654,7 +672,8 @@ export const ProductManager: React.FC<ProductManagerProps> = ({
       sizes: pSizes,
       sizeStocks: { ...pSizeStocks },
       color: pColor,
-      sku: autoSku,
+      sku: resolvedSku,
+      barcode: resolvedBarcode,
       costPrice: pCostPrice,
       sellingPrice: calculatedPrice,
       price: calculatedPrice,
@@ -692,8 +711,8 @@ export const ProductManager: React.FC<ProductManagerProps> = ({
         madeIn: 'Bangladesh',
         fit: 'Athlete Aero Standard Fit',
       },
-      status: pStatus,
-      isArchived: pStatus === 'Archived',
+      status: saveStatus,
+      isArchived: false,
       isTrashed: false,
     };
 
@@ -712,6 +731,7 @@ export const ProductManager: React.FC<ProductManagerProps> = ({
           name: updatedProduct.name,
           slug: updatedProduct.slug,
           sku: updatedProduct.sku,
+          barcode: updatedProduct.barcode || null,
           price: updatedProduct.price,
           originalPrice: updatedProduct.originalPrice,
           costPrice: updatedProduct.costPrice,
@@ -827,7 +847,7 @@ export const ProductManager: React.FC<ProductManagerProps> = ({
     setIsProductModalOpen(false);
     resetProductForm();
     // Ensure the new/edited product is visible in the current list filters
-    setProductStatusFilter(pStatus);
+    setProductStatusFilter(saveStatus);
     setFilterPage('All');
     setFilterCategory('All');
     setSearchTerm('');
@@ -853,12 +873,13 @@ export const ProductManager: React.FC<ProductManagerProps> = ({
     alert(`Duplicated "${product.name}" successfully!`);
   };
 
-  // Archive / Unarchive Product
-  const handleToggleArchive = async (product: Product) => {
-    const newStatus = product.status === 'Archived' || product.isArchived ? 'Active' : 'Archived';
+  // Move to Draft / Publish (Active)
+  const handleToggleDraft = async (product: Product) => {
+    const isDraft = product.status === 'Draft';
+    const newStatus: 'Active' | 'Draft' = isDraft ? 'Active' : 'Draft';
     if (isApiEnabled() && getToken()) {
       try {
-        await api.updateProduct(product.id, { status: newStatus, isArchived: newStatus === 'Archived' });
+        await api.updateProduct(product.id, { status: newStatus, isArchived: false });
       } catch (err) {
         toast(err instanceof Error ? err.message : 'Failed to update product', 'error');
         return;
@@ -867,10 +888,10 @@ export const ProductManager: React.FC<ProductManagerProps> = ({
     setProducts(prev => prev.map(p => p.id === product.id ? {
       ...p,
       status: newStatus,
-      isArchived: newStatus === 'Archived',
+      isArchived: false,
       isTrashed: false,
     } : p));
-    toast(newStatus === 'Archived' ? 'Moved to archive' : 'Restored from archive', 'success');
+    toast(newStatus === 'Draft' ? 'Moved to drafts' : 'Published as active', 'success');
   };
 
   // Delete Product — permanent, no trash bin
@@ -1064,9 +1085,10 @@ export const ProductManager: React.FC<ProductManagerProps> = ({
   // Filtered Products List
   const filteredProducts = useMemo(() => {
     return products.filter(p => {
-      // Status Filter
+      // Status Filter (Active | Draft only)
       if (p.status === 'Trashed' || p.isTrashed) return false;
-      const status = p.status || (p.isArchived ? 'Archived' : 'Active');
+      if (p.isArchived || p.status === 'Archived') return false;
+      const status = p.status === 'Draft' ? 'Draft' : 'Active';
       if (status !== productStatusFilter) return false;
 
       // Page Filter
@@ -1089,10 +1111,11 @@ export const ProductManager: React.FC<ProductManagerProps> = ({
         const q = searchTerm.toLowerCase();
         const matchesName = p.name.toLowerCase().includes(q);
         const matchesSku = p.sku?.toLowerCase().includes(q);
+        const matchesBarcode = p.barcode?.toLowerCase().includes(q);
         const matchesBrand = p.brand.toLowerCase().includes(q);
         const matchesCategory = p.category?.toLowerCase().includes(q);
         const matchesPlayer = p.player?.name.toLowerCase().includes(q);
-        return matchesName || matchesSku || matchesBrand || matchesCategory || matchesPlayer;
+        return matchesName || matchesSku || matchesBarcode || matchesBrand || matchesCategory || matchesPlayer;
       }
 
       return true;
@@ -1130,9 +1153,8 @@ export const ProductManager: React.FC<ProductManagerProps> = ({
   const damagedCount = products.filter(p => (p.isDamaged || (p.damagedQty && p.damagedQty > 0)) && !p.isTrashed).length;
 
   // Statistics
-  const activeCount = products.filter(p => (!p.status || p.status === 'Active') && !p.isArchived && !p.isTrashed).length;
-  const draftCount = products.filter(p => p.status === 'Draft').length;
-  const archivedCount = products.filter(p => p.status === 'Archived' || p.isArchived).length;
+  const activeCount = products.filter(p => (!p.status || p.status === 'Active') && !p.isArchived && p.status !== 'Archived' && !p.isTrashed).length;
+  const draftCount = products.filter(p => p.status === 'Draft' && !p.isTrashed).length;
 
   return (
     <div className="space-y-6">
@@ -1257,16 +1279,6 @@ export const ProductManager: React.FC<ProductManagerProps> = ({
               >
                 Drafts ({draftCount})
               </button>
-
-              <button
-                type="button"
-                onClick={() => setProductStatusFilter('Archived')}
-                className={`text-xs font-bold px-3 py-1.5 rounded-lg transition-all cursor-pointer ${
-                  productStatusFilter === 'Archived' ? 'bg-emerald-800 text-white shadow-sm' : 'bg-white text-emerald-900 border hover:bg-emerald-100'
-                }`}
-              >
-                Archived ({archivedCount})
-              </button>
             </div>
 
             {/* Page & Category Filter Pickers */}
@@ -1323,6 +1335,7 @@ export const ProductManager: React.FC<ProductManagerProps> = ({
                     <th className="p-3">Page & Category Row</th>
                     <th className="p-3">Brand & Season</th>
                     <th className="p-3">SKU / Code</th>
+                    <th className="p-3">Barcode</th>
                     <th className="p-3">Cost vs Selling Price</th>
                     <th className="p-3">Stock & Tags</th>
                     <th className="p-3 text-right min-w-[11rem]">Actions</th>
@@ -1395,6 +1408,15 @@ export const ProductManager: React.FC<ProductManagerProps> = ({
                         <td className="p-3 font-mono text-[10px] font-bold text-emerald-800">
                           {prod.sku || 'N/A'}
                         </td>
+                        <td className="p-3">
+                          {prod.barcode ? (
+                            <span className="inline-block bg-zinc-950 text-white text-[10px] font-mono font-bold px-2 py-1 rounded-full">
+                              {prod.barcode}
+                            </span>
+                          ) : (
+                            <span className="text-[10px] text-zinc-400">—</span>
+                          )}
+                        </td>
 
                         {/* Pricing */}
                         <td className="p-3">
@@ -1451,6 +1473,21 @@ export const ProductManager: React.FC<ProductManagerProps> = ({
 
                             <button
                               type="button"
+                              onClick={() => {
+                                setLabelPrint({
+                                  barcode: prod.barcode || '',
+                                  sellPrice: prod.sellingPrice || prod.price,
+                                  name: prod.name,
+                                });
+                              }}
+                              className="inline-flex items-center justify-center px-2 h-9 rounded-lg border-2 border-zinc-800 bg-white text-zinc-900 text-[10px] font-bold uppercase shadow-sm hover:bg-zinc-50 transition-all cursor-pointer"
+                              title="Print barcode label"
+                            >
+                              Barcode
+                            </button>
+
+                            <button
+                              type="button"
                               onClick={() => handleDuplicateProduct(prod)}
                               className="inline-flex items-center justify-center w-9 h-9 rounded-lg border-2 border-emerald-600 bg-white text-emerald-800 shadow-sm hover:bg-emerald-50 hover:border-emerald-700 transition-all cursor-pointer focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:ring-offset-1"
                               title="Duplicate Product"
@@ -1461,12 +1498,12 @@ export const ProductManager: React.FC<ProductManagerProps> = ({
 
                             <button
                               type="button"
-                              onClick={() => handleToggleArchive(prod)}
-                              className="inline-flex items-center justify-center w-9 h-9 rounded-lg border-2 border-amber-600 bg-amber-500 text-white shadow-sm hover:bg-amber-600 hover:border-amber-700 transition-all cursor-pointer focus:outline-none focus:ring-2 focus:ring-amber-400 focus:ring-offset-1"
-                              title={prod.status === 'Archived' ? 'Unarchive' : 'Archive Product'}
-                              aria-label={prod.status === 'Archived' ? 'Unarchive' : 'Archive Product'}
+                              onClick={() => handleToggleDraft(prod)}
+                              className="inline-flex items-center justify-center px-2 h-9 rounded-lg border-2 border-zinc-800 bg-white text-zinc-900 text-[10px] font-bold uppercase shadow-sm hover:bg-zinc-50 transition-all cursor-pointer focus:outline-none focus:ring-2 focus:ring-zinc-500 focus:ring-offset-1"
+                              title={prod.status === 'Draft' ? 'Publish as Active' : 'Move to Draft'}
+                              aria-label={prod.status === 'Draft' ? 'Publish as Active' : 'Move to Draft'}
                             >
-                              <Archive size={16} strokeWidth={2.25} />
+                              {prod.status === 'Draft' ? 'Publish' : 'Draft'}
                             </button>
 
                             <button
@@ -2302,6 +2339,87 @@ export const ProductManager: React.FC<ProductManagerProps> = ({
                 <h5 className="text-xs font-mono font-bold uppercase text-emerald-800 border-b border-emerald-100 pb-1">
                   4. Inventory, Pricing & Stock Alerts
                 </h5>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-xs">
+                  <div className="space-y-2 border border-emerald-100 rounded-xl p-3 bg-white">
+                    <div className="flex items-center justify-between gap-2">
+                      <label className="font-bold text-emerald-950">SKU</label>
+                      <div className="flex rounded-lg border border-emerald-200 overflow-hidden">
+                        <button
+                          type="button"
+                          onClick={() => {
+                            setPSkuMode('auto');
+                            setPSku(nextSkuSequence(products.map((p) => p.sku), 'EV'));
+                          }}
+                          className={`px-2.5 py-1 text-[10px] font-bold uppercase ${pSkuMode === 'auto' ? 'bg-zinc-950 text-white' : 'bg-white text-zinc-700'}`}
+                        >
+                          Auto
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => setPSkuMode('manual')}
+                          className={`px-2.5 py-1 text-[10px] font-bold uppercase ${pSkuMode === 'manual' ? 'bg-zinc-950 text-white' : 'bg-white text-zinc-700'}`}
+                        >
+                          Manual
+                        </button>
+                      </div>
+                    </div>
+                    <input
+                      value={pSku}
+                      onChange={(e) => {
+                        setPSkuMode('manual');
+                        setPSku(e.target.value);
+                      }}
+                      readOnly={pSkuMode === 'auto'}
+                      className="w-full bg-emerald-50/40 border border-emerald-200 rounded-xl px-3 py-2 font-mono font-bold"
+                      placeholder="EV-000001"
+                    />
+                  </div>
+                  <div className="space-y-2 border border-emerald-100 rounded-xl p-3 bg-white">
+                    <div className="flex items-center justify-between gap-2 flex-wrap">
+                      <label className="font-bold text-emerald-950">Barcode <span className="font-normal text-zinc-500">(optional)</span></label>
+                      <div className="flex rounded-lg border border-emerald-200 overflow-hidden">
+                        <button
+                          type="button"
+                          onClick={() => {
+                            setPBarcodeMode('none');
+                            setPBarcode('');
+                          }}
+                          className={`px-2.5 py-1 text-[10px] font-bold uppercase ${pBarcodeMode === 'none' ? 'bg-zinc-950 text-white' : 'bg-white text-zinc-700'}`}
+                        >
+                          None
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => {
+                            setPBarcodeMode('auto');
+                            setPBarcode(generateEan13(pSku || Date.now()));
+                          }}
+                          className={`px-2.5 py-1 text-[10px] font-bold uppercase ${pBarcodeMode === 'auto' ? 'bg-zinc-950 text-white' : 'bg-white text-zinc-700'}`}
+                        >
+                          Auto
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => setPBarcodeMode('manual')}
+                          className={`px-2.5 py-1 text-[10px] font-bold uppercase ${pBarcodeMode === 'manual' ? 'bg-zinc-950 text-white' : 'bg-white text-zinc-700'}`}
+                        >
+                          Manual
+                        </button>
+                      </div>
+                    </div>
+                    <input
+                      value={pBarcode}
+                      onChange={(e) => {
+                        setPBarcodeMode('manual');
+                        setPBarcode(e.target.value);
+                      }}
+                      disabled={pBarcodeMode === 'none'}
+                      readOnly={pBarcodeMode === 'auto'}
+                      className="w-full bg-emerald-50/40 border border-emerald-200 rounded-xl px-3 py-2 font-mono font-bold disabled:opacity-50"
+                      placeholder={pBarcodeMode === 'none' ? 'No barcode' : 'EAN-13 or CODE128'}
+                    />
+                  </div>
+                </div>
                 <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-xs font-mono">
                   <div>
                     <label className="font-bold text-emerald-950 block mb-1 font-sans">Original Price (MRP) *</label>
@@ -2726,16 +2844,31 @@ export const ProductManager: React.FC<ProductManagerProps> = ({
                     Cancel
                   </button>
                   <button
+                    type="button"
+                    disabled={isSavingProduct}
+                    onClick={() => {
+                      pendingSaveStatusRef.current = 'Draft';
+                      setPStatus('Draft');
+                      const form = document.getElementById('product-manager-form') as HTMLFormElement | null;
+                      form?.requestSubmit();
+                    }}
+                    className="px-5 py-2.5 text-xs font-bold text-zinc-950 bg-white border border-zinc-300 hover:bg-zinc-50 rounded-xl cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
+                  >
+                    Save as Draft
+                  </button>
+                  <button
                     type="submit"
                     form="product-manager-form"
                     disabled={isSavingProduct}
+                    onClick={() => {
+                      pendingSaveStatusRef.current = 'Active';
+                      setPStatus('Active');
+                    }}
                     className="px-6 py-2.5 text-xs font-bold text-white bg-emerald-800 hover:bg-emerald-900 rounded-xl shadow-md cursor-pointer disabled:opacity-70 disabled:cursor-wait min-w-[8.5rem]"
                   >
                     {isSavingProduct
                       ? 'Saving…'
-                      : editingProduct
-                        ? 'Save Changes'
-                        : 'Save Product'}
+                      : 'Save & Publish'}
                   </button>
                 </div>
               </div>
@@ -3194,6 +3327,24 @@ export const ProductManager: React.FC<ProductManagerProps> = ({
           </div>
         );
       })()}
+
+      <BarcodeLabelPrint
+        open={!!labelPrint}
+        onClose={() => setLabelPrint(null)}
+        items={
+          labelPrint
+            ? [
+                {
+                  shopName: appConfig?.logoText || 'Epic Vanskap',
+                  barcode: labelPrint.barcode,
+                  sellPriceLabel: formatPrice(labelPrint.sellPrice),
+                  productName: labelPrint.name,
+                  location: 'Dhaka',
+                },
+              ]
+            : []
+        }
+      />
 
     </div>
   );

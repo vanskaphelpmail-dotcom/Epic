@@ -2257,71 +2257,76 @@ export default function App() {
         
         {/* Secret admin portal — login or panel only (no storefront UI) */}
         {isAdminShell && (
-          <div className="min-h-screen bg-red-950 flex flex-col">
-            <div className="px-4 py-5 border-b border-red-900/80 flex items-center justify-between bg-black">
-              <div className="flex items-center gap-2">
-                <BrandMark imgClassName="w-7 h-7" />
-                <span className="text-white font-black text-sm tracking-widest uppercase">Epic Vanskap</span>
-                <span className="text-red-400/90 text-[10px] font-mono uppercase tracking-wider ml-1">Admin Portal</span>
-              </div>
-              {currentUser && canUseAdminPanel(currentUser.role, !!getToken(), isApiEnabled()) && (
-                <button
-                  type="button"
-                  onClick={() => {
+          <div className="admin-shell min-h-screen bg-[#f5f5f5] flex flex-col text-zinc-950">
+            {currentPage === 'auth' && (
+              <>
+                <div className="px-4 py-4 border-b border-zinc-200 flex items-center justify-between bg-white">
+                  <div className="flex items-center gap-2.5">
+                    <BrandMark imgClassName="w-7 h-7" />
+                    <div>
+                      <p className="text-[13px] font-bold text-zinc-950 leading-tight">Epic Vanskap</p>
+                      <p className="text-[11px] text-zinc-500">Staff sign-in</p>
+                    </div>
+                  </div>
+                </div>
+                <div className="flex-1">
+                  <AuthScreen
+                    onLoginSuccess={handleLoginSuccess}
+                    usersList={usersList}
+                    onRegisterUser={handleRegisterUser}
+                    onCancel={() => {
+                      /* Secret portal — stay here; no storefront navigation */
+                    }}
+                    isCheckoutRedirect={false}
+                    isStaffLogin={true}
+                  />
+                </div>
+              </>
+            )}
+            {currentPage === 'admin' &&
+              (canUseAdminPanel(currentUser?.role, !!getToken(), isApiEnabled()) ? (
+                <AdminPanel
+                  products={products}
+                  setProducts={setProducts}
+                  sellerRequests={sellerRequests}
+                  setSellerRequests={setSellerRequests}
+                  orders={orders}
+                  setOrders={setOrders}
+                  onBackToCatalog={() => {
+                    /* Admin stays in portal — no public site navigation */
+                  }}
+                  slides={slides}
+                  setSlides={handleSetSlides}
+                  appConfig={appConfig}
+                  onUpdateConfig={handleUpdateConfig}
+                  formatPrice={formatPrice}
+                  initialAdminTab={adminTab}
+                  onAdminTabChange={(tab) => {
+                    setAdminTab(tab);
+                    navigateSpa(buildSpaRoute('admin', { adminTab: tab }), { replace: false });
+                  }}
+                  onRequireStaffLogin={() => {
+                    setStaffLoginRequired(true);
+                    goToPage('auth', { replace: true });
+                  }}
+                  staffUser={
+                    currentUser
+                      ? {
+                          fullName: currentUser.fullName,
+                          email: currentUser.email,
+                          role: currentUser.role,
+                        }
+                      : null
+                  }
+                  onSignOut={() => {
                     setCurrentUser(null);
                     clearSession();
                     clearNavState();
                     setStaffLoginRequired(true);
                     goToPage('auth', { replace: true });
                   }}
-                  className="text-[10px] font-mono text-zinc-300 hover:text-white uppercase tracking-wider cursor-pointer"
-                >
-                  Sign Out
-                </button>
-              )}
-            </div>
-            <div className="flex-1 bg-black">
-              {currentPage === 'auth' && (
-                <AuthScreen
-                  onLoginSuccess={handleLoginSuccess}
-                  usersList={usersList}
-                  onRegisterUser={handleRegisterUser}
-                  onCancel={() => {
-                    /* Secret portal — stay here; no storefront navigation */
-                  }}
-                  isCheckoutRedirect={false}
-                  isStaffLogin={true}
                 />
-              )}
-              {currentPage === 'admin' &&
-                (canUseAdminPanel(currentUser?.role, !!getToken(), isApiEnabled()) ? (
-                  <AdminPanel
-                    products={products}
-                    setProducts={setProducts}
-                    sellerRequests={sellerRequests}
-                    setSellerRequests={setSellerRequests}
-                    orders={orders}
-                    setOrders={setOrders}
-                    onBackToCatalog={() => {
-                      /* Admin stays in portal — no public site navigation */
-                    }}
-                    slides={slides}
-                    setSlides={handleSetSlides}
-                    appConfig={appConfig}
-                    onUpdateConfig={handleUpdateConfig}
-                    formatPrice={formatPrice}
-                    initialAdminTab={adminTab}
-                    onAdminTabChange={(tab) => {
-                      setAdminTab(tab);
-                      navigateSpa(buildSpaRoute('admin', { adminTab: tab }), { replace: false });
-                    }}
-                    onRequireStaffLogin={() => {
-                      setStaffLoginRequired(true);
-                      goToPage('auth', { replace: true });
-                    }}
-                  />
-                ) : null)}
-            </div>
+              ) : null)}
           </div>
         )}
 
