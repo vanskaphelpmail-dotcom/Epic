@@ -22,7 +22,7 @@ const STAFF: UserRole[] = [
 ];
 
 function secret() {
-  const s = process.env.AUTH_SECRET || process.env.JWT_SECRET;
+  const s = (process.env.AUTH_SECRET || process.env.JWT_SECRET || "").trim();
   if (!s) throw new Error("AUTH_SECRET is required");
   return s;
 }

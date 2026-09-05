@@ -2,6 +2,7 @@ import express from "express";
 import cors from "cors";
 import cookieParser from "cookie-parser";
 import { authRouter } from "./routes/auth";
+import { bootstrapRouter } from "./routes/bootstrap";
 import { productsRouter } from "./routes/products";
 import { ordersRouter } from "./routes/orders";
 import { cmsRouter } from "./routes/cms";
@@ -89,14 +90,29 @@ export function createApp() {
           setTimeout(() => reject(new Error("db_timeout")), 8_000),
         ),
       ]);
-      res.json({ ok: true, db: "up", service: "jersey-addicts-api" });
+      const authConfigured = Boolean(
+        (process.env.AUTH_SECRET || process.env.JWT_SECRET || "").trim(),
+      );
+      res.json({
+        ok: true,
+        db: "up",
+        service: "jersey-addicts-api",
+        authConfigured,
+      });
     } catch (err) {
       console.error("[api/health]", err instanceof Error ? err.message : err);
-      res.status(503).json({ ok: false, db: "down" });
+      res.status(503).json({
+        ok: false,
+        db: "down",
+        authConfigured: Boolean(
+          (process.env.AUTH_SECRET || process.env.JWT_SECRET || "").trim(),
+        ),
+      });
     }
   });
 
   app.use("/api/auth", authRouter);
+  app.use("/api/auth", bootstrapRouter);
   app.use("/api/products", productsRouter);
   app.use("/api/orders", ordersRouter);
   app.use("/api/cart", cartRouter);

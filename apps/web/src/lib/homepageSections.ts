@@ -175,6 +175,9 @@ function pickJerseySection(sections: PageSection[], id: string): PageSection {
     name: existing?.name || fallback?.name || id,
     visible: true,
     status: 'active' as const,
+    bgColor: existing?.bgColor || fallback?.bgColor || 'bg-black',
+    padding: existing?.padding || fallback?.padding || 'py-12',
+    margin: existing?.margin || fallback?.margin || 'my-0',
     title: fallback?.title || existing?.title,
     subtitle: fallback?.subtitle || existing?.subtitle,
     ...(fallback?.sectionType

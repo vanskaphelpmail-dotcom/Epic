@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { Mail, Lock, ArrowRight, KeyRound } from 'lucide-react';
 import { User as UserType } from '../types';
-import { api, isApiEnabled, setToken } from '../lib/apiClient';
+import { api, clearSession, isApiEnabled, setToken } from '../lib/apiClient';
 import { canUseAdminPanel } from '../lib/roles';
 
 interface AuthScreenProps {
@@ -99,6 +99,9 @@ export const AuthScreen: React.FC<AuthScreenProps> = ({
       }
 
       const result = await api.login(email.toLowerCase().trim(), password);
+      // Persist JWT immediately so redirect / panel gates see a live session
+      setToken(result.token, { persist: true });
+
       const user: UserType = {
         id: result.user.id,
         email: result.user.email,
@@ -109,14 +112,14 @@ export const AuthScreen: React.FC<AuthScreenProps> = ({
         accessFlags: result.user.accessFlags,
       };
 
-      if (!canUseAdminPanel(user.role, true, true)) {
+      if (!canUseAdminPanel(user.role, true, isApiEnabled())) {
+        clearSession();
         setError('Only admin accounts can sign in here.');
         return;
       }
 
-      setToken(result.token, { persist: true });
       setSuccess(`Welcome back, ${user.fullName}!`);
-      setTimeout(() => onLoginSuccess(user, true), 600);
+      onLoginSuccess(user, true);
     } catch (apiErr) {
       setError(apiErr instanceof Error ? apiErr.message : 'Authentication failed');
     } finally {

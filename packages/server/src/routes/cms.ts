@@ -188,11 +188,11 @@ function dedupeHomepageRows<T extends { id?: string; sectionKey?: string }>(rows
   return out;
 }
 
-async function cleanupDuplicateHomepageSections(
-  rows: { id: string; sectionKey: string }[],
-): Promise<{ id: string; sectionKey: string }[]> {
+async function cleanupDuplicateHomepageSections<T extends { id: string; sectionKey: string }>(
+  rows: T[],
+): Promise<T[]> {
   const seen = new Set<string>();
-  const keep: { id: string; sectionKey: string }[] = [];
+  const keep: T[] = [];
   const dropIds: string[] = [];
   for (const row of rows) {
     if (seen.has(row.sectionKey)) {

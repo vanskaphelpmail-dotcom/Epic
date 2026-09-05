@@ -85,7 +85,20 @@ authRouter.post("/login", async (req, res) => {
     if (error instanceof z.ZodError) {
       return res.status(400).json({ success: false, error: { message: error.issues[0]?.message || "Invalid input" } });
     }
+    const message = error instanceof Error ? error.message : String(error);
     console.error("[auth/login]", error);
+    if (/AUTH_SECRET|JWT_SECRET/i.test(message)) {
+      return res.status(500).json({
+        success: false,
+        error: { message: "Server misconfigured: AUTH_SECRET is missing. Set it in Vercel env and redeploy." },
+      });
+    }
+    if (/DATABASE_URL|Can't reach database|P1001|P1017|ECONNREFUSED|timeout/i.test(message)) {
+      return res.status(503).json({
+        success: false,
+        error: { message: "Database unavailable. Check Neon DATABASE_URL on Vercel (and wake the compute)." },
+      });
+    }
     return res.status(500).json({ success: false, error: { message: "Login failed" } });
   }
 });

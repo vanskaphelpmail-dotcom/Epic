@@ -386,12 +386,24 @@ export interface MenuItem {
   openNewTab?: boolean;
 }
 
+export type LeagueMark =
+  | 'premier'
+  | 'laliga'
+  | 'seriea'
+  | 'bundesliga'
+  | 'ligue1'
+  | 'mls'
+  | 'worldcup'
+  | 'bangladesh';
+
 export interface LeagueConfigItem {
   id: string;
   name: string;
   categoryId: string;
   count: number;
-  mark: 'premier' | 'laliga' | 'seriea' | 'bundesliga' | 'worldcup' | 'bangladesh';
+  mark: LeagueMark;
+  /** Optional — falls back to name/categoryId for storefront search */
+  searchQuery?: string;
   logoUrl?: string;
   status: 'Active' | 'Inactive';
 }

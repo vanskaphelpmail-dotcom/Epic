@@ -4,9 +4,9 @@ export interface LeagueCatalogItem {
   categoryId: string;
   count: number;
   /** Best storefront search query when the card is clicked */
-  searchQuery: string;
+  searchQuery?: string;
   /** CSS/SVG mark key used by LeagueLogo */
-  mark: 'premier' | 'laliga' | 'seriea' | 'bundesliga' | 'ligue1' | 'mls';
+  mark: 'premier' | 'laliga' | 'seriea' | 'bundesliga' | 'ligue1' | 'mls' | 'worldcup' | 'bangladesh';
   /** Optional remote/custom logo URL managed via admin */
   logoUrl?: string;
   status: 'Active' | 'Inactive';

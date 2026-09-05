@@ -15,7 +15,7 @@ import {
   isUnauthorizedError,
   setStoredUser,
 } from './lib/apiClient';
-import { canUseAdminPanel } from './lib/roles';
+import { canUseAdminPanel, isStaffRole } from './lib/roles';
 import { cartBadgesMatch } from './lib/productAddons';
 import { clearStoredOrders, loadStoredOrders, persistOrders } from './lib/orderStorage';
 import {
@@ -1467,7 +1467,8 @@ export default function App() {
     }
 
     // Redirect role-based — use history push so Back still works
-    if (canUseAdminPanel(user.role, !!getToken(), isApiEnabled())) {
+    // Staff always enter admin after a successful AuthScreen login (token already set).
+    if (isStaffRole(user.role) || canUseAdminPanel(user.role, !!getToken(), isApiEnabled())) {
       goToPage('admin', { adminTab: 'dashboard' });
     } else {
       goToPage('home');
