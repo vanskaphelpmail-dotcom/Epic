@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useMemo, useRef } from 'react';
-import { AreaChart, Users, Shirt, ShoppingBag, Check, X, ShieldAlert, BadgeCheck, FileText, Plus, Save, Sparkles, Download, Upload, AlertTriangle, Image, Trash2, Edit, Search, Smartphone, Monitor, ChevronLeft, ChevronRight, SlidersHorizontal, TrendingUp, ArrowUpRight, ArrowDownRight, RefreshCw, BarChart3, Clock, CheckCircle, AlertOctagon, HelpCircle, UserCheck, PlusCircle, Activity, Trophy, Star, Flame, Globe, Tag, Box, Compass, Heart, Phone, MapPin, Mail, Layers, Grid, ArrowUp, ArrowDown, ShieldCheck, Award, Printer, Truck, RotateCcw, DollarSign, CheckCircle2, PackageCheck, Send, Copy, ExternalLink, XCircle, Eye, Bell } from 'lucide-react';
+import { AreaChart, Users, Shirt, ShoppingBag, Check, X, ShieldAlert, BadgeCheck, FileText, Plus, Save, Sparkles, Download, Upload, AlertTriangle, Image, Trash2, Edit, Search, Smartphone, Monitor, ChevronLeft, ChevronRight, ChevronUp, ChevronDown, SlidersHorizontal, TrendingUp, ArrowUpRight, ArrowDownRight, RefreshCw, BarChart3, Clock, CheckCircle, AlertOctagon, HelpCircle, UserCheck, PlusCircle, Activity, Trophy, Star, Flame, Globe, Tag, Box, Compass, Heart, Phone, MapPin, Mail, Layers, Grid, ArrowUp, ArrowDown, ShieldCheck, Award, Printer, Truck, RotateCcw, DollarSign, CheckCircle2, PackageCheck, Send, Copy, ExternalLink, XCircle, Eye, Bell, CreditCard, LayoutGrid, type LucideIcon } from 'lucide-react';
 import { Product, SellerRequest, Order, CarouselSlide, AppConfig, BannerConfig, BannerType, MenuItem, MenuPlacement, PageSection, DailyDealItem } from '../types';
 import { JerseyRenderer } from './JerseyRenderer';
 import { InventoryEditor } from './InventoryEditor';
@@ -1425,66 +1425,93 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({
   const liveDb = isApiEnabled() && !!getToken();
 
   const [sidebarSearch, setSidebarSearch] = useState('');
+  const [openNavGroups, setOpenNavGroups] = useState<Record<string, boolean>>({
+    Command: true,
+    'Stock Product': true,
+    Inventory: true,
+    Operations: true,
+    'Catalog Meta': true,
+    'Storefront CMS': true,
+    Settings: true,
+  });
 
-  const SIDEBAR_GROUPS = [
+  const SIDEBAR_GROUPS: {
+    title: string;
+    collapsible?: boolean;
+    items: { id: string; label: string; icon: LucideIcon }[];
+  }[] = [
     {
       title: 'Command',
+      collapsible: false,
       items: [
-        { id: 'dashboard', label: 'Overview' },
-        { id: 'pos', label: 'POS' },
-        { id: 'sales', label: 'Sales' },
-        { id: 'orders', label: 'Online Orders' },
-        { id: 'analytics', label: 'Sales Trends' },
-      ]
+        { id: 'dashboard', label: 'Overview', icon: LayoutGrid },
+        { id: 'pos', label: 'POS', icon: CreditCard },
+        { id: 'sales', label: 'Invoice List', icon: FileText },
+        { id: 'orders', label: 'Online Orders', icon: ShoppingBag },
+        { id: 'analytics', label: 'Sales Trends', icon: TrendingUp },
+      ],
     },
     {
       title: 'Stock Product',
-      items: [
-        { id: 'product-management', label: 'Product' },
-        { id: 'inventory', label: 'Inventory' },
-      ]
+      collapsible: true,
+      items: [{ id: 'product-management', label: 'Product', icon: Box }],
+    },
+    {
+      title: 'Inventory',
+      collapsible: true,
+      items: [{ id: 'inventory', label: 'Inventory', icon: Box }],
     },
     {
       title: 'Operations',
+      collapsible: true,
       items: [
-        { id: 'customers', label: 'Customers' },
-        { id: 'expenses', label: 'Expenses' },
-        { id: 'accounts', label: 'Accounts' },
-      ]
+        { id: 'customers', label: 'Customers', icon: Users },
+        { id: 'expenses', label: 'Expenses', icon: DollarSign },
+        { id: 'accounts', label: 'Accounts', icon: Layers },
+      ],
     },
     {
       title: 'Catalog Meta',
+      collapsible: true,
       items: [
-        { id: 'leagues', label: 'Leagues' },
-        { id: 'clubs', label: 'Clubs' },
-        { id: 'national-teams', label: 'National Teams' },
-        { id: 'locations', label: 'Outlets' },
-      ]
+        { id: 'leagues', label: 'Leagues', icon: Trophy },
+        { id: 'clubs', label: 'Clubs', icon: ShieldCheck },
+        { id: 'national-teams', label: 'National Teams', icon: Globe },
+        { id: 'locations', label: 'Outlets', icon: MapPin },
+      ],
     },
     {
       title: 'Storefront CMS',
+      collapsible: true,
       items: [
-        { id: 'homepage-builder', label: 'Homepage' },
-        { id: 'page-builder', label: 'Pages' },
-        { id: 'menu-builder', label: 'Navigation' },
-        { id: 'mega-menu', label: 'Mega Menu' },
-        { id: 'header-builder', label: 'Header' },
-        { id: 'footer-builder', label: 'Footer' },
-        { id: 'announcement-bar', label: 'Announcement' },
-        { id: 'banner-management', label: 'Banners' },
-        { id: 'hero-slider', label: 'Hero Slides' },
-      ]
+        { id: 'homepage-builder', label: 'Homepage', icon: Layers },
+        { id: 'page-builder', label: 'Pages', icon: FileText },
+        { id: 'menu-builder', label: 'Navigation', icon: Compass },
+        { id: 'mega-menu', label: 'Mega Menu', icon: Grid },
+        { id: 'header-builder', label: 'Header', icon: Monitor },
+        { id: 'footer-builder', label: 'Footer', icon: Layers },
+        { id: 'announcement-bar', label: 'Announcement', icon: Bell },
+        { id: 'banner-management', label: 'Banners', icon: Image },
+        { id: 'hero-slider', label: 'Hero Slides', icon: Image },
+      ],
     },
     {
       title: 'Settings',
-      items: [
-        { id: 'brand-customizer', label: 'Theme' },
-      ]
-    }
+      collapsible: true,
+      items: [{ id: 'brand-customizer', label: 'Theme', icon: SlidersHorizontal }],
+    },
   ];
 
   const activeModuleLabel =
     SIDEBAR_GROUPS.flatMap((g) => g.items).find((i) => i.id === activeSidebarTab)?.label || 'Dashboard';
+
+  // Prefer friendlier labels for header when multiple items share an id
+  const headerModuleLabel = (() => {
+    if (activeSidebarTab === 'sales') return 'Invoice List';
+    if (activeSidebarTab === 'inventory') return 'Inventory';
+    if (activeSidebarTab === 'product-management') return 'Product';
+    return activeModuleLabel;
+  })();
 
   const hour = new Date().getHours();
   const greeting = hour < 12 ? 'Good morning' : hour < 18 ? 'Good afternoon' : 'Good evening';
@@ -1539,9 +1566,9 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({
         />
       )}
 
-      {/* Left sidebar — full viewport height, no internal scroll */}
+      {/* Left sidebar — OUDS-style icons + collapsible groups */}
       <aside
-        className={`admin-sidebar w-[248px] shrink-0 bg-[#efefef] border-r border-zinc-200 flex flex-col z-50
+        className={`admin-sidebar w-[260px] shrink-0 bg-white border-r border-zinc-200 flex flex-col z-50
           max-lg:fixed max-lg:inset-y-0 max-lg:left-0 max-lg:shadow-2xl max-lg:h-dvh
           transition-transform duration-300
           ${sidebarOpen ? 'max-lg:translate-x-0' : 'max-lg:-translate-x-full'}
@@ -1549,67 +1576,98 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({
           overflow-hidden
         `}
       >
-        <div className="px-3 pt-3 pb-2 border-b border-zinc-200/80 flex items-center justify-between gap-2 shrink-0">
-          <div className="flex items-center gap-2 min-w-0">
-            <BrandMark imgClassName="w-7 h-7" />
+        <div className="px-4 pt-4 pb-3 border-b border-zinc-100 flex items-center justify-between gap-2 shrink-0">
+          <div className="flex items-center gap-2.5 min-w-0">
+            <BrandMark imgClassName="w-8 h-8" />
             <div className="min-w-0">
-              <p className="text-[12px] font-bold text-zinc-950 leading-tight truncate">Epic Vanskap</p>
-              <p className="text-[11px] text-zinc-700 truncate font-semibold">Management</p>
+              <p className="text-[15px] font-extrabold text-zinc-950 leading-tight truncate">Epic Vanskap</p>
+              <p className="text-[13px] text-zinc-700 truncate font-bold">Management</p>
             </div>
           </div>
           <button
             type="button"
-            className="lg:hidden p-1.5 rounded-md hover:bg-zinc-200 text-zinc-700 cursor-pointer"
+            className="lg:hidden p-1.5 rounded-md hover:bg-zinc-100 text-zinc-800 cursor-pointer"
             onClick={() => setSidebarOpen(false)}
           >
-            <X size={15} />
+            <X size={16} />
           </button>
         </div>
 
-        <div className="px-2.5 pt-2.5 pb-1.5 shrink-0">
+        <div className="px-3 pt-3 pb-2 shrink-0">
           <div className="relative">
-            <Search size={13} className="absolute left-2.5 top-1/2 -translate-y-1/2 text-zinc-700" />
+            <Search size={15} className="absolute left-3 top-1/2 -translate-y-1/2 text-zinc-600" />
             <input
               type="text"
               placeholder="Search modules..."
               value={sidebarSearch}
               onChange={(e) => setSidebarSearch(e.target.value)}
-              className="w-full text-[12px] py-1.5 pl-8 pr-2.5 bg-white border border-zinc-300 rounded-md focus:outline-none focus:border-zinc-950 text-zinc-950 placeholder:text-zinc-600 font-medium"
+              className="w-full text-[14px] py-2 pl-9 pr-3 bg-zinc-50 border border-zinc-200 rounded-lg focus:outline-none focus:border-zinc-950 text-zinc-950 placeholder:text-zinc-500 font-semibold"
             />
           </div>
         </div>
 
-        <nav className="admin-sidebar-nav flex-1 min-h-0 overflow-hidden px-2 pb-2 pt-1 flex flex-col justify-between gap-1">
+        <nav className="admin-sidebar-nav flex-1 min-h-0 overflow-y-auto px-2.5 pb-4 pt-1 space-y-3">
           {SIDEBAR_GROUPS.map((group) => {
+            const q = sidebarSearch.toLowerCase().trim();
             const filteredItems = group.items.filter((item) =>
-              item.label.toLowerCase().includes(sidebarSearch.toLowerCase()),
+              !q || item.label.toLowerCase().includes(q) || group.title.toLowerCase().includes(q),
             );
             if (filteredItems.length === 0) return null;
 
+            const isOpen = q ? true : openNavGroups[group.title] !== false;
+            const showChevron = !!group.collapsible;
+
             return (
-              <div key={group.title} className="min-h-0 flex flex-col justify-center">
-                <span className="text-[10px] font-bold tracking-wide text-zinc-600 uppercase block px-2.5 mb-0.5">
-                  {group.title}
-                </span>
-                <div className="flex flex-col gap-px">
-                  {filteredItems.map((item) => {
-                    const isActive = activeSidebarTab === item.id;
-                    return (
-                      <button
-                        key={item.id}
-                        type="button"
-                        onClick={() => selectAdminModule(item.id)}
-                        className={`w-full flex items-center gap-2 px-2.5 py-[5px] rounded-md text-left text-[12px] font-medium transition-colors cursor-pointer leading-tight ${
-                          isActive
-                            ? 'bg-zinc-950 text-white'
-                            : 'text-zinc-800 hover:bg-zinc-200/80'
-                        }`}
-                      >
-                        <span className="truncate">{item.label}</span>
-                      </button>
-                    );
-                  })}
-                </div>
+              <div key={group.title} className="shrink-0">
+                <button
+                  type="button"
+                  onClick={() => {
+                    if (!showChevron) return;
+                    setOpenNavGroups((prev) => ({ ...prev, [group.title]: !isOpen }));
+                  }}
+                  className={`w-full flex items-center justify-between px-3 mb-1 ${
+                    showChevron ? 'cursor-pointer' : 'cursor-default'
+                  }`}
+                >
+                  <span className="text-[11px] font-extrabold tracking-wider text-zinc-500 uppercase">
+                    {group.title}
+                  </span>
+                  {showChevron ? (
+                    isOpen ? (
+                      <ChevronUp size={14} className="text-zinc-500" />
+                    ) : (
+                      <ChevronDown size={14} className="text-zinc-500" />
+                    )
+                  ) : null}
+                </button>
+
+                {isOpen && (
+                  <div className="flex flex-col gap-0.5">
+                    {filteredItems.map((item) => {
+                      const Icon = item.icon;
+                      const isActive = activeSidebarTab === item.id;
+                      return (
+                        <button
+                          key={`${group.title}-${item.id}-${item.label}`}
+                          type="button"
+                          onClick={() => selectAdminModule(item.id)}
+                          className={`w-full flex items-center gap-2.5 px-3 py-2.5 rounded-xl text-left text-[14px] font-semibold transition-colors cursor-pointer leading-snug ${
+                            isActive
+                              ? 'bg-zinc-950 text-white shadow-sm'
+                              : 'text-zinc-900 hover:bg-zinc-100'
+                          }`}
+                        >
+                          <Icon
+                            size={17}
+                            strokeWidth={2.1}
+                            className={`shrink-0 ${isActive ? 'text-white' : 'text-zinc-700'}`}
+                          />
+                          <span className="truncate">{item.label}</span>
+                        </button>
+                      );
+                    })}
+                  </div>
+                )}
               </div>
             );
           })}
@@ -1632,10 +1690,10 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({
               </button>
               <div className="min-w-0">
                 <p className="text-[12px] text-zinc-700 truncate font-semibold">
-                  epic vanskap / {activeSidebarTab === 'dashboard' ? 'dashboard' : activeModuleLabel.toLowerCase()}
+                  epic vanskap / {activeSidebarTab === 'dashboard' ? 'dashboard' : headerModuleLabel.toLowerCase()}
                 </p>
                 <h1 className="text-xl sm:text-2xl font-bold text-zinc-950 tracking-tight leading-tight">
-                  {activeSidebarTab === 'dashboard' ? 'Dashboard' : activeModuleLabel}
+                  {activeSidebarTab === 'dashboard' ? 'Dashboard' : headerModuleLabel}
                 </h1>
                 {activeSidebarTab === 'dashboard' && (
                   <p className="text-[13px] text-zinc-800 mt-0.5 hidden sm:block font-medium">

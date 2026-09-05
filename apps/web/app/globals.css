@@ -666,20 +666,20 @@ main, section, header, footer, nav {
   font-weight: 600;
 }
 
-/* Left nav: fill viewport height, no scrollbar */
+/* Left nav: full height + OUDS-style readable type */
 .admin-shell > aside.admin-sidebar {
   height: 100dvh;
   max-height: 100dvh;
-  overflow: hidden;
+  background: #ffffff !important;
 }
 .admin-shell > aside.admin-sidebar .admin-sidebar-nav {
-  overflow: hidden;
-  scrollbar-width: none;
+  scrollbar-width: thin;
+  scrollbar-color: #d4d4d8 transparent;
 }
-.admin-shell > aside.admin-sidebar .admin-sidebar-nav::-webkit-scrollbar {
-  display: none;
-  width: 0;
-  height: 0;
+.admin-shell > aside.admin-sidebar .admin-sidebar-nav button {
+  font-size: 14px !important;
+  line-height: 1.35 !important;
+  font-weight: 600 !important;
 }
 
 /* ---------------------------------------------------------------------------

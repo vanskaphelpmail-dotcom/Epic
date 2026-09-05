@@ -131,75 +131,76 @@ export const AuthScreen: React.FC<AuthScreenProps> = ({
   };
 
   return (
-    <div className="max-w-md mx-auto my-12 bg-[#121212] border border-zinc-800 rounded-3xl p-8 shadow-md relative overflow-hidden animate-fadeIn text-white">
+    <div className="max-w-md mx-auto my-12 bg-[#121212] border border-zinc-700 rounded-3xl p-8 shadow-md relative overflow-hidden animate-fadeIn text-white">
       <div className="absolute top-0 right-0 w-32 h-32 bg-zinc-950/5 rounded-full blur-2xl pointer-events-none" />
       <div className="absolute bottom-0 left-0 w-32 h-32 bg-zinc-950/5 rounded-full blur-2xl pointer-events-none" />
 
-      <div className="bg-zinc-900 border-2 border-zinc-800 rounded-2xl p-4 mb-6 space-y-1 text-center">
-        <p className="text-xs font-black uppercase text-white font-mono">Private admin portal</p>
-        <p className="text-[10px] text-zinc-300 font-bold leading-normal font-sans">
+      <div className="bg-zinc-900 border border-zinc-600 rounded-2xl p-4 mb-6 space-y-1.5 text-center">
+        <p className="text-[13px] font-black uppercase text-white tracking-wide">Private admin portal</p>
+        <p className="text-[13px] text-zinc-200 font-semibold leading-relaxed">
           This page is not linked from the public store. Customer login is disabled — anyone can order without an account.
         </p>
       </div>
 
       <div className="text-center space-y-2 mb-8">
         <span className="h-1.5 w-8 bg-red-600 rounded-full inline-block" />
-        <h2 className="text-2xl font-black uppercase tracking-tight font-sans text-white">{titles[mode].h}</h2>
-        <p className="text-xs text-zinc-400 font-mono">{titles[mode].p}</p>
+        <h2 className="text-2xl font-black uppercase tracking-tight text-white">{titles[mode].h}</h2>
+        <p className="text-[14px] text-zinc-200 font-semibold">{titles[mode].p}</p>
       </div>
 
       {error && (
-        <div className="bg-red-50 border border-red-100 text-red-700 text-xs p-3.5 rounded-xl mb-6 text-center font-semibold font-mono">
+        <div className="bg-red-950/80 border border-red-500 text-red-100 text-[13px] p-3.5 rounded-xl mb-6 text-center font-semibold">
           {error}
         </div>
       )}
 
       {success && (
-        <div className="bg-zinc-900 border border-zinc-800 text-zinc-300 text-xs p-3.5 rounded-xl mb-6 text-center font-bold font-mono">
+        <div className="bg-zinc-800 border border-zinc-500 text-zinc-100 text-[13px] p-3.5 rounded-xl mb-6 text-center font-semibold">
           {success}
         </div>
       )}
 
       {mode === 'forgot' ? (
         <form onSubmit={handleForgot} className="space-y-4">
-          <div className="space-y-1.5">
-            <label className="text-[10px] text-zinc-400 font-mono block uppercase">Email Address</label>
+          <div className="space-y-2">
+            <label className="text-[13px] text-zinc-100 font-bold block uppercase tracking-wide">Email Address</label>
             <div className="relative">
               <input
                 type="email"
                 required
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
-                className="w-full bg-[#121212] border border-zinc-800 rounded-xl py-3 pl-11 pr-4 text-xs text-white focus:outline-none focus:border-red-600 transition-colors"
+                placeholder="admin@email.com"
+                className="w-full bg-white border border-zinc-300 rounded-xl py-3.5 pl-11 pr-4 text-[15px] font-semibold text-zinc-950 placeholder:text-zinc-500 focus:outline-none focus:border-red-600 focus:ring-2 focus:ring-red-600/30 transition-colors"
               />
-              <Mail size={14} className="absolute left-4 top-1/2 -translate-y-1/2 text-zinc-400" />
+              <Mail size={16} className="absolute left-4 top-1/2 -translate-y-1/2 text-zinc-600" />
             </div>
           </div>
           <button
             type="submit"
             disabled={busy}
-            className="w-full bg-red-600 hover:bg-red-700 disabled:opacity-60 text-white font-extrabold text-xs uppercase tracking-widest py-3.5 rounded-xl"
+            className="w-full bg-red-600 hover:bg-red-700 disabled:opacity-60 text-white font-extrabold text-[14px] uppercase tracking-widest py-3.5 rounded-xl"
           >
             {busy ? 'Please wait…' : 'Send Reset'}
           </button>
         </form>
       ) : mode === 'reset' ? (
         <form onSubmit={handleReset} className="space-y-4">
-          <div className="space-y-1.5">
-            <label className="text-[10px] text-zinc-400 font-mono block uppercase">Reset Token</label>
+          <div className="space-y-2">
+            <label className="text-[13px] text-zinc-100 font-bold block uppercase tracking-wide">Reset Token</label>
             <div className="relative">
               <input
                 type="text"
                 required
                 value={resetToken}
                 onChange={(e) => setResetToken(e.target.value)}
-                className="w-full bg-[#121212] border border-zinc-800 rounded-xl py-3 pl-11 pr-4 text-xs text-white focus:outline-none focus:border-red-600 transition-colors"
+                className="w-full bg-white border border-zinc-300 rounded-xl py-3.5 pl-11 pr-4 text-[15px] font-semibold text-zinc-950 placeholder:text-zinc-500 focus:outline-none focus:border-red-600 focus:ring-2 focus:ring-red-600/30 transition-colors"
               />
-              <KeyRound size={14} className="absolute left-4 top-1/2 -translate-y-1/2 text-zinc-400" />
+              <KeyRound size={16} className="absolute left-4 top-1/2 -translate-y-1/2 text-zinc-600" />
             </div>
           </div>
-          <div className="space-y-1.5">
-            <label className="text-[10px] text-zinc-400 font-mono block uppercase">New Password</label>
+          <div className="space-y-2">
+            <label className="text-[13px] text-zinc-100 font-bold block uppercase tracking-wide">New Password</label>
             <div className="relative">
               <input
                 type="password"
@@ -207,36 +208,37 @@ export const AuthScreen: React.FC<AuthScreenProps> = ({
                 minLength={6}
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
-                className="w-full bg-[#121212] border border-zinc-800 rounded-xl py-3 pl-11 pr-4 text-xs text-white focus:outline-none focus:border-red-600 transition-colors"
+                className="w-full bg-white border border-zinc-300 rounded-xl py-3.5 pl-11 pr-4 text-[15px] font-semibold text-zinc-950 placeholder:text-zinc-500 focus:outline-none focus:border-red-600 focus:ring-2 focus:ring-red-600/30 transition-colors"
               />
-              <Lock size={14} className="absolute left-4 top-1/2 -translate-y-1/2 text-zinc-400" />
+              <Lock size={16} className="absolute left-4 top-1/2 -translate-y-1/2 text-zinc-600" />
             </div>
           </div>
           <button
             type="submit"
             disabled={busy}
-            className="w-full bg-red-600 hover:bg-red-700 disabled:opacity-60 text-white font-extrabold text-xs uppercase tracking-widest py-3.5 rounded-xl"
+            className="w-full bg-red-600 hover:bg-red-700 disabled:opacity-60 text-white font-extrabold text-[14px] uppercase tracking-widest py-3.5 rounded-xl"
           >
             {busy ? 'Please wait…' : 'Update Password'}
           </button>
         </form>
       ) : (
-        <form onSubmit={handleSubmit} className="space-y-4">
-          <div className="space-y-1.5">
-            <label className="text-[10px] text-zinc-400 font-mono block uppercase">Admin Email</label>
+        <form onSubmit={handleSubmit} className="space-y-5">
+          <div className="space-y-2">
+            <label className="text-[13px] text-zinc-100 font-bold block uppercase tracking-wide">Admin Email</label>
             <div className="relative">
               <input
                 type="email"
                 required
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
-                className="w-full bg-[#121212] border border-zinc-800 rounded-xl py-3 pl-11 pr-4 text-xs text-white focus:outline-none focus:border-red-600 transition-colors"
+                placeholder="admin@email.com"
+                className="w-full bg-white border border-zinc-300 rounded-xl py-3.5 pl-11 pr-4 text-[15px] font-semibold text-zinc-950 placeholder:text-zinc-500 focus:outline-none focus:border-red-600 focus:ring-2 focus:ring-red-600/30 transition-colors"
               />
-              <Mail size={14} className="absolute left-4 top-1/2 -translate-y-1/2 text-zinc-400" />
+              <Mail size={16} className="absolute left-4 top-1/2 -translate-y-1/2 text-zinc-600" />
             </div>
           </div>
-          <div className="space-y-1.5">
-            <label className="text-[10px] text-zinc-400 font-mono block uppercase">Password</label>
+          <div className="space-y-2">
+            <label className="text-[13px] text-zinc-100 font-bold block uppercase tracking-wide">Password</label>
             <div className="relative">
               <input
                 type="password"
@@ -244,24 +246,25 @@ export const AuthScreen: React.FC<AuthScreenProps> = ({
                 minLength={6}
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
-                className="w-full bg-[#121212] border border-zinc-800 rounded-xl py-3 pl-11 pr-4 text-xs text-white focus:outline-none focus:border-red-600 transition-colors"
+                placeholder="Enter password"
+                className="w-full bg-white border border-zinc-300 rounded-xl py-3.5 pl-11 pr-4 text-[15px] font-semibold text-zinc-950 placeholder:text-zinc-500 focus:outline-none focus:border-red-600 focus:ring-2 focus:ring-red-600/30 transition-colors"
               />
-              <Lock size={14} className="absolute left-4 top-1/2 -translate-y-1/2 text-zinc-400" />
+              <Lock size={16} className="absolute left-4 top-1/2 -translate-y-1/2 text-zinc-600" />
             </div>
           </div>
 
           <button
             type="submit"
             disabled={busy}
-            className="w-full bg-red-600 hover:bg-red-700 disabled:opacity-60 text-white font-extrabold text-xs uppercase tracking-widest py-3.5 rounded-xl shadow-sm transition-all flex items-center justify-center gap-2 group cursor-pointer"
+            className="w-full bg-red-600 hover:bg-red-700 disabled:opacity-60 text-white font-extrabold text-[15px] uppercase tracking-widest py-4 rounded-xl shadow-sm transition-all flex items-center justify-center gap-2 group cursor-pointer"
           >
             {busy ? 'Please wait…' : 'Admin Sign In'}
-            <ArrowRight size={14} className="group-hover:translate-x-1 transition-transform" />
+            <ArrowRight size={16} className="group-hover:translate-x-1 transition-transform" />
           </button>
         </form>
       )}
 
-      <div className="mt-8 border-t border-zinc-800 pt-4 text-center space-y-2">
+      <div className="mt-8 border-t border-zinc-700 pt-5 text-center space-y-2">
         {mode === 'login' && (
           <button
             type="button"
@@ -270,7 +273,7 @@ export const AuthScreen: React.FC<AuthScreenProps> = ({
               setError('');
               setSuccess('');
             }}
-            className="block w-full text-xs text-zinc-400 hover:text-white font-bold underline"
+            className="block w-full text-[14px] text-zinc-100 hover:text-white font-bold underline underline-offset-4"
           >
             Forgot password?
           </button>
@@ -283,7 +286,7 @@ export const AuthScreen: React.FC<AuthScreenProps> = ({
               setError('');
               setSuccess('');
             }}
-            className="text-xs text-zinc-300 hover:text-white font-bold underline transition-colors"
+            className="text-[14px] text-zinc-100 hover:text-white font-bold underline underline-offset-4 transition-colors"
           >
             Back to Admin Sign In
           </button>
