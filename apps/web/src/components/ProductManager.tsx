@@ -2199,9 +2199,13 @@ export const ProductManager: React.FC<ProductManagerProps> = ({
                 </div>
                 <button
                   type="button"
-                  onClick={closeProductModal}
+                  onClick={(e) => {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    void closeProductModal();
+                  }}
                   disabled={isSavingProduct}
-                  className="p-2 hover:bg-emerald-50 text-emerald-800 rounded-xl transition-colors cursor-pointer shrink-0 disabled:opacity-50"
+                  className="p-2 hover:bg-emerald-50 text-emerald-800 rounded-xl transition-colors cursor-pointer shrink-0 disabled:opacity-50 relative z-10"
                   aria-label="Close"
                 >
                   <X size={18} />
@@ -2998,7 +3002,11 @@ export const ProductManager: React.FC<ProductManagerProps> = ({
                 <div className="flex gap-2 ml-auto">
                   <button
                     type="button"
-                    onClick={closeProductModal}
+                    onClick={(e) => {
+                      e.preventDefault();
+                      e.stopPropagation();
+                      void closeProductModal();
+                    }}
                     disabled={isSavingProduct}
                     className="px-5 py-2.5 text-xs font-bold text-emerald-800 bg-emerald-50 hover:bg-emerald-100 rounded-xl cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
                   >

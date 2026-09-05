@@ -87,7 +87,7 @@ export function UiFeedbackHost() {
   return (
     <>
       {/* Toasts */}
-      <div className="fixed top-4 right-4 z-[100] flex flex-col gap-2 max-w-sm w-[calc(100%-2rem)] pointer-events-none">
+      <div className="fixed top-4 right-4 z-[1200] flex flex-col gap-2 max-w-sm w-[calc(100%-2rem)] pointer-events-none">
         {toasts.map((t) => {
           const Icon =
             t.tone === 'success' ? CheckCircle2 : t.tone === 'error' ? XCircle : Info;
@@ -126,10 +126,10 @@ export function UiFeedbackHost() {
         })}
       </div>
 
-      {/* Confirm modal */}
+      {/* Confirm modal — above product/editor portals (z-200+) */}
       {confirm && (
         <div
-          className="fixed inset-0 z-[110] bg-zinc-950/70 backdrop-blur-sm flex items-center justify-center p-4"
+          className="fixed inset-0 z-[1100] bg-zinc-950/70 backdrop-blur-sm flex items-center justify-center p-4"
           role="dialog"
           aria-modal="true"
           onClick={() => closeConfirm(false)}
