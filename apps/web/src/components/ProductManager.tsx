@@ -79,6 +79,103 @@ const CATEGORY_ICONS = [
   { id: 'Award', label: 'Award', icon: Award },
 ];
 
+/** Empty-string friendly money field so users can clear and type freely. */
+type MoneyValue = number | '';
+
+function parseMoneyDraft(raw: string, max?: number): MoneyValue {
+  if (raw.trim() === '') return '';
+  const n = Number(raw);
+  if (!Number.isFinite(n)) return '';
+  let next = Math.max(0, n);
+  if (typeof max === 'number') next = Math.min(max, next);
+  return next;
+}
+
+function moneyNumber(v: MoneyValue): number {
+  return typeof v === 'number' && Number.isFinite(v) ? Math.max(0, v) : 0;
+}
+
+function MoneyField({
+  label,
+  value,
+  onChange,
+  onBlur,
+  step = 10,
+  min = 0,
+  max,
+  required,
+  hint,
+  readOnly,
+  className = '',
+}: {
+  label: string;
+  value: MoneyValue;
+  onChange: (next: MoneyValue) => void;
+  onBlur?: () => void;
+  step?: number;
+  min?: number;
+  max?: number;
+  required?: boolean;
+  hint?: string;
+  readOnly?: boolean;
+  className?: string;
+}) {
+  const num = moneyNumber(value);
+  const bump = (delta: number) => {
+    if (readOnly) return;
+    let next = Math.max(min, num + delta);
+    if (typeof max === 'number') next = Math.min(max, next);
+    onChange(next);
+  };
+
+  return (
+    <div className={className}>
+      <label className="font-bold text-emerald-950 block mb-1 font-sans">
+        {label}
+        {required ? ' *' : ''}
+      </label>
+      <div className="flex items-stretch gap-1">
+        <button
+          type="button"
+          tabIndex={-1}
+          disabled={readOnly}
+          onClick={() => bump(-step)}
+          className="shrink-0 w-9 rounded-xl border border-emerald-200 bg-white text-emerald-900 font-black text-sm hover:bg-emerald-50 disabled:opacity-40 cursor-pointer"
+          aria-label={`Decrease ${label}`}
+        >
+          −
+        </button>
+        <input
+          type="number"
+          inputMode="decimal"
+          required={required}
+          min={min}
+          max={max}
+          step={step}
+          readOnly={readOnly}
+          value={value === '' ? '' : value}
+          onChange={(e) => onChange(parseMoneyDraft(e.target.value, max))}
+          onFocus={(e) => e.currentTarget.select()}
+          onBlur={onBlur}
+          className="w-full min-w-0 bg-emerald-50/40 border border-emerald-200 rounded-xl px-3 py-2 font-bold font-mono read-only:bg-emerald-100/60"
+          placeholder="0"
+        />
+        <button
+          type="button"
+          tabIndex={-1}
+          disabled={readOnly}
+          onClick={() => bump(step)}
+          className="shrink-0 w-9 rounded-xl border border-emerald-200 bg-white text-emerald-900 font-black text-sm hover:bg-emerald-50 disabled:opacity-40 cursor-pointer"
+          aria-label={`Increase ${label}`}
+        >
+          +
+        </button>
+      </div>
+      {hint ? <p className="text-[10px] text-emerald-700/70 mt-1">{hint}</p> : null}
+    </div>
+  );
+}
+
 export const ProductManager: React.FC<ProductManagerProps> = ({
   products,
   setProducts,
@@ -307,13 +404,17 @@ export const ProductManager: React.FC<ProductManagerProps> = ({
   const [pSkuMode, setPSkuMode] = useState<'auto' | 'manual'>('auto');
   const [pBarcodeMode, setPBarcodeMode] = useState<'none' | 'auto' | 'manual'>('none');
   const [labelPrint, setLabelPrint] = useState<{ barcode: string; sellPrice: number; name: string } | null>(null);
-  const [pCostPrice, setPCostPrice] = useState<number>(1200);
-  const [pOriginalPrice, setPOriginalPrice] = useState<number>(1850);
+  const [pCostPrice, setPCostPrice] = useState<MoneyValue>(1200);
+  const [pOriginalPrice, setPOriginalPrice] = useState<MoneyValue>(1850);
   const [pDiscountMode, setPDiscountMode] = useState<DiscountMode>('amount');
-  const [pDiscountAmount, setPDiscountAmount] = useState<number>(0);
-  const [pDiscountPercent, setPDiscountPercent] = useState<number>(0);
-  const pFinalPrice = calcSalePrice(pOriginalPrice, pDiscountMode, pDiscountAmount, pDiscountPercent);
-  const pHasDiscount = pFinalPrice < pOriginalPrice && pOriginalPrice > 0;
+  const [pDiscountAmount, setPDiscountAmount] = useState<MoneyValue>(0);
+  const [pDiscountPercent, setPDiscountPercent] = useState<MoneyValue>(0);
+  const [pFinalDraft, setPFinalDraft] = useState<MoneyValue | null>(null);
+  const originalNum = moneyNumber(pOriginalPrice);
+  const discountAmountNum = moneyNumber(pDiscountAmount);
+  const discountPercentNum = moneyNumber(pDiscountPercent);
+  const pFinalPrice = calcSalePrice(originalNum, pDiscountMode, discountAmountNum, discountPercentNum);
+  const pHasDiscount = pFinalPrice < originalNum && originalNum > 0;
   const pStock = Object.values(pSizeStocks).reduce((sum, n) => sum + (Number(n) || 0), 0);
   const pSizes = Object.keys(pSizeStocks);
   const [pLowStockThreshold, setPLowStockThreshold] = useState<number>(3);
@@ -425,6 +526,7 @@ export const ProductManager: React.FC<ProductManagerProps> = ({
     setPDiscountMode('amount');
     setPDiscountAmount(0);
     setPDiscountPercent(0);
+    setPFinalDraft(null);
     setPLowStockThreshold(3);
     setPIsClearance(false);
     setPIsDamaged(false);
@@ -449,10 +551,45 @@ export const ProductManager: React.FC<ProductManagerProps> = ({
     setPStatus('Active');
   };
 
-  const closeProductModal = () => {
+  const closeProductModal = async () => {
     if (isSavingProduct) return;
+    const ok = await confirmAsync({
+      title: 'Leave without saving?',
+      message:
+        'Your product form will close and unsaved changes will be lost. Stay on this form until Save & Publish if you want to keep editing.',
+      confirmText: 'Close form',
+      cancelText: 'Keep editing',
+      danger: true,
+    });
+    if (!ok) return;
     setIsProductModalOpen(false);
     resetProductForm();
+  };
+
+  const applyFinalSellingPrice = (next: MoneyValue) => {
+    const original = originalNum;
+    if (next === '') {
+      setPDiscountMode('amount');
+      setPDiscountAmount('');
+      setPDiscountPercent(0);
+      return;
+    }
+    const sale = Math.max(0, next);
+    setPDiscountMode('amount');
+    if (original <= 0) {
+      // No MRP yet — treat typed sale as the original too so it sticks
+      setPOriginalPrice(sale);
+      setPDiscountAmount(0);
+      setPDiscountPercent(0);
+      return;
+    }
+    if (sale >= original) {
+      setPDiscountAmount(0);
+      setPDiscountPercent(0);
+      return;
+    }
+    setPDiscountAmount(original - sale);
+    setPDiscountPercent(calcDiscountPercent(original, sale));
   };
 
   // Populate Product Form for Edit
@@ -513,6 +650,7 @@ export const ProductManager: React.FC<ProductManagerProps> = ({
     setPDiscountMode(cleanPercent ? 'percent' : 'amount');
     setPDiscountAmount(amount);
     setPDiscountPercent(percent);
+    setPFinalDraft(null);
     setPLowStockThreshold(product.lowStockThreshold || 3);
     setPIsClearance(product.isClearance || false);
     setPIsDamaged(product.isDamaged || false);
@@ -628,7 +766,7 @@ export const ProductManager: React.FC<ProductManagerProps> = ({
     const saveStatus = pendingSaveStatusRef.current ?? pStatus;
     pendingSaveStatusRef.current = null;
     const calculatedPrice = pFinalPrice > 0 ? pFinalPrice : 1000;
-    const discountAmount = pHasDiscount ? calcDiscountAmount(pOriginalPrice, calculatedPrice) : 0;
+    const discountAmount = pHasDiscount ? calcDiscountAmount(originalNum, calculatedPrice) : 0;
     const uniqueSuffix = `${Date.now().toString(36)}${Math.floor(Math.random() * 900 + 100)}`;
     const baseSlug = pName.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '') || 'jersey';
     const finalSlug = editingProduct?.slug || `${baseSlug}-${uniqueSuffix}`;
@@ -692,10 +830,10 @@ export const ProductManager: React.FC<ProductManagerProps> = ({
       color: pColor,
       sku: resolvedSku,
       barcode: resolvedBarcode,
-      costPrice: pCostPrice,
+      costPrice: moneyNumber(pCostPrice),
       sellingPrice: calculatedPrice,
       price: calculatedPrice,
-      originalPrice: pHasDiscount ? pOriginalPrice : null,
+      originalPrice: pHasDiscount ? originalNum : null,
       discount: pHasDiscount ? discountAmount : null,
       stock: pStock,
       lowStockThreshold: Number(pLowStockThreshold) || 3,
@@ -2448,28 +2586,20 @@ export const ProductManager: React.FC<ProductManagerProps> = ({
                   </div>
                 </div>
                 <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-xs font-mono">
-                  <div>
-                    <label className="font-bold text-emerald-950 block mb-1 font-sans">Original Price (MRP) *</label>
-                    <input
-                      type="number"
-                      required
-                      min={0}
-                      value={pOriginalPrice}
-                      onChange={(e) => setPOriginalPrice(Math.max(0, Number(e.target.value) || 0))}
-                      className="w-full bg-emerald-50/40 border border-emerald-200 rounded-xl px-3 py-2 font-bold"
-                    />
-                  </div>
+                  <MoneyField
+                    label="Original Price (MRP)"
+                    value={pOriginalPrice}
+                    onChange={setPOriginalPrice}
+                    required
+                    step={50}
+                  />
 
-                  <div>
-                    <label className="font-bold text-emerald-950 block mb-1 font-sans">Cost Price</label>
-                    <input
-                      type="number"
-                      min={0}
-                      value={pCostPrice}
-                      onChange={(e) => setPCostPrice(Math.max(0, Number(e.target.value) || 0))}
-                      className="w-full bg-emerald-50/40 border border-emerald-200 rounded-xl px-3 py-2"
-                    />
-                  </div>
+                  <MoneyField
+                    label="Cost Price"
+                    value={pCostPrice}
+                    onChange={setPCostPrice}
+                    step={50}
+                  />
 
                   <div className="col-span-2 md:col-span-2 space-y-2">
                     <label className="font-bold text-emerald-950 block mb-1 font-sans">Discount</label>
@@ -2477,7 +2607,7 @@ export const ProductManager: React.FC<ProductManagerProps> = ({
                       <button
                         type="button"
                         onClick={() => setPDiscountMode('amount')}
-                        className={`flex-1 px-3 py-1.5 text-[10px] font-black uppercase tracking-wider ${
+                        className={`flex-1 px-3 py-1.5 text-[10px] font-black uppercase tracking-wider cursor-pointer ${
                           pDiscountMode === 'amount' ? 'bg-emerald-800 text-white' : 'bg-white text-emerald-800'
                         }`}
                       >
@@ -2486,7 +2616,7 @@ export const ProductManager: React.FC<ProductManagerProps> = ({
                       <button
                         type="button"
                         onClick={() => setPDiscountMode('percent')}
-                        className={`flex-1 px-3 py-1.5 text-[10px] font-black uppercase tracking-wider ${
+                        className={`flex-1 px-3 py-1.5 text-[10px] font-black uppercase tracking-wider cursor-pointer ${
                           pDiscountMode === 'percent' ? 'bg-emerald-800 text-white' : 'bg-white text-emerald-800'
                         }`}
                       >
@@ -2494,44 +2624,48 @@ export const ProductManager: React.FC<ProductManagerProps> = ({
                       </button>
                     </div>
                     {pDiscountMode === 'amount' ? (
-                      <input
-                        type="number"
-                        min={0}
+                      <MoneyField
+                        label="Discount amount"
                         value={pDiscountAmount}
-                        onChange={(e) => setPDiscountAmount(Math.max(0, Number(e.target.value) || 0))}
-                        placeholder="e.g. 150"
-                        className="w-full bg-emerald-50/40 border border-emerald-200 rounded-xl px-3 py-2"
+                        onChange={setPDiscountAmount}
+                        step={10}
+                        max={originalNum > 0 ? originalNum : undefined}
+                        className="[&>label]:sr-only"
                       />
                     ) : (
-                      <input
-                        type="number"
-                        min={0}
-                        max={100}
+                      <MoneyField
+                        label="Discount percent"
                         value={pDiscountPercent}
-                        onChange={(e) =>
-                          setPDiscountPercent(Math.min(100, Math.max(0, Number(e.target.value) || 0)))
-                        }
-                        placeholder="e.g. 10"
-                        className="w-full bg-emerald-50/40 border border-emerald-200 rounded-xl px-3 py-2"
+                        onChange={setPDiscountPercent}
+                        step={1}
+                        max={100}
+                        className="[&>label]:sr-only"
                       />
                     )}
                   </div>
 
-                  <div>
-                    <label className="font-bold text-emerald-950 block mb-1 font-sans">Final Selling Price</label>
-                    <div className="w-full bg-emerald-100/60 border border-emerald-200 rounded-xl px-3 py-2 font-bold font-mono text-emerald-950">
-                      ৳{pFinalPrice.toLocaleString()}
-                    </div>
-                    <p className="text-[10px] text-emerald-700/70 mt-1">
-                      {pHasDiscount
-                        ? `Auto: ${pOriginalPrice.toLocaleString()} − ${
+                  <MoneyField
+                    label="Final Selling Price"
+                    value={pFinalDraft !== null ? pFinalDraft : pFinalPrice}
+                    onChange={(next) => {
+                      setPFinalDraft(next);
+                      if (next !== '') applyFinalSellingPrice(next);
+                    }}
+                    onBlur={() => {
+                      if (pFinalDraft === '') applyFinalSellingPrice('');
+                      setPFinalDraft(null);
+                    }}
+                    step={50}
+                    hint={
+                      pHasDiscount
+                        ? `Auto: ${originalNum.toLocaleString()} − ${
                             pDiscountMode === 'percent'
-                              ? `${pDiscountPercent}%`
-                              : `৳${pDiscountAmount.toLocaleString()}`
+                              ? `${discountPercentNum}%`
+                              : `৳${discountAmountNum.toLocaleString()}`
                           }`
-                        : 'No discount — same as original'}
-                    </p>
-                  </div>
+                        : 'Clear & type, or use − / +. Edits update discount.'
+                    }
+                  />
 
                   <div>
                     <label className="font-bold text-emerald-950 block mb-1 font-sans">Total Stock</label>
@@ -2545,12 +2679,12 @@ export const ProductManager: React.FC<ProductManagerProps> = ({
                 {pHasDiscount && (
                   <div className="rounded-xl border border-rose-100 bg-rose-50/50 px-3 py-2 text-[11px] font-mono text-rose-800">
                     Storefront preview:{' '}
-                    <span className="line-through opacity-70">৳{pOriginalPrice.toLocaleString()}</span>
+                    <span className="line-through opacity-70">৳{originalNum.toLocaleString()}</span>
                     {' → '}
                     <span className="font-black">৳{pFinalPrice.toLocaleString()}</span>
                     {' '}
                     <span className="font-black">
-                      ({calcDiscountPercent(pOriginalPrice, pFinalPrice)}% OFF)
+                      ({calcDiscountPercent(originalNum, pFinalPrice)}% OFF)
                     </span>
                   </div>
                 )}
