@@ -273,7 +273,7 @@ const DEFAULT_APP_CONFIG: AppConfig = {
     { id: 'hero-slider', name: 'Hero Banner Slider', visible: true, bgColor: 'bg-black', padding: 'py-0', margin: 'my-0', title: 'WORLD CUP 2026 EDITION', subtitle: 'The Grandest Stage of Football', status: 'active' },
     { id: 'trending-searches', name: 'Trending Searches bar', visible: true, bgColor: 'bg-black', padding: 'py-3.5', margin: 'my-2', status: 'active' },
     { id: 'live-auction', name: 'Bidding & Live Auctions', visible: false, bgColor: 'bg-black', padding: 'py-12', margin: 'my-0', status: 'inactive' },
-    { id: 'daily-deals', name: 'Daily Deals Countdown', visible: false, bgColor: 'bg-amber-500/10', padding: 'py-12', margin: 'my-4', title: 'LIMITED DAILY DEAL DECK', subtitle: '24-hour flash sale on ultra rare collectibles', status: 'inactive' },
+    { id: 'daily-deals', name: 'Daily Deals Countdown', visible: false, bgColor: 'bg-black', padding: 'py-12', margin: 'my-4', title: 'LIMITED DAILY DEAL DECK', subtitle: '24-hour flash sale on ultra rare collectibles', status: 'inactive' },
     { id: 'featured-collection', name: 'Featured Collection Row', visible: true, bgColor: 'bg-black', padding: 'py-12', margin: 'my-0', title: 'VERIFIED FEATURED CLASSICS', subtitle: 'Curated 1-of-1 historic collectibles', status: 'active', sectionType: 'product-row', productCategory: 'Featured', buttonText: 'VIEW ALL', buttonUrl: 'listing', maxProducts: 4 },
     { id: 'latest-products', name: 'Latest Products Row', visible: true, bgColor: 'bg-black', padding: 'py-12', margin: 'my-0', title: 'LATEST WORKSHOP DROPS', subtitle: 'Freshly authenticated physical catalog arrivals', status: 'active', sectionType: 'product-row', productCategory: 'New In', buttonText: '', maxProducts: 4 },
     { id: 'retro-collection', name: 'Retro Collection Row', visible: true, bgColor: 'bg-black', padding: 'py-12', margin: 'my-0', title: 'RETRO', subtitle: 'Rare 80s, 90s & 2000s vintage reissues', status: 'active', sectionType: 'product-row', productCategory: 'Retro', buttonText: 'VIEW ALL', buttonUrl: 'listing', maxProducts: 4 },
@@ -283,20 +283,20 @@ const DEFAULT_APP_CONFIG: AppConfig = {
     { id: 'kids-collection', name: 'Kids Collection Row', visible: true, bgColor: 'bg-black', padding: 'py-12', margin: 'my-0', title: 'KIDS', subtitle: 'Junior kits sized for ages 1–14', status: 'active', sectionType: 'product-row', productCategory: 'Kids', buttonText: 'VIEW ALL', buttonUrl: 'listing', maxProducts: 4 },
     { id: 'customised-kit', name: 'Customised Kit Row', visible: true, bgColor: 'bg-black', padding: 'py-12', margin: 'my-0', title: 'CUSTOMISED KIT', subtitle: 'Custom printed kits with full size guide', status: 'active', sectionType: 'product-row', productCategory: 'Customised Kit', buttonText: 'VIEW ALL', buttonUrl: 'listing', maxProducts: 4 },
     { id: 'fan-edition', name: 'Fan Edition Row', visible: true, bgColor: 'bg-black', padding: 'py-12', margin: 'my-0', title: 'FAN EDITION', subtitle: 'Comfortable stadium fan-fit replicas', status: 'active', sectionType: 'product-row', productCategory: 'Fan Edition', buttonText: 'VIEW ALL', buttonUrl: 'listing', maxProducts: 4 },
-    { id: 'preorder-jacket', name: 'Pre-Order Jacket Row', visible: true, bgColor: 'bg-amber-50/40', padding: 'py-12', margin: 'my-0', title: 'PRE-ORDER · JACKET', subtitle: 'Reserve jackets before they land in Dhaka', status: 'active', sectionType: 'product-row', productCategory: 'Jacket', buttonText: 'VIEW ALL', buttonUrl: 'listing', maxProducts: 4 },
+    { id: 'preorder-jacket', name: 'Pre-Order Jacket Row', visible: true, bgColor: 'bg-black', padding: 'py-12', margin: 'my-0', title: 'PRE-ORDER · JACKET', subtitle: 'Reserve jackets before they land in Dhaka', status: 'active', sectionType: 'product-row', productCategory: 'Jacket', buttonText: 'VIEW ALL', buttonUrl: 'listing', maxProducts: 4 },
     { id: 'preorder-track-suit', name: 'Pre-Order Track Suit Row', visible: true, bgColor: 'bg-black', padding: 'py-12', margin: 'my-0', title: 'PRE-ORDER · TRACK SUIT', subtitle: 'Upcoming track suit drops — reserve yours', status: 'active', sectionType: 'product-row', productCategory: 'Track Suit', buttonText: 'VIEW ALL', buttonUrl: 'listing', maxProducts: 4 },
-    { id: 'preorder-badminton', name: 'Pre-Order Badminton Row', visible: true, bgColor: 'bg-amber-50/40', padding: 'py-12', margin: 'my-0', title: 'PRE-ORDER · BADMINTON RACKET', subtitle: 'Badminton rackets available for pre-order', status: 'active', sectionType: 'product-row', productCategory: 'Badminton Racket', buttonText: 'VIEW ALL', buttonUrl: 'listing', maxProducts: 4 },
-    { id: 'worldcup-collection', name: 'World Cup Vault Section', visible: false, bgColor: 'bg-zinc-900/5', padding: 'py-12', margin: 'my-0', title: 'WORLD CUP HERITAGE VAULT', subtitle: 'Historical match issue kits from 1970 to 2026', status: 'inactive' },
+    { id: 'preorder-badminton', name: 'Pre-Order Badminton Row', visible: true, bgColor: 'bg-black', padding: 'py-12', margin: 'my-0', title: 'PRE-ORDER · BADMINTON RACKET', subtitle: 'Badminton rackets available for pre-order', status: 'active', sectionType: 'product-row', productCategory: 'Badminton Racket', buttonText: 'VIEW ALL', buttonUrl: 'listing', maxProducts: 4 },
+    { id: 'worldcup-collection', name: 'World Cup Vault Section', visible: false, bgColor: 'bg-black', padding: 'py-12', margin: 'my-0', title: 'WORLD CUP HERITAGE VAULT', subtitle: 'Historical match issue kits from 1970 to 2026', status: 'inactive' },
     { id: 'current-season', name: 'Current Season Row', visible: true, bgColor: 'bg-black', padding: 'py-12', margin: 'my-0', title: 'CURRENT SEASON STOCK', subtitle: 'Direct from authorized team supplier docks', status: 'active', sectionType: 'product-row', productCategory: 'Current Season', buttonText: 'EXPLORE MODERN', buttonUrl: 'listing', maxProducts: 4 },
-    { id: 'mystery-box', name: 'Mystery Box Challenge', visible: false, bgColor: 'bg-gradient-to-r from-purple-950 to-indigo-950', padding: 'py-14', margin: 'my-6', title: 'THE VAULT MYSTERY BOX', subtitle: 'Receive one random 100% authentic retro or modern kit with premium certificates', status: 'inactive' },
+    { id: 'mystery-box', name: 'Mystery Box Challenge', visible: false, bgColor: 'bg-black', padding: 'py-14', margin: 'my-6', title: 'THE VAULT MYSTERY BOX', subtitle: 'Receive one random 100% authentic retro or modern kit with premium certificates', status: 'inactive' },
     { id: 'clearance', name: 'Clearance & Sale Rack', visible: true, bgColor: 'bg-black', padding: 'py-12', margin: 'my-0', title: 'OUTLET CLEARANCE SALE', subtitle: 'End of collection deadstock at cost prices', status: 'active', sectionType: 'product-row', productCategory: 'Clearance', buttonText: 'EXPLORE OUTLET', buttonUrl: 'listing', maxProducts: 4 },
     { id: 'best-sellers', name: 'Best Sellers Grid', visible: true, bgColor: 'bg-black', padding: 'py-12', margin: 'my-0', title: 'BEST SELLERS', subtitle: 'Most reviewed and requested reissues', status: 'active', sectionType: 'product-row', productCategory: 'Best Sellers', buttonText: 'VIEW ALL', buttonUrl: 'listing', maxProducts: 4 },
     { id: 'shop-by-legends', name: 'Shop by Legends portraits', visible: false, bgColor: 'bg-black', padding: 'py-12', margin: 'my-0', title: 'THE LEGENDS STORE', subtitle: 'Embroidered match prints of historical deities', status: 'inactive' },
     { id: 'community-gallery', name: 'Dhaka Fan Community Gallery', visible: true, bgColor: 'bg-black', padding: 'py-12', margin: 'my-0', title: 'COLLECTORS IN DHAKA', subtitle: 'Fan gallery sharing local unboxings on Bailey Road', status: 'active' },
     { id: 'testimonials', name: 'Testimonials Deck', visible: true, bgColor: 'bg-black', padding: 'py-12', margin: 'my-0', title: 'WHAT COLLECTORS DECLARE', subtitle: 'Genuine reviews from verified buyers', status: 'active' },
-    { id: 'video-banner', name: 'Video Feature Banner', visible: false, bgColor: 'bg-zinc-950', padding: 'py-16', margin: 'my-0', title: 'THE ART OF AUTHENTICATION', subtitle: 'A look inside our 12-point micro-fabric check laboratory in Dhaka', status: 'inactive' },
+    { id: 'video-banner', name: 'Video Feature Banner', visible: false, bgColor: 'bg-black', padding: 'py-16', margin: 'my-0', title: 'THE ART OF AUTHENTICATION', subtitle: 'A look inside our 12-point micro-fabric check laboratory in Dhaka', status: 'inactive' },
     { id: 'instagram-feed', name: 'Instagram Feed Mockup', visible: false, bgColor: 'bg-black', padding: 'py-12', margin: 'my-0', title: 'FOLLOW @JERSEYADDICTS_BD', subtitle: 'Daily vintage drops, buyer photos, and restocks', status: 'inactive' },
-    { id: 'newsletter', name: 'Newsletter Subscription', visible: true, bgColor: 'bg-black', padding: 'py-12', margin: 'my-4', title: 'JOIN THE EXCLUSIVE CIRCLE', subtitle: 'Be first to receive physical workshop inventory arrivals', status: 'active' },
+    { id: 'newsletter', name: 'Newsletter Subscription', visible: false, bgColor: 'bg-black', padding: 'py-12', margin: 'my-4', title: 'JOIN THE EXCLUSIVE CIRCLE', subtitle: 'Be first to receive physical workshop inventory arrivals', status: 'inactive' },
     { id: 'store-locations', name: 'Physical Store Maps', visible: true, bgColor: 'bg-black', padding: 'py-12', margin: 'my-0', title: 'PHYSICAL OUTLET POINTS', subtitle: 'Visit us for physical sizing and authentications', status: 'active' }
   ],
   banners: [
@@ -557,7 +557,8 @@ const DEFAULT_APP_CONFIG: AppConfig = {
     }
   ],
   menuItems: [
-    // Main Menu — league storefront pages
+    // Main Menu — all stock + league storefront pages
+    { id: 'nav-main-0', name: 'All Jerseys', placement: 'Main Menu', parentId: null, icon: 'Layers', order: 0, url: 'All', status: 'Active' },
     { id: 'nav-main-1', name: 'Premier League', placement: 'Main Menu', parentId: null, icon: 'Trophy', order: 1, url: 'Premier League', status: 'Active' },
     { id: 'nav-main-2', name: 'LALIGA', placement: 'Main Menu', parentId: null, icon: 'Award', order: 2, url: 'La Liga', status: 'Active' },
     { id: 'nav-main-3', name: 'Ligue 1', placement: 'Main Menu', parentId: null, icon: 'Shirt', order: 3, url: 'Ligue 1', status: 'Active' },
@@ -2211,6 +2212,12 @@ export default function App() {
     setSortBy('featured');
   };
 
+  const showAllJerseys = () => {
+    resetFilters();
+    goToPage('listing', { search: '', category: 'All' });
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  };
+
   const getThemeBgClass = () => {
     return 'bg-[#121212]';
   };
@@ -2253,6 +2260,8 @@ export default function App() {
         />
       )}
 
+      <div className="flex w-full min-w-0 flex-1">
+        <div className="flex-1 min-w-0 flex flex-col w-full">
       {/* MAIN BODY DISPLAY — pb for fixed mobile bottom nav (storefront only) */}
       <main className={`flex-grow w-full min-w-0 overflow-x-hidden ${isAdminShell ? '' : 'pb-20 lg:pb-0'}`}>
         
@@ -2382,6 +2391,9 @@ export default function App() {
                 </h1>
                 <p className="text-xs text-zinc-400 font-mono mt-1">
                   Showing {filteredProducts.length} verified original jerseys
+                  {(!selectedCategory || selectedCategory === 'All') && selectedBrand === 'All' && selectedCondition === 'All' && !searchQuery
+                    ? ' · full stock'
+                    : ''}
                   {selectedBrand !== 'All' ? ` · ${selectedBrand}` : ''}
                   {selectedCondition !== 'All' ? ` · ${selectedCondition}` : ''}
                 </p>
@@ -2951,7 +2963,13 @@ export default function App() {
           <div className="pb-20 lg:pb-0">
             <Footer currentPage={currentPage} setCurrentPage={setCurrentPageNav} appConfig={appConfig} />
           </div>
+        </>
+      )}
+        </div>
+      </div>
 
+      {!isAdminShell && (
+        <>
           {/* Mobile sticky bottom nav — Home / Search / Categories / Wishlist / Cart */}
           <MobileBottomNav
             currentPage={currentPage}
@@ -2973,10 +2991,7 @@ export default function App() {
               });
             }}
             onCategories={() => {
-              setSearchQuery('');
-              setSelectedCategory('All');
-              goToPage('listing', { search: '', category: 'All' });
-              window.scrollTo({ top: 0, behavior: 'smooth' });
+              showAllJerseys();
             }}
             onWishlist={() => {
               goToPage('dashboard');

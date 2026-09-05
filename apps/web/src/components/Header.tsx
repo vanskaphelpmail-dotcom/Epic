@@ -32,6 +32,8 @@ interface HeaderProps {
   formatPrice: (amount: number) => string;
   /** Live catalog for real-time keyword / name suggestions */
   products?: Product[];
+  /** When true, desktop league strip is hidden (moved to left sidebar). */
+  hideDesktopMainNav?: boolean;
 }
 
 export const Header: React.FC<HeaderProps> = ({
@@ -50,6 +52,7 @@ export const Header: React.FC<HeaderProps> = ({
   appConfig,
   formatPrice,
   products = [],
+  hideDesktopMainNav = false,
 }) => {
   const [showSearchDropdown, setShowSearchDropdown] = useState(false);
   const [showMobileSearchDropdown, setShowMobileSearchDropdown] = useState(false);
@@ -66,6 +69,7 @@ export const Header: React.FC<HeaderProps> = ({
     const syncOffset = () => {
       const h = Math.ceil(el.getBoundingClientRect().height);
       document.documentElement.style.setProperty('--jab-mobile-header-h', `${h}px`);
+      document.documentElement.style.setProperty('--jab-header-h', `${h}px`);
     };
     syncOffset();
     const ro = new ResizeObserver(syncOffset);
@@ -204,6 +208,7 @@ export const Header: React.FC<HeaderProps> = ({
     .sort((a, b) => a.order - b.order);
 
   const DEFAULT_MAIN_MENU: MenuItem[] = [
+    { id: 'nav-main-0', name: 'All Jerseys', placement: 'Main Menu', order: 0, url: 'All', status: 'Active', icon: 'Layers' },
     { id: 'nav-main-1', name: 'Premier League', placement: 'Main Menu', order: 1, url: 'Premier League', status: 'Active', icon: 'Trophy' },
     { id: 'nav-main-2', name: 'LALIGA', placement: 'Main Menu', order: 2, url: 'La Liga', status: 'Active', icon: 'Award' },
     { id: 'nav-main-3', name: 'Ligue 1', placement: 'Main Menu', order: 3, url: 'Ligue 1', status: 'Active', icon: 'Shirt' },
@@ -215,9 +220,31 @@ export const Header: React.FC<HeaderProps> = ({
     { id: 'nav-main-9', name: 'Outlet', placement: 'Main Menu', order: 9, url: 'Clearance', status: 'Active', icon: 'Tag' },
   ];
 
-  const mainNavItems = (rawMainNavItems.length > 0 ? rawMainNavItems : DEFAULT_MAIN_MENU).filter(
-    (m) => !/mystery/i.test(m.name) && m.url !== 'Mystery'
-  );
+  const mainNavItems = (() => {
+    const base = (rawMainNavItems.length > 0 ? rawMainNavItems : DEFAULT_MAIN_MENU).filter(
+      (m) => !/mystery/i.test(m.name) && m.url !== 'Mystery',
+    );
+    const hasAll = base.some(
+      (m) =>
+        m.url === 'All' ||
+        m.url === 'listing' ||
+        m.url === '#listing' ||
+        /all\s*jerseys/i.test(m.name),
+    );
+    if (hasAll) return base;
+    return [
+      {
+        id: 'nav-all-jerseys',
+        name: 'All Jerseys',
+        placement: 'Main Menu' as const,
+        order: 0,
+        url: 'All',
+        status: 'Active' as const,
+        icon: 'Layers',
+      },
+      ...base,
+    ];
+  })();
 
   const rawMegaNavItems = activeMenuItems
     .filter(m => m.placement === 'Mega Menu')
@@ -607,7 +634,8 @@ export const Header: React.FC<HeaderProps> = ({
         )}
       </div>
 
-      {/* Dynamic Main & Mega Navigation Row */}
+      {/* Dynamic Main & Mega Navigation Row — desktop strip optional (left sidebar preferred) */}
+      {!hideDesktopMainNav && (
       <nav className="bg-black border-b border-zinc-800 py-2.5 px-4 lg:px-12 hidden lg:flex items-center justify-center gap-2 xl:gap-3 relative flex-wrap">
         {mainNavItems.map((item) => {
           const active = isStorefrontNavActive(item.url, selectedCategory, currentPage);
@@ -699,6 +727,7 @@ export const Header: React.FC<HeaderProps> = ({
           </div>
         )}
       </nav>
+      )}
 
       {/* Mobile drawer — fixed so sticky header overflow never clips it */}
       {isMobileMenuOpen && (

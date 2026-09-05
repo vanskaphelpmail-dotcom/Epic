@@ -112,7 +112,7 @@ export const DEFAULT_HOMEPAGE_SECTIONS: PageSection[] = [
   { id: 'hero-slider', name: 'Hero Banner Slider', visible: true, bgColor: 'bg-black', padding: 'py-0', margin: 'my-0', title: 'WORLD CUP 2026 EDITION', subtitle: 'The Grandest Stage of Football', status: 'active' },
   { id: 'trending-searches', name: 'Trending Searches bar', visible: true, bgColor: 'bg-black', padding: 'py-3.5', margin: 'my-2', status: 'active' },
   { id: 'live-auction', name: 'Bidding & Live Auctions', visible: false, bgColor: 'bg-black', padding: 'py-12', margin: 'my-0', status: 'inactive' },
-  { id: 'daily-deals', name: 'Daily Deals Countdown', visible: false, bgColor: 'bg-zinc-950', padding: 'py-12', margin: 'my-4', title: 'LIMITED DAILY DEAL DECK', subtitle: '24-hour flash sale on ultra rare collectibles', status: 'inactive' },
+  { id: 'daily-deals', name: 'Daily Deals Countdown', visible: false, bgColor: 'bg-black', padding: 'py-12', margin: 'my-4', title: 'LIMITED DAILY DEAL DECK', subtitle: '24-hour flash sale on ultra rare collectibles', status: 'inactive' },
   { id: 'featured-collection', name: 'Featured Collection Row', visible: true, bgColor: 'bg-black', padding: 'py-12', margin: 'my-0', title: 'VERIFIED FEATURED CLASSICS', subtitle: 'Curated 1-of-1 historic collectibles', status: 'active', sectionType: 'product-row', productCategory: 'Featured', buttonText: 'VIEW ALL', buttonUrl: 'listing', maxProducts: 4 },
   { id: 'latest-products', name: 'Latest Products Row', visible: true, bgColor: 'bg-black', padding: 'py-12', margin: 'my-0', title: 'LATEST WORKSHOP DROPS', subtitle: 'Freshly authenticated physical catalog arrivals', status: 'active', sectionType: 'product-row', productCategory: 'New In', buttonText: '', maxProducts: 4 },
   { id: 'retro-collection', name: 'Retro Collection Row', visible: true, bgColor: 'bg-black', padding: 'py-12', margin: 'my-0', title: 'RETRO', subtitle: 'Rare 80s, 90s & 2000s vintage reissues', status: 'active', sectionType: 'product-row', productCategory: 'Retro', buttonText: 'VIEW ALL', buttonUrl: 'listing', maxProducts: 4 },
@@ -127,15 +127,15 @@ export const DEFAULT_HOMEPAGE_SECTIONS: PageSection[] = [
   { id: 'preorder-badminton', name: 'Pre-Order Badminton Row', visible: true, bgColor: 'bg-black', padding: 'py-12', margin: 'my-0', title: 'PRE-ORDER · BADMINTON RACKET', subtitle: 'Badminton rackets available for pre-order', status: 'active', sectionType: 'product-row', productCategory: 'Badminton Racket', buttonText: 'VIEW ALL', buttonUrl: 'listing', maxProducts: 4 },
   { id: 'worldcup-collection', name: 'World Cup Vault Section', visible: false, bgColor: 'bg-black', padding: 'py-12', margin: 'my-0', title: 'WORLD CUP HERITAGE VAULT', subtitle: 'Historical match issue kits from 1970 to 2026', status: 'inactive' },
   { id: 'current-season', name: 'Current Season Row', visible: true, bgColor: 'bg-black', padding: 'py-12', margin: 'my-0', title: 'CURRENT SEASON STOCK', subtitle: 'Direct from authorized team supplier docks', status: 'active', sectionType: 'product-row', productCategory: 'Current Season', buttonText: 'EXPLORE MODERN', buttonUrl: 'listing', maxProducts: 4 },
-  { id: 'mystery-box', name: 'Mystery Box Challenge', visible: false, bgColor: 'bg-zinc-950', padding: 'py-14', margin: 'my-6', title: 'THE VAULT MYSTERY BOX', subtitle: 'Receive one random 100% authentic retro or modern kit with premium certificates', status: 'inactive' },
+  { id: 'mystery-box', name: 'Mystery Box Challenge', visible: false, bgColor: 'bg-black', padding: 'py-14', margin: 'my-6', title: 'THE VAULT MYSTERY BOX', subtitle: 'Receive one random 100% authentic retro or modern kit with premium certificates', status: 'inactive' },
   { id: 'clearance', name: 'Clearance & Sale Rack', visible: true, bgColor: 'bg-black', padding: 'py-12', margin: 'my-0', title: 'OUTLET CLEARANCE SALE', subtitle: 'End of collection deadstock at cost prices', status: 'active', sectionType: 'product-row', productCategory: 'Clearance', buttonText: 'EXPLORE OUTLET', buttonUrl: 'listing', maxProducts: 4 },
   { id: 'best-sellers', name: 'Best Sellers Grid', visible: true, bgColor: 'bg-black', padding: 'py-12', margin: 'my-0', title: 'BEST SELLERS', subtitle: 'Most reviewed and requested reissues', status: 'active', sectionType: 'product-row', productCategory: 'Best Sellers', buttonText: 'VIEW ALL', buttonUrl: 'listing', maxProducts: 4 },
   { id: 'shop-by-legends', name: 'Shop by Legends portraits', visible: false, bgColor: 'bg-black', padding: 'py-12', margin: 'my-0', title: 'THE LEGENDS STORE', subtitle: 'Embroidered match prints of historical deities', status: 'inactive' },
   { id: 'community-gallery', name: 'Dhaka Fan Community Gallery', visible: true, bgColor: 'bg-black', padding: 'py-12', margin: 'my-0', title: 'COLLECTORS IN DHAKA', subtitle: 'Fan gallery sharing local unboxings on Bailey Road', status: 'active' },
   { id: 'testimonials', name: 'Testimonials Deck', visible: true, bgColor: 'bg-black', padding: 'py-12', margin: 'my-0', title: 'WHAT COLLECTORS DECLARE', subtitle: 'Genuine reviews from verified buyers', status: 'active' },
-  { id: 'video-banner', name: 'Video Feature Banner', visible: false, bgColor: 'bg-zinc-950', padding: 'py-16', margin: 'my-0', title: 'THE ART OF AUTHENTICATION', subtitle: 'A look inside our 12-point micro-fabric check laboratory in Dhaka', status: 'inactive' },
+  { id: 'video-banner', name: 'Video Feature Banner', visible: false, bgColor: 'bg-black', padding: 'py-16', margin: 'my-0', title: 'THE ART OF AUTHENTICATION', subtitle: 'A look inside our 12-point micro-fabric check laboratory in Dhaka', status: 'inactive' },
   { id: 'instagram-feed', name: 'Instagram Feed Mockup', visible: false, bgColor: 'bg-black', padding: 'py-12', margin: 'my-0', title: 'FOLLOW @JERSEYADDICTS_BD', subtitle: 'Daily vintage drops, buyer photos, and restocks', status: 'inactive' },
-  { id: 'newsletter', name: 'Newsletter Subscription', visible: true, bgColor: 'bg-black', padding: 'py-12', margin: 'my-4', title: 'JOIN THE EXCLUSIVE CIRCLE', subtitle: 'Be first to receive physical workshop inventory arrivals', status: 'active' },
+  { id: 'newsletter', name: 'Newsletter Subscription', visible: false, bgColor: 'bg-black', padding: 'py-12', margin: 'my-4', title: 'JOIN THE EXCLUSIVE CIRCLE', subtitle: 'Be first to receive physical workshop inventory arrivals', status: 'inactive' },
   { id: 'store-locations', name: 'Physical Store Maps', visible: true, bgColor: 'bg-black', padding: 'py-12', margin: 'my-0', title: 'PHYSICAL OUTLET POINTS', subtitle: 'Visit us for physical sizing and authentications', status: 'active' },
 ];
 
@@ -301,10 +301,27 @@ export const DynamicPageRenderer: React.FC<DynamicPageRendererProps> = ({
   return (
     <div className="space-y-0 w-full">
       {sections.map((section, idx) => {
-        if (!section.visible || section.status === 'draft' || section.status === 'inactive' || section.id === 'mystery-box' || section.id === 'instagram-feed' || section.id === 'video-banner' || section.id === 'worldcup-collection' || section.id === 'popular-teams' || section.id === 'shop-by-league' || section.id === 'shop-by-club' || section.id === 'shop-by-international-team' || section.id === 'shop-by-legends') return null;
+        if (
+          !section.visible ||
+          section.status === 'draft' ||
+          section.status === 'inactive' ||
+          section.id === 'mystery-box' ||
+          section.id === 'instagram-feed' ||
+          section.id === 'video-banner' ||
+          section.id === 'worldcup-collection' ||
+          section.id === 'popular-teams' ||
+          section.id === 'shop-by-league' ||
+          section.id === 'shop-by-club' ||
+          section.id === 'shop-by-international-team' ||
+          section.id === 'shop-by-legends' ||
+          section.id === 'newsletter' ||
+          section.id === 'live-auction'
+        ) {
+          return null;
+        }
 
         // Product rows with no matching products must not render — otherwise empty
-        // padded shells (py-12 each) stack into large blank gaps on the homepage.
+        // padded shells (py-12 each) stack into large blank / colored gaps on the homepage.
         const productRowItems = isProductRowSection(section)
           ? getProductsForHomepageSection(section, catalogProducts)
           : null;
@@ -318,22 +335,42 @@ export const DynamicPageRenderer: React.FC<DynamicPageRendererProps> = ({
           const galleryItems = catalogProducts.filter((p) => p.isFeatured || p.isBestSeller).slice(0, 4);
           if (galleryItems.length === 0) return null;
         }
+        if (section.id === 'trending-searches' && trendingKeywords.length === 0) return null;
+
+        // Known section renderers only — unknown / emptied CMS rows must not leave a colored bar
+        const knownSectionIds = new Set([
+          'hero-slider',
+          'trending-searches',
+          'daily-deals',
+          'community-gallery',
+          'testimonials',
+          'store-locations',
+        ]);
+        const isKnown =
+          knownSectionIds.has(section.id) || isProductRowSection(section);
+        if (!isKnown) return null;
 
         const compactShopIds = new Set([
           'shop-by-league',
           'shop-by-club',
           'shop-by-international-team',
         ]);
+        // Never paint emerald/amber empty-looking strips on the black storefront
+        const safeBg =
+          !section.bgColor ||
+          /emerald|amber|purple|indigo|gradient/i.test(section.bgColor)
+            ? 'bg-black'
+            : section.bgColor;
         const containerStyle =
           section.id === 'hero-slider'
             ? `bg-[#121212] pt-2.5 pb-0 sm:pt-4 sm:pb-5 lg:pt-5 lg:pb-6 my-0 ${getAnimationClass(section.animation)} transition-all duration-300 relative`
             : section.id === 'trending-searches'
-              ? `hidden lg:block ${section.bgColor} ${section.padding} ${section.margin} ${getAnimationClass(section.animation)} transition-all duration-300 relative`
+              ? `hidden lg:block ${safeBg} ${section.padding} ${section.margin} ${getAnimationClass(section.animation)} transition-all duration-300 relative`
               : compactShopIds.has(section.id)
                 ? `bg-[#121212] pt-3 pb-5 sm:pt-8 sm:pb-10 lg:py-10 my-0 ${getAnimationClass(section.animation)} transition-all duration-300 relative`
-                : `${section.bgColor} ${section.padding} ${section.margin} ${getAnimationClass(section.animation)} transition-all duration-300 relative`;
-        const headingColor = section.bgColor.includes('emerald-9') || section.bgColor.includes('purple') || section.bgColor.includes('indigo') ? 'text-white' : 'text-white';
-        const subColor = section.bgColor.includes('emerald-9') || section.bgColor.includes('purple') || section.bgColor.includes('indigo') ? 'text-zinc-300' : 'text-zinc-300';
+                : `${safeBg} ${section.padding} ${section.margin} ${getAnimationClass(section.animation)} transition-all duration-300 relative`;
+        const headingColor = 'text-white';
+        const subColor = 'text-zinc-300';
 
         return (
           <div key={`${section.id}-${idx}`} className={containerStyle} id={`section-${section.id}`}>

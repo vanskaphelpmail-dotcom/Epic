@@ -13,6 +13,7 @@ export const REMOVED_HOMEPAGE_SECTION_IDS = new Set([
   'shop-by-league',
   'shop-by-club',
   'shop-by-international-team',
+  'newsletter',
 ]);
 
 export function normalizeHomepageSections(sections: PageSection[]): PageSection[] {
@@ -25,15 +26,16 @@ export function normalizeHomepageSections(sections: PageSection[]): PageSection[
   });
   const darkened = filtered.map((s) => {
     const bg = String(s.bgColor || '');
-    const isLight =
+    const isLightOrTinted =
       !bg ||
       /\bbg-white\b/.test(bg) ||
       /\bbg-zinc-50\b/.test(bg) ||
       /\bbg-gray-50\b/.test(bg) ||
-      /\bbg-amber-50\b/.test(bg) ||
-      /\bbg-emerald-50\b/.test(bg) ||
-      /from-purple|to-indigo/.test(bg);
-    return isLight ? { ...s, bgColor: 'bg-black' } : s;
+      /\bbg-amber-/.test(bg) ||
+      /\bbg-emerald-/.test(bg) ||
+      /\bbg-red-/.test(bg) ||
+      /from-purple|to-indigo|gradient/i.test(bg);
+    return isLightOrTinted ? { ...s, bgColor: 'bg-black' } : s;
   });
   return ensureJerseyHomepageOrder(darkened);
 }
