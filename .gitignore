@@ -10,5 +10,6 @@ coverage/
 .env
 .env.*
 !.env.example
+scripts/.bootstrap-secret.tmp
 .vercel
 packages/db/generated/
