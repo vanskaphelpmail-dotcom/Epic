@@ -60,6 +60,8 @@ interface ProductManagerProps {
   setAppConfig?: React.Dispatch<React.SetStateAction<AppConfig>>;
   formatPrice: (amount: number) => string;
   onRequireStaffLogin?: () => void;
+  /** Notifies parent when the add/edit product dialog is open (to keep it mounted / block nav). */
+  onProductEditorOpenChange?: (open: boolean) => void;
 }
 
 // Preset Category Icons list
@@ -85,6 +87,7 @@ export const ProductManager: React.FC<ProductManagerProps> = ({
   setAppConfig,
   formatPrice,
   onRequireStaffLogin,
+  onProductEditorOpenChange,
 }) => {
   // Main Navigation Tabs
   const [activeTab, setActiveTab] = useState<'products' | 'inventory' | 'categories' | 'import-export'>('products');
@@ -220,20 +223,29 @@ export const ProductManager: React.FC<ProductManagerProps> = ({
   const [importText, setImportText] = useState('');
   const [importStatus, setImportStatus] = useState<string | null>(null);
 
-  // Lock page scroll while product modal is open
+  // Lock page scroll while product modal is open — Escape does NOT close (must Cancel / Save)
   useEffect(() => {
+    onProductEditorOpenChange?.(isProductModalOpen);
     if (!isProductModalOpen) return;
     const prev = document.body.style.overflow;
     document.body.style.overflow = 'hidden';
     const onKey = (e: KeyboardEvent) => {
-      if (e.key === 'Escape') setIsProductModalOpen(false);
+      if (e.key === 'Escape') {
+        e.preventDefault();
+        e.stopPropagation();
+      }
     };
-    window.addEventListener('keydown', onKey);
+    window.addEventListener('keydown', onKey, true);
     return () => {
       document.body.style.overflow = prev;
-      window.removeEventListener('keydown', onKey);
+      window.removeEventListener('keydown', onKey, true);
     };
-  }, [isProductModalOpen]);
+  }, [isProductModalOpen, onProductEditorOpenChange]);
+
+  // Clear lock flag if ProductManager unmounts while the dialog was open
+  useEffect(() => {
+    return () => onProductEditorOpenChange?.(false);
+  }, [onProductEditorOpenChange]);
 
   // Quick Stock Adjustment Modal State
   const [isStockModalOpen, setIsStockModalOpen] = useState(false);
@@ -435,6 +447,12 @@ export const ProductManager: React.FC<ProductManagerProps> = ({
     setPGalleryInput('');
     setPImageSlots(['', '', '']);
     setPStatus('Active');
+  };
+
+  const closeProductModal = () => {
+    if (isSavingProduct) return;
+    setIsProductModalOpen(false);
+    resetProductForm();
   };
 
   // Populate Product Form for Edit
@@ -2013,7 +2031,7 @@ export const ProductManager: React.FC<ProductManagerProps> = ({
         </div>
       )}
 
-      {/* MODAL: ADD / EDIT PRODUCT — portaled to body so it covers header + sidebar */}
+      {/* MODAL: ADD / EDIT PRODUCT — stays open until Cancel or Save (no backdrop / Escape close) */}
       {isProductModalOpen &&
         typeof document !== 'undefined' &&
         createPortal(
@@ -2022,11 +2040,12 @@ export const ProductManager: React.FC<ProductManagerProps> = ({
             role="dialog"
             aria-modal="true"
             aria-label={editingProduct ? 'Edit product' : 'Add product'}
-            onClick={(e) => {
-              if (e.target === e.currentTarget) setIsProductModalOpen(false);
-            }}
           >
-            <div className="bg-white sm:rounded-2xl w-full max-w-5xl max-h-[96vh] sm:max-h-[92vh] shadow-2xl flex flex-col overflow-hidden border border-emerald-100 animate-fadeIn">
+            <div
+              className="bg-white sm:rounded-2xl w-full max-w-5xl max-h-[96vh] sm:max-h-[92vh] shadow-2xl flex flex-col overflow-hidden border border-emerald-100 animate-fadeIn"
+              onMouseDown={(e) => e.stopPropagation()}
+              onClick={(e) => e.stopPropagation()}
+            >
               {/* Sticky header */}
               <div className="flex items-start justify-between gap-3 px-5 sm:px-7 py-4 border-b border-emerald-100 bg-white shrink-0">
                 <div className="min-w-0">
@@ -2042,8 +2061,9 @@ export const ProductManager: React.FC<ProductManagerProps> = ({
                 </div>
                 <button
                   type="button"
-                  onClick={() => setIsProductModalOpen(false)}
-                  className="p-2 hover:bg-emerald-50 text-emerald-800 rounded-xl transition-colors cursor-pointer shrink-0"
+                  onClick={closeProductModal}
+                  disabled={isSavingProduct}
+                  className="p-2 hover:bg-emerald-50 text-emerald-800 rounded-xl transition-colors cursor-pointer shrink-0 disabled:opacity-50"
                   aria-label="Close"
                 >
                   <X size={18} />
@@ -2055,6 +2075,13 @@ export const ProductManager: React.FC<ProductManagerProps> = ({
                 <form
                   id="product-manager-form"
                   onSubmit={handleProductSubmit}
+                  onKeyDown={(e) => {
+                    // Prevent Enter in inputs from submitting / closing mid-edit
+                    if (e.key !== 'Enter') return;
+                    const tag = (e.target as HTMLElement)?.tagName;
+                    if (tag === 'TEXTAREA' || tag === 'BUTTON') return;
+                    e.preventDefault();
+                  }}
                   className="space-y-6 text-emerald-950"
                 >
               {/* SECTION 1: BASIC INFORMATION */}
@@ -2837,7 +2864,7 @@ export const ProductManager: React.FC<ProductManagerProps> = ({
                 <div className="flex gap-2 ml-auto">
                   <button
                     type="button"
-                    onClick={() => !isSavingProduct && setIsProductModalOpen(false)}
+                    onClick={closeProductModal}
                     disabled={isSavingProduct}
                     className="px-5 py-2.5 text-xs font-bold text-emerald-800 bg-emerald-50 hover:bg-emerald-100 rounded-xl cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
                   >
@@ -2877,10 +2904,16 @@ export const ProductManager: React.FC<ProductManagerProps> = ({
           document.body,
         )}
 
-      {/* MODAL: CREATE / EDIT CATEGORY */}
-      {isCategoryModalOpen && (
-        <div className="fixed inset-0 bg-emerald-950/70 backdrop-blur-sm z-50 flex items-center justify-center p-4">
-          <div className="bg-white rounded-3xl max-w-lg w-full border border-emerald-100 shadow-2xl p-6 space-y-5 text-emerald-950">
+      {/* MODAL: CREATE / EDIT CATEGORY — above product modal (z-200) */}
+      {isCategoryModalOpen &&
+        typeof document !== 'undefined' &&
+        createPortal(
+        <div className="fixed inset-0 bg-emerald-950/70 backdrop-blur-sm z-[220] flex items-center justify-center p-4">
+          <div
+            className="bg-white rounded-3xl max-w-lg w-full border border-emerald-100 shadow-2xl p-6 space-y-5 text-emerald-950"
+            onMouseDown={(e) => e.stopPropagation()}
+            onClick={(e) => e.stopPropagation()}
+          >
             <div className="flex justify-between items-center border-b border-emerald-100 pb-3">
               <h4 className="text-xs font-extrabold uppercase text-emerald-950 flex items-center gap-2">
                 <FolderPlus size={16} className="text-emerald-800" />
@@ -3027,12 +3060,13 @@ export const ProductManager: React.FC<ProductManagerProps> = ({
               </div>
             </form>
           </div>
-        </div>
+        </div>,
+        document.body,
       )}
 
       {/* MODAL: QUICK STOCK ADJUSTMENT */}
       {isStockModalOpen && stockModalProduct && (
-        <div className="fixed inset-0 bg-emerald-950/70 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+        <div className="fixed inset-0 bg-emerald-950/70 backdrop-blur-sm z-[210] flex items-center justify-center p-4">
           <div className="bg-white rounded-3xl max-w-md w-full border border-emerald-100 shadow-2xl p-6 space-y-4 text-emerald-950">
             <div className="flex justify-between items-center border-b border-emerald-100 pb-3">
               <h4 className="text-xs font-extrabold uppercase text-emerald-950 flex items-center gap-2">

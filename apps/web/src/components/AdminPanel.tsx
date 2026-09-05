@@ -146,19 +146,27 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({
   });
   const [activeSidebarTab, setActiveSidebarTab] = useState<string>(() => initialAdminTab || 'dashboard');
   const [sidebarOpen, setSidebarOpen] = useState(false);
+  const [productEditorOpen, setProductEditorOpen] = useState(false);
 
   // Sync when browser Back/Forward changes admin tab in the URL
   useEffect(() => {
     if (!initialAdminTab) return;
+    // Don't yank the user away while the add/edit product dialog is open
+    if (productEditorOpen && initialAdminTab !== 'product-management') return;
     setActiveSidebarTab(initialAdminTab);
     if (['dashboard', 'inventory', 'seller-requests', 'homepage-builder', 'coupons', 'brand-customizer'].includes(initialAdminTab)) {
       setActiveTab(
         (initialAdminTab === 'brand-customizer' ? 'homepage-builder' : initialAdminTab) as typeof activeTab,
       );
     }
-  }, [initialAdminTab]);
+  }, [initialAdminTab, productEditorOpen]);
 
   const selectAdminModule = (itemId: string) => {
+    if (productEditorOpen && itemId !== 'product-management') {
+      toast('Finish editing the product (Save or Cancel) before leaving this page.', 'error');
+      setSidebarOpen(false);
+      return;
+    }
     setActiveSidebarTab(itemId);
     setSidebarOpen(false);
     if (['dashboard', 'inventory', 'seller-requests', 'homepage-builder', 'coupons', 'brand-customizer'].includes(itemId)) {
@@ -7125,8 +7133,11 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({
             </div>
           )}
 
-          {/* MODULE: product-management */}
-          {activeSidebarTab === 'product-management' && (
+          {/* MODULE: product-management — keep mounted (hidden) so the add/edit form is not lost */}
+          <div
+            className={activeSidebarTab === 'product-management' ? 'block' : 'hidden'}
+            aria-hidden={activeSidebarTab !== 'product-management'}
+          >
             <ProductManager
               products={products}
               setProducts={setProducts}
@@ -7134,8 +7145,9 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({
               onUpdateConfig={onUpdateConfig}
               formatPrice={formatPrice}
               onRequireStaffLogin={onRequireStaffLogin}
+              onProductEditorOpenChange={setProductEditorOpen}
             />
-          )}
+          </div>
 
           {activeSidebarTab === 'pos' && (
             <PosPanel
