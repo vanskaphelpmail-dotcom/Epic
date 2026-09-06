@@ -126,18 +126,34 @@ export const TournamentPatchesPanel: React.FC<TournamentPatchesPanelProps> = ({
 
     setSaving(true);
     try {
+      if (isApiEnabled()) {
+        if (!getToken()) {
+          onRequireStaffLogin?.();
+          toast('Staff sign-in required to publish patches.', 'error');
+          return;
+        }
+        const saved = await api.updateTournamentPatches(cleaned);
+        const published = Array.isArray(saved?.tournamentPatches)
+          ? (saved.tournamentPatches as ProductBadgeOption[])
+          : cleaned;
+        const normalized = clonePatches(published);
+        onUpdateConfig((prev) => ({
+          ...prev,
+          tournamentPatches: normalized,
+        }));
+        setDraft(normalized);
+        setDirty(false);
+        toast('Tournament patches published for all jerseys & customers', 'success');
+        return;
+      }
+
       onUpdateConfig((prev) => ({
         ...prev,
         tournamentPatches: cleaned,
       }));
-
-      if (isApiEnabled() && getToken()) {
-        await api.updateCmsSettings({ tournamentPatches: cleaned });
-      }
-
       setDraft(clonePatches(cleaned));
       setDirty(false);
-      toast('Tournament patches updated — visible on all jerseys', 'success');
+      toast('Tournament patches updated locally', 'success');
     } catch (err) {
       toast(err instanceof Error ? err.message : 'Failed to update patches', 'error');
     } finally {

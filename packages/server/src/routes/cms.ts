@@ -2,7 +2,7 @@ import { Router } from "express";
 import { z } from "zod";
 import { prisma, type BannerType, type PublishStatus, type PageSectionStatus } from "@jab/db";
 import { requireStaff, type AuthedRequest } from "../middleware/auth";
-import { requirePermission } from "../lib/permissions";
+import { requirePermission, requireAnyPermission } from "../lib/permissions";
 
 export const cmsRouter = Router();
 
@@ -312,6 +312,27 @@ cmsRouter.get("/homepage", async (_req, res) => {
           dailyDealEndsAt: settings.dailyDealEndsAt
             ? new Date(settings.dailyDealEndsAt).toISOString()
             : null,
+          tournamentPatches: Array.isArray(
+            (settings as { tournamentPatches?: unknown }).tournamentPatches,
+          )
+            ? ((settings as { tournamentPatches: unknown[] }).tournamentPatches || [])
+                .map((entry, index) => {
+                  if (!entry || typeof entry !== "object") return null;
+                  const row = entry as Record<string, unknown>;
+                  const label = String(row.label || "").trim();
+                  if (!label) return null;
+                  const image = String(row.image || row.imageUrl || "").trim();
+                  return {
+                    id: String(row.id || `patch-${index + 1}`),
+                    label,
+                    priceBdt: Math.max(0, Math.round(Number(row.priceBdt) || 0)),
+                    ...(image ? { image } : {}),
+                  };
+                })
+                .filter(Boolean)
+            : settings
+              ? []
+              : undefined,
         }
       : null;
 
@@ -573,6 +594,88 @@ cmsRouter.put("/settings", requirePermission("can_manage_system_settings"), asyn
     return res.status(400).json({ success: false, error: { message: "Failed to save settings" } });
   }
 });
+
+const tournamentPatchSchema = z.object({
+  id: z.string().min(1),
+  label: z.string().min(1).max(120),
+  priceBdt: z.coerce.number().int().nonnegative(),
+  image: z.string().max(4000).optional().nullable(),
+});
+
+/** Inventory Tournament Patch catalog — Admin / Inventory Manager can publish (not only Super Admin). */
+cmsRouter.put(
+  "/tournament-patches",
+  requireAnyPermission(
+    "can_manage_products",
+    "can_manage_content",
+    "can_manage_system_settings",
+  ),
+  async (req: AuthedRequest, res) => {
+    try {
+      const body = z
+        .object({
+          tournamentPatches: z.array(tournamentPatchSchema).min(1),
+        })
+        .parse(req.body || {});
+
+      const tournamentPatches = body.tournamentPatches
+        .map((item, index) => ({
+          id: item.id || `patch-${index + 1}`,
+          label: String(item.label || "").trim(),
+          priceBdt: Math.max(0, Math.round(Number(item.priceBdt) || 0)),
+          ...(item.image && String(item.image).trim()
+            ? { image: String(item.image).trim() }
+            : {}),
+        }))
+        .filter((item) => item.label.length > 0);
+
+      if (tournamentPatches.length === 0) {
+        return res.status(400).json({
+          success: false,
+          error: { message: "Add at least one patch with a name." },
+        });
+      }
+
+      const settings = await prisma.storeSettings.upsert({
+        where: { id: "default" },
+        update: { tournamentPatches },
+        create: {
+          id: "default",
+          logoText: "Epic Vanskap",
+          footerAbout: "",
+          footerCopyright: `© ${new Date().getFullYear()} Epic Vanskap`,
+          tournamentPatches,
+        },
+      });
+
+      // Keep product-level badgeOptions in sync so every jersey (and POS/orders) sees the same images
+      await prisma.product.updateMany({
+        where: { deletedAt: null },
+        data: { badgeOptions: tournamentPatches },
+      });
+
+      return res.json({
+        success: true,
+        data: {
+          tournamentPatches: settings.tournamentPatches ?? tournamentPatches,
+          syncedProducts: true,
+        },
+      });
+    } catch (error) {
+      if (error instanceof z.ZodError) {
+        return res.status(400).json({
+          success: false,
+          error: { message: error.issues[0]?.message || "Invalid patch catalog" },
+        });
+      }
+      console.error("[PUT /cms/tournament-patches]", error);
+      return res.status(400).json({
+        success: false,
+        error: { message: "Failed to publish tournament patches" },
+      });
+    }
+  },
+);
 
 // ---------- Banners ----------
 cmsRouter.get("/banners", requirePermission("can_manage_content"), async (_req, res) => {

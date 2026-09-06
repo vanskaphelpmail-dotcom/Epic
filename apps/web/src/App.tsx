@@ -1126,8 +1126,22 @@ export default function App() {
                   ] as typeof next.categoryItems;
                 }
                 if (Array.isArray((settings as { tournamentPatches?: unknown }).tournamentPatches)) {
-                  next.tournamentPatches = (settings as { tournamentPatches: AppConfig['tournamentPatches'] })
-                    .tournamentPatches;
+                  const raw = (settings as { tournamentPatches: unknown[] }).tournamentPatches;
+                  next.tournamentPatches = raw
+                    .map((entry, index) => {
+                      if (!entry || typeof entry !== 'object') return null;
+                      const row = entry as Record<string, unknown>;
+                      const label = String(row.label || '').trim();
+                      if (!label) return null;
+                      const image = String(row.image || row.imageUrl || '').trim();
+                      return {
+                        id: String(row.id || `patch-${index + 1}`),
+                        label,
+                        priceBdt: Math.max(0, Math.round(Number(row.priceBdt) || 0)),
+                        ...(image ? { image } : {}),
+                      };
+                    })
+                    .filter(Boolean) as AppConfig['tournamentPatches'];
                 }
                 if (Array.isArray((settings as { customSizeCharts?: unknown }).customSizeCharts)) {
                   next.customSizeCharts = (settings as { customSizeCharts: AppConfig['customSizeCharts'] })

@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { Heart, Share2, Star, CheckCircle, ShieldAlert, ShoppingCart, ArrowLeft, ArrowRight, ChevronLeft, ChevronRight, ShieldCheck, Zap, Ruler, ChevronDown, X, Trophy } from 'lucide-react';
+import { Heart, Share2, Star, CheckCircle, ShieldAlert, ShoppingCart, ArrowLeft, ArrowRight, ShieldCheck, Zap, Ruler, ChevronDown, X, Trophy } from 'lucide-react';
 import { Product, CartItem, ProductBadgeOption } from '../types';
 import { JerseyRenderer } from './JerseyRenderer';
 import { isRenderableImageSrc } from '../lib/productImage';
@@ -212,21 +212,38 @@ export const ProductDetails: React.FC<ProductDetailsProps> = ({
         {/* Left Column: Interactive 360 SVG Jersey Showcase & View Rotator */}
         <div className="lg:col-span-6 space-y-6">
           <div
-            className="relative bg-zinc-950 border border-zinc-800 rounded-3xl p-3 sm:p-6 flex items-center justify-center aspect-[3/4] sm:aspect-[4/5] max-h-[min(75vh,640px)] w-full overflow-hidden group shadow-2xl"
+            className="relative bg-white border border-zinc-800 rounded-3xl p-2 sm:p-4 flex items-center justify-center aspect-[4/5] sm:aspect-[3/4] max-h-[min(82vh,720px)] w-full overflow-hidden group shadow-2xl"
             onMouseEnter={() => setGalleryPaused(true)}
             onMouseLeave={() => setGalleryPaused(false)}
-            onTouchStart={() => setGalleryPaused(true)}
-            onTouchEnd={() => setGalleryPaused(false)}
+            onTouchStart={(e) => {
+              setGalleryPaused(true);
+              (e.currentTarget as HTMLElement).dataset.touchX = String(e.touches[0]?.clientX ?? '');
+            }}
+            onTouchEnd={(e) => {
+              setGalleryPaused(false);
+              if (galleryImages.length < 2) return;
+              const start = Number((e.currentTarget as HTMLElement).dataset.touchX || '');
+              const end = e.changedTouches[0]?.clientX;
+              if (!Number.isFinite(start) || end == null) return;
+              const delta = end - start;
+              if (Math.abs(delta) < 40) return;
+              setGalleryIndex((i) =>
+                delta < 0
+                  ? (i + 1) % galleryImages.length
+                  : (i - 1 + galleryImages.length) % galleryImages.length,
+              );
+            }}
           >
             <div className="absolute w-64 h-64 rounded-full bg-zinc-800/20 blur-[120px] pointer-events-none" />
 
-            <div className="relative w-full h-full flex items-center justify-center px-2 sm:px-4">
+            <div className="relative w-full h-full flex items-center justify-center px-1 sm:px-2">
               {showPhoto ? (
                 <img
                   src={mainImageSrc}
                   alt={product.name}
                   className="max-h-full max-w-full w-auto h-auto object-contain drop-shadow-lg transition-opacity duration-300"
                   referrerPolicy="no-referrer"
+                  draggable={false}
                 />
               ) : (
                 <JerseyRenderer
@@ -242,39 +259,20 @@ export const ProductDetails: React.FC<ProductDetailsProps> = ({
             </div>
 
             {galleryImages.length > 1 && (
-              <>
-                <button
-                  type="button"
-                  aria-label="Previous image"
-                  onClick={() =>
-                    setGalleryIndex((i) => (i - 1 + galleryImages.length) % galleryImages.length)
-                  }
-                  className="absolute left-2 top-1/2 -translate-y-1/2 z-20 flex h-9 w-9 items-center justify-center rounded-full bg-black/55 text-white border border-white/10 opacity-80 sm:opacity-0 sm:group-hover:opacity-100 transition-opacity cursor-pointer"
-                >
-                  <ChevronLeft size={18} />
-                </button>
-                <button
-                  type="button"
-                  aria-label="Next image"
-                  onClick={() => setGalleryIndex((i) => (i + 1) % galleryImages.length)}
-                  className="absolute right-2 top-1/2 -translate-y-1/2 z-20 flex h-9 w-9 items-center justify-center rounded-full bg-black/55 text-white border border-white/10 opacity-80 sm:opacity-0 sm:group-hover:opacity-100 transition-opacity cursor-pointer"
-                >
-                  <ChevronRight size={18} />
-                </button>
-                <div className="absolute bottom-3 left-0 right-0 z-20 flex justify-center gap-1.5">
-                  {galleryImages.map((_, i) => (
-                    <button
-                      key={`pd-dot-${i}`}
-                      type="button"
-                      aria-label={`Show image ${i + 1}`}
-                      onClick={() => setGalleryIndex(i)}
-                      className={`h-1.5 rounded-full transition-all cursor-pointer ${
-                        i === safeGalleryIndex ? 'w-5 bg-red-600' : 'w-1.5 bg-white/45 hover:bg-white/80'
-                      }`}
-                    />
-                  ))}
-                </div>
-              </>
+              <div className="absolute bottom-3 left-0 right-0 z-20 flex justify-center items-center gap-1.5">
+                {galleryImages.map((_, i) => (
+                  <button
+                    key={`pd-dot-${i}`}
+                    type="button"
+                    aria-label={`Show image ${i + 1}`}
+                    aria-current={i === safeGalleryIndex}
+                    onClick={() => setGalleryIndex(i)}
+                    className={`h-2 rounded-full transition-all cursor-pointer ${
+                      i === safeGalleryIndex ? 'w-5 bg-red-600' : 'w-2 bg-zinc-400/80 hover:bg-zinc-600'
+                    }`}
+                  />
+                ))}
+              </div>
             )}
           </div>
 
@@ -815,7 +813,7 @@ export const ProductDetails: React.FC<ProductDetailsProps> = ({
         <div className="mt-20 border-t border-zinc-800 pt-12 space-y-6">
           <div className="flex justify-between items-center">
             <h2 className="text-xl font-bold uppercase tracking-tight text-white">
-              Related Historical Jerseys
+              Related Jerseys
             </h2>
             <span className="text-xs text-zinc-400 font-mono font-bold tracking-widest uppercase">
               Curated Selection

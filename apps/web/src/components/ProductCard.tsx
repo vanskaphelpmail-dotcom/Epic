@@ -1,5 +1,5 @@
-import React, { useEffect, useState } from 'react';
-import { Heart, ShoppingBag, ChevronLeft, ChevronRight } from 'lucide-react';
+import React, { useEffect, useRef, useState } from 'react';
+import { Heart, ShoppingBag } from 'lucide-react';
 import { Product } from '../types';
 import { JerseyRenderer } from './JerseyRenderer';
 import { isRenderableImageSrc } from '../lib/productImage';
@@ -17,6 +17,7 @@ interface ProductCardProps {
 }
 
 const SLIDE_MS = 3200;
+const SWIPE_PX = 40;
 
 export const ProductCard: React.FC<ProductCardProps> = ({
   product,
@@ -36,6 +37,7 @@ export const ProductCard: React.FC<ProductCardProps> = ({
 
   const [slide, setSlide] = useState(0);
   const [paused, setPaused] = useState(false);
+  const touchStartX = useRef<number | null>(null);
   const slideCount = galleryImages.length;
 
   useEffect(() => {
@@ -76,37 +78,49 @@ export const ProductCard: React.FC<ProductCardProps> = ({
     onSelect(product);
   };
 
-  const goSlide = (e: React.MouseEvent, next: number) => {
+  const onTouchStart = (e: React.TouchEvent) => {
+    touchStartX.current = e.touches[0]?.clientX ?? null;
+    setPaused(true);
+  };
+
+  const onTouchEnd = (e: React.TouchEvent) => {
+    const start = touchStartX.current;
+    touchStartX.current = null;
+    setPaused(false);
+    if (start == null || slideCount < 2) return;
+    const end = e.changedTouches[0]?.clientX;
+    if (end == null) return;
+    const delta = end - start;
+    if (Math.abs(delta) < SWIPE_PX) return;
     e.stopPropagation();
-    if (!slideCount) return;
-    setSlide((next + slideCount) % slideCount);
+    setSlide((i) => (delta < 0 ? (i + 1) % slideCount : (i - 1 + slideCount) % slideCount));
   };
 
   return (
     <div
       onClick={() => onSelect(product)}
-      className="group bg-[#121212] border border-zinc-800 hover:border-red-600 rounded-xl lg:rounded-2xl p-1.5 sm:p-2 lg:p-4 cursor-pointer shadow-sm hover:shadow-lg hover:shadow-red-600/10 transition-all duration-300 relative flex flex-col h-full min-w-0 overflow-visible"
+      className="group bg-[#121212] border border-zinc-800 hover:border-red-600 rounded-xl lg:rounded-2xl p-1.5 sm:p-2 lg:p-3 cursor-pointer shadow-sm hover:shadow-lg hover:shadow-red-600/10 transition-all duration-300 relative flex flex-col h-full min-w-0 overflow-visible"
       id={`product-card-${product.id}`}
       title={product.name}
     >
       <div className="min-w-0 flex flex-col flex-1">
         <div
-          className="relative mb-1.5 sm:mb-2 lg:mb-3 w-full aspect-[3/4] shrink-0 overflow-hidden rounded-lg lg:rounded-xl bg-zinc-950 ring-1 ring-zinc-800"
+          className="relative mb-2 sm:mb-2.5 lg:mb-3 w-full aspect-[4/5] sm:aspect-[3/4] shrink-0 overflow-hidden rounded-lg lg:rounded-xl bg-white"
           onMouseEnter={() => setPaused(true)}
           onMouseLeave={() => setPaused(false)}
-          onTouchStart={() => setPaused(true)}
-          onTouchEnd={() => setPaused(false)}
+          onTouchStart={onTouchStart}
+          onTouchEnd={onTouchEnd}
         >
           {slideCount > 0 ? (
             <>
               <div
-                className="absolute inset-0 flex transition-transform duration-500 ease-out"
+                className="absolute inset-0 flex transition-transform duration-500 ease-out will-change-transform"
                 style={{ transform: `translateX(-${activeIndex * 100}%)` }}
               >
                 {galleryImages.map((src, i) => (
                   <div
                     key={`${product.id}-slide-${i}`}
-                    className="relative h-full w-full min-w-full flex items-center justify-center p-2 sm:p-2.5 lg:p-3 box-border"
+                    className="relative h-full w-full min-w-full flex items-center justify-center p-1 sm:p-1.5 lg:p-2 box-border bg-white"
                   >
                     <img
                       src={src}
@@ -121,44 +135,29 @@ export const ProductCard: React.FC<ProductCardProps> = ({
               </div>
 
               {slideCount > 1 && (
-                <>
-                  <button
-                    type="button"
-                    aria-label="Previous image"
-                    onClick={(e) => goSlide(e, activeIndex - 1)}
-                    className="absolute left-1 top-1/2 -translate-y-1/2 z-20 flex h-7 w-7 items-center justify-center rounded-full bg-black/55 text-white border border-white/10 opacity-0 group-hover:opacity-100 focus:opacity-100 transition-opacity cursor-pointer"
-                  >
-                    <ChevronLeft size={14} />
-                  </button>
-                  <button
-                    type="button"
-                    aria-label="Next image"
-                    onClick={(e) => goSlide(e, activeIndex + 1)}
-                    className="absolute right-1 top-1/2 -translate-y-1/2 z-20 flex h-7 w-7 items-center justify-center rounded-full bg-black/55 text-white border border-white/10 opacity-0 group-hover:opacity-100 focus:opacity-100 transition-opacity cursor-pointer"
-                  >
-                    <ChevronRight size={14} />
-                  </button>
-                  <div className="absolute bottom-1.5 left-0 right-0 z-20 flex justify-center gap-1.5 pointer-events-none">
-                    {galleryImages.map((_, i) => (
-                      <button
-                        key={`dot-${i}`}
-                        type="button"
-                        aria-label={`Show image ${i + 1}`}
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          setSlide(i);
-                        }}
-                        className={`pointer-events-auto h-1.5 rounded-full transition-all cursor-pointer ${
-                          i === activeIndex ? 'w-4 bg-red-600' : 'w-1.5 bg-white/50 hover:bg-white/80'
-                        }`}
-                      />
-                    ))}
-                  </div>
-                </>
+                <div className="absolute bottom-2 left-0 right-0 z-20 flex justify-center items-center gap-1.5">
+                  {galleryImages.map((_, i) => (
+                    <button
+                      key={`dot-${i}`}
+                      type="button"
+                      aria-label={`Show image ${i + 1}`}
+                      aria-current={i === activeIndex}
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        setSlide(i);
+                      }}
+                      className={`h-2 rounded-full transition-all cursor-pointer ${
+                        i === activeIndex
+                          ? 'w-5 bg-red-600'
+                          : 'w-2 bg-zinc-400/80 hover:bg-zinc-600'
+                      }`}
+                    />
+                  ))}
+                </div>
               )}
             </>
           ) : (
-            <div className="absolute inset-0 flex items-center justify-center p-2 sm:p-3 overflow-hidden [&_img]:!max-h-full [&_img]:!max-w-full [&_img]:!h-auto [&_img]:!w-auto [&_img]:!object-contain [&_img]:!rounded-none [&_svg]:max-h-full [&_svg]:max-w-full [&_svg]:h-auto [&_svg]:w-auto">
+            <div className="absolute inset-0 flex items-center justify-center p-2 sm:p-3 overflow-hidden bg-white [&_img]:!max-h-full [&_img]:!max-w-full [&_img]:!h-auto [&_img]:!w-auto [&_img]:!object-contain [&_img]:!rounded-none [&_svg]:max-h-full [&_svg]:max-w-full [&_svg]:h-auto [&_svg]:w-auto">
               <JerseyRenderer
                 productId={product.id}
                 uploadedImage={product.uploadedImage}
@@ -169,7 +168,7 @@ export const ProductCard: React.FC<ProductCardProps> = ({
 
           <button
             onClick={handleWishlist}
-            className="absolute top-1.5 right-1.5 sm:top-2 sm:right-2 z-20 flex items-center justify-center w-7 h-7 sm:w-8 sm:h-8 rounded-full bg-black/80 shadow-md border border-zinc-700 transition-transform hover:scale-105 active:scale-95 cursor-pointer"
+            className="absolute top-1.5 right-1.5 sm:top-2 sm:right-2 z-20 flex items-center justify-center w-7 h-7 sm:w-8 sm:h-8 rounded-full bg-black/75 shadow-md border border-zinc-700 transition-transform hover:scale-105 active:scale-95 cursor-pointer"
             aria-label={isWishlisted ? 'Remove from Wishlist' : 'Add to Wishlist'}
             aria-pressed={isWishlisted}
             type="button"
@@ -192,8 +191,7 @@ export const ProductCard: React.FC<ProductCardProps> = ({
           )}
         </div>
 
-        {/* Name + price — always visible on mobile, tablet, and desktop */}
-        <div className="flex flex-col gap-0.5 sm:gap-1 mb-1.5 sm:mb-2 min-w-0">
+        <div className="flex flex-col gap-0.5 sm:gap-1 mb-1.5 sm:mb-2 min-w-0 px-0.5">
           <span className="block text-[9px] sm:text-[10px] font-mono uppercase tracking-widest text-zinc-500 font-bold truncate">
             {brandLine}
           </span>

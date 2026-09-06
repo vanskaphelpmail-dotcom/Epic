@@ -1,4 +1,4 @@
-import React, { useEffect, useMemo, useRef, useState } from 'react';
+﻿import React, { useEffect, useMemo, useRef, useState } from 'react';
 import { 
   Search, Heart, ShoppingBag, Menu, X, ShieldCheck, HelpCircle, Phone, 
   ArrowRight, Award, Trash2, Shirt, Trophy, Star, Flame, Sparkles, Tag, 
@@ -124,6 +124,16 @@ export const Header: React.FC<HeaderProps> = ({
     };
   }, [showMobileSearchDropdown]);
 
+  // Lock page scroll while full-screen menu is open
+  useEffect(() => {
+    if (!isMobileMenuOpen) return;
+    const prev = document.body.style.overflow;
+    document.body.style.overflow = 'hidden';
+    return () => {
+      document.body.style.overflow = prev;
+    };
+  }, [isMobileMenuOpen]);
+
   const catalogKeywords = useMemo(
     () => buildCatalogSearchKeywords(products, 5),
     [products],
@@ -191,7 +201,7 @@ export const Header: React.FC<HeaderProps> = ({
     setShowMegaMenuDropdown(false);
     if (!url) return;
     const normalized = url.replace(/^#/, '').toLowerCase().trim();
-    // Secret admin portal — never navigate from public menus
+    // Secret admin portal â€” never navigate from public menus
     if (
       normalized === 'admin' ||
       normalized === 'auth' ||
@@ -361,7 +371,7 @@ export const Header: React.FC<HeaderProps> = ({
                 value={searchQuery}
                 onChange={(e) => handleSearchInput(e.target.value)}
                 onFocus={() => setShowSearchDropdown(true)}
-                className="w-full h-12 bg-zinc-900 text-white placeholder-zinc-500 text-sm pl-12 pr-28 rounded-full border border-zinc-800 focus:bg-[#121212] focus:outline-none focus:border-red-600 focus:ring-4 focus:ring-red-600/10 hover:bg-zinc-900/60 hover:border-zinc-800 transition-all duration-300"
+                className="w-full h-12 bg-zinc-900 text-white placeholder-zinc-500 text-sm pl-12 pr-28 rounded-full border-0 focus:bg-[#121212] focus:outline-none focus:ring-2 focus:ring-red-600/30 hover:bg-zinc-800/80 transition-all duration-300"
               />
               <Search className="absolute left-4 text-zinc-600 w-5 h-5 pointer-events-none" />
               <button
@@ -409,12 +419,12 @@ export const Header: React.FC<HeaderProps> = ({
                 </div>
               )}
               <div className="flex flex-wrap gap-2 mb-4">
-                {popularSearchTerms.map((term) => (
+                {popularSearchTerms.slice(0, 5).map((term) => (
                   <button
                     key={term}
                     type="button"
                     onClick={() => handlePopularSearchClick(term)}
-                    className="bg-zinc-900 hover:bg-zinc-800 border border-zinc-800 hover:border-zinc-700 text-xs px-3.5 py-1.5 rounded-full text-zinc-300 hover:text-white transition-all cursor-pointer"
+                    className="bg-zinc-900 hover:bg-zinc-800 border-0 text-xs px-3.5 py-1.5 rounded-full text-zinc-300 hover:text-white transition-all cursor-pointer"
                   >
                     {term}
                   </button>
@@ -591,7 +601,7 @@ export const Header: React.FC<HeaderProps> = ({
           </div>
         </div>
 
-        {/* Mobile: menu only — search lives in the bar below + bottom nav */}
+        {/* Mobile: menu only â€” search lives in the bar below + bottom nav */}
         <div
           className="flex lg:hidden items-center gap-1.5 shrink-0 ml-auto"
           id="mobile-right-controls"
@@ -614,7 +624,7 @@ export const Header: React.FC<HeaderProps> = ({
 
       </div>
 
-      {/* Mobile search — always visible above banner / page content */}
+      {/* Mobile search â€” always visible above banner / page content */}
       <div
         ref={mobileSearchPanelRef}
         className="lg:hidden px-3 sm:px-4 pt-2.5 pb-3 bg-[#121212] border-b border-zinc-800 relative"
@@ -636,12 +646,12 @@ export const Header: React.FC<HeaderProps> = ({
               value={searchQuery}
               onChange={(e) => handleSearchInput(e.target.value)}
               onFocus={() => setShowMobileSearchDropdown(true)}
-              className="w-full h-11 sm:h-12 bg-zinc-900 text-white placeholder-zinc-500 text-sm pl-11 pr-[5.75rem] rounded-full border border-zinc-800 focus:bg-[#121212] focus:outline-none focus:border-red-600 focus:ring-4 focus:ring-red-600/10 transition-all duration-300"
+              className="w-full h-11 sm:h-12 bg-zinc-900 text-white placeholder-zinc-500 text-sm pl-11 pr-[5.75rem] rounded-full border-0 focus:bg-[#121212] focus:outline-none focus:ring-2 focus:ring-red-600/30 transition-all duration-300"
             />
             <Search className="absolute left-3.5 text-zinc-600 w-5 h-5 pointer-events-none" />
             <button
               type="submit"
-              className="absolute right-1.5 top-1.5 bottom-1.5 min-w-[4.5rem] bg-red-600 hover:bg-red-700 text-white text-[10px] sm:text-xs font-black px-4 sm:px-5 rounded-full transition-all cursor-pointer uppercase tracking-wider shadow-md shadow-red-600/30 hover:shadow active:scale-95 border border-red-500"
+              className="absolute right-1.5 top-1.5 bottom-1.5 min-w-[4.5rem] bg-red-600 hover:bg-red-700 text-white text-[10px] sm:text-xs font-black px-4 sm:px-5 rounded-full transition-all cursor-pointer uppercase tracking-wider shadow-md shadow-red-600/30 hover:shadow active:scale-95 border-0"
             >
               Search
             </button>
@@ -679,12 +689,12 @@ export const Header: React.FC<HeaderProps> = ({
               </div>
             )}
             <div className="flex flex-wrap gap-1.5">
-              {popularSearchTerms.map((term) => (
+              {popularSearchTerms.slice(0, 5).map((term) => (
                 <button
                   key={term}
                   type="button"
                   onClick={() => handlePopularSearchClick(term)}
-                  className="bg-zinc-900 hover:bg-zinc-800 border border-zinc-800 text-[11px] px-3 py-1.5 rounded-full text-zinc-300 cursor-pointer"
+                  className="bg-zinc-900 hover:bg-zinc-800 border-0 text-[11px] px-3 py-1.5 rounded-full text-zinc-300 cursor-pointer"
                 >
                   {term}
                 </button>
@@ -697,7 +707,7 @@ export const Header: React.FC<HeaderProps> = ({
         )}
       </div>
 
-      {/* Dynamic Main & Mega Navigation Row — desktop strip optional (left sidebar preferred) */}
+      {/* Dynamic Main & Mega Navigation Row â€” desktop strip optional (left sidebar preferred) */}
       {!hideDesktopMainNav && (
       <nav className="bg-black border-b border-zinc-800 py-2.5 px-4 lg:px-12 hidden lg:flex items-center justify-center gap-2 xl:gap-3 relative flex-wrap">
         {mainNavItems.map((item) => {
@@ -791,28 +801,115 @@ export const Header: React.FC<HeaderProps> = ({
         )}
       </nav>
       )}
+    </header>
 
-      {/* Mobile drawer — fixed so sticky header overflow never clips it */}
+      {/* Mobile menu â€” full-screen portal sibling (outside header transform) */}
       {isMobileMenuOpen && (
-        <>
-          <button
-            type="button"
-            aria-label="Close menu"
-            className="fixed inset-0 z-[55] bg-zinc-950/40 lg:hidden"
-            onClick={() => setIsMobileMenuOpen(false)}
-          />
-          <div className="fixed top-0 right-0 z-[60] h-full w-[min(100%,320px)] max-w-[100vw] bg-[#121212] border-l border-zinc-800 shadow-2xl py-5 px-4 sm:px-5 space-y-5 animate-slideDown lg:hidden text-white overflow-y-auto pb-[calc(5.5rem+env(safe-area-inset-bottom,0px))]">
-            <div className="flex items-center justify-between pb-2 border-b border-zinc-800">
-              <span className="text-[10px] font-mono font-black uppercase tracking-widest text-zinc-400">Menu</span>
-              <button
-                type="button"
-                onClick={() => setIsMobileMenuOpen(false)}
-                className="p-2 rounded-lg border border-zinc-800 text-zinc-300"
-                aria-label="Close"
-              >
-                <X size={18} />
-              </button>
+        <div
+          className="fixed inset-0 z-[200] lg:hidden flex flex-col bg-[#0a0a0a] text-white"
+          role="dialog"
+          aria-modal="true"
+          aria-label="Menu"
+        >
+          <div className="flex items-center justify-between shrink-0 px-4 sm:px-5 pt-[max(1rem,env(safe-area-inset-top))] pb-3 border-b border-zinc-800">
+            <span className="text-sm font-black uppercase tracking-widest text-white">Menu</span>
+            <button
+              type="button"
+              onClick={() => setIsMobileMenuOpen(false)}
+              className="p-2.5 rounded-xl bg-[#121212] border border-zinc-700 text-zinc-200"
+              aria-label="Close"
+            >
+              <X size={18} />
+            </button>
+          </div>
+
+          <div className="flex-1 min-h-0 overflow-y-auto overscroll-contain px-4 sm:px-5 py-5 space-y-5 pb-[calc(5.5rem+env(safe-area-inset-bottom,0px))]">
+            {/* My Personal Room */}
+            <div className="space-y-3">
+              <span className="text-[10px] font-mono tracking-widest text-zinc-400 font-bold uppercase block text-left">
+                My Personal Room
+              </span>
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
+                <button
+                  type="button"
+                  onClick={() => {
+                    setCurrentPage('cart');
+                    setIsMobileMenuOpen(false);
+                  }}
+                  className="w-full flex items-center gap-3 p-3.5 bg-[#121212] hover:bg-zinc-900 border border-zinc-800 rounded-2xl transition-all text-left cursor-pointer"
+                >
+                  <div className="shrink-0 p-2.5 bg-zinc-800 text-zinc-200 rounded-xl">
+                    <ShoppingBag size={18} />
+                  </div>
+                  <div className="min-w-0 flex-1">
+                    <div className="flex items-baseline justify-between gap-2">
+                      <p className="text-xs font-black uppercase tracking-wider text-white truncate">Cart Bag</p>
+                      <p className="shrink-0 text-xs font-black text-red-500 font-mono tabular-nums">{formatPrice(cartTotal)}</p>
+                    </div>
+                    <div className="flex items-center justify-between gap-2 mt-0.5">
+                      <p className="text-[10px] text-zinc-400 font-mono font-bold truncate">
+                        {cartCount} item{cartCount === 1 ? '' : 's'}
+                      </p>
+                      <span className="shrink-0 text-[9px] text-zinc-500 font-extrabold uppercase tracking-widest">View →</span>
+                    </div>
+                  </div>
+                </button>
+
+                <button
+                  type="button"
+                  onClick={() => {
+                    setCurrentPage(currentUser ? 'dashboard' : 'login');
+                    setIsMobileMenuOpen(false);
+                  }}
+                  className="w-full flex items-center gap-3 p-3.5 bg-[#121212] hover:bg-zinc-900 border border-zinc-800 rounded-2xl transition-all text-left cursor-pointer"
+                >
+                  <div className="shrink-0 p-2.5 bg-red-950/40 text-red-400 rounded-xl">
+                    <Heart size={18} className={wishlist.length > 0 ? 'fill-red-500 text-red-500' : ''} />
+                  </div>
+                  <div className="min-w-0 flex-1">
+                    <p className="text-xs font-black uppercase tracking-wider text-white truncate">Favorites</p>
+                    <div className="flex items-center justify-between gap-2 mt-0.5">
+                      <p className="text-[10px] text-zinc-400 font-mono font-bold truncate">{wishlist.length} saved</p>
+                      <span className="shrink-0 text-[9px] text-zinc-500 font-extrabold uppercase tracking-widest">View →</span>
+                    </div>
+                  </div>
+                </button>
+              </div>
+
+              {cart.length > 0 && (
+                <div className="bg-[#121212] border border-zinc-800 rounded-2xl p-3 space-y-2">
+                  <p className="text-[9px] font-mono font-bold uppercase tracking-wider text-zinc-500">In your bag</p>
+                  {cart.slice(0, 4).map((item, idx) => (
+                    <div key={`${item.product.id}-${idx}`} className="flex items-center gap-2.5">
+                      <div className="w-9 h-9 rounded-lg bg-white overflow-hidden shrink-0 flex items-center justify-center">
+                        {item.product.images?.[0] ? (
+                          <img src={item.product.images[0]} alt="" className="w-full h-full object-contain" />
+                        ) : (
+                          <Shirt size={14} className="text-zinc-600" />
+                        )}
+                      </div>
+                      <div className="min-w-0 flex-1">
+                        <p className="text-[11px] font-semibold text-white truncate">{item.product.name}</p>
+                        <p className="text-[9px] text-zinc-500 font-mono">
+                          {item.selectedSize} · ×{item.quantity}
+                        </p>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              )}
             </div>
+
+            <button
+              type="button"
+              onClick={() => {
+                setCurrentPage('seller');
+                setIsMobileMenuOpen(false);
+              }}
+              className="w-full bg-red-600 hover:bg-red-700 text-white font-extrabold text-xs uppercase tracking-widest py-3.5 rounded-2xl cursor-pointer shadow-md shadow-red-600/20"
+            >
+              Sell Shirts
+            </button>
 
             {/* Account / Login */}
             <div className="space-y-3">
@@ -820,7 +917,7 @@ export const Header: React.FC<HeaderProps> = ({
                 Account
               </span>
               {currentUser && canUseAdminPanel(currentUser.role, !!getToken(), isApiEnabled()) ? (
-                <div className="p-4 bg-zinc-950 border-2 border-zinc-700 rounded-2xl space-y-3">
+                <div className="p-4 bg-zinc-950 border border-zinc-700 rounded-2xl space-y-3">
                   <div className="flex items-start justify-between gap-3">
                     <div className="text-left min-w-0 flex-1">
                       <p className="text-[9px] text-zinc-400 font-mono font-bold uppercase tracking-wider leading-none">{currentUser.role}</p>
@@ -862,7 +959,7 @@ export const Header: React.FC<HeaderProps> = ({
                   </div>
                 </div>
               ) : currentUser ? (
-                <div className="p-4 bg-zinc-950 border-2 border-zinc-700 rounded-2xl space-y-3">
+                <div className="p-4 bg-zinc-950 border border-zinc-700 rounded-2xl space-y-3">
                   <div className="flex items-center gap-3">
                     <div className="w-10 h-10 rounded-full bg-red-600 flex items-center justify-center text-sm font-black shrink-0">
                       {(currentUser.fullName || 'U')
@@ -908,7 +1005,7 @@ export const Header: React.FC<HeaderProps> = ({
                       setCurrentPage('login');
                       setIsMobileMenuOpen(false);
                     }}
-                    className="w-full border-2 border-zinc-700 hover:border-zinc-500 text-white font-extrabold text-xs uppercase tracking-widest py-3.5 rounded-2xl cursor-pointer inline-flex items-center justify-center gap-1.5"
+                    className="w-full border border-zinc-700 hover:border-zinc-500 text-white font-extrabold text-xs uppercase tracking-widest py-3.5 rounded-2xl cursor-pointer inline-flex items-center justify-center gap-1.5"
                   >
                     <LogIn size={14} /> Login
                   </button>
@@ -926,153 +1023,69 @@ export const Header: React.FC<HeaderProps> = ({
               )}
             </div>
 
-            {/* My bag & account shortcuts */}
+            {/* Profile & orders */}
             <div className="space-y-3">
               <span className="text-[10px] font-mono tracking-widest text-zinc-400 font-bold uppercase block text-left">
-                My Shopping
+                Profile & Orders
               </span>
-              <div className="space-y-2">
-                <button
-                  type="button"
-                  onClick={() => {
-                    setCurrentPage('cart');
-                    setIsMobileMenuOpen(false);
-                  }}
-                  className="w-full flex items-center gap-3 p-3.5 bg-zinc-950 hover:bg-zinc-900 border-2 border-zinc-700 rounded-2xl transition-all text-left cursor-pointer"
-                >
-                  <div className="shrink-0 p-2.5 bg-zinc-800 text-zinc-200 rounded-xl">
-                    <ShoppingBag size={18} />
-                  </div>
-                  <div className="min-w-0 flex-1">
-                    <div className="flex items-baseline justify-between gap-2">
-                      <p className="text-xs font-black uppercase tracking-wider text-white">My Cart</p>
-                      <p className="shrink-0 text-xs font-black text-zinc-100 font-mono tabular-nums">{formatPrice(cartTotal)}</p>
-                    </div>
-                    <p className="text-[10px] text-zinc-400 font-mono font-bold mt-0.5">{cartCount} item{cartCount === 1 ? '' : 's'}</p>
-                  </div>
-                </button>
-
-                {cart.length > 0 && (
-                  <div className="bg-zinc-950 border border-zinc-800 rounded-2xl p-3 space-y-2">
-                    <p className="text-[9px] font-mono font-bold uppercase tracking-wider text-zinc-500">In your bag</p>
-                    {cart.slice(0, 4).map((item, idx) => (
-                      <div key={`${item.product.id}-${idx}`} className="flex items-center gap-2.5">
-                        <div className="w-9 h-9 rounded-lg bg-zinc-900 border border-zinc-800 overflow-hidden shrink-0 flex items-center justify-center">
-                          {item.product.images?.[0] ? (
-                            <img src={item.product.images[0]} alt="" className="w-full h-full object-contain" />
-                          ) : (
-                            <Shirt size={14} className="text-zinc-600" />
-                          )}
-                        </div>
-                        <div className="min-w-0 flex-1">
-                          <p className="text-[11px] font-semibold text-white truncate">{item.product.name}</p>
-                          <p className="text-[9px] text-zinc-500 font-mono">
-                            {item.selectedSize} · ×{item.quantity}
-                          </p>
-                        </div>
-                        <span className="text-[10px] font-mono font-bold text-zinc-300 shrink-0">
-                          {formatPrice(item.product.price * item.quantity)}
-                        </span>
-                      </div>
-                    ))}
-                    {cart.length > 4 && (
-                      <p className="text-[10px] text-zinc-500 font-mono">+{cart.length - 4} more in cart</p>
-                    )}
-                    <button
-                      type="button"
-                      onClick={() => {
-                        setCurrentPage('cart');
-                        setIsMobileMenuOpen(false);
-                      }}
-                      className="w-full mt-1 text-[10px] font-black uppercase tracking-wider text-red-500 hover:text-red-400 cursor-pointer"
-                    >
-                      View full cart →
-                    </button>
-                  </div>
-                )}
-
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-2">
                 <button
                   type="button"
                   onClick={() => {
                     setCurrentPage(currentUser ? 'dashboard' : 'login');
                     setIsMobileMenuOpen(false);
                   }}
-                  className="w-full flex items-center gap-3 p-3.5 bg-zinc-950 hover:bg-zinc-900 border-2 border-zinc-700 rounded-2xl transition-all text-left cursor-pointer"
+                  className="w-full flex items-center gap-3 p-3.5 bg-[#121212] hover:bg-zinc-900 border border-zinc-800 rounded-2xl transition-all text-left cursor-pointer"
                 >
-                  <div className="shrink-0 p-2.5 bg-zinc-800 text-zinc-200 rounded-xl">
-                    <ClipboardList size={18} />
-                  </div>
-                  <div className="min-w-0 flex-1">
+                  <ClipboardList size={18} className="text-zinc-300 shrink-0" />
+                  <div className="min-w-0">
                     <p className="text-xs font-black uppercase tracking-wider text-white">My Orders</p>
                     <p className="text-[10px] text-zinc-400 font-mono mt-0.5">
-                      {currentUser ? 'Order history & tracking' : 'Login to view orders'}
+                      {currentUser ? 'History & tracking' : 'Login required'}
                     </p>
                   </div>
                 </button>
-
                 <button
                   type="button"
                   onClick={() => {
                     setCurrentPage(currentUser ? 'dashboard' : 'login');
                     setIsMobileMenuOpen(false);
                   }}
-                  className="w-full flex items-center gap-3 p-3.5 bg-zinc-950 hover:bg-zinc-900 border-2 border-zinc-700 rounded-2xl transition-all text-left cursor-pointer"
+                  className="w-full flex items-center gap-3 p-3.5 bg-[#121212] hover:bg-zinc-900 border border-zinc-800 rounded-2xl transition-all text-left cursor-pointer"
                 >
-                  <div className="shrink-0 p-2.5 bg-zinc-800 text-zinc-200 rounded-xl">
-                    <UserIcon size={18} />
-                  </div>
-                  <div className="min-w-0 flex-1">
+                  <UserIcon size={18} className="text-zinc-300 shrink-0" />
+                  <div className="min-w-0">
                     <p className="text-xs font-black uppercase tracking-wider text-white">My Profile</p>
                     <p className="text-[10px] text-zinc-400 font-mono mt-0.5">
-                      {currentUser ? 'Settings & saved addresses' : 'Login to manage profile'}
+                      {currentUser ? 'Settings' : 'Login required'}
                     </p>
                   </div>
                 </button>
-
                 <button
                   type="button"
                   onClick={() => {
                     setCurrentPage(currentUser ? 'dashboard' : 'login');
                     setIsMobileMenuOpen(false);
                   }}
-                  className="w-full flex items-center gap-3 p-3.5 bg-zinc-950 hover:bg-zinc-900 border-2 border-zinc-700 rounded-2xl transition-all text-left cursor-pointer"
+                  className="w-full flex items-center gap-3 p-3.5 bg-[#121212] hover:bg-zinc-900 border border-zinc-800 rounded-2xl transition-all text-left cursor-pointer"
                 >
-                  <div className="shrink-0 p-2.5 bg-red-950/50 text-red-400 rounded-xl">
-                    <Heart size={18} className={wishlist.length > 0 ? 'fill-red-500 text-red-500' : ''} />
-                  </div>
-                  <div className="min-w-0 flex-1">
-                    <p className="text-xs font-black uppercase tracking-wider text-white">Wishlist</p>
-                    <p className="text-[10px] text-zinc-400 font-mono mt-0.5">{wishlist.length} saved</p>
-                  </div>
-                </button>
-
-                <button
-                  type="button"
-                  onClick={() => {
-                    setCurrentPage(currentUser ? 'dashboard' : 'login');
-                    setIsMobileMenuOpen(false);
-                  }}
-                  className="w-full flex items-center gap-3 p-3.5 bg-zinc-950 hover:bg-zinc-900 border-2 border-zinc-700 rounded-2xl transition-all text-left cursor-pointer"
-                >
-                  <div className="shrink-0 p-2.5 bg-zinc-800 text-zinc-200 rounded-xl">
-                    <MapPin size={18} />
-                  </div>
-                  <div className="min-w-0 flex-1">
-                    <p className="text-xs font-black uppercase tracking-wider text-white">Saved Addresses</p>
+                  <MapPin size={18} className="text-zinc-300 shrink-0" />
+                  <div className="min-w-0">
+                    <p className="text-xs font-black uppercase tracking-wider text-white">Addresses</p>
                     <p className="text-[10px] text-zinc-400 font-mono mt-0.5">
-                      {currentUser ? 'Edit delivery addresses' : 'Login to save addresses'}
+                      {currentUser ? 'Saved delivery' : 'Login required'}
                     </p>
                   </div>
                 </button>
               </div>
             </div>
 
-            {/* Shop categories */}
+            {/* Main Navigation */}
             <div className="space-y-3">
               <span className="text-[10px] font-mono tracking-widest text-zinc-400 font-bold uppercase block text-left">
-                Shop Categories
+                Main Navigation Menu
               </span>
-              <div className="grid grid-cols-1 gap-2">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
                 {mainNavItems.map((item) => {
                   const active = isStorefrontNavActive(item.url, selectedCategory, currentPage);
                   return (
@@ -1081,10 +1094,10 @@ export const Header: React.FC<HeaderProps> = ({
                       type="button"
                       onClick={() => handleMenuClick(item.url)}
                       aria-current={active ? 'page' : undefined}
-                      className={`w-full min-w-0 text-left text-xs py-3 px-3.5 rounded-xl border-2 transition-all cursor-pointer flex items-center gap-2 font-semibold ${
+                      className={`w-full min-w-0 text-left text-xs py-3 px-3.5 rounded-xl border transition-all cursor-pointer flex items-center gap-2 font-semibold ${
                         active
                           ? 'bg-red-600 border-red-700 text-white shadow-sm'
-                          : 'bg-zinc-950 border-zinc-700 hover:border-red-600 text-white'
+                          : 'bg-[#121212] border-zinc-800 hover:border-red-600 text-white'
                       }`}
                     >
                       <span className={`shrink-0 ${active ? 'text-white' : 'text-zinc-400'}`}>
@@ -1106,7 +1119,6 @@ export const Header: React.FC<HeaderProps> = ({
               </div>
             </div>
 
-            {/* Mega menu / more */}
             {megaParents.length > 0 && (
               <div className="space-y-3 border-t border-zinc-800 pt-3">
                 <span className="text-[10px] font-mono tracking-widest text-zinc-400 font-bold uppercase block text-left">
@@ -1116,18 +1128,18 @@ export const Header: React.FC<HeaderProps> = ({
                   {megaParents.map((parent) => {
                     const children = megaNavItems.filter((c) => c.parentId === parent.id);
                     return (
-                      <div key={parent.id} className="bg-zinc-950 p-3 rounded-2xl border-2 border-zinc-700 space-y-2">
+                      <div key={parent.id} className="bg-[#121212] p-3 rounded-2xl border border-zinc-800 space-y-2">
                         <div className="flex items-center gap-2 font-bold text-xs text-white uppercase">
                           {renderNavIcon(parent.icon, 14)}
                           <span>{parent.name}</span>
                         </div>
-                        <div className="grid grid-cols-1 gap-1.5 pl-1">
+                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-1.5">
                           {children.map((child) => (
                             <button
                               key={child.id}
                               type="button"
                               onClick={() => handleMenuClick(child.url)}
-                              className="text-left text-xs py-1.5 px-2.5 bg-[#121212] border border-zinc-800 rounded-lg hover:border-red-600 text-zinc-100 font-medium flex items-center justify-between"
+                              className="text-left text-xs py-1.5 px-2.5 bg-zinc-950 border border-zinc-800 rounded-lg hover:border-red-600 text-zinc-100 font-medium flex items-center justify-between"
                             >
                               <div className="flex items-center gap-2">
                                 {renderNavIcon(child.icon, 12)}
@@ -1148,12 +1160,11 @@ export const Header: React.FC<HeaderProps> = ({
               </div>
             )}
 
-            {/* Info / help pages */}
             <div className="space-y-3 border-t border-zinc-800 pt-3">
               <span className="text-[10px] font-mono tracking-widest text-zinc-400 font-bold uppercase block text-left">
                 Help & Info
               </span>
-              <div className="grid grid-cols-1 gap-1.5">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-1.5">
                 {[
                   { page: 'about', label: 'About Epic Vanskap', icon: Info },
                   { page: 'contact', label: 'Contact Us', icon: Phone },
@@ -1163,7 +1174,6 @@ export const Header: React.FC<HeaderProps> = ({
                   { page: 'refund', label: 'Refund Policy', icon: FileText },
                   { page: 'privacy', label: 'Privacy Policy', icon: FileText },
                   { page: 'terms', label: 'Terms of Service', icon: FileText },
-                  { page: 'seller', label: 'Sell with Us', icon: Shirt },
                 ].map(({ page, label, icon: Icon }) => (
                   <button
                     key={page}
@@ -1172,7 +1182,7 @@ export const Header: React.FC<HeaderProps> = ({
                       setCurrentPage(page);
                       setIsMobileMenuOpen(false);
                     }}
-                    className="w-full text-left text-xs py-2.5 px-3 rounded-xl border border-zinc-800 bg-zinc-950 hover:border-zinc-600 text-zinc-200 font-medium flex items-center gap-2.5 cursor-pointer"
+                    className="w-full text-left text-xs py-2.5 px-3 rounded-xl border border-zinc-800 bg-[#121212] hover:border-zinc-600 text-zinc-200 font-medium flex items-center gap-2.5 cursor-pointer"
                   >
                     <Icon size={14} className="text-zinc-500 shrink-0" />
                     <span>{label}</span>
@@ -1181,9 +1191,9 @@ export const Header: React.FC<HeaderProps> = ({
               </div>
             </div>
           </div>
-        </>
+        </div>
       )}
-    </header>
+
     {/* Offset for max-lg:fixed header so page content isn't covered */}
     <div
       className="lg:hidden shrink-0 w-full"

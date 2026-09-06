@@ -313,6 +313,11 @@ export const api = {
   homepageCms: () => request<any>("/api/cms/homepage"),
   updateCmsSettings: (body: unknown) =>
     request<any>("/api/cms/settings", { method: "PUT", body: JSON.stringify(body) }),
+  updateTournamentPatches: (tournamentPatches: unknown[]) =>
+    request<{ tournamentPatches: unknown; syncedProducts?: boolean }>(
+      "/api/cms/tournament-patches",
+      { method: "PUT", body: JSON.stringify({ tournamentPatches }) },
+    ),
 
   listBanners: () => request<{ items: any[] }>("/api/cms/banners"),
   createBanner: (body: unknown) =>
