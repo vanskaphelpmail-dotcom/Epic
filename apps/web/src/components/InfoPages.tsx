@@ -41,14 +41,17 @@ export const InfoPages: React.FC<InfoPagesProps> = ({ pageType, onBack }) => {
   ];
 
   return (
-    <section className="bg-[#fcfdfc] text-white py-12 px-6 md:px-12 max-w-4xl mx-auto min-h-screen">
+    <section className="bg-[#0a0a0a] text-white py-12 px-6 md:px-12 max-w-4xl mx-auto min-h-screen">
       
-      {/* Return Catalog Link */}
       <button
         onClick={onBack}
-        className="text-xs font-mono font-bold text-zinc-300 hover:text-white uppercase tracking-widest mb-10 cursor-pointer"
+        type="button"
+        className="inline-flex items-center gap-2 mb-10 px-4 py-2.5 rounded-xl bg-zinc-900 border border-zinc-700 text-white hover:border-red-600 hover:bg-zinc-800 text-sm font-black uppercase tracking-wide cursor-pointer transition-colors shadow-sm"
       >
-        ← Back to Catalog
+        <span className="text-red-500" aria-hidden>
+          ←
+        </span>
+        Go to Home
       </button>
 
       {/* RENDER PAGES */}
@@ -85,27 +88,85 @@ export const InfoPages: React.FC<InfoPagesProps> = ({ pageType, onBack }) => {
       )}
 
       {pageType === 'about' && (
-        <div className="space-y-6 animate-fadeIn leading-relaxed text-xs text-zinc-300">
-          <div className="space-y-2 mb-6">
-            <h1 className="text-3xl font-black uppercase tracking-tight text-white">The Sourcing & Authentication Story</h1>
-            <p className="text-xs text-zinc-300 font-mono">Preserving footballing heritage</p>
+        <div className="space-y-8 animate-fadeIn leading-relaxed text-sm text-zinc-300">
+          <div className="space-y-3">
+            <p className="text-[10px] font-mono font-black uppercase tracking-[0.2em] text-red-500">
+              Our story
+            </p>
+            <h1 className="text-3xl md:text-4xl font-black uppercase tracking-tight text-white leading-tight">
+              About Epic Vanskap
+            </h1>
+            <p className="text-base text-zinc-200 max-w-2xl">
+              Epic Vanskap is more than a jersey shop. It is a story of friendship, dreams, passion, and the journey of five friends who decided to build something of their own.
+            </p>
           </div>
 
-          <p>
-            Epic Vanskap BD was founded in 2026 by a collective of passionate historians, football culture enthusiasts, and obsessive kit archivists. We grew tired of modern low-quality replica remakes flooded across the internet and set out to preserve authentic jersey design.
-          </p>
-          <div className="bg-zinc-900 border border-zinc-800 p-6 rounded-2xl my-6 flex items-start gap-4">
-            <ShieldCheck size={28} className="text-zinc-400 flex-shrink-0" />
-            <div className="space-y-1">
-              <h4 className="font-bold text-sm text-white">Our 12-Point Authentication Matrix</h4>
-              <p className="text-zinc-400 leading-normal">
-                Every thread, button stitch, neck labels, brand logo watermark, sleeve cuffs, and material blend ratio is physical cross-referenced against our original database archive. We issue a physical, serialized certificate of authentication with every single item shipped.
-              </p>
+          <figure className="space-y-3">
+            <div className="relative overflow-hidden rounded-2xl border border-zinc-800 bg-zinc-950 shadow-2xl shadow-black/40">
+              <img
+                src="/about-founders.jpg"
+                alt="Epic Vanskap founders — Nayeem, Mishkat, Yaqub, Rajib, and Rahin"
+                className="w-full h-auto object-cover object-center max-h-[min(70vh,560px)]"
+                loading="eager"
+              />
             </div>
+            <figcaption className="text-[11px] font-mono text-zinc-500 text-center">
+              Five Friends. One Dream. One Vanskap.
+            </figcaption>
+          </figure>
+
+          <div className="space-y-4 text-[13px] md:text-sm leading-relaxed">
+            <p>
+              The name <span className="text-white font-semibold">“Vanskap”</span> comes from the Swedish word for friendship, while{' '}
+              <span className="text-white font-semibold">“Epic”</span> represents the kind of friendship and memories we wanted to create — something truly unforgettable.
+            </p>
+            <p>
+              Our journey began with six friends from Feni Government Pilot High School —{' '}
+              <span className="text-white font-semibold">Nayeem, Mishkat, Yaqub, Rajib, Rahin, and Ifu</span>.
+            </p>
+            <p>
+              We started Epic Vanskap with a simple idea: turn our friendship and passion for football into something we could build together. What started as a dream among six school friends slowly became a brand we could proudly call our own.
+            </p>
+            <p>
+              Along the way, life took us in different directions. Due to personal reasons, Ifu had to leave the journey. Although our team became five, the dream never became smaller.
+            </p>
+            <p>
+              Today, <span className="text-white font-semibold">Nayeem, Mishkat, Yaqub, Rajib, and Rahin</span> continue to carry the dream of Epic Vanskap forward.
+            </p>
+            <p>
+              Building something from scratch is never easy. There are challenges, setbacks, and unexpected turns. But one thing has always remained the same — the friendship, passion, and dream that started it all.
+            </p>
           </div>
-          <p>
-            Operating physical verification laboratories in Dhaka, London, and Manchester, we work closely with retired players, club kit men, and global suppliers to procure genuine museum-grade jerseys from the 1970s, 80s, 90s, and 2000s. Secure footballing legacy at Epic Vanskap BD.
-          </p>
+
+          <div className="rounded-2xl border border-zinc-800 bg-zinc-900/80 p-6 md:p-8 space-y-4">
+            <p className="text-[10px] font-mono font-black uppercase tracking-[0.2em] text-zinc-500">
+              Our Motto
+            </p>
+            <h2 className="text-xl md:text-2xl font-black uppercase tracking-tight text-white">
+              Think Outside The Box.
+            </h2>
+            <p className="text-[13px] md:text-sm text-zinc-300 leading-relaxed">
+              We believe in being different, challenging the ordinary, and creating our own path. For us, thinking outside the box means bringing creativity into every design, every idea, and every step of our journey.
+            </p>
+            <p className="text-[13px] md:text-sm text-zinc-300 leading-relaxed">
+              We don&apos;t just want to sell jerseys. We want to build a brand, create memories, and inspire people to think differently.
+            </p>
+          </div>
+
+          <div className="space-y-4 text-[13px] md:text-sm leading-relaxed border-t border-zinc-800 pt-8">
+            <p className="text-lg md:text-xl font-black text-white tracking-tight">
+              Five Friends. One Dream. One Vanskap.
+            </p>
+            <p>
+              Epic Vanskap is a reminder that great things can begin with something as simple as friendship.
+            </p>
+            <p>
+              Every jersey we create carries a little piece of our journey, and every customer who becomes part of Epic Vanskap becomes a part of that story too.
+            </p>
+            <p className="text-white font-semibold pt-2">
+              Epic Vanskap — Born From Friendship, Driven By Passion, Inspired To Think Outside The Box.
+            </p>
+          </div>
         </div>
       )}
 

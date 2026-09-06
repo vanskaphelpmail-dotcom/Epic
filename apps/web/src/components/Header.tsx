@@ -2,7 +2,8 @@ import React, { useEffect, useMemo, useRef, useState } from 'react';
 import { 
   Search, Heart, ShoppingBag, Menu, X, ShieldCheck, HelpCircle, Phone, 
   ArrowRight, Award, Trash2, Shirt, Trophy, Star, Flame, Sparkles, Tag, 
-  Box, Globe, Compass, ChevronDown, Layers, Grid 
+  Box, Globe, Compass, ChevronDown, Layers, Grid, User as UserIcon, ClipboardList,
+  LogIn, UserPlus, MapPin, Info, FileText, Package
 } from 'lucide-react';
 import { Product, CartItem, User, AppConfig, MenuItem } from '../types';
 import { canUseAdminPanel } from '../lib/roles';
@@ -56,6 +57,8 @@ export const Header: React.FC<HeaderProps> = ({
 }) => {
   const [showSearchDropdown, setShowSearchDropdown] = useState(false);
   const [showMobileSearchDropdown, setShowMobileSearchDropdown] = useState(false);
+  const [headerHiddenMobile, setHeaderHiddenMobile] = useState(false);
+  const lastScrollYRef = useRef(0);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [showCartDropdown, setShowCartDropdown] = useState(false);
   const [showMegaMenuDropdown, setShowMegaMenuDropdown] = useState(false);
@@ -81,6 +84,29 @@ export const Header: React.FC<HeaderProps> = ({
     };
   }, []);
 
+  // Mobile/tablet: auto-hide top bar on scroll down, show on scroll up
+  useEffect(() => {
+    const onScroll = () => {
+      if (typeof window === 'undefined') return;
+      if (window.matchMedia('(min-width: 1024px)').matches) {
+        setHeaderHiddenMobile(false);
+        return;
+      }
+      const y = window.scrollY || 0;
+      const prev = lastScrollYRef.current;
+      if (y > prev + 6 && y > 64) {
+        setHeaderHiddenMobile(true);
+        setShowMobileSearchDropdown(false);
+      } else if (y < prev - 4) {
+        setHeaderHiddenMobile(false);
+      }
+      if (y <= 8) setHeaderHiddenMobile(false);
+      lastScrollYRef.current = y;
+    };
+    window.addEventListener('scroll', onScroll, { passive: true });
+    return () => window.removeEventListener('scroll', onScroll);
+  }, []);
+
   // Close mobile search suggestions when tapping outside
   useEffect(() => {
     if (!showMobileSearchDropdown) return;
@@ -99,12 +125,12 @@ export const Header: React.FC<HeaderProps> = ({
   }, [showMobileSearchDropdown]);
 
   const catalogKeywords = useMemo(
-    () => buildCatalogSearchKeywords(products, 14),
+    () => buildCatalogSearchKeywords(products, 5),
     [products],
   );
-  const popularSearchTerms = catalogKeywords.length ? catalogKeywords : POPULAR_SEARCHES;
+  const popularSearchTerms = (catalogKeywords.length ? catalogKeywords : POPULAR_SEARCHES).slice(0, 5);
   const liveSuggestions = useMemo(
-    () => suggestProductsForQuery(products, searchQuery, 6),
+    () => suggestProductsForQuery(products, searchQuery, 5),
     [products, searchQuery],
   );
 
@@ -275,7 +301,9 @@ export const Header: React.FC<HeaderProps> = ({
     <>
     <header
       ref={headerRef}
-      className="max-lg:fixed max-lg:inset-x-0 max-lg:top-0 sticky top-0 z-50 w-full min-w-0 bg-black transition-all duration-300 max-lg:shadow-md max-lg:shadow-black/40"
+      className={`max-lg:fixed max-lg:inset-x-0 max-lg:top-0 sticky top-0 z-50 w-full min-w-0 bg-black transition-transform duration-300 max-lg:shadow-md max-lg:shadow-black/40 ${
+        headerHiddenMobile ? 'max-lg:-translate-y-full' : 'max-lg:translate-y-0'
+      }`}
     >
       {/* Top Navigation Row */}
       <div className="bg-black border-b border-zinc-800 py-3 sm:py-4 px-2.5 sm:px-4 lg:px-12 flex justify-between items-center gap-1.5 sm:gap-2 min-w-0 overflow-visible transition-all duration-300">
@@ -402,8 +430,8 @@ export const Header: React.FC<HeaderProps> = ({
         </div>
 
         {/* Icons Right Side */}
-        <div className="hidden lg:flex items-center gap-4 text-white">
-          {/* Staff session only — customer login removed */}
+        <div className="hidden lg:flex items-center gap-3 text-white">
+          {/* Staff session */}
           {currentUser && canUseAdminPanel(currentUser.role, !!getToken(), isApiEnabled()) ? (
             <div className="flex items-center gap-2">
               <div className="hidden lg:flex flex-col text-right pr-2">
@@ -426,7 +454,42 @@ export const Header: React.FC<HeaderProps> = ({
                 Sign Out
               </button>
             </div>
-          ) : null}
+          ) : currentUser ? (
+            <div className="flex items-center gap-2">
+              <button
+                type="button"
+                onClick={() => setCurrentPage('dashboard')}
+                className="text-xs font-bold text-white truncate max-w-[120px] hover:text-red-500 cursor-pointer"
+                title={currentUser.email}
+              >
+                {currentUser.fullName?.split(' ')[0] || 'Account'}
+              </button>
+              <button
+                type="button"
+                onClick={() => onLogout?.()}
+                className="text-[10px] font-mono text-zinc-400 hover:text-red-600 uppercase tracking-wider px-2 py-1 cursor-pointer"
+              >
+                Sign Out
+              </button>
+            </div>
+          ) : (
+            <div className="flex items-center gap-2">
+              <button
+                type="button"
+                onClick={() => setCurrentPage('login')}
+                className="text-[11px] font-bold uppercase tracking-wider text-zinc-300 hover:text-white px-3 py-1.5 cursor-pointer"
+              >
+                Login
+              </button>
+              <button
+                type="button"
+                onClick={() => setCurrentPage('signup')}
+                className="bg-red-600 hover:bg-red-700 text-white text-[11px] font-bold uppercase tracking-wider px-3.5 py-1.5 rounded-full cursor-pointer"
+              >
+                Sign Up
+              </button>
+            </div>
+          )}
 
           {/* Wishlist Link */}
           <button
@@ -528,9 +591,9 @@ export const Header: React.FC<HeaderProps> = ({
           </div>
         </div>
 
-        {/* Mobile: logo + menu only — wishlist/cart live in bottom nav */}
+        {/* Mobile: menu only — search lives in the bar below + bottom nav */}
         <div
-          className="flex lg:hidden items-center shrink-0 ml-auto"
+          className="flex lg:hidden items-center gap-1.5 shrink-0 ml-auto"
           id="mobile-right-controls"
         >
           <button
@@ -578,7 +641,7 @@ export const Header: React.FC<HeaderProps> = ({
             <Search className="absolute left-3.5 text-zinc-600 w-5 h-5 pointer-events-none" />
             <button
               type="submit"
-              className="absolute right-1.5 top-1.5 bottom-1.5 bg-zinc-800 hover:bg-zinc-700 text-white text-[10px] sm:text-xs font-bold px-4 sm:px-5 rounded-full transition-all cursor-pointer uppercase tracking-wider"
+              className="absolute right-1.5 top-1.5 bottom-1.5 min-w-[4.5rem] bg-red-600 hover:bg-red-700 text-white text-[10px] sm:text-xs font-black px-4 sm:px-5 rounded-full transition-all cursor-pointer uppercase tracking-wider shadow-md shadow-red-600/30 hover:shadow active:scale-95 border border-red-500"
             >
               Search
             </button>
@@ -750,119 +813,27 @@ export const Header: React.FC<HeaderProps> = ({
                 <X size={18} />
               </button>
             </div>
-          {/* Mobile Search (in menu — mirrors top bar) */}
-          <form onSubmit={handleSearchSubmit} className="relative">
-            <div className="relative flex items-center">
-              <input
-                type="search"
-                enterKeyHint="search"
-                placeholder="Club Jersey, International Jersey, League..."
-                value={searchQuery}
-                onChange={(e) => handleSearchInput(e.target.value)}
-                className="w-full h-12 bg-zinc-900 text-white placeholder-zinc-500 text-sm pl-12 pr-28 rounded-full border border-zinc-800 focus:bg-[#121212] focus:outline-none focus:border-red-600 focus:ring-4 focus:ring-red-600/10 hover:bg-zinc-900/60 hover:border-zinc-800 transition-all duration-300"
-              />
-              <Search className="absolute left-4 text-zinc-600 w-5 h-5 pointer-events-none" />
-              <button
-                type="submit"
-                className="absolute right-1.5 top-1.5 bottom-1.5 bg-red-600 hover:bg-red-700 text-white text-xs font-bold px-6 rounded-full transition-all duration-200 cursor-pointer shadow-sm hover:shadow hover:scale-[1.01] active:scale-95 uppercase tracking-wider flex items-center justify-center"
-              >
-                Search
-              </button>
-            </div>
-          </form>
 
-          {/* Popular searches in mobile menu */}
-          <div className="space-y-2">
-            <span className="text-[10px] font-mono tracking-widest text-zinc-400 font-bold uppercase block text-left">Popular Searches</span>
-            <div className="flex flex-wrap gap-1.5">
-              {popularSearchTerms.map((term) => (
-                <button
-                  key={term}
-                  type="button"
-                  onClick={() => handlePopularSearchClick(term)}
-                  className="bg-zinc-900 hover:bg-zinc-800 border border-zinc-800 text-[11px] px-3 py-1.5 rounded-full text-zinc-300 cursor-pointer"
-                >
-                  {term}
-                </button>
-              ))}
-            </div>
-          </div>
-
-          {/* Quick Stats / Direct Pages Options — always 1 col: drawer is ~320px; viewport sm: would crush 2-col cards */}
-          <div className="space-y-3">
-            <span className="text-[10px] font-mono tracking-widest text-zinc-400 font-bold uppercase block text-left">
-              My Personal Room
-            </span>
-            <div className="grid grid-cols-1 gap-2.5">
-              {/* Cart Button Option */}
-              <button
-                type="button"
-                onClick={() => {
-                  setCurrentPage('cart');
-                  setIsMobileMenuOpen(false);
-                }}
-                className="w-full min-w-0 flex items-center gap-3 p-3.5 bg-zinc-900 hover:bg-zinc-900 border border-zinc-800 rounded-2xl transition-all text-left cursor-pointer"
-              >
-                <div className="shrink-0 p-2.5 bg-zinc-800/60 text-zinc-300 rounded-xl">
-                  <ShoppingBag size={18} />
-                </div>
-                <div className="min-w-0 flex-1">
-                  <div className="flex items-baseline justify-between gap-2">
-                    <p className="text-xs font-black uppercase tracking-wider text-white truncate">Cart Bag</p>
-                    <p className="shrink-0 text-xs font-black text-zinc-100 font-mono tabular-nums">{formatPrice(cartTotal)}</p>
-                  </div>
-                  <div className="flex items-center justify-between gap-2 mt-0.5">
-                    <p className="text-[10px] text-zinc-400/80 font-mono font-bold truncate">{cartCount} items</p>
-                    <span className="shrink-0 text-[9px] text-zinc-600 font-extrabold uppercase tracking-widest">View →</span>
-                  </div>
-                </div>
-              </button>
-
-              {/* Wishlist Button Option */}
-              <button
-                type="button"
-                onClick={() => {
-                  setSelectedCategory('All');
-                  setCurrentPage('dashboard');
-                  setIsMobileMenuOpen(false);
-                }}
-                className="w-full min-w-0 flex items-center gap-3 p-3.5 bg-zinc-900 hover:bg-zinc-900 border border-zinc-800 rounded-2xl transition-all text-left cursor-pointer"
-              >
-                <div className="shrink-0 p-2.5 bg-red-50 text-red-600 rounded-xl">
-                  <Heart size={18} className={wishlist.length > 0 ? "fill-red-500 text-red-500" : ""} />
-                </div>
-                <div className="min-w-0 flex-1">
-                  <p className="text-xs font-black uppercase tracking-wider text-white truncate">Favorites</p>
-                  <div className="flex items-center justify-between gap-2 mt-0.5">
-                    <p className="text-[10px] text-zinc-400/80 font-mono font-bold truncate">{wishlist.length} saved</p>
-                    <span className="shrink-0 text-[9px] text-zinc-600 font-extrabold uppercase tracking-widest">View →</span>
-                  </div>
-                </div>
-              </button>
-            </div>
-          </div>
-
-          {/* Staff / sell — customer sign-in removed */}
-          <div className="space-y-3">
-            {currentUser && canUseAdminPanel(currentUser.role, !!getToken(), isApiEnabled()) ? (
-              <>
-                <span className="text-[10px] font-mono tracking-widest text-zinc-400 font-bold uppercase block text-left">
-                  Admin Control
-                </span>
-                <div className="p-4 bg-slate-50/60 border border-zinc-800 rounded-2xl space-y-3">
+            {/* Account / Login */}
+            <div className="space-y-3">
+              <span className="text-[10px] font-mono tracking-widest text-zinc-400 font-bold uppercase block text-left">
+                Account
+              </span>
+              {currentUser && canUseAdminPanel(currentUser.role, !!getToken(), isApiEnabled()) ? (
+                <div className="p-4 bg-zinc-950 border-2 border-zinc-700 rounded-2xl space-y-3">
                   <div className="flex items-start justify-between gap-3">
                     <div className="text-left min-w-0 flex-1">
-                      <p className="text-[9px] text-zinc-600 font-mono font-bold uppercase tracking-wider leading-none">{currentUser.role}</p>
+                      <p className="text-[9px] text-zinc-400 font-mono font-bold uppercase tracking-wider leading-none">{currentUser.role}</p>
                       <p className="text-xs font-black text-white mt-1 truncate">{currentUser.fullName}</p>
-                      <p className="text-[10px] text-zinc-400/70 font-mono truncate">{currentUser.email}</p>
+                      <p className="text-[10px] text-zinc-400 font-mono truncate">{currentUser.email}</p>
                     </div>
                     <button
                       type="button"
                       onClick={() => {
-                        if (onLogout) onLogout();
+                        onLogout?.();
                         setIsMobileMenuOpen(false);
                       }}
-                      className="shrink-0 text-[10px] font-mono text-red-600 hover:text-red-700 underline font-bold uppercase tracking-wider cursor-pointer"
+                      className="shrink-0 text-[10px] font-mono text-red-500 hover:text-red-400 underline font-bold uppercase tracking-wider cursor-pointer"
                     >
                       Sign Out
                     </button>
@@ -874,7 +845,7 @@ export const Header: React.FC<HeaderProps> = ({
                         setCurrentPage('admin');
                         setIsMobileMenuOpen(false);
                       }}
-                      className="w-full min-w-0 bg-red-600 hover:bg-red-700 text-white py-2.5 px-2 rounded-xl text-center text-[10px] font-mono font-bold uppercase tracking-wider cursor-pointer leading-tight"
+                      className="w-full bg-red-600 hover:bg-red-700 text-white py-2.5 px-2 rounded-xl text-center text-[10px] font-mono font-bold uppercase tracking-wider cursor-pointer"
                     >
                       Admin Room
                     </button>
@@ -884,108 +855,332 @@ export const Header: React.FC<HeaderProps> = ({
                         setCurrentPage('seller');
                         setIsMobileMenuOpen(false);
                       }}
-                      className="w-full min-w-0 bg-zinc-800 hover:bg-zinc-700 text-white py-2.5 px-2 rounded-xl text-center text-[10px] font-bold uppercase tracking-wider cursor-pointer leading-tight"
+                      className="w-full bg-zinc-800 hover:bg-zinc-700 text-white py-2.5 px-2 rounded-xl text-center text-[10px] font-bold uppercase tracking-wider cursor-pointer"
                     >
                       Sell Shirts
                     </button>
                   </div>
                 </div>
-              </>
-            ) : (
-              <button
-                type="button"
-                onClick={() => {
-                  setCurrentPage('seller');
-                  setIsMobileMenuOpen(false);
-                }}
-                className="w-full bg-zinc-800 hover:bg-zinc-700 text-white font-extrabold text-xs uppercase tracking-widest py-3.5 rounded-2xl shadow-md flex items-center justify-center gap-2 cursor-pointer transition-all"
-              >
-                <span>Sell Shirts</span>
-              </button>
-            )}
-          </div>
-
-          {/* Main Navigation Categories in Mobile */}
-          <div className="space-y-3">
-            <span className="text-[10px] font-mono tracking-widest text-zinc-400 font-bold uppercase block text-left">
-              Main Navigation Menu
-            </span>
-            <div className="grid grid-cols-1 gap-2">
-              {mainNavItems.map((item) => {
-                const active = isStorefrontNavActive(item.url, selectedCategory, currentPage);
-                return (
-                  <button
-                    key={item.id}
-                    type="button"
-                    onClick={() => handleMenuClick(item.url)}
-                    aria-current={active ? 'page' : undefined}
-                    className={`w-full min-w-0 text-left text-xs py-3 px-3.5 rounded-xl border transition-all cursor-pointer flex items-center gap-2 font-semibold ${
-                      active
-                        ? 'bg-red-600 border-red-700 text-white shadow-sm'
-                        : 'bg-zinc-900 border-zinc-800 hover:border-red-600 hover:bg-red-50 text-white'
-                    }`}
-                  >
-                    <span className={`shrink-0 ${active ? 'text-zinc-100' : 'text-zinc-400'}`}>
-                      {renderNavIcon(item.icon, 14)}
-                    </span>
-                    <span className="min-w-0 flex-1 leading-snug break-words">{item.name}</span>
-                    {item.badgeText ? (
-                      <span
-                        className={`shrink-0 font-mono text-[8px] px-1.5 py-0.5 rounded font-black ${
-                          active ? 'bg-white/20 text-white' : 'bg-red-600 text-white'
-                        }`}
-                      >
-                        {item.badgeText}
-                      </span>
-                    ) : null}
-                  </button>
-                );
-              })}
-            </div>
-          </div>
-
-          {/* Mega Menu Options in Mobile */}
-          {megaParents.length > 0 && (
-            <div className="space-y-3 border-t border-zinc-800 pt-3">
-              <span className="text-[10px] font-mono tracking-widest text-zinc-400 font-bold uppercase block text-left">
-                More
-              </span>
-              <div className="space-y-3">
-                {megaParents.map((parent) => {
-                  const children = megaNavItems.filter((c) => c.parentId === parent.id);
-                  return (
-                    <div key={parent.id} className="bg-zinc-900 p-3 rounded-2xl border border-zinc-800 space-y-2">
-                      <div className="flex items-center gap-2 font-bold text-xs text-white uppercase">
-                        {renderNavIcon(parent.icon, 14)}
-                        <span>{parent.name}</span>
-                      </div>
-                      <div className="grid grid-cols-1 gap-1.5 pl-2">
-                        {children.map((child) => (
-                          <button
-                            key={child.id}
-                            type="button"
-                            onClick={() => handleMenuClick(child.url)}
-                            className="text-left text-xs py-1.5 px-2.5 bg-[#121212] border border-zinc-800 rounded-lg hover:border-red-600 text-zinc-100 font-medium flex items-center justify-between"
-                          >
-                            <div className="flex items-center gap-2">
-                              {renderNavIcon(child.icon, 12)}
-                              <span>{child.name}</span>
-                            </div>
-                            {child.badgeText && (
-                              <span className="bg-amber-100 text-amber-900 font-mono text-[8px] font-black px-1.5 py-0.5 rounded">
-                                {child.badgeText}
-                              </span>
-                            )}
-                          </button>
-                        ))}
-                      </div>
+              ) : currentUser ? (
+                <div className="p-4 bg-zinc-950 border-2 border-zinc-700 rounded-2xl space-y-3">
+                  <div className="flex items-center gap-3">
+                    <div className="w-10 h-10 rounded-full bg-red-600 flex items-center justify-center text-sm font-black shrink-0">
+                      {(currentUser.fullName || 'U')
+                        .split(/\s+/)
+                        .filter(Boolean)
+                        .slice(0, 2)
+                        .map((p) => p[0]?.toUpperCase() || '')
+                        .join('') || 'U'}
                     </div>
+                    <div className="min-w-0 flex-1 text-left">
+                      <p className="text-xs font-black text-white truncate">{currentUser.fullName}</p>
+                      <p className="text-[10px] text-zinc-400 font-mono truncate">{currentUser.email}</p>
+                    </div>
+                  </div>
+                  <div className="grid grid-cols-2 gap-2">
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setCurrentPage('dashboard');
+                        setIsMobileMenuOpen(false);
+                      }}
+                      className="w-full bg-zinc-800 hover:bg-zinc-700 text-white py-2.5 rounded-xl text-[10px] font-bold uppercase cursor-pointer"
+                    >
+                      My Profile
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => {
+                        onLogout?.();
+                        setIsMobileMenuOpen(false);
+                      }}
+                      className="w-full bg-red-600 hover:bg-red-700 text-white py-2.5 rounded-xl text-[10px] font-bold uppercase cursor-pointer"
+                    >
+                      Sign Out
+                    </button>
+                  </div>
+                </div>
+              ) : (
+                <div className="grid grid-cols-2 gap-2">
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setCurrentPage('login');
+                      setIsMobileMenuOpen(false);
+                    }}
+                    className="w-full border-2 border-zinc-700 hover:border-zinc-500 text-white font-extrabold text-xs uppercase tracking-widest py-3.5 rounded-2xl cursor-pointer inline-flex items-center justify-center gap-1.5"
+                  >
+                    <LogIn size={14} /> Login
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setCurrentPage('signup');
+                      setIsMobileMenuOpen(false);
+                    }}
+                    className="w-full bg-red-600 hover:bg-red-700 text-white font-extrabold text-xs uppercase tracking-widest py-3.5 rounded-2xl cursor-pointer inline-flex items-center justify-center gap-1.5"
+                  >
+                    <UserPlus size={14} /> Sign Up
+                  </button>
+                </div>
+              )}
+            </div>
+
+            {/* My bag & account shortcuts */}
+            <div className="space-y-3">
+              <span className="text-[10px] font-mono tracking-widest text-zinc-400 font-bold uppercase block text-left">
+                My Shopping
+              </span>
+              <div className="space-y-2">
+                <button
+                  type="button"
+                  onClick={() => {
+                    setCurrentPage('cart');
+                    setIsMobileMenuOpen(false);
+                  }}
+                  className="w-full flex items-center gap-3 p-3.5 bg-zinc-950 hover:bg-zinc-900 border-2 border-zinc-700 rounded-2xl transition-all text-left cursor-pointer"
+                >
+                  <div className="shrink-0 p-2.5 bg-zinc-800 text-zinc-200 rounded-xl">
+                    <ShoppingBag size={18} />
+                  </div>
+                  <div className="min-w-0 flex-1">
+                    <div className="flex items-baseline justify-between gap-2">
+                      <p className="text-xs font-black uppercase tracking-wider text-white">My Cart</p>
+                      <p className="shrink-0 text-xs font-black text-zinc-100 font-mono tabular-nums">{formatPrice(cartTotal)}</p>
+                    </div>
+                    <p className="text-[10px] text-zinc-400 font-mono font-bold mt-0.5">{cartCount} item{cartCount === 1 ? '' : 's'}</p>
+                  </div>
+                </button>
+
+                {cart.length > 0 && (
+                  <div className="bg-zinc-950 border border-zinc-800 rounded-2xl p-3 space-y-2">
+                    <p className="text-[9px] font-mono font-bold uppercase tracking-wider text-zinc-500">In your bag</p>
+                    {cart.slice(0, 4).map((item, idx) => (
+                      <div key={`${item.product.id}-${idx}`} className="flex items-center gap-2.5">
+                        <div className="w-9 h-9 rounded-lg bg-zinc-900 border border-zinc-800 overflow-hidden shrink-0 flex items-center justify-center">
+                          {item.product.images?.[0] ? (
+                            <img src={item.product.images[0]} alt="" className="w-full h-full object-contain" />
+                          ) : (
+                            <Shirt size={14} className="text-zinc-600" />
+                          )}
+                        </div>
+                        <div className="min-w-0 flex-1">
+                          <p className="text-[11px] font-semibold text-white truncate">{item.product.name}</p>
+                          <p className="text-[9px] text-zinc-500 font-mono">
+                            {item.selectedSize} · ×{item.quantity}
+                          </p>
+                        </div>
+                        <span className="text-[10px] font-mono font-bold text-zinc-300 shrink-0">
+                          {formatPrice(item.product.price * item.quantity)}
+                        </span>
+                      </div>
+                    ))}
+                    {cart.length > 4 && (
+                      <p className="text-[10px] text-zinc-500 font-mono">+{cart.length - 4} more in cart</p>
+                    )}
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setCurrentPage('cart');
+                        setIsMobileMenuOpen(false);
+                      }}
+                      className="w-full mt-1 text-[10px] font-black uppercase tracking-wider text-red-500 hover:text-red-400 cursor-pointer"
+                    >
+                      View full cart →
+                    </button>
+                  </div>
+                )}
+
+                <button
+                  type="button"
+                  onClick={() => {
+                    setCurrentPage(currentUser ? 'dashboard' : 'login');
+                    setIsMobileMenuOpen(false);
+                  }}
+                  className="w-full flex items-center gap-3 p-3.5 bg-zinc-950 hover:bg-zinc-900 border-2 border-zinc-700 rounded-2xl transition-all text-left cursor-pointer"
+                >
+                  <div className="shrink-0 p-2.5 bg-zinc-800 text-zinc-200 rounded-xl">
+                    <ClipboardList size={18} />
+                  </div>
+                  <div className="min-w-0 flex-1">
+                    <p className="text-xs font-black uppercase tracking-wider text-white">My Orders</p>
+                    <p className="text-[10px] text-zinc-400 font-mono mt-0.5">
+                      {currentUser ? 'Order history & tracking' : 'Login to view orders'}
+                    </p>
+                  </div>
+                </button>
+
+                <button
+                  type="button"
+                  onClick={() => {
+                    setCurrentPage(currentUser ? 'dashboard' : 'login');
+                    setIsMobileMenuOpen(false);
+                  }}
+                  className="w-full flex items-center gap-3 p-3.5 bg-zinc-950 hover:bg-zinc-900 border-2 border-zinc-700 rounded-2xl transition-all text-left cursor-pointer"
+                >
+                  <div className="shrink-0 p-2.5 bg-zinc-800 text-zinc-200 rounded-xl">
+                    <UserIcon size={18} />
+                  </div>
+                  <div className="min-w-0 flex-1">
+                    <p className="text-xs font-black uppercase tracking-wider text-white">My Profile</p>
+                    <p className="text-[10px] text-zinc-400 font-mono mt-0.5">
+                      {currentUser ? 'Settings & saved addresses' : 'Login to manage profile'}
+                    </p>
+                  </div>
+                </button>
+
+                <button
+                  type="button"
+                  onClick={() => {
+                    setCurrentPage(currentUser ? 'dashboard' : 'login');
+                    setIsMobileMenuOpen(false);
+                  }}
+                  className="w-full flex items-center gap-3 p-3.5 bg-zinc-950 hover:bg-zinc-900 border-2 border-zinc-700 rounded-2xl transition-all text-left cursor-pointer"
+                >
+                  <div className="shrink-0 p-2.5 bg-red-950/50 text-red-400 rounded-xl">
+                    <Heart size={18} className={wishlist.length > 0 ? 'fill-red-500 text-red-500' : ''} />
+                  </div>
+                  <div className="min-w-0 flex-1">
+                    <p className="text-xs font-black uppercase tracking-wider text-white">Wishlist</p>
+                    <p className="text-[10px] text-zinc-400 font-mono mt-0.5">{wishlist.length} saved</p>
+                  </div>
+                </button>
+
+                <button
+                  type="button"
+                  onClick={() => {
+                    setCurrentPage(currentUser ? 'dashboard' : 'login');
+                    setIsMobileMenuOpen(false);
+                  }}
+                  className="w-full flex items-center gap-3 p-3.5 bg-zinc-950 hover:bg-zinc-900 border-2 border-zinc-700 rounded-2xl transition-all text-left cursor-pointer"
+                >
+                  <div className="shrink-0 p-2.5 bg-zinc-800 text-zinc-200 rounded-xl">
+                    <MapPin size={18} />
+                  </div>
+                  <div className="min-w-0 flex-1">
+                    <p className="text-xs font-black uppercase tracking-wider text-white">Saved Addresses</p>
+                    <p className="text-[10px] text-zinc-400 font-mono mt-0.5">
+                      {currentUser ? 'Edit delivery addresses' : 'Login to save addresses'}
+                    </p>
+                  </div>
+                </button>
+              </div>
+            </div>
+
+            {/* Shop categories */}
+            <div className="space-y-3">
+              <span className="text-[10px] font-mono tracking-widest text-zinc-400 font-bold uppercase block text-left">
+                Shop Categories
+              </span>
+              <div className="grid grid-cols-1 gap-2">
+                {mainNavItems.map((item) => {
+                  const active = isStorefrontNavActive(item.url, selectedCategory, currentPage);
+                  return (
+                    <button
+                      key={item.id}
+                      type="button"
+                      onClick={() => handleMenuClick(item.url)}
+                      aria-current={active ? 'page' : undefined}
+                      className={`w-full min-w-0 text-left text-xs py-3 px-3.5 rounded-xl border-2 transition-all cursor-pointer flex items-center gap-2 font-semibold ${
+                        active
+                          ? 'bg-red-600 border-red-700 text-white shadow-sm'
+                          : 'bg-zinc-950 border-zinc-700 hover:border-red-600 text-white'
+                      }`}
+                    >
+                      <span className={`shrink-0 ${active ? 'text-white' : 'text-zinc-400'}`}>
+                        {renderNavIcon(item.icon, 14)}
+                      </span>
+                      <span className="min-w-0 flex-1 leading-snug break-words">{item.name}</span>
+                      {item.badgeText ? (
+                        <span
+                          className={`shrink-0 font-mono text-[8px] px-1.5 py-0.5 rounded font-black ${
+                            active ? 'bg-white/20 text-white' : 'bg-red-600 text-white'
+                          }`}
+                        >
+                          {item.badgeText}
+                        </span>
+                      ) : null}
+                    </button>
                   );
                 })}
               </div>
             </div>
-          )}
-        </div>
+
+            {/* Mega menu / more */}
+            {megaParents.length > 0 && (
+              <div className="space-y-3 border-t border-zinc-800 pt-3">
+                <span className="text-[10px] font-mono tracking-widest text-zinc-400 font-bold uppercase block text-left">
+                  More Collections
+                </span>
+                <div className="space-y-3">
+                  {megaParents.map((parent) => {
+                    const children = megaNavItems.filter((c) => c.parentId === parent.id);
+                    return (
+                      <div key={parent.id} className="bg-zinc-950 p-3 rounded-2xl border-2 border-zinc-700 space-y-2">
+                        <div className="flex items-center gap-2 font-bold text-xs text-white uppercase">
+                          {renderNavIcon(parent.icon, 14)}
+                          <span>{parent.name}</span>
+                        </div>
+                        <div className="grid grid-cols-1 gap-1.5 pl-1">
+                          {children.map((child) => (
+                            <button
+                              key={child.id}
+                              type="button"
+                              onClick={() => handleMenuClick(child.url)}
+                              className="text-left text-xs py-1.5 px-2.5 bg-[#121212] border border-zinc-800 rounded-lg hover:border-red-600 text-zinc-100 font-medium flex items-center justify-between"
+                            >
+                              <div className="flex items-center gap-2">
+                                {renderNavIcon(child.icon, 12)}
+                                <span>{child.name}</span>
+                              </div>
+                              {child.badgeText && (
+                                <span className="bg-red-600 text-white font-mono text-[8px] font-black px-1.5 py-0.5 rounded">
+                                  {child.badgeText}
+                                </span>
+                              )}
+                            </button>
+                          ))}
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+              </div>
+            )}
+
+            {/* Info / help pages */}
+            <div className="space-y-3 border-t border-zinc-800 pt-3">
+              <span className="text-[10px] font-mono tracking-widest text-zinc-400 font-bold uppercase block text-left">
+                Help & Info
+              </span>
+              <div className="grid grid-cols-1 gap-1.5">
+                {[
+                  { page: 'about', label: 'About Epic Vanskap', icon: Info },
+                  { page: 'contact', label: 'Contact Us', icon: Phone },
+                  { page: 'faq', label: 'FAQ', icon: HelpCircle },
+                  { page: 'shipping', label: 'Shipping Info', icon: Package },
+                  { page: 'authenticity', label: 'Authenticity', icon: ShieldCheck },
+                  { page: 'refund', label: 'Refund Policy', icon: FileText },
+                  { page: 'privacy', label: 'Privacy Policy', icon: FileText },
+                  { page: 'terms', label: 'Terms of Service', icon: FileText },
+                  { page: 'seller', label: 'Sell with Us', icon: Shirt },
+                ].map(({ page, label, icon: Icon }) => (
+                  <button
+                    key={page}
+                    type="button"
+                    onClick={() => {
+                      setCurrentPage(page);
+                      setIsMobileMenuOpen(false);
+                    }}
+                    className="w-full text-left text-xs py-2.5 px-3 rounded-xl border border-zinc-800 bg-zinc-950 hover:border-zinc-600 text-zinc-200 font-medium flex items-center gap-2.5 cursor-pointer"
+                  >
+                    <Icon size={14} className="text-zinc-500 shrink-0" />
+                    <span>{label}</span>
+                  </button>
+                ))}
+              </div>
+            </div>
+          </div>
         </>
       )}
     </header>

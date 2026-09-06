@@ -1,5 +1,6 @@
 import { PageSection, Product, CategoryItem } from '../types';
 import { storefrontLabelsMatch } from './storefrontPages';
+import { getProductCategories } from './sizeCharts';
 
 /** Sections permanently removed from the live storefront (still may exist in old DB rows). */
 export const REMOVED_HOMEPAGE_SECTION_IDS = new Set([
@@ -322,6 +323,8 @@ export function getProductsForHomepageSection(section: PageSection, products: Pr
   if (cat) {
     const byCategory = activeProducts
       .filter((p) => {
+        const productCats = getProductCategories(p);
+        if (productCats.some((c) => storefrontLabelsMatch(c, cat))) return true;
         if (storefrontLabelsMatch(p.category || '', cat)) return true;
         // Legends / Retro Store products also fill the Retro homepage row
         if (

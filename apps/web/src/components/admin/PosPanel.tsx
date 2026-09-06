@@ -148,7 +148,7 @@ export function PosPanel({
   const confirmConfigure = () => {
     if (!configProduct) return;
     if (cfgNameset && (!cfgName.trim() || !cfgNumber.trim())) {
-      setMsg('Enter custom name and jersey number for nameset');
+      setMsg('Enter custom name and jersey number for font printing');
       return;
     }
     const available = configProduct.sizeStocks?.[cfgSize] ?? configProduct.stock;
@@ -691,13 +691,13 @@ export function PosPanel({
 
               {configProduct.badgeAvailable !== false && getProductBadgeOptions(configProduct).length > 0 && (
                 <div className="border border-zinc-200 rounded-xl p-3 space-y-2">
-                  <p className="text-[11px] font-semibold text-zinc-500 uppercase">Patches / badges</p>
+                  <p className="text-[11px] font-semibold text-zinc-500 uppercase">Tournament Patch</p>
                   {getProductBadgeOptions(configProduct).map((b) => (
                     <label
                       key={b.id}
                       className="flex items-center justify-between gap-2 text-[13px] text-zinc-900 cursor-pointer"
                     >
-                      <span className="flex items-center gap-2">
+                      <span className="flex items-center gap-2 min-w-0">
                         <input
                           type="checkbox"
                           checked={cfgBadges.includes(b.id)}
@@ -707,9 +707,12 @@ export function PosPanel({
                             );
                           }}
                         />
-                        {b.label}
+                        {b.image ? (
+                          <img src={b.image} alt="" className="h-7 w-7 rounded object-cover border border-zinc-200" />
+                        ) : null}
+                        <span className="truncate">{b.label}</span>
                       </span>
-                      <span className="text-zinc-500">+{formatPrice(b.priceBdt)}</span>
+                      <span className="text-zinc-500 shrink-0">+{formatPrice(b.priceBdt)}</span>
                     </label>
                   ))}
                 </div>

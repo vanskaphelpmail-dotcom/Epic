@@ -52,9 +52,10 @@ export const Cart: React.FC<CartProps> = ({ cart, setCart, onCheckout, onBackToC
         </div>
         <button
           onClick={onBackToCatalog}
-          className="bg-black hover:bg-zinc-700 text-white font-extrabold text-xs uppercase tracking-widest px-8 py-3.5 rounded-full cursor-pointer transition-all shadow-lg shadow-black/10"
+          type="button"
+          className="inline-flex items-center justify-center gap-2 bg-red-600 hover:bg-red-700 text-white font-black text-sm uppercase tracking-wide px-8 py-3.5 rounded-xl cursor-pointer transition-all shadow-lg shadow-red-600/20"
         >
-          Browse Our Collections
+          Go to Home
         </button>
       </section>
     );
@@ -72,9 +73,10 @@ export const Cart: React.FC<CartProps> = ({ cart, setCart, onCheckout, onBackToC
         </div>
         <button
           onClick={onBackToCatalog}
-          className="text-xs text-zinc-400 hover:text-white font-mono font-semibold uppercase cursor-pointer"
+          type="button"
+          className="inline-flex items-center gap-2 px-3.5 py-2 rounded-xl bg-zinc-900 border border-zinc-700 text-white hover:border-red-600 hover:bg-zinc-800 text-xs sm:text-sm font-black uppercase tracking-wide cursor-pointer transition-colors"
         >
-          + Continue Shopping
+          Go to Home
         </button>
       </div>
 
@@ -158,7 +160,7 @@ export const Cart: React.FC<CartProps> = ({ cart, setCart, onCheckout, onBackToC
                       })}
                       {!item.selectedBadges?.length && item.addBadge && (
                         <span className="bg-zinc-900 text-zinc-400 text-[10px] font-mono px-2 py-0.5 rounded border border-zinc-800">
-                          + Sleeve Badge
+                          + Tournament Patch
                         </span>
                       )}
                       {(item.selectedBadges || []).map((id) => {
@@ -171,7 +173,7 @@ export const Cart: React.FC<CartProps> = ({ cart, setCart, onCheckout, onBackToC
                             key={`text-${id}`}
                             className="bg-zinc-900 text-zinc-400 text-[10px] font-mono px-2 py-0.5 rounded border border-zinc-800"
                           >
-                            + Badge: {text}
+                            + Patch: {text}
                           </span>
                         );
                       })}

@@ -98,10 +98,12 @@ export function toSpaProduct(
           const row = entry as Record<string, unknown>;
           const label = String(row.label || "").trim();
           if (!label) return null;
+          const image = String(row.image || row.imageUrl || "").trim();
           return {
-            id: String(row.id || `badge-${i + 1}`),
+            id: String(row.id || `patch-${i + 1}`),
             label,
             priceBdt: Math.max(0, Math.round(Number(row.priceBdt) || 0)),
+            ...(image ? { image } : {}),
           };
         })
         .filter(Boolean);
@@ -122,11 +124,17 @@ export function toSpaProduct(
     },
     category: p.category?.name || p.pageName || p.targetPage || undefined,
     categoryId: p.categoryId ?? undefined,
+    categories: Array.isArray((p as { categories?: string[] }).categories)
+      ? (p as { categories: string[] }).categories
+      : undefined,
     pageNumber: p.pageNumber ?? undefined,
     targetPage: p.targetPage ?? undefined,
     pageName: p.pageName ?? undefined,
     categoryRow: p.categoryRow ?? undefined,
     sizeChartId: (p as { sizeChartId?: string | null }).sizeChartId ?? undefined,
+    sizeChartIds: Array.isArray((p as { sizeChartIds?: string[] }).sizeChartIds)
+      ? (p as { sizeChartIds: string[] }).sizeChartIds
+      : undefined,
     stock: p.stock,
     lowStockThreshold: p.lowStockThreshold,
     warehouse: (p as { warehouse?: string | null }).warehouse ?? "Dhaka Central",

@@ -19,11 +19,93 @@ const credentialsSchema = z.object({
   password: z.string().min(6),
 });
 
-authRouter.post("/register", async (_req, res) => {
-  return res.status(403).json({
-    success: false,
-    error: { message: "Public registration is disabled. Admin accounts only." },
-  });
+authRouter.post("/register", async (req, res) => {
+  try {
+    const schema = z.object({
+      email: z.string().email(),
+      password: z.string().min(6),
+      fullName: z.string().min(2).max(120),
+      phone: z.string().min(8).max(30),
+      address: z.string().min(3).max(500),
+      city: z.string().min(2).max(80).optional(),
+    });
+    const body = schema.parse(req.body);
+    const email = body.email.toLowerCase().trim();
+    const existing = await prisma.user.findUnique({ where: { email } });
+    if (existing) {
+      return res.status(409).json({
+        success: false,
+        error: { message: "An account with this email already exists. Please sign in." },
+      });
+    }
+
+    const phone = body.phone.trim();
+    const addressLine1 = body.address.trim();
+    const city = (body.city?.trim() || "Feni").slice(0, 80);
+    const passwordHash = await hash(body.password, 10);
+    const user = await prisma.user.create({
+      data: {
+        email,
+        passwordHash,
+        fullName: body.fullName.trim(),
+        phone,
+        role: "CUSTOMER",
+        status: "ACTIVE",
+        permissions: [],
+        addresses: {
+          create: {
+            label: "Home",
+            fullName: body.fullName.trim(),
+            phone,
+            email,
+            addressLine1,
+            city,
+            postalCode: "N/A",
+            country: "Bangladesh",
+            isDefault: true,
+          },
+        },
+      },
+    });
+
+    const authUser = {
+      id: user.id,
+      email: user.email,
+      fullName: user.fullName,
+      role: user.role,
+      permissions: user.permissions,
+    };
+    const token = signToken(authUser);
+
+    return res.status(201).json({
+      success: true,
+      data: {
+        token,
+        user: {
+          id: user.id,
+          email: user.email,
+          fullName: user.fullName,
+          role: mapRoleToUi(user.role),
+          phone: user.phone ?? undefined,
+          permissions: user.permissions,
+          accessFlags: resolveAccessFlags(
+            user.role,
+            (user.accessFlags as Record<string, boolean> | null) || null,
+            user.permissions || [],
+          ),
+        },
+      },
+    });
+  } catch (error) {
+    if (error instanceof z.ZodError) {
+      return res.status(400).json({
+        success: false,
+        error: { message: error.issues[0]?.message || "Invalid input" },
+      });
+    }
+    console.error("[auth/register]", error);
+    return res.status(500).json({ success: false, error: { message: "Registration failed" } });
+  }
 });
 
 authRouter.post("/login", async (req, res) => {
@@ -38,14 +120,6 @@ authRouter.post("/login", async (req, res) => {
     const ok = await compare(body.password, user.passwordHash);
     if (!ok) {
       return res.status(401).json({ success: false, error: { message: "Invalid email or password" } });
-    }
-
-    // Storefront customer login disabled — staff/admin only
-    if (user.role === "CUSTOMER") {
-      return res.status(403).json({
-        success: false,
-        error: { message: "Only admin accounts can sign in. Customer login is disabled." },
-      });
     }
 
     await prisma.user.update({

@@ -114,7 +114,7 @@ export const AuthScreen: React.FC<AuthScreenProps> = ({
 
       if (!canUseAdminPanel(user.role, true, isApiEnabled())) {
         clearSession();
-        setError('Only admin accounts can sign in here.');
+        setError('Only admin accounts can sign in here. Use Login on the storefront for customer accounts.');
         return;
       }
 
@@ -141,7 +141,7 @@ export const AuthScreen: React.FC<AuthScreenProps> = ({
       <div className="bg-zinc-900 border border-zinc-600 rounded-2xl p-4 mb-6 space-y-1.5 text-center">
         <p className="text-[13px] font-black uppercase text-white tracking-wide">Private admin portal</p>
         <p className="text-[13px] text-zinc-200 font-semibold leading-relaxed">
-          This page is not linked from the public store. Customer login is disabled — anyone can order without an account.
+          This page is for authorized staff only. Customers sign in from the storefront Login / Sign Up buttons.
         </p>
       </div>
 

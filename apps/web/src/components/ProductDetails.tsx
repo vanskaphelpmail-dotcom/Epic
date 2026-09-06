@@ -1,16 +1,16 @@
-import React, { useState } from 'react';
-import { Heart, Share2, Star, CheckCircle, ShieldAlert, ShoppingCart, ArrowLeft, ArrowRight, ShieldCheck, Zap, Ruler, ChevronDown, X, Trophy } from 'lucide-react';
-import { Product, CartItem } from '../types';
+import React, { useEffect, useState } from 'react';
+import { Heart, Share2, Star, CheckCircle, ShieldAlert, ShoppingCart, ArrowLeft, ArrowRight, ChevronLeft, ChevronRight, ShieldCheck, Zap, Ruler, ChevronDown, X, Trophy } from 'lucide-react';
+import { Product, CartItem, ProductBadgeOption } from '../types';
 import { JerseyRenderer } from './JerseyRenderer';
 import { isRenderableImageSrc } from '../lib/productImage';
-import { getProductSizes, getSizeStock, isSizeAvailable } from '../lib/productSizes';
+import { getProductSizes, getSizeStock, isSizeAvailable, displaySizeLabel } from '../lib/productSizes';
 import { getProductDiscountPercent, hasProductDiscount } from '../lib/productPricing';
-import { resolveSizeChart } from '../lib/sizeCharts';
+import { resolveProductSizeCharts } from '../lib/sizeCharts';
 import {
-  DEFAULT_BADGE_PRICE_BDT,
   getNamesetLabel,
   getNamesetPriceBdt,
   getProductBadgeOptions,
+  sumSelectedBadgePrices,
 } from '../lib/productAddons';
 import { toast } from './UiFeedback';
 
@@ -24,6 +24,8 @@ interface ProductDetailsProps {
   relatedProducts: Product[];
   onSelectProduct: (product: Product) => void;
   formatPrice: (amount: number) => string;
+  /** Global Inventory tournament patches (all jerseys) */
+  tournamentPatches?: ProductBadgeOption[];
 }
 
 export const ProductDetails: React.FC<ProductDetailsProps> = ({
@@ -36,9 +38,10 @@ export const ProductDetails: React.FC<ProductDetailsProps> = ({
   relatedProducts,
   onSelectProduct,
   formatPrice,
+  tournamentPatches,
 }) => {
   const sizes = getProductSizes(product);
-  const sizeChart = resolveSizeChart(product.category, product.sizeChartId);
+  const sizeCharts = resolveProductSizeCharts(product);
   const [selectedSize, setSelectedSize] = useState(() => {
     const firstAvailable = sizes.find((s) => isSizeAvailable(product, s));
     return firstAvailable || sizes[0] || 'M';
@@ -47,15 +50,18 @@ export const ProductDetails: React.FC<ProductDetailsProps> = ({
   const [enableNameset, setEnableNameset] = useState(false);
   const [customName, setCustomName] = useState('');
   const [customNumber, setCustomNumber] = useState<number | ''>('');
-  // Auto flip SVG jersey to back when nameset is being customized (no inspect UI)
   const isBackView = enableNameset && (!!customName || customNumber !== '');
   const [enableBadges, setEnableBadges] = useState(false);
-  const [selectedBadgeId, setSelectedBadgeId] = useState<string | null>(null);
-  const [pendingBadgeId, setPendingBadgeId] = useState<string | null>(null);
+  const [selectedBadgeIds, setSelectedBadgeIds] = useState<string[]>([]);
+  const [pendingBadgeIds, setPendingBadgeIds] = useState<string[]>([]);
   const [badgeSheetOpen, setBadgeSheetOpen] = useState(false);
   const [copiedLink, setCopiedLink] = useState(false);
   const [addedConfirm, setAddedConfirm] = useState(false);
   const [galleryIndex, setGalleryIndex] = useState(0);
+  const [galleryPaused, setGalleryPaused] = useState(false);
+  const [measurementOpen, setMeasurementOpen] = useState(false);
+  const [activeChartId, setActiveChartId] = useState(() => sizeCharts[0]?.id || '');
+  const sizeChart = sizeCharts.find((c) => c.id === activeChartId) || sizeCharts[0] || null;
 
   const galleryImages = Array.from(
     new Set(
@@ -63,7 +69,19 @@ export const ProductDetails: React.FC<ProductDetailsProps> = ({
         (src): src is string => isRenderableImageSrc(src)
       )
     )
-  ).slice(0, 3);
+  ).slice(0, 6);
+
+  useEffect(() => {
+    setGalleryIndex(0);
+  }, [product.id]);
+
+  useEffect(() => {
+    if (galleryImages.length < 2 || galleryPaused) return;
+    const id = window.setInterval(() => {
+      setGalleryIndex((i) => (i + 1) % galleryImages.length);
+    }, 3500);
+    return () => window.clearInterval(id);
+  }, [galleryImages.length, galleryPaused, product.id]);
 
   const safeGalleryIndex = galleryImages.length
     ? Math.min(galleryIndex, galleryImages.length - 1)
@@ -78,14 +96,14 @@ export const ProductDetails: React.FC<ProductDetailsProps> = ({
   const basePrice = product.price;
   const namesetPrice = getNamesetPriceBdt(product);
   const namesetLabel = getNamesetLabel(product);
-  const badgeOptions = getProductBadgeOptions(product);
-  /** Nameset is available on all products unless explicitly disabled */
+  const badgeOptions = getProductBadgeOptions(product, tournamentPatches);
+  const patchesAvailable = product.badgeAvailable !== false && badgeOptions.length > 0;
+  /** Custom font is available on all products unless explicitly disabled */
   const namesetAvailable = product.printAvailable !== false;
   const customizationCost = enableNameset && namesetAvailable ? namesetPrice : 0;
-  const selectedBadge = badgeOptions.find((b) => b.id === selectedBadgeId) || null;
-  const activeBadgeIds =
-    enableBadges && selectedBadgeId ? [selectedBadgeId] : [];
-  const badgeCost = activeBadgeIds.length * DEFAULT_BADGE_PRICE_BDT;
+  const selectedBadges = badgeOptions.filter((b) => selectedBadgeIds.includes(b.id));
+  const activeBadgeIds = enableBadges ? selectedBadgeIds : [];
+  const badgeCost = sumSelectedBadgePrices(product, activeBadgeIds, tournamentPatches);
   const finalPrice = basePrice + customizationCost + badgeCost;
 
   const handleNamesetToggle = (checked: boolean) => {
@@ -99,28 +117,35 @@ export const ProductDetails: React.FC<ProductDetailsProps> = ({
   const handleBadgesToggle = (checked: boolean) => {
     setEnableBadges(checked);
     if (!checked) {
-      setSelectedBadgeId(null);
-      setPendingBadgeId(null);
+      setSelectedBadgeIds([]);
+      setPendingBadgeIds([]);
       setBadgeSheetOpen(false);
-    } else if (!selectedBadgeId) {
-      setPendingBadgeId(null);
+    } else if (selectedBadgeIds.length === 0) {
+      setPendingBadgeIds([]);
       setBadgeSheetOpen(true);
     }
   };
 
   const openBadgeSheet = () => {
     if (!enableBadges) return;
-    setPendingBadgeId(selectedBadgeId);
+    setPendingBadgeIds([...selectedBadgeIds]);
     setBadgeSheetOpen(true);
   };
 
+  const togglePendingBadge = (id: string) => {
+    setPendingBadgeIds((prev) =>
+      prev.includes(id) ? prev.filter((x) => x !== id) : [...prev, id],
+    );
+  };
+
   const applyBadgeSelection = () => {
-    setSelectedBadgeId(pendingBadgeId);
+    setSelectedBadgeIds([...pendingBadgeIds]);
+    if (pendingBadgeIds.length === 0) setEnableBadges(false);
     setBadgeSheetOpen(false);
   };
 
   const cancelBadgeSheet = () => {
-    setPendingBadgeId(selectedBadgeId);
+    setPendingBadgeIds([...selectedBadgeIds]);
     setBadgeSheetOpen(false);
   };
 
@@ -146,8 +171,8 @@ export const ProductDetails: React.FC<ProductDetailsProps> = ({
         : undefined,
     selectedBadges: activeBadgeIds.length ? [...activeBadgeIds] : undefined,
     badgeTexts:
-      enableBadges && selectedBadge
-        ? { [selectedBadge.id]: selectedBadge.label }
+      enableBadges && selectedBadges.length
+        ? Object.fromEntries(selectedBadges.map((b) => [b.id, b.label]))
         : undefined,
     addBadge: activeBadgeIds.length > 0,
     quantity: 1,
@@ -174,28 +199,33 @@ export const ProductDetails: React.FC<ProductDetailsProps> = ({
   return (
     <section className="bg-[#121212] text-white py-10 px-4 md:px-12 max-w-7xl mx-auto min-h-screen">
       
-      {/* Back button */}
       <button
         onClick={onBackToCatalog}
-        className="flex items-center gap-2 text-xs font-mono font-bold tracking-widest text-zinc-400 hover:text-white uppercase mb-8 cursor-pointer transition-colors"
+        type="button"
+        className="inline-flex items-center gap-2 mb-8 px-4 py-2.5 rounded-xl bg-zinc-900 border border-zinc-700 text-white hover:border-red-600 hover:bg-zinc-800 text-sm font-black uppercase tracking-wide cursor-pointer transition-colors shadow-sm"
       >
-        <ArrowLeft size={14} /> Back to Catalog
+        <ArrowLeft size={16} className="text-red-500 shrink-0" /> Go to Home
       </button>
 
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-12 items-start w-full min-w-0">
         
         {/* Left Column: Interactive 360 SVG Jersey Showcase & View Rotator */}
         <div className="lg:col-span-6 space-y-6">
-          <div className="relative bg-gradient-to-b from-zinc-800/50 to-white border border-zinc-800 rounded-3xl p-4 sm:p-8 flex items-center justify-center min-h-[280px] sm:min-h-[400px] overflow-hidden group shadow-2xl">
-            {/* Ambient light ring */}
-            <div className="absolute w-64 h-64 rounded-full bg-zinc-950/10 blur-[120px] pointer-events-none" />
+          <div
+            className="relative bg-zinc-950 border border-zinc-800 rounded-3xl p-3 sm:p-6 flex items-center justify-center aspect-[3/4] sm:aspect-[4/5] max-h-[min(75vh,640px)] w-full overflow-hidden group shadow-2xl"
+            onMouseEnter={() => setGalleryPaused(true)}
+            onMouseLeave={() => setGalleryPaused(false)}
+            onTouchStart={() => setGalleryPaused(true)}
+            onTouchEnd={() => setGalleryPaused(false)}
+          >
+            <div className="absolute w-64 h-64 rounded-full bg-zinc-800/20 blur-[120px] pointer-events-none" />
 
-            <div className="w-full max-w-[480px] h-auto flex items-center justify-center px-2 sm:px-4 pb-2">
+            <div className="relative w-full h-full flex items-center justify-center px-2 sm:px-4">
               {showPhoto ? (
                 <img
                   src={mainImageSrc}
                   alt={product.name}
-                  className="w-full max-h-[min(70vh,520px)] object-contain drop-shadow-lg"
+                  className="max-h-full max-w-full w-auto h-auto object-contain drop-shadow-lg transition-opacity duration-300"
                   referrerPolicy="no-referrer"
                 />
               ) : (
@@ -210,6 +240,42 @@ export const ProductDetails: React.FC<ProductDetailsProps> = ({
                 />
               )}
             </div>
+
+            {galleryImages.length > 1 && (
+              <>
+                <button
+                  type="button"
+                  aria-label="Previous image"
+                  onClick={() =>
+                    setGalleryIndex((i) => (i - 1 + galleryImages.length) % galleryImages.length)
+                  }
+                  className="absolute left-2 top-1/2 -translate-y-1/2 z-20 flex h-9 w-9 items-center justify-center rounded-full bg-black/55 text-white border border-white/10 opacity-80 sm:opacity-0 sm:group-hover:opacity-100 transition-opacity cursor-pointer"
+                >
+                  <ChevronLeft size={18} />
+                </button>
+                <button
+                  type="button"
+                  aria-label="Next image"
+                  onClick={() => setGalleryIndex((i) => (i + 1) % galleryImages.length)}
+                  className="absolute right-2 top-1/2 -translate-y-1/2 z-20 flex h-9 w-9 items-center justify-center rounded-full bg-black/55 text-white border border-white/10 opacity-80 sm:opacity-0 sm:group-hover:opacity-100 transition-opacity cursor-pointer"
+                >
+                  <ChevronRight size={18} />
+                </button>
+                <div className="absolute bottom-3 left-0 right-0 z-20 flex justify-center gap-1.5">
+                  {galleryImages.map((_, i) => (
+                    <button
+                      key={`pd-dot-${i}`}
+                      type="button"
+                      aria-label={`Show image ${i + 1}`}
+                      onClick={() => setGalleryIndex(i)}
+                      className={`h-1.5 rounded-full transition-all cursor-pointer ${
+                        i === safeGalleryIndex ? 'w-5 bg-red-600' : 'w-1.5 bg-white/45 hover:bg-white/80'
+                      }`}
+                    />
+                  ))}
+                </div>
+              </>
+            )}
           </div>
 
           {galleryImages.length > 0 && (
@@ -220,7 +286,7 @@ export const ProductDetails: React.FC<ProductDetailsProps> = ({
                   type="button"
                   onClick={() => setGalleryIndex(i)}
                   className={`h-16 w-16 rounded-xl overflow-hidden border-2 cursor-pointer ${
-                    safeGalleryIndex === i ? 'border-zinc-700' : 'border-zinc-800'
+                    safeGalleryIndex === i ? 'border-red-600' : 'border-zinc-800'
                   }`}
                 >
                   {isRenderableImageSrc(src) ? (
@@ -228,7 +294,7 @@ export const ProductDetails: React.FC<ProductDetailsProps> = ({
                       src={src}
                       alt=""
                       loading="lazy"
-                      className="w-full h-full object-cover"
+                      className="w-full h-full object-contain bg-zinc-950"
                       referrerPolicy="no-referrer"
                     />
                   ) : (
@@ -240,27 +306,6 @@ export const ProductDetails: React.FC<ProductDetailsProps> = ({
               ))}
             </div>
           )}
-
-          {/* Quick Specifications list below preview */}
-          <div className="bg-zinc-900 border border-zinc-800 rounded-2xl p-6 space-y-4">
-            <h3 className="text-zinc-300 font-mono font-bold text-xs uppercase tracking-wider">
-              Authentication & Physical Condition
-            </h3>
-            <div className="grid grid-cols-2 gap-4 text-xs">
-              <div className="bg-zinc-900 p-3 rounded-lg border border-zinc-800/40">
-                <span className="text-zinc-600 font-mono block mb-1">OFFICIAL SKU:</span>
-                <span className="text-white font-mono font-semibold">{product.sku}</span>
-              </div>
-              <div className="bg-zinc-900 p-3 rounded-lg border border-zinc-800/40">
-                <span className="text-zinc-600 font-mono block mb-1">CONDITION RATING:</span>
-                <span className="text-zinc-100 font-black">{product.condition}</span>
-              </div>
-              <div className="bg-zinc-900 p-3 rounded-lg col-span-2 border border-zinc-800/40">
-                <span className="text-zinc-600 font-mono block mb-1">VERIFIER METRICS:</span>
-                <span className="text-zinc-300 leading-relaxed text-[11px] block">{product.conditionDetail}</span>
-              </div>
-            </div>
-          </div>
         </div>
 
         {/* Right Column: Customization Panel & Buying controls */}
@@ -309,7 +354,7 @@ export const ProductDetails: React.FC<ProductDetailsProps> = ({
                 )}
                 {customizationCost > 0 && (
                   <span className="text-[10px] text-zinc-400 font-mono">
-                    (Includes Nameset +{formatPrice(namesetPrice)})
+                    (Includes Font +{formatPrice(namesetPrice)})
                   </span>
                 )}
               </div>
@@ -344,88 +389,124 @@ export const ProductDetails: React.FC<ProductDetailsProps> = ({
                   : product.stock <= 0
                     ? '(All sizes unavailable — out of stock)'
                     : sizeStock <= 0
-                      ? `(${selectedSize} unavailable)`
-                      : `(${sizeStock} of ${selectedSize} available)`}
+                      ? `(${displaySizeLabel(selectedSize)} unavailable)`
+                      : `(${sizeStock} of ${displaySizeLabel(selectedSize)} available)`}
               </span>
             </label>
             <div className="flex flex-wrap gap-2.5">
               {sizes.map((sz) => {
                 const available = isSizeAvailable(product, sz);
+                const selected = selectedSize === sz;
                 return (
                   <button
                     key={sz}
                     type="button"
                     disabled={!available}
-                    title={available ? `Size ${sz}: ${getSizeStock(product, sz)} in stock` : `Size ${sz} unavailable`}
+                    title={available ? `Size ${displaySizeLabel(sz)}: ${getSizeStock(product, sz)} in stock` : `Size ${displaySizeLabel(sz)} unavailable`}
                     onClick={() => available && setSelectedSize(sz)}
                     className={`w-12 h-12 rounded-xl text-xs font-mono font-black border transition-all ${
                       !available
                         ? 'bg-zinc-900 border-zinc-700 text-zinc-500 line-through cursor-not-allowed opacity-60'
-                        : selectedSize === sz
-                          ? 'bg-black border-zinc-900 text-white shadow-lg shadow-black/10 cursor-pointer'
+                        : selected
+                          ? 'bg-red-600 border-red-600 text-white shadow-lg shadow-red-600/25 cursor-pointer'
                           : 'bg-[#121212] border-zinc-800 text-white hover:border-red-600 cursor-pointer'
                     }`}
                   >
-                    {sz}
+                    {displaySizeLabel(sz)}
                   </button>
                 );
               })}
             </div>
-            {sizeChart && (
-              <div key={`size-chart-${product.id}-${sizeChart.id}`} className="pt-3 space-y-2 w-full min-w-0">
-                <p className="inline-flex items-center gap-1.5 text-[11px] font-bold uppercase tracking-wider text-zinc-400">
-                  <Ruler size={13} aria-hidden />
-                  <span>{sizeChart.title}</span>
-                </p>
-                <div className="overflow-x-auto border border-zinc-800 rounded-2xl bg-zinc-900 w-full">
-                  <table className="w-full min-w-[280px] text-left text-xs">
-                    <thead>
-                      <tr className="border-b border-zinc-800 text-[10px] font-mono uppercase tracking-wider text-zinc-400">
-                        {sizeChart.columns.map((col) => (
-                          <th key={col.key} className="px-3 py-2 whitespace-nowrap">
-                            {col.label}
-                          </th>
+            {sizeCharts.length > 0 && (
+              <div key={`size-chart-${product.id}`} className="pt-2 w-full min-w-0 space-y-2">
+                <button
+                  type="button"
+                  onClick={() => setMeasurementOpen((o) => !o)}
+                  aria-expanded={measurementOpen}
+                  className="w-full sm:w-auto inline-flex items-center justify-between gap-2 px-4 py-2.5 rounded-xl border border-zinc-700 bg-zinc-900/80 text-zinc-200 text-[11px] font-bold uppercase tracking-wider hover:border-red-600 hover:text-white transition-colors cursor-pointer"
+                >
+                  <span className="inline-flex items-center gap-1.5">
+                    <Ruler size={13} aria-hidden />
+                    Measurement Chart{sizeCharts.length > 1 ? `s (${sizeCharts.length})` : ''}
+                  </span>
+                  <ChevronDown
+                    size={14}
+                    className={`shrink-0 transition-transform ${measurementOpen ? 'rotate-180' : ''}`}
+                  />
+                </button>
+                {measurementOpen && (
+                  <div className="space-y-2 w-full animate-fadeIn">
+                    {sizeCharts.length > 1 && (
+                      <div className="flex flex-wrap gap-1.5">
+                        {sizeCharts.map((c) => (
+                          <button
+                            key={c.id}
+                            type="button"
+                            onClick={() => setActiveChartId(c.id)}
+                            className={`px-3 py-1.5 rounded-lg text-[10px] font-black uppercase tracking-wider cursor-pointer border ${
+                              (sizeChart?.id || '') === c.id
+                                ? 'bg-red-600 border-red-600 text-white'
+                                : 'bg-zinc-900 border-zinc-700 text-zinc-300 hover:border-red-600'
+                            }`}
+                          >
+                            {c.label}
+                          </button>
                         ))}
-                      </tr>
-                    </thead>
-                    <tbody>
-                      {sizeChart.rows.map((row) => (
-                        <tr key={row.size} className="border-b border-zinc-800 last:border-0">
-                          {sizeChart.columns.map((col) => {
-                            const value =
-                              col.key === 'size'
-                                ? row.size
-                                : col.key === 'age'
-                                  ? row.age || '—'
-                                  : col.key === 'chest'
-                                    ? row.chest
-                                    : row.length;
-                            return (
-                              <td
-                                key={col.key}
-                                className={`px-3 py-2 ${
-                                  col.key === 'size'
-                                    ? 'font-black text-white'
-                                    : 'font-mono text-zinc-300'
-                                }`}
-                              >
-                                {value}
-                              </td>
-                            );
-                          })}
-                        </tr>
-                      ))}
-                    </tbody>
-                  </table>
-                  <p className="px-3 py-2 text-[10px] text-zinc-400 font-mono border-t border-zinc-800">
-                    {sizeChart.note}
-                  </p>
-                </div>
+                      </div>
+                    )}
+                    {sizeChart && (
+                      <div className="overflow-x-auto border border-zinc-800 rounded-2xl bg-zinc-900 w-full">
+                        <table className="w-full min-w-[280px] text-left text-xs">
+                          <thead>
+                            <tr className="border-b border-zinc-800 text-[10px] font-mono uppercase tracking-wider text-zinc-400">
+                              {sizeChart.columns.map((col) => (
+                                <th key={col.key} className="px-3 py-2 whitespace-nowrap">
+                                  {col.label}
+                                </th>
+                              ))}
+                            </tr>
+                          </thead>
+                          <tbody>
+                            {sizeChart.rows.map((row) => (
+                              <tr key={row.size} className="border-b border-zinc-800 last:border-0">
+                                {sizeChart.columns.map((col) => {
+                                  const value =
+                                    col.key === 'size'
+                                      ? displaySizeLabel(row.size)
+                                      : col.key === 'age'
+                                        ? row.age || '—'
+                                        : col.key === 'chest'
+                                          ? row.chest
+                                          : row.length;
+                                  return (
+                                    <td
+                                      key={col.key}
+                                      className={`px-3 py-2 ${
+                                        col.key === 'size'
+                                          ? 'font-black text-white'
+                                          : 'font-mono text-zinc-300'
+                                      }`}
+                                    >
+                                      {value}
+                                    </td>
+                                  );
+                                })}
+                              </tr>
+                            ))}
+                          </tbody>
+                        </table>
+                        <p className="px-3 py-2 text-[10px] text-zinc-400 font-mono border-t border-zinc-800">
+                          {sizeChart.title} — {sizeChart.note}
+                        </p>
+                      </div>
+                    )}
+                  </div>
+                )}
               </div>
             )}
           </div>
 
-          {/* Jersey customization — nameset + tournament badge */}
+          {/* Jersey customization — custom font + tournament patch */}
           <div className="space-y-3">
             {namesetAvailable && (
               <div
@@ -457,8 +538,8 @@ export const ProductDetails: React.FC<ProductDetailsProps> = ({
                       Add {namesetLabel} (+{formatPrice(namesetPrice)})
                     </span>
                     <p className="text-[11px] text-zinc-400 mt-1 leading-relaxed">
-                      Optional — add a player name &amp; number when needed. Character limit may apply and full payment
-                      ({formatPrice(namesetPrice)}) may advance is finalised.
+                      Optional — add a player name &amp; number with custom font when needed. Character limit may apply
+                      and full payment ({formatPrice(namesetPrice)}) is finalised.
                     </p>
                   </div>
                 </label>
@@ -500,6 +581,7 @@ export const ProductDetails: React.FC<ProductDetailsProps> = ({
               </div>
             )}
 
+            {patchesAvailable && (
             <div
               className={`rounded-xl border p-4 sm:p-5 transition-colors ${
                 enableBadges
@@ -526,10 +608,10 @@ export const ProductDetails: React.FC<ProductDetailsProps> = ({
                 />
                 <div className="flex-1 min-w-0">
                   <span className="text-xs sm:text-sm font-bold tracking-wide text-white uppercase block">
-                    Tournament Sleeve Badges (optional)
+                    Select Tournament Patch
                   </span>
                   <p className="text-[11px] text-zinc-400 mt-1 leading-relaxed">
-                    Add a tournament badge to your sleeve — each selected badge is +{formatPrice(DEFAULT_BADGE_PRICE_BDT)}.
+                    Add one or more patches — each selected patch has its own price.
                   </p>
                 </div>
               </label>
@@ -540,13 +622,37 @@ export const ProductDetails: React.FC<ProductDetailsProps> = ({
                   onClick={openBadgeSheet}
                   className="mt-4 w-full flex items-center justify-between gap-3 bg-black border border-zinc-700 hover:border-red-600 rounded-lg py-3 px-3.5 text-left transition-colors cursor-pointer"
                 >
-                  <span className={`text-xs ${selectedBadge ? 'text-white font-semibold' : 'text-zinc-500'}`}>
-                    {selectedBadge ? selectedBadge.label : 'Select tournament badge'}
+                  <span className={`text-xs min-w-0 ${selectedBadges.length ? 'text-white font-semibold' : 'text-zinc-500'}`}>
+                    {selectedBadges.length
+                      ? selectedBadges.map((b) => b.label).join(', ')
+                      : 'Select tournament patches'}
                   </span>
                   <ChevronDown size={16} className="text-zinc-400 shrink-0" />
                 </button>
               )}
+
+              {enableBadges && selectedBadges.length > 0 && (
+                <div className="mt-3 flex flex-wrap gap-2">
+                  {selectedBadges.map((badge) => (
+                    <span
+                      key={badge.id}
+                      className="inline-flex items-center gap-2 rounded-lg border border-zinc-700 bg-black px-2 py-1.5"
+                    >
+                      {badge.image && isRenderableImageSrc(badge.image) ? (
+                        <img src={badge.image} alt="" className="h-7 w-7 rounded object-cover" />
+                      ) : (
+                        <span className="h-7 w-7 rounded bg-zinc-900 border border-zinc-700 flex items-center justify-center">
+                          <Trophy size={12} className="text-zinc-400" />
+                        </span>
+                      )}
+                      <span className="text-[11px] text-white font-semibold">{badge.label}</span>
+                      <span className="text-[10px] text-red-500 font-bold">+{formatPrice(badge.priceBdt)}</span>
+                    </span>
+                  ))}
+                </div>
+              )}
             </div>
+            )}
           </div>
 
           {badgeSheetOpen && (
@@ -554,15 +660,15 @@ export const ProductDetails: React.FC<ProductDetailsProps> = ({
               <button
                 type="button"
                 className="absolute inset-0 bg-black/70 cursor-pointer"
-                aria-label="Close badge picker"
+                aria-label="Close patch picker"
                 onClick={cancelBadgeSheet}
               />
               <div className="relative w-full max-w-md mx-auto bg-[#121212] border border-zinc-800 rounded-t-2xl sm:rounded-2xl shadow-2xl p-5 sm:p-6 space-y-4 animate-fadeIn">
                 <div className="flex items-start justify-between gap-3">
                   <div>
-                    <h3 className="text-base font-bold text-white">Select Tournament Badge</h3>
+                    <h3 className="text-base font-bold text-white">Select Tournament Patch</h3>
                     <p className="text-[11px] text-zinc-400 mt-0.5">
-                      Each selected badge is +{formatPrice(DEFAULT_BADGE_PRICE_BDT)}.
+                      Choose one or more patches. Each has its own add-on price.
                     </p>
                   </div>
                   <button
@@ -577,12 +683,12 @@ export const ProductDetails: React.FC<ProductDetailsProps> = ({
 
                 <div className="space-y-2 max-h-[50vh] overflow-y-auto">
                   {badgeOptions.map((badge) => {
-                    const selected = pendingBadgeId === badge.id;
+                    const selected = pendingBadgeIds.includes(badge.id);
                     return (
                       <button
                         key={badge.id}
                         type="button"
-                        onClick={() => setPendingBadgeId(badge.id)}
+                        onClick={() => togglePendingBadge(badge.id)}
                         className={`w-full flex items-center gap-3 rounded-xl border px-3.5 py-3 text-left transition-colors cursor-pointer ${
                           selected
                             ? 'border-red-600 bg-red-600/10'
@@ -590,15 +696,23 @@ export const ProductDetails: React.FC<ProductDetailsProps> = ({
                         }`}
                       >
                         <span
-                          className={`h-4 w-4 rounded-full border-2 flex items-center justify-center shrink-0 ${
-                            selected ? 'border-red-600' : 'border-zinc-500'
+                          className={`h-4 w-4 rounded border-2 flex items-center justify-center shrink-0 ${
+                            selected ? 'border-red-600 bg-red-600' : 'border-zinc-500'
                           }`}
                         >
-                          {selected ? <span className="h-2 w-2 rounded-full bg-red-600" /> : null}
+                          {selected ? <CheckCircle size={10} className="text-white" strokeWidth={3} /> : null}
                         </span>
-                        <span className="flex h-8 w-8 items-center justify-center rounded-lg bg-zinc-900 border border-zinc-700 text-white shrink-0">
-                          <Trophy size={14} />
-                        </span>
+                        {badge.image && isRenderableImageSrc(badge.image) ? (
+                          <img
+                            src={badge.image}
+                            alt=""
+                            className="h-10 w-10 rounded-lg object-cover border border-zinc-700 shrink-0"
+                          />
+                        ) : (
+                          <span className="flex h-10 w-10 items-center justify-center rounded-lg bg-zinc-900 border border-zinc-700 text-white shrink-0">
+                            <Trophy size={16} />
+                          </span>
+                        )}
                         <span className="flex-1 text-sm font-semibold text-white">{badge.label}</span>
                         <span className="text-xs font-bold text-red-500">+{formatPrice(badge.priceBdt)}</span>
                       </button>
@@ -609,10 +723,9 @@ export const ProductDetails: React.FC<ProductDetailsProps> = ({
                 <button
                   type="button"
                   onClick={applyBadgeSelection}
-                  disabled={!pendingBadgeId}
-                  className="w-full bg-red-600 hover:bg-red-700 disabled:opacity-50 disabled:cursor-not-allowed text-white font-extrabold text-xs uppercase tracking-widest py-3.5 rounded-xl transition-colors cursor-pointer"
+                  className="w-full bg-red-600 hover:bg-red-700 text-white font-extrabold text-xs uppercase tracking-widest py-3.5 rounded-xl transition-colors cursor-pointer"
                 >
-                  Apply Badge
+                  Apply {pendingBadgeIds.length ? `(${pendingBadgeIds.length})` : 'Patches'}
                 </button>
                 <button
                   type="button"
@@ -711,22 +824,37 @@ export const ProductDetails: React.FC<ProductDetailsProps> = ({
 
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
             {relatedProducts.slice(0, 4).map((rp) => {
+              const relatedImg = [rp.uploadedImage, ...(rp.gallery || []), ...(rp.images || []), rp.image].find(
+                (src): src is string => isRenderableImageSrc(src),
+              );
               return (
                 <div
                   key={rp.id}
                   onClick={() => onSelectProduct(rp)}
                   className="group bg-zinc-900 hover:bg-zinc-900/60 border border-zinc-800 hover:border-zinc-700 rounded-2xl p-4 cursor-pointer transition-all duration-300"
                 >
-                  <div className="h-40 bg-zinc-900 rounded-xl flex items-center justify-center p-4 relative mb-3">
-                    <JerseyRenderer
-                      productId={rp.id}
-                      uploadedImage={rp.uploadedImage || (isRenderableImageSrc(rp.image) ? rp.image : undefined)}
-                      imageKey={rp.image}
-                    />
+                  <div className="aspect-[3/4] bg-zinc-950 rounded-xl flex items-center justify-center p-3 relative mb-3 overflow-hidden">
+                    {relatedImg ? (
+                      <img
+                        src={relatedImg}
+                        alt={rp.name}
+                        className="max-h-full max-w-full w-auto h-auto object-contain"
+                        loading="lazy"
+                        referrerPolicy="no-referrer"
+                      />
+                    ) : (
+                      <div className="max-h-full max-w-full flex items-center justify-center [&_img]:!max-h-full [&_img]:!max-w-full [&_img]:!object-contain [&_svg]:max-h-full [&_svg]:max-w-full">
+                        <JerseyRenderer
+                          productId={rp.id}
+                          uploadedImage={rp.uploadedImage}
+                          imageKey={rp.image}
+                        />
+                      </div>
+                    )}
                   </div>
                   <div className="space-y-1">
                     <span className="text-[9px] font-mono uppercase text-zinc-400 block">{rp.brand} • {rp.season}</span>
-                    <h3 className="text-xs font-bold text-white group-hover:text-zinc-400 transition-colors truncate">
+                    <h3 className="text-xs font-bold text-white group-hover:text-zinc-400 transition-colors line-clamp-2">
                       {rp.name}
                     </h3>
                     <p className="text-xs font-black text-zinc-300">{formatPrice(rp.price)}</p>

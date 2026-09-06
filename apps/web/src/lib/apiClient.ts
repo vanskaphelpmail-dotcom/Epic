@@ -136,7 +136,14 @@ export const api = {
       method: "POST",
       body: JSON.stringify({ email, password }),
     }),
-  register: (payload: { email: string; password: string; fullName: string; phone?: string }) =>
+  register: (payload: {
+    email: string;
+    password: string;
+    fullName: string;
+    phone: string;
+    address: string;
+    city?: string;
+  }) =>
     request<{ token: string; user: any }>("/api/auth/register", {
       method: "POST",
       body: JSON.stringify(payload),

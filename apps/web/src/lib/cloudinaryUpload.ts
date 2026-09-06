@@ -1,7 +1,7 @@
 import { compressImageToDataUrl, type CompressOptions } from './imageCompress';
 import { api, getToken, isApiEnabled } from './apiClient';
 
-export type UploadFolder = 'products' | 'banners' | 'media' | 'avatars' | 'categories';
+export type UploadFolder = 'products' | 'banners' | 'media' | 'avatars' | 'categories' | 'patches';
 
 const DEFAULT_COMPRESS: CompressOptions = {
   maxEdge: 1400,

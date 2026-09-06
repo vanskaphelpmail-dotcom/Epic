@@ -21,7 +21,7 @@ const uploadSchema = z.object({
   /** data:image/...;base64,... OR https://... */
   dataUrl: z.string().min(32),
   folder: z
-    .enum(["products", "banners", "media", "avatars", "categories"])
+    .enum(["products", "banners", "media", "avatars", "categories", "patches"])
     .optional()
     .default("products"),
   fileName: z.string().optional(),

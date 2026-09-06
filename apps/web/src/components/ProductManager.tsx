@@ -26,14 +26,14 @@ import {
   DEFAULT_NAMESET_PRICE_BDT,
   createDefaultBadgeOptions,
   getProductBadgeOptions,
+  normalizeBadgeOptionsList,
 } from '../lib/productAddons';
 import { uploadStoreImage } from '../lib/cloudinaryUpload';
 import {
-  categoryHintForSizeChart,
+  getAllSizeCharts,
   getSizeChartById,
   imageUploadLimitForCategory,
   inferSizeChartId,
-  SIZE_CHART_OPTIONS,
 } from '../lib/sizeCharts';
 import {
   calcDiscountAmount,
@@ -43,8 +43,6 @@ import {
 } from '../lib/productPricing';
 import {
   DEFAULT_FALLBACK_SIZES,
-  DEFAULT_KIDS_SIZE_STOCKS,
-  DEFAULT_PRODUCT_SIZE_STOCKS,
   KIDS_PRODUCT_SIZES,
   STANDARD_PRODUCT_SIZES,
 } from '../lib/productSizes';
@@ -79,20 +77,39 @@ const CATEGORY_ICONS = [
   { id: 'Award', label: 'Award', icon: Award },
 ];
 
-/** Empty-string friendly money field so users can clear and type freely. */
+/** Empty-string friendly money field so users can clear and type freely (integers only). */
 type MoneyValue = number | '';
 
+const PRODUCT_BRANDS = [
+  'Nike',
+  'Adidas',
+  'Puma',
+  'Umbro',
+  'New Balance',
+  'Under Armour',
+  'Kappa',
+  'Castore',
+  'Hummel',
+  'Joma',
+  'Macron',
+  'Other',
+] as const;
+
+/** Parse money/qty drafts — integers only (no 1500.500). */
 function parseMoneyDraft(raw: string, max?: number): MoneyValue {
-  if (raw.trim() === '') return '';
-  const n = Number(raw);
-  if (!Number.isFinite(n)) return '';
-  let next = Math.max(0, n);
+  const trimmed = raw.trim();
+  if (trimmed === '') return '';
+  // Strip everything except digits (blocks fractions / decimals)
+  const digits = trimmed.replace(/[^\d]/g, '');
+  if (!digits) return '';
+  let next = Math.max(0, Math.floor(Number(digits)));
+  if (!Number.isFinite(next)) return '';
   if (typeof max === 'number') next = Math.min(max, next);
   return next;
 }
 
 function moneyNumber(v: MoneyValue): number {
-  return typeof v === 'number' && Number.isFinite(v) ? Math.max(0, v) : 0;
+  return typeof v === 'number' && Number.isFinite(v) ? Math.max(0, Math.floor(v)) : 0;
 }
 
 function MoneyField({
@@ -100,77 +117,46 @@ function MoneyField({
   value,
   onChange,
   onBlur,
-  step = 10,
   min = 0,
   max,
   required,
   hint,
   readOnly,
   className = '',
+  placeholder = 'Type amount',
 }: {
   label: string;
   value: MoneyValue;
   onChange: (next: MoneyValue) => void;
   onBlur?: () => void;
-  step?: number;
   min?: number;
   max?: number;
   required?: boolean;
   hint?: string;
   readOnly?: boolean;
   className?: string;
+  placeholder?: string;
 }) {
-  const num = moneyNumber(value);
-  const bump = (delta: number) => {
-    if (readOnly) return;
-    let next = Math.max(min, num + delta);
-    if (typeof max === 'number') next = Math.min(max, next);
-    onChange(next);
-  };
-
   return (
     <div className={className}>
       <label className="font-bold text-emerald-950 block mb-1 font-sans">
         {label}
         {required ? ' *' : ''}
       </label>
-      <div className="flex items-stretch gap-1">
-        <button
-          type="button"
-          tabIndex={-1}
-          disabled={readOnly}
-          onClick={() => bump(-step)}
-          className="shrink-0 w-9 rounded-xl border border-emerald-200 bg-white text-emerald-900 font-black text-sm hover:bg-emerald-50 disabled:opacity-40 cursor-pointer"
-          aria-label={`Decrease ${label}`}
-        >
-          −
-        </button>
-        <input
-          type="number"
-          inputMode="decimal"
-          required={required}
-          min={min}
-          max={max}
-          step={step}
-          readOnly={readOnly}
-          value={value === '' ? '' : value}
-          onChange={(e) => onChange(parseMoneyDraft(e.target.value, max))}
-          onFocus={(e) => e.currentTarget.select()}
-          onBlur={onBlur}
-          className="w-full min-w-0 bg-emerald-50/40 border border-emerald-200 rounded-xl px-3 py-2 font-bold font-mono read-only:bg-emerald-100/60"
-          placeholder="0"
-        />
-        <button
-          type="button"
-          tabIndex={-1}
-          disabled={readOnly}
-          onClick={() => bump(step)}
-          className="shrink-0 w-9 rounded-xl border border-emerald-200 bg-white text-emerald-900 font-black text-sm hover:bg-emerald-50 disabled:opacity-40 cursor-pointer"
-          aria-label={`Increase ${label}`}
-        >
-          +
-        </button>
-      </div>
+      <input
+        type="text"
+        inputMode="numeric"
+        pattern="[0-9]*"
+        required={required}
+        readOnly={readOnly}
+        value={value === '' ? '' : String(value)}
+        onChange={(e) => onChange(parseMoneyDraft(e.target.value, max))}
+        onBlur={onBlur}
+        className="w-full min-w-0 bg-emerald-50/40 border border-emerald-200 rounded-xl px-3 py-2 font-bold font-mono read-only:bg-emerald-100/60"
+        placeholder={placeholder}
+        aria-valuemin={min}
+        aria-valuemax={max}
+      />
       {hint ? <p className="text-[10px] text-emerald-700/70 mt-1">{hint}</p> : null}
     </div>
   );
@@ -384,19 +370,35 @@ export const ProductManager: React.FC<ProductManagerProps> = ({
   const [pNationalTeam, setPNationalTeam] = useState('');
   const [pPlayerName, setPPlayerName] = useState('');
   const [pPlayerNum, setPPlayerNum] = useState<number | ''>('');
-  const [pBrand, setPBrand] = useState('Nike');
+  const [pBrand, setPBrand] = useState('');
+  const [pBrandCustom, setPBrandCustom] = useState('');
   const [pGender, setPGender] = useState<string>('Men');
   const [pCondition, setPCondition] = useState<string>('Mint');
   const [pConditionDetail, setPConditionDetail] = useState('');
-  const [pSizeChartId, setPSizeChartId] = useState<string>('player-edition');
+  const [pSizeChartIds, setPSizeChartIds] = useState<string[]>([]);
+  const availableSizeCharts = useMemo(
+    () => getAllSizeCharts(appConfig?.customSizeCharts),
+    [appConfig?.customSizeCharts],
+  );
   const STANDARD_SIZES = useMemo(() => {
-    const chart = getSizeChartById(pSizeChartId);
+    const primaryId = pSizeChartIds[0];
+    const chart = getSizeChartById(primaryId, appConfig?.customSizeCharts);
     if (chart?.sizeOptions?.length) return chart.sizeOptions;
-    if (pSizeChartId === 'kids') return [...KIDS_PRODUCT_SIZES];
+    if (primaryId === 'kids') return [...KIDS_PRODUCT_SIZES];
+    // Merge size options from all selected charts
+    const merged = new Set<string>();
+    for (const id of pSizeChartIds) {
+      const c = getSizeChartById(id, appConfig?.customSizeCharts);
+      c?.sizeOptions?.forEach((s) => merged.add(s));
+    }
+    if (merged.size) return Array.from(merged);
     return [...STANDARD_PRODUCT_SIZES];
-  }, [pSizeChartId]);
-  const defaultSizeStocks = (): Record<string, number> => ({ ...DEFAULT_PRODUCT_SIZE_STOCKS });
-  const [pSizeStocks, setPSizeStocks] = useState<Record<string, number>>(defaultSizeStocks);
+  }, [pSizeChartIds, appConfig?.customSizeCharts]);
+  /** Size qty drafts — empty until typed (integers only). */
+  type SizeQty = number | '';
+  const emptySizeStocks = (): Record<string, SizeQty> =>
+    Object.fromEntries(['S', 'M', 'L', 'XL', '2XL'].map((sz) => [sz, '']));
+  const [pSizeStocks, setPSizeStocks] = useState<Record<string, SizeQty>>(emptySizeStocks);
   const [pCustomSize, setPCustomSize] = useState('');
   const [pColor, setPColor] = useState('Red/White');
   const [pSku, setPSku] = useState('');
@@ -404,19 +406,20 @@ export const ProductManager: React.FC<ProductManagerProps> = ({
   const [pSkuMode, setPSkuMode] = useState<'auto' | 'manual'>('auto');
   const [pBarcodeMode, setPBarcodeMode] = useState<'none' | 'auto' | 'manual'>('none');
   const [labelPrint, setLabelPrint] = useState<{ barcode: string; sellPrice: number; name: string } | null>(null);
-  const [pCostPrice, setPCostPrice] = useState<MoneyValue>(1200);
-  const [pOriginalPrice, setPOriginalPrice] = useState<MoneyValue>(1850);
-  const [pDiscountMode, setPDiscountMode] = useState<DiscountMode>('amount');
-  const [pDiscountAmount, setPDiscountAmount] = useState<MoneyValue>(0);
-  const [pDiscountPercent, setPDiscountPercent] = useState<MoneyValue>(0);
+  const [pCostPrice, setPCostPrice] = useState<MoneyValue>('');
+  const [pOriginalPrice, setPOriginalPrice] = useState<MoneyValue>('');
+  const [pDiscountMode, setPDiscountMode] = useState<DiscountMode>('percent');
+  const [pDiscountAmount, setPDiscountAmount] = useState<MoneyValue>('');
+  const [pDiscountPercent, setPDiscountPercent] = useState<MoneyValue>('');
   const [pFinalDraft, setPFinalDraft] = useState<MoneyValue | null>(null);
   const originalNum = moneyNumber(pOriginalPrice);
   const discountAmountNum = moneyNumber(pDiscountAmount);
   const discountPercentNum = moneyNumber(pDiscountPercent);
   const pFinalPrice = calcSalePrice(originalNum, pDiscountMode, discountAmountNum, discountPercentNum);
   const pHasDiscount = pFinalPrice < originalNum && originalNum > 0;
-  const pStock = Object.values(pSizeStocks).reduce((sum, n) => sum + (Number(n) || 0), 0);
+  const pStock = Object.values(pSizeStocks).reduce<number>((sum, n) => sum + moneyNumber(n as MoneyValue), 0);
   const pSizes = Object.keys(pSizeStocks);
+  const resolvedBrand = pBrand === 'Other' ? pBrandCustom.trim() : pBrand;
   const [pLowStockThreshold, setPLowStockThreshold] = useState<number>(3);
   const [pIsClearance, setPIsClearance] = useState<boolean>(false);
   const [pIsDamaged, setPIsDamaged] = useState<boolean>(false);
@@ -432,14 +435,40 @@ export const ProductManager: React.FC<ProductManagerProps> = ({
   const [pTargetPage, setPTargetPage] = useState<string>('World Cup Vault');
   const [pPageNumber, setPPageNumber] = useState<number>(1);
   const [pCategoryRow, setPCategoryRow] = useState<number>(1);
-  const [pCategory, setPCategory] = useState<string>('World Cup');
+  const [pCategories, setPCategories] = useState<string[]>([]);
+  const pCategory = pCategories[0] || '';
+  const pSizeChartId = pSizeChartIds[0] || '';
+
+  const toggleCategory = (name: string) => {
+    setPCategories((prev) => {
+      const has = prev.includes(name);
+      const next = has ? prev.filter((c) => c !== name) : [...prev, name];
+      setPSizeChartIds((charts) => {
+        const chartIds = new Set(charts);
+        if (!has) {
+          const inferred = inferSizeChartId(name);
+          if (inferred) chartIds.add(inferred);
+          const catItem = categoryItems.find((c) => c.name === name);
+          if (catItem?.sizeChartId) chartIds.add(catItem.sizeChartId);
+        }
+        return Array.from(chartIds);
+      });
+      return next;
+    });
+  };
+
+  const toggleSizeChart = (id: string) => {
+    setPSizeChartIds((prev) =>
+      prev.includes(id) ? prev.filter((x) => x !== id) : [...prev, id],
+    );
+  };
   const [pMainImage, setPMainImage] = useState<string>('');
   const [pGallery, setPGallery] = useState<string[]>([]);
   const [pGalleryInput, setPGalleryInput] = useState<string>('');
   const [pStatus, setPStatus] = useState<'Active' | 'Draft'>('Active');
   const pendingSaveStatusRef = useRef<'Active' | 'Draft' | null>(null);
-  /** Exactly 3 product images: main + 2 additional (PC/mobile file upload) */
-  const [pImageSlots, setPImageSlots] = useState<[string, string, string]>(['', '', '']);
+  /** Up to 6 product images: slot 1 is main card image */
+  const [pImageSlots, setPImageSlots] = useState<string[]>(['', '', '', '', '', '']);
   const [galleryViewer, setGalleryViewer] = useState<{ product: Product; index: number } | null>(null);
 
   const updateConfig = (newConfig: AppConfig) => {
@@ -510,22 +539,23 @@ export const ProductManager: React.FC<ProductManagerProps> = ({
     setPNationalTeam('');
     setPPlayerName('');
     setPPlayerNum('');
-    setPBrand('Nike');
+    setPBrand('');
+    setPBrandCustom('');
     setPGender('Men');
     setPCondition('Mint');
     setPConditionDetail('Original tags attached. Deadstock pristine condition.');
-    setPSizeStocks(defaultSizeStocks());
+    setPSizeStocks(emptySizeStocks());
     setPCustomSize('');
     setPColor('Red/White');
     setPSku(nextSkuSequence(products.map((p) => p.sku), 'EV'));
     setPBarcode('');
     setPSkuMode('auto');
     setPBarcodeMode('none');
-    setPCostPrice(1200);
-    setPOriginalPrice(1850);
-    setPDiscountMode('amount');
-    setPDiscountAmount(0);
-    setPDiscountPercent(0);
+    setPCostPrice('');
+    setPOriginalPrice('');
+    setPDiscountMode('percent');
+    setPDiscountAmount('');
+    setPDiscountPercent('');
     setPFinalDraft(null);
     setPLowStockThreshold(3);
     setPIsClearance(false);
@@ -542,12 +572,12 @@ export const ProductManager: React.FC<ProductManagerProps> = ({
     setPTargetPage('World Cup Vault');
     setPPageNumber(1);
     setPCategoryRow(1);
-    setPCategory('World Cup');
-    setPSizeChartId('player-edition');
+    setPCategories([]);
+    setPSizeChartIds([]);
     setPMainImage('');
     setPGallery([]);
     setPGalleryInput('');
-    setPImageSlots(['', '', '']);
+    setPImageSlots(['', '', '', '', '', '']);
     setPStatus('Active');
   };
 
@@ -569,23 +599,22 @@ export const ProductManager: React.FC<ProductManagerProps> = ({
   const applyFinalSellingPrice = (next: MoneyValue) => {
     const original = originalNum;
     if (next === '') {
-      setPDiscountMode('amount');
+      setPDiscountMode('percent');
       setPDiscountAmount('');
-      setPDiscountPercent(0);
+      setPDiscountPercent('');
       return;
     }
-    const sale = Math.max(0, next);
+    const sale = Math.max(0, Math.floor(next));
     setPDiscountMode('amount');
     if (original <= 0) {
-      // No MRP yet — treat typed sale as the original too so it sticks
       setPOriginalPrice(sale);
-      setPDiscountAmount(0);
-      setPDiscountPercent(0);
+      setPDiscountAmount('');
+      setPDiscountPercent('');
       return;
     }
     if (sale >= original) {
-      setPDiscountAmount(0);
-      setPDiscountPercent(0);
+      setPDiscountAmount('');
+      setPDiscountPercent('');
       return;
     }
     setPDiscountAmount(original - sale);
@@ -608,12 +637,24 @@ export const ProductManager: React.FC<ProductManagerProps> = ({
     setPNationalTeam(product.nationalTeam || product.country || '');
     setPPlayerName(product.player?.name || '');
     setPPlayerNum(product.player?.number || '');
-    setPBrand(product.brand || 'Nike');
+    {
+      const brand = (product.brand || '').trim();
+      if (brand && (PRODUCT_BRANDS as readonly string[]).includes(brand)) {
+        setPBrand(brand);
+        setPBrandCustom('');
+      } else if (brand) {
+        setPBrand('Other');
+        setPBrandCustom(brand);
+      } else {
+        setPBrand('');
+        setPBrandCustom('');
+      }
+    }
     setPGender(product.gender || 'Men');
     setPCondition(product.condition || 'Mint');
     setPConditionDetail(product.conditionDetail || '');
     if (product.sizeStocks && Object.keys(product.sizeStocks).length) {
-      const next: Record<string, number> = {};
+      const next: Record<string, SizeQty> = {};
       for (const [k, v] of Object.entries(product.sizeStocks)) {
         next[k] = Math.max(0, Math.floor(Number(v) || 0));
       }
@@ -621,7 +662,7 @@ export const ProductManager: React.FC<ProductManagerProps> = ({
     } else {
       const sizes = product.sizes?.length ? product.sizes : [...DEFAULT_FALLBACK_SIZES];
       const total = Math.max(0, Number(product.stock) || 0);
-      const next: Record<string, number> = {};
+      const next: Record<string, SizeQty> = {};
       sizes.forEach((sz, i) => {
         next[sz] = i === 0 ? total : 0;
       });
@@ -633,23 +674,23 @@ export const ProductManager: React.FC<ProductManagerProps> = ({
     setPBarcode(product.barcode || '');
     setPSkuMode('manual');
     setPBarcodeMode(product.barcode ? 'manual' : 'none');
-    setPCostPrice(product.costPrice || Math.round((product.price || 1500) * 0.65));
-    const sale = product.sellingPrice || product.price || 0;
+    setPCostPrice(product.costPrice != null ? Math.floor(Number(product.costPrice)) : '');
+    const sale = Math.floor(Number(product.sellingPrice || product.price) || 0);
     const original =
       product.originalPrice && product.originalPrice > sale
-        ? product.originalPrice
+        ? Math.floor(Number(product.originalPrice))
         : sale;
     const amount =
       product.discount && product.discount > 0
-        ? product.discount
+        ? Math.floor(Number(product.discount))
         : calcDiscountAmount(original, sale);
     const percent = calcDiscountPercent(original, sale);
     const cleanPercent =
       percent > 0 && calcSalePrice(original, 'percent', 0, percent) === sale;
-    setPOriginalPrice(original || 1850);
-    setPDiscountMode(cleanPercent ? 'percent' : 'amount');
-    setPDiscountAmount(amount);
-    setPDiscountPercent(percent);
+    setPOriginalPrice(original || '');
+    setPDiscountMode(cleanPercent ? 'percent' : amount > 0 ? 'amount' : 'percent');
+    setPDiscountAmount(amount > 0 ? amount : '');
+    setPDiscountPercent(percent > 0 ? percent : '');
     setPFinalDraft(null);
     setPLowStockThreshold(product.lowStockThreshold || 3);
     setPIsClearance(product.isClearance || false);
@@ -677,10 +718,31 @@ export const ProductManager: React.FC<ProductManagerProps> = ({
     setPTargetPage(matchedTarget ? matchedTarget.id : rawTarget);
     setPPageNumber(product.pageNumber || matchedTarget?.pageNumber || 1);
     setPCategoryRow(product.categoryRow || 1);
-    setPCategory(product.category || 'World Cup');
-    setPSizeChartId(
-      product.sizeChartId || inferSizeChartId(product.category) || 'player-edition',
-    );
+    {
+      const cats =
+        product.categories?.length
+          ? product.categories
+          : product.category
+            ? [product.category]
+            : [];
+      setPCategories(cats);
+    }
+    {
+      const charts =
+        product.sizeChartIds?.length
+          ? product.sizeChartIds
+          : product.sizeChartId
+            ? product.sizeChartId.split(',').map((s) => s.trim()).filter(Boolean)
+            : [];
+      setPSizeChartIds(
+        charts.length
+          ? charts
+          : (() => {
+              const inferred = inferSizeChartId(product.category);
+              return inferred ? [inferred] : [];
+            })(),
+      );
+    }
     setPMainImage(product.uploadedImage || product.image || '');
     const gallerySrc = product.gallery?.length
       ? product.gallery
@@ -693,13 +755,17 @@ export const ProductManager: React.FC<ProductManagerProps> = ({
       gallerySrc[0] || product.uploadedImage || product.image || '',
       gallerySrc[1] || '',
       gallerySrc[2] || '',
+      gallerySrc[3] || '',
+      gallerySrc[4] || '',
+      gallerySrc[5] || '',
     ]);
     setPStatus(product.status === 'Draft' ? 'Draft' : 'Active');
     setIsProductModalOpen(true);
   };
 
-  const handleImageSlotUpload = async (slotIndex: 0 | 1 | 2, file: File | null) => {
+  const handleImageSlotUpload = async (slotIndex: number, file: File | null) => {
     if (!file) return;
+    if (slotIndex < 0 || slotIndex > 5) return;
     if (!file.type.startsWith('image/')) {
       alert('Please upload an image file (JPG, PNG, WEBP).');
       return;
@@ -718,9 +784,10 @@ export const ProductManager: React.FC<ProductManagerProps> = ({
         maxBytes: 850_000,
       });
       setPImageSlots((prev) => {
-        const next: [string, string, string] = [prev[0], prev[1], prev[2]];
+        const next = [...prev];
+        while (next.length < 6) next.push('');
         next[slotIndex] = url;
-        return next;
+        return next.slice(0, 6);
       });
       if (slotIndex === 0) setPMainImage(url);
     } catch (err) {
@@ -728,11 +795,13 @@ export const ProductManager: React.FC<ProductManagerProps> = ({
     }
   };
 
-  const clearImageSlot = (slotIndex: 0 | 1 | 2) => {
+  const clearImageSlot = (slotIndex: number) => {
+    if (slotIndex < 0 || slotIndex > 5) return;
     setPImageSlots((prev) => {
-      const next: [string, string, string] = [prev[0], prev[1], prev[2]];
+      const next = [...prev];
+      while (next.length < 6) next.push('');
       next[slotIndex] = '';
-      return next;
+      return next.slice(0, 6);
     });
     if (slotIndex === 0) setPMainImage('');
   };
@@ -745,19 +814,27 @@ export const ProductManager: React.FC<ProductManagerProps> = ({
       product.image,
     ].filter((src): src is string => Boolean(src));
     const unique = Array.from(new Set(list));
-    return unique.slice(0, 3);
+    return unique.slice(0, 6);
   };
 
   // Submit Product Form (Add / Edit)
   const handleProductSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (isSavingProduct) return;
-    if (!pName || !pBrand) {
+    if (!pName || !resolvedBrand) {
       toast('Please fill in required fields (Name & Brand).', 'error');
+      return;
+    }
+    if (pCategories.length === 0) {
+      toast('Select at least one category.', 'error');
       return;
     }
     if (pSizes.length === 0) {
       toast('Enable at least one size and set how many are available.', 'error');
+      return;
+    }
+    if (originalNum <= 0 && moneyNumber(pFinalDraft ?? pFinalPrice) <= 0) {
+      toast('Please enter a price (integers only, no decimals).', 'error');
       return;
     }
 
@@ -765,8 +842,17 @@ export const ProductManager: React.FC<ProductManagerProps> = ({
     try {
     const saveStatus = pendingSaveStatusRef.current ?? pStatus;
     pendingSaveStatusRef.current = null;
-    const calculatedPrice = pFinalPrice > 0 ? pFinalPrice : 1000;
-    const discountAmount = pHasDiscount ? calcDiscountAmount(originalNum, calculatedPrice) : 0;
+    const calculatedPrice = pFinalPrice > 0 ? pFinalPrice : originalNum > 0 ? originalNum : 0;
+    if (calculatedPrice <= 0) {
+      toast('Please enter Original Price or Final Selling Price.', 'error');
+      setIsSavingProduct(false);
+      return;
+    }
+    const discountAmount = pHasDiscount ? calcDiscountAmount(originalNum || calculatedPrice, calculatedPrice) : 0;
+    const sizeStocksNumeric: Record<string, number> = {};
+    for (const [sz, qty] of Object.entries(pSizeStocks)) {
+      sizeStocksNumeric[sz] = moneyNumber(qty as MoneyValue);
+    }
     const uniqueSuffix = `${Date.now().toString(36)}${Math.floor(Math.random() * 900 + 100)}`;
     const baseSlug = pName.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '') || 'jersey';
     const finalSlug = editingProduct?.slug || `${baseSlug}-${uniqueSuffix}`;
@@ -794,13 +880,17 @@ export const ProductManager: React.FC<ProductManagerProps> = ({
 
     const filledImages = pImageSlots.map((s) => s.trim()).filter(Boolean);
     const primaryImage = filledImages[0] || pMainImage || 'https://images.unsplash.com/photo-1508098682722-e99c43a406b2?auto=format&fit=crop&q=80&w=800';
-    const galleryImages = (filledImages.length > 0 ? filledImages : [primaryImage]).slice(0, 3);
+    const galleryImages = (filledImages.length > 0 ? filledImages : [primaryImage]).slice(0, 6);
 
-    const normalizedBadgeOptions = pBadgeOptions
+    const globalPatches = normalizeBadgeOptionsList(
+      appConfig.tournamentPatches?.length ? appConfig.tournamentPatches : createDefaultBadgeOptions(),
+    );
+    const normalizedBadgeOptions = (pBadgeAvailable ? globalPatches : [])
       .map((badge, index) => ({
-        id: badge.id || `badge-${index + 1}`,
+        id: badge.id || `patch-${index + 1}`,
         label: badge.label.trim(),
         priceBdt: Math.max(0, Math.round(Number(badge.priceBdt) || 0)),
+        ...(badge.image?.trim() ? { image: badge.image.trim() } : {}),
       }))
       .filter((badge) => badge.label);
     const primaryBadge = normalizedBadgeOptions[0];
@@ -811,7 +901,7 @@ export const ProductManager: React.FC<ProductManagerProps> = ({
       slug: finalSlug,
       shortDescription: pShortDesc,
       longDescription: pLongDesc,
-      description: pShortDesc || pLongDesc || `${pBrand} ${pName} - ${pSeason}`,
+      description: pShortDesc || pLongDesc || `${resolvedBrand} ${pName} - ${pSeason}`,
       features: featuresArr,
       material: pMaterial,
       season: pSeason,
@@ -821,12 +911,12 @@ export const ProductManager: React.FC<ProductManagerProps> = ({
       country: pNationalTeam,
       nationalTeam: pNationalTeam,
       player: pPlayerName ? { name: pPlayerName, number: Number(pPlayerNum) || 10 } : undefined,
-      brand: pBrand,
+      brand: resolvedBrand,
       gender: pGender,
       condition: pCondition as any,
       conditionDetail: pConditionDetail,
       sizes: pSizes,
-      sizeStocks: { ...pSizeStocks },
+      sizeStocks: sizeStocksNumeric,
       color: pColor,
       sku: resolvedSku,
       barcode: resolvedBarcode,
@@ -843,8 +933,10 @@ export const ProductManager: React.FC<ProductManagerProps> = ({
       preOrderEta: pIsPreOrder ? (pPreOrderEta.trim() || undefined) : undefined,
       damagedQty: Number(pDamagedQty) || 0,
       dimensions: pDimensions,
-      category: pCategory,
-      sizeChartId: pSizeChartId || inferSizeChartId(pCategory) || undefined,
+      category: pCategory || pCategories[0] || 'General',
+      categories: pCategories.length ? pCategories : pCategory ? [pCategory] : [],
+      sizeChartId: pSizeChartIds[0] || inferSizeChartId(pCategory) || undefined,
+      sizeChartIds: pSizeChartIds,
       targetPage: resolvedTargetId,
       pageName: resolvedTargetName,
       pageNumber: resolvedPageNum,
@@ -860,7 +952,7 @@ export const ProductManager: React.FC<ProductManagerProps> = ({
       namesetPriceBdt: Math.max(0, Math.round(Number(pNamesetPriceBdt) || 0)),
       badgePriceBdt: primaryBadge?.priceBdt ?? DEFAULT_BADGE_PRICE_BDT,
       namesetLabel: pNamesetLabel.trim() || DEFAULT_NAMESET_LABEL,
-      badgeLabel: primaryBadge?.label || DEFAULT_BADGE_LABEL,
+      badgeLabel: DEFAULT_BADGE_LABEL,
       badgeOptions: normalizedBadgeOptions,
       specification: {
         material: pMaterial,
@@ -919,11 +1011,13 @@ export const ProductManager: React.FC<ProductManagerProps> = ({
           material: updatedProduct.material,
           lowStockThreshold: updatedProduct.lowStockThreshold,
           category: updatedProduct.category,
+          categories: updatedProduct.categories,
           targetPage: updatedProduct.targetPage,
           pageName: updatedProduct.pageName,
           pageNumber: updatedProduct.pageNumber,
           categoryRow: updatedProduct.categoryRow,
           sizeChartId: updatedProduct.sizeChartId,
+          sizeChartIds: updatedProduct.sizeChartIds,
           badgeAvailable: updatedProduct.badgeAvailable,
           printAvailable: updatedProduct.printAvailable,
           namesetPriceBdt: updatedProduct.namesetPriceBdt,
@@ -941,6 +1035,8 @@ export const ProductManager: React.FC<ProductManagerProps> = ({
             pageNumber: updatedProduct.pageNumber ?? saved.pageNumber,
             categoryRow: updatedProduct.categoryRow ?? saved.categoryRow,
             sizeChartId: updatedProduct.sizeChartId || saved.sizeChartId,
+            sizeChartIds: updatedProduct.sizeChartIds || saved.sizeChartIds,
+            categories: updatedProduct.categories || saved.categories,
             sizes: updatedProduct.sizes?.length ? updatedProduct.sizes : saved.sizes,
             sizeStocks: updatedProduct.sizeStocks || saved.sizeStocks,
             stock: updatedProduct.stock ?? saved.stock,
@@ -954,6 +1050,8 @@ export const ProductManager: React.FC<ProductManagerProps> = ({
             pageNumber: updatedProduct.pageNumber ?? saved.pageNumber,
             categoryRow: updatedProduct.categoryRow ?? saved.categoryRow,
             sizeChartId: updatedProduct.sizeChartId || saved.sizeChartId,
+            sizeChartIds: updatedProduct.sizeChartIds || saved.sizeChartIds,
+            categories: updatedProduct.categories || saved.categories,
             sizes: updatedProduct.sizes?.length ? updatedProduct.sizes : saved.sizes,
             sizeStocks: updatedProduct.sizeStocks || saved.sizeStocks,
             stock: updatedProduct.stock ?? saved.stock,
@@ -1145,7 +1243,9 @@ export const ProductManager: React.FC<ProductManagerProps> = ({
 
     updateConfig({ ...appConfig, categoryItems: updatedCats });
     if (!editingCategory) {
-      setPCategory(catName.trim());
+      setPCategories((prev) =>
+        prev.includes(catName.trim()) ? prev : [...prev, catName.trim()],
+      );
     }
     setIsCategoryModalOpen(false);
     setEditingCategory(null);
@@ -2246,14 +2346,34 @@ export const ProductManager: React.FC<ProductManagerProps> = ({
 
                   <div>
                     <label className="font-bold text-emerald-950 block mb-1">Brand *</label>
-                    <input
-                      type="text"
+                    <select
                       required
-                      placeholder="Nike / Adidas / Umbro / Puma"
                       value={pBrand}
-                      onChange={(e) => setPBrand(e.target.value)}
-                      className="w-full bg-emerald-50/40 border border-emerald-200 rounded-xl px-3 py-2"
-                    />
+                      onChange={(e) => {
+                        setPBrand(e.target.value);
+                        if (e.target.value !== 'Other') setPBrandCustom('');
+                      }}
+                      className="w-full bg-emerald-50/40 border border-emerald-200 rounded-xl px-3 py-2 font-medium"
+                    >
+                      <option value="" disabled>
+                        Select brand
+                      </option>
+                      {PRODUCT_BRANDS.map((b) => (
+                        <option key={b} value={b}>
+                          {b}
+                        </option>
+                      ))}
+                    </select>
+                    {pBrand === 'Other' && (
+                      <input
+                        type="text"
+                        required
+                        placeholder="Type brand name"
+                        value={pBrandCustom}
+                        onChange={(e) => setPBrandCustom(e.target.value)}
+                        className="w-full mt-2 bg-emerald-50/40 border border-emerald-200 rounded-xl px-3 py-2"
+                      />
+                    )}
                   </div>
 
                   <div>
@@ -2353,88 +2473,85 @@ export const ProductManager: React.FC<ProductManagerProps> = ({
                     </p>
                   </div>
 
-                  <div>
-                    <label className="font-bold text-emerald-950 block mb-1">Category *</label>
-                    <p className="text-[10px] text-emerald-700 font-mono mb-1.5">
-                      Pick a homepage row category (Featured, Best Sellers, Kids, Customised Kit, etc.) to show this product on the storefront.
-                    </p>
-                    <select
-                      value={pCategory}
-                      onChange={(e) => {
-                        if (e.target.value === '__ADD_NEW__') {
+                  <div className="md:col-span-2">
+                    <div className="flex items-center justify-between mb-1">
+                      <label className="font-bold text-emerald-950 block">Categories * (multi-select)</label>
+                      <button
+                        type="button"
+                        onClick={() => {
                           setEditingCategory(null);
                           setCatName('');
                           setIsCategoryModalOpen(true);
-                          return;
-                        }
-                        const nextCat = e.target.value;
-                        setPCategory(nextCat);
-                        const inferred = inferSizeChartId(nextCat);
-                        if (inferred) {
-                          setPSizeChartId(inferred);
-                          const chart = getSizeChartById(inferred);
-                          if (chart?.id === 'kids') {
-                            setPSizeStocks({ ...DEFAULT_KIDS_SIZE_STOCKS });
-                            setPGender('Kids');
-                          } else if (chart?.sizeOptions?.length) {
-                            setPSizeStocks((prev) => {
-                              const next: Record<string, number> = {};
-                              for (const sz of chart.sizeOptions) {
-                                next[sz] = prev[sz] ?? (DEFAULT_PRODUCT_SIZE_STOCKS[sz] ?? 1);
-                              }
-                              return Object.keys(next).length ? next : prev;
-                            });
-                          }
-                        }
-                      }}
-                      className="w-full bg-emerald-50/40 border border-emerald-200 rounded-xl px-3 py-2 font-bold"
-                    >
-                      {productCategoryOptions.map((name) => (
-                        <option key={name} value={name}>{name}</option>
-                      ))}
-                      <option value="__ADD_NEW__" className="font-bold text-emerald-800">+ Add New Category...</option>
-                    </select>
-                    {homepageCategoryNames.includes(pCategory) && (
+                        }}
+                        className="text-[10px] font-mono font-bold text-emerald-800 hover:text-emerald-900 bg-emerald-100/80 hover:bg-emerald-200 px-2 py-0.5 rounded flex items-center gap-1 cursor-pointer"
+                      >
+                        <Plus size={12} /> Add New Category
+                      </button>
+                    </div>
+                    <p className="text-[10px] text-emerald-700 font-mono mb-1.5">
+                      Select multiple — e.g. Arsenal can be Fan Edition + Player Edition + Premier League. Edition categories auto-add matching size charts.
+                    </p>
+                    <div className="max-h-40 overflow-y-auto rounded-xl border border-emerald-200 bg-emerald-50/30 p-2 grid grid-cols-2 sm:grid-cols-3 gap-1.5">
+                      {productCategoryOptions.map((name) => {
+                        const checked = pCategories.includes(name);
+                        return (
+                          <label
+                            key={name}
+                            className={`flex items-center gap-1.5 text-[10px] font-bold font-mono px-2 py-1.5 rounded-lg cursor-pointer border ${
+                              checked
+                                ? 'bg-emerald-800 text-white border-emerald-800'
+                                : 'bg-white text-emerald-900 border-emerald-100 hover:border-emerald-300'
+                            }`}
+                          >
+                            <input
+                              type="checkbox"
+                              className="sr-only"
+                              checked={checked}
+                              onChange={() => toggleCategory(name)}
+                            />
+                            <span className="truncate">{name}</span>
+                          </label>
+                        );
+                      })}
+                    </div>
+                    {pCategories.length > 0 && (
                       <p className="text-[9px] font-mono text-emerald-600 mt-1">
-                        This category is linked to a homepage product row.
+                        Selected: {pCategories.join(' · ')}
                       </p>
                     )}
                   </div>
 
                   <div>
-                    <label className="font-bold text-emerald-950 block mb-1">Size Chart *</label>
+                    <label className="font-bold text-emerald-950 block mb-1">Size / Measurement Charts (multi)</label>
                     <p className="text-[10px] text-emerald-700 font-mono mb-1.5">
-                      Shown on the product page (Retro Kit, Kids, Customised Kit, etc.).
+                      Same jersey can show Fan + Player charts. Manage custom formats under Inventory.
                     </p>
-                    <select
-                      value={pSizeChartId}
-                      onChange={(e) => {
-                        const nextId = e.target.value;
-                        setPSizeChartId(nextId);
-                        const chart = getSizeChartById(nextId);
-                        const hint = categoryHintForSizeChart(nextId);
-                        if (hint) setPCategory(hint);
-                        if (nextId === 'kids') {
-                          setPSizeStocks({ ...DEFAULT_KIDS_SIZE_STOCKS });
-                          setPGender('Kids');
-                        } else if (chart?.sizeOptions?.length) {
-                          setPSizeStocks(() => {
-                            const next: Record<string, number> = {};
-                            for (const sz of chart.sizeOptions) {
-                              next[sz] = DEFAULT_PRODUCT_SIZE_STOCKS[sz] ?? 1;
-                            }
-                            return next;
-                          });
-                        }
-                      }}
-                      className="w-full bg-emerald-50/40 border border-emerald-200 rounded-xl px-3 py-2 font-bold text-emerald-950"
-                    >
-                      {SIZE_CHART_OPTIONS.map((chart) => (
-                        <option key={chart.id} value={chart.id}>
-                          {chart.label} Size Chart
-                        </option>
-                      ))}
-                    </select>
+                    <div className="max-h-40 overflow-y-auto rounded-xl border border-emerald-200 bg-emerald-50/30 p-2 space-y-1">
+                      {availableSizeCharts.map((chart) => {
+                        const checked = pSizeChartIds.includes(chart.id);
+                        return (
+                          <label
+                            key={chart.id}
+                            className={`flex items-center gap-2 text-[10px] font-bold font-mono px-2 py-1.5 rounded-lg cursor-pointer border ${
+                              checked
+                                ? 'bg-emerald-800 text-white border-emerald-800'
+                                : 'bg-white text-emerald-900 border-emerald-100 hover:border-emerald-300'
+                            }`}
+                          >
+                            <input
+                              type="checkbox"
+                              className="sr-only"
+                              checked={checked}
+                              onChange={() => toggleSizeChart(chart.id)}
+                            />
+                            <span>{chart.label}</span>
+                          </label>
+                        );
+                      })}
+                    </div>
+                    {pSizeChartIds.includes('kids') && (
+                      <p className="text-[9px] text-amber-700 mt-1 font-mono">Kids chart selected — sizes use kit numbers.</p>
+                    )}
                   </div>
 
                   <div>
@@ -2450,16 +2567,16 @@ export const ProductManager: React.FC<ProductManagerProps> = ({
                 </div>
               </div>
 
-              {/* SECTION 3: PRODUCT IMAGES (3 uploads) */}
+              {/* SECTION 3: PRODUCT IMAGES (6 uploads) */}
               <div className="space-y-4">
                 <h5 className="text-xs font-mono font-bold uppercase text-emerald-800 border-b border-emerald-100 pb-1">
-                  3. Product Images — Upload 3 Pictures (Mobile or PC)
+                  3. Product Images — Upload 6 Pictures (Mobile or PC)
                 </h5>
                 <p className="text-[10px] text-emerald-700 font-mono">
-                  Upload from phone camera/gallery or desktop files. Slot 1 is the main card image. Click any product thumbnail later to view all 3.
+                  Upload from phone camera/gallery or desktop files. Slot 1 is the main card image. You can add up to 6 photos; click any product thumbnail later to view them all.
                 </p>
-                <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-                  {([0, 1, 2] as const).map((slot) => (
+                <div className="grid grid-cols-2 sm:grid-cols-3 gap-3 sm:gap-4">
+                  {[0, 1, 2, 3, 4, 5].map((slot) => (
                     <div key={slot} className="bg-emerald-50/40 border border-emerald-200 rounded-2xl p-3 space-y-2">
                       <div className="flex items-center justify-between">
                         <span className="text-[10px] font-black uppercase text-emerald-900 font-mono">
@@ -2595,28 +2712,20 @@ export const ProductManager: React.FC<ProductManagerProps> = ({
                     value={pOriginalPrice}
                     onChange={setPOriginalPrice}
                     required
-                    step={50}
+                    placeholder="e.g. 1150"
+                    hint="Integers only — no decimals"
                   />
 
                   <MoneyField
                     label="Cost Price"
                     value={pCostPrice}
                     onChange={setPCostPrice}
-                    step={50}
+                    placeholder="e.g. 800"
                   />
 
                   <div className="col-span-2 md:col-span-2 space-y-2">
                     <label className="font-bold text-emerald-950 block mb-1 font-sans">Discount</label>
                     <div className="flex rounded-xl border border-emerald-200 overflow-hidden mb-2">
-                      <button
-                        type="button"
-                        onClick={() => setPDiscountMode('amount')}
-                        className={`flex-1 px-3 py-1.5 text-[10px] font-black uppercase tracking-wider cursor-pointer ${
-                          pDiscountMode === 'amount' ? 'bg-emerald-800 text-white' : 'bg-white text-emerald-800'
-                        }`}
-                      >
-                        Amount (৳)
-                      </button>
                       <button
                         type="button"
                         onClick={() => setPDiscountMode('percent')}
@@ -2626,23 +2735,33 @@ export const ProductManager: React.FC<ProductManagerProps> = ({
                       >
                         Percent (%)
                       </button>
+                      <button
+                        type="button"
+                        onClick={() => setPDiscountMode('amount')}
+                        className={`flex-1 px-3 py-1.5 text-[10px] font-black uppercase tracking-wider cursor-pointer ${
+                          pDiscountMode === 'amount' ? 'bg-emerald-800 text-white' : 'bg-white text-emerald-800'
+                        }`}
+                      >
+                        Amount (৳)
+                      </button>
                     </div>
-                    {pDiscountMode === 'amount' ? (
-                      <MoneyField
-                        label="Discount amount"
-                        value={pDiscountAmount}
-                        onChange={setPDiscountAmount}
-                        step={10}
-                        max={originalNum > 0 ? originalNum : undefined}
-                        className="[&>label]:sr-only"
-                      />
-                    ) : (
+                    {pDiscountMode === 'percent' ? (
                       <MoneyField
                         label="Discount percent"
                         value={pDiscountPercent}
                         onChange={setPDiscountPercent}
-                        step={1}
                         max={100}
+                        placeholder="e.g. 10"
+                        hint="Example: 10% of ৳1150 → ৳1035"
+                        className="[&>label]:sr-only"
+                      />
+                    ) : (
+                      <MoneyField
+                        label="Discount amount"
+                        value={pDiscountAmount}
+                        onChange={setPDiscountAmount}
+                        max={originalNum > 0 ? originalNum : undefined}
+                        placeholder="e.g. 115"
                         className="[&>label]:sr-only"
                       />
                     )}
@@ -2650,7 +2769,7 @@ export const ProductManager: React.FC<ProductManagerProps> = ({
 
                   <MoneyField
                     label="Final Selling Price"
-                    value={pFinalDraft !== null ? pFinalDraft : pFinalPrice}
+                    value={pFinalDraft !== null ? pFinalDraft : originalNum > 0 || discountPercentNum > 0 || discountAmountNum > 0 ? pFinalPrice : ''}
                     onChange={(next) => {
                       setPFinalDraft(next);
                       if (next !== '') applyFinalSellingPrice(next);
@@ -2659,15 +2778,15 @@ export const ProductManager: React.FC<ProductManagerProps> = ({
                       if (pFinalDraft === '') applyFinalSellingPrice('');
                       setPFinalDraft(null);
                     }}
-                    step={50}
+                    placeholder="Auto or type"
                     hint={
                       pHasDiscount
                         ? `Auto: ${originalNum.toLocaleString()} − ${
                             pDiscountMode === 'percent'
                               ? `${discountPercentNum}%`
                               : `৳${discountAmountNum.toLocaleString()}`
-                          }`
-                        : 'Clear & type, or use − / +. Edits update discount.'
+                          } = ৳${pFinalPrice.toLocaleString()}`
+                        : 'Type MRP + % discount, or set final price directly. Integers only.'
                     }
                   />
 
@@ -2696,7 +2815,7 @@ export const ProductManager: React.FC<ProductManagerProps> = ({
                 <div className="space-y-2">
                   <label className="font-bold text-emerald-950 block text-xs">Size availability (qty per size)</label>
                   <p className="text-[10px] text-emerald-800/70">
-                    Set how many of each size are in stock. Qty 0 = size shows as unavailable on the storefront.
+                    Enable sizes and type stock qty (integers only). Leave blank until you enter a number — no prefilled values.
                   </p>
                   <div className="grid grid-cols-3 sm:grid-cols-6 gap-2">
                     {STANDARD_SIZES.map((sz) => {
@@ -2713,7 +2832,7 @@ export const ProductManager: React.FC<ProductManagerProps> = ({
                               onChange={(e) => {
                                 setPSizeStocks((prev) => {
                                   const next = { ...prev };
-                                  if (e.target.checked) next[sz] = next[sz] ?? 1;
+                                  if (e.target.checked) next[sz] = '';
                                   else delete next[sz];
                                   return next;
                                 });
@@ -2723,16 +2842,17 @@ export const ProductManager: React.FC<ProductManagerProps> = ({
                             {sz}
                           </label>
                           <input
-                            type="number"
-                            min={0}
+                            type="text"
+                            inputMode="numeric"
+                            pattern="[0-9]*"
                             disabled={!enabled}
-                            value={enabled ? pSizeStocks[sz] ?? 0 : ''}
+                            value={enabled ? (pSizeStocks[sz] === '' || pSizeStocks[sz] == null ? '' : String(pSizeStocks[sz])) : ''}
                             onChange={(e) => {
-                              const n = Math.max(0, Math.floor(Number(e.target.value) || 0));
+                              const n = parseMoneyDraft(e.target.value);
                               setPSizeStocks((prev) => ({ ...prev, [sz]: n }));
                             }}
                             className="w-full bg-white border border-emerald-200 rounded-lg px-2 py-1 font-mono text-xs font-bold disabled:bg-zinc-100"
-                            placeholder="0"
+                            placeholder="Qty"
                           />
                         </div>
                       );
@@ -2744,14 +2864,16 @@ export const ProductManager: React.FC<ProductManagerProps> = ({
                       <div key={sz} className="flex items-center gap-2 max-w-xs">
                         <span className="text-xs font-mono font-bold w-12">{sz}</span>
                         <input
-                          type="number"
-                          min={0}
-                          value={pSizeStocks[sz] ?? 0}
+                          type="text"
+                          inputMode="numeric"
+                          pattern="[0-9]*"
+                          value={pSizeStocks[sz] === '' || pSizeStocks[sz] == null ? '' : String(pSizeStocks[sz])}
                           onChange={(e) => {
-                            const n = Math.max(0, Math.floor(Number(e.target.value) || 0));
+                            const n = parseMoneyDraft(e.target.value);
                             setPSizeStocks((prev) => ({ ...prev, [sz]: n }));
                           }}
                           className="flex-1 bg-white border border-emerald-200 rounded-lg px-2 py-1 font-mono text-xs font-bold"
+                          placeholder="Qty"
                         />
                         <button
                           type="button"
@@ -2781,7 +2903,7 @@ export const ProductManager: React.FC<ProductManagerProps> = ({
                       onClick={() => {
                         const sz = pCustomSize.trim().toUpperCase();
                         if (!sz) return;
-                        setPSizeStocks((prev) => ({ ...prev, [sz]: prev[sz] ?? 1 }));
+                        setPSizeStocks((prev) => ({ ...prev, [sz]: prev[sz] ?? '' }));
                         setPCustomSize('');
                       }}
                       className="px-3 py-1.5 rounded-lg bg-emerald-800 text-white text-[10px] font-bold uppercase"
@@ -2796,7 +2918,7 @@ export const ProductManager: React.FC<ProductManagerProps> = ({
                     <BadgeCheck size={14} /> Customization Add-ons (BDT)
                   </h5>
                   <p className="text-[10px] text-emerald-700">
-                    Set per-product nameset and tournament badge pricing. Saved to the database for all visitors.
+                    Set per-product custom font and tournament patch options. Customers can select multiple patches.
                   </p>
 
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
@@ -2808,11 +2930,11 @@ export const ProductManager: React.FC<ProductManagerProps> = ({
                           onChange={(e) => setPPrintAvailable(e.target.checked)}
                           className="w-4 h-4 accent-emerald-600 rounded"
                         />
-                        Enable custom name + number printing
+                        Enable custom font (name + number)
                       </label>
                       <div>
                         <label className="font-bold text-emerald-950 block mb-1 text-[10px] uppercase tracking-wide">
-                          Nameset price (৳ BDT)
+                          Font price (৳ BDT)
                         </label>
                         <input
                           type="number"
@@ -2825,14 +2947,14 @@ export const ProductManager: React.FC<ProductManagerProps> = ({
                       </div>
                       <div>
                         <label className="font-bold text-emerald-950 block mb-1 text-[10px] uppercase tracking-wide">
-                          Nameset label (storefront)
+                          Font label (storefront)
                         </label>
                         <input
                           type="text"
                           value={pNamesetLabel}
                           onChange={(e) => setPNamesetLabel(e.target.value)}
                           disabled={!pPrintAvailable}
-                          placeholder="Custom Nameset Printing"
+                          placeholder="Custom Font"
                           className="w-full bg-emerald-50/40 border border-emerald-200 rounded-xl px-3 py-2 text-xs disabled:opacity-50"
                         />
                       </div>
@@ -2846,83 +2968,36 @@ export const ProductManager: React.FC<ProductManagerProps> = ({
                           onChange={(e) => setPBadgeAvailable(e.target.checked)}
                           className="w-4 h-4 accent-emerald-600 rounded"
                         />
-                        Enable tournament sleeve badges
+                        Enable Tournament Patch on this product
                       </label>
-                      <p className="text-[10px] text-emerald-700">
-                        Add multiple badge options — customers can pick one or more (e.g. WC &apos;26, UCL, League winners).
+                      <p className="text-[10px] text-emerald-700 leading-relaxed">
+                        Patch options (image, name, price) are managed globally under{' '}
+                        <strong>Inventory → Tournament Patch catalog</strong>. This product will offer those patches
+                        when enabled — customers can select multiple.
                       </p>
-
-                      <div className="space-y-2">
-                        {pBadgeOptions.map((badge, index) => (
-                          <div key={badge.id || `badge-row-${index}`} className="grid grid-cols-1 sm:grid-cols-12 gap-2 items-end">
-                            <div className="sm:col-span-5">
-                              <label className="font-bold text-emerald-950 block mb-1 text-[10px] uppercase tracking-wide">
-                                Badge label
-                              </label>
-                              <input
-                                type="text"
-                                value={badge.label}
-                                disabled={!pBadgeAvailable}
-                                onChange={(e) => {
-                                  const next = [...pBadgeOptions];
-                                  next[index] = { ...next[index], label: e.target.value };
-                                  setPBadgeOptions(next);
-                                }}
-                                placeholder="WC '26"
-                                className="w-full bg-emerald-50/40 border border-emerald-200 rounded-xl px-3 py-2 text-xs disabled:opacity-50"
-                              />
-                            </div>
-                            <div className="sm:col-span-4">
-                              <label className="font-bold text-emerald-950 block mb-1 text-[10px] uppercase tracking-wide">
-                                Price (৳ BDT)
-                              </label>
-                              <input
-                                type="number"
-                                min={0}
-                                value={badge.priceBdt}
-                                disabled={!pBadgeAvailable}
-                                onChange={(e) => {
-                                  const next = [...pBadgeOptions];
-                                  next[index] = {
-                                    ...next[index],
-                                    priceBdt: Math.max(0, Number(e.target.value) || 0),
-                                  };
-                                  setPBadgeOptions(next);
-                                }}
-                                className="w-full bg-emerald-50/40 border border-emerald-200 rounded-xl px-3 py-2 font-mono text-xs disabled:opacity-50"
-                              />
-                            </div>
-                            <div className="sm:col-span-3 flex gap-2">
-                              <button
-                                type="button"
-                                disabled={!pBadgeAvailable || pBadgeOptions.length <= 1}
-                                onClick={() => setPBadgeOptions(pBadgeOptions.filter((_, i) => i !== index))}
-                                className="flex-1 px-3 py-2 text-[10px] font-bold uppercase rounded-xl border border-rose-200 text-rose-700 hover:bg-rose-50 disabled:opacity-40 disabled:cursor-not-allowed"
-                              >
-                                Remove
-                              </button>
-                            </div>
-                          </div>
-                        ))}
-                      </div>
-
-                      <button
-                        type="button"
-                        disabled={!pBadgeAvailable}
-                        onClick={() =>
-                          setPBadgeOptions([
-                            ...pBadgeOptions,
-                            {
-                              id: `badge-${Date.now()}`,
-                              label: '',
-                              priceBdt: DEFAULT_BADGE_PRICE_BDT,
-                            },
-                          ])
-                        }
-                        className="px-3 py-2 text-[10px] font-bold uppercase rounded-xl bg-emerald-800 text-white hover:bg-emerald-900 disabled:opacity-50 disabled:cursor-not-allowed"
-                      >
-                        + Add Badge Option
-                      </button>
+                      {(appConfig.tournamentPatches?.length
+                        ? appConfig.tournamentPatches
+                        : pBadgeOptions
+                      ).length > 0 && (
+                        <div className="flex flex-wrap gap-2 pt-1">
+                          {(appConfig.tournamentPatches?.length
+                            ? appConfig.tournamentPatches
+                            : pBadgeOptions
+                          ).map((patch) => (
+                            <span
+                              key={patch.id}
+                              className="inline-flex items-center gap-2 rounded-lg border border-emerald-100 bg-emerald-50/60 px-2 py-1.5 text-[10px] font-semibold text-emerald-900"
+                            >
+                              {patch.image ? (
+                                <img src={patch.image} alt="" className="h-6 w-6 rounded object-cover" />
+                              ) : (
+                                <ImageIcon size={12} className="text-emerald-500" />
+                              )}
+                              {patch.label || 'Untitled'} · ৳{Number(patch.priceBdt) || 0}
+                            </span>
+                          ))}
+                        </div>
+                      )}
                     </div>
                   </div>
                 </div>
@@ -3435,7 +3510,7 @@ export const ProductManager: React.FC<ProductManagerProps> = ({
         </div>
       )}
 
-      {/* PRODUCT IMAGE GALLERY VIEWER (3 images) */}
+      {/* PRODUCT IMAGE GALLERY VIEWER (up to 6 images) */}
       {galleryViewer && (() => {
         const imgs = getProductGallery(galleryViewer.product);
         const safeImgs = imgs.length > 0 ? imgs : [galleryViewer.product.image];

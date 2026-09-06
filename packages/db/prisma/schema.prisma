@@ -400,6 +400,10 @@ model Product {
   categoryRow      Int?
   /// Size chart key: player-edition | retro | fan-edition | custom | kids
   sizeChartId      String?
+  /// Extra storefront categories (multi-select). Primary still uses categoryId.
+  categories       String[]         @default([])
+  /// Multiple measurement charts (e.g. fan-edition + player-edition)
+  sizeChartIds     String[]         @default([])
 
   status           ProductStatus    @default(DRAFT)
   publishedAt      DateTime?
@@ -764,6 +768,10 @@ model StoreSettings {
   bkashPaymentMode     String   @default("both")
   bkashPartialAmountBdt Int     @default(300)
   categoryItems      Json?
+  /// Global tournament patches for all jerseys: [{ id, label, priceBdt, image? }]
+  tournamentPatches  Json?
+  /// Custom size / measurement charts: SizeChartDef[]
+  customSizeCharts   Json?
   /// Shared storefront nav (Main / Mega / Footer) — updates apply for all visitors
   menuItems          Json?
   /// Cached outlet cards mirrored from StoreLocation for SPA footer

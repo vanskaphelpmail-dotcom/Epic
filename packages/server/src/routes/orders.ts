@@ -14,6 +14,7 @@ function lineUnitPrice(
     customPrintNum?: number;
     selectedBadgeIds?: string;
   },
+  globalPatches?: unknown,
 ): number {
   let unit = Number(product.price);
   const hasNameset = Boolean(
@@ -29,7 +30,10 @@ function lineUnitPrice(
     .map((s) => s.trim())
     .filter(Boolean);
   if (badgeIds.length && product.badgeAvailable) {
-    const raw = product.badgeOptions;
+    const raw =
+      (Array.isArray(globalPatches) && globalPatches.length > 0
+        ? globalPatches
+        : product.badgeOptions) || [];
     if (Array.isArray(raw) && raw.length > 0) {
       for (const badgeId of badgeIds) {
         const match = raw.find(
@@ -194,6 +198,8 @@ ordersRouter.post("/", optionalAuth, async (req: AuthedRequest, res) => {
     const products = await prisma.product.findMany({
       where: { id: { in: productIds }, deletedAt: null, status: "ACTIVE" },
     });
+    const storeSettings = await prisma.storeSettings.findUnique({ where: { id: "default" } });
+    const globalPatches = (storeSettings as { tournamentPatches?: unknown } | null)?.tournamentPatches;
     const byId = new Map(products.map((p) => [p.id, p]));
 
     let subtotal = 0;
@@ -238,7 +244,7 @@ ordersRouter.post("/", optionalAuth, async (req: AuthedRequest, res) => {
         });
       }
 
-      const unit = lineUnitPrice(product, item);
+      const unit = lineUnitPrice(product, item, globalPatches);
       const lineTotal = unit * item.quantity;
       subtotal += lineTotal;
       lineCreates.push({

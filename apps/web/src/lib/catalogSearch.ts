@@ -185,7 +185,7 @@ const STOP = new Set([
  */
 export function buildCatalogSearchKeywords(
   products: Product[],
-  limit = 16,
+  limit = 5,
 ): string[] {
   const counts = new Map<string, number>();
 
@@ -206,13 +206,16 @@ export function buildCatalogSearchKeywords(
     bump(p.league, 2);
     bump(p.brand, 1);
     bump(p.player?.name, 2);
-    // Short product-name phrases (e.g. "Barcelona", "Argentina 1986")
+    // Short product-name phrases only (avoid full jersey titles in popular chips)
     const name = String(p.name || '').trim();
     if (name) {
-      bump(name, 2);
+      if (name.length <= 28) bump(name, 2);
       const parts = name.split(/\s+/).filter((w) => w.length >= 4 && !STOP.has(w.toLowerCase()));
       if (parts[0]) bump(parts[0], 1);
       if (parts.length >= 2) bump(`${parts[0]} ${parts[1]}`, 2);
+      // Season-style chips: "Arsenal 26/27"
+      const season = name.match(/(\d{2}\/\d{2})/);
+      if (parts[0] && season?.[1]) bump(`${parts[0]} ${season[1]}`, 3);
     }
   }
 
@@ -251,7 +254,7 @@ export function buildCatalogSearchKeywords(
 export function suggestProductsForQuery(
   products: Product[],
   query: string,
-  limit = 8,
+  limit = 5,
 ): Product[] {
   const q = String(query || '').trim();
   if (q.length < 2) return [];

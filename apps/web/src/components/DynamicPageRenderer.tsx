@@ -180,7 +180,7 @@ export const DynamicPageRenderer: React.FC<DynamicPageRendererProps> = ({
   );
 
   const trendingKeywords = useMemo(
-    () => buildCatalogSearchKeywords(catalogProducts, 8),
+    () => buildCatalogSearchKeywords(catalogProducts, 5),
     // eslint-disable-next-line react-hooks/exhaustive-deps
     [products],
   );
@@ -782,10 +782,10 @@ export const DynamicPageRenderer: React.FC<DynamicPageRendererProps> = ({
                               </div>
                               <button
                                 type="button"
-                                onClick={() => onSelectProduct?.(pricedProduct)}
+                                onClick={() => handleQuickAdd?.(pricedProduct)}
                                 className="bg-red-600 hover:bg-red-700 text-white font-extrabold text-xs uppercase tracking-widest px-4 py-2.5 rounded-xl cursor-pointer w-full transition-all flex items-center justify-center gap-1.5"
                               >
-                                See More
+                                Add to Cart
                               </button>
                             </>
                           );

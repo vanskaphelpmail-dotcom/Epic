@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
-import { ShieldCheck, ArrowLeft, Truck, ClipboardCheck, Sparkles, AlertCircle, MapPin, Phone, CheckCircle, Info, Home, Briefcase, User, Save, Trash2, ShoppingBag } from 'lucide-react';
-import { CartItem, Order, AppConfig } from '../types';
+import { ShieldCheck, ArrowLeft, Truck, ClipboardCheck, AlertCircle, MapPin, ShoppingBag, Trash2, Info } from 'lucide-react';
+import { CartItem, Order, AppConfig, User as UserType } from '../types';
 import { BkashPaymentPanel, BKASH_DEFAULT_NUMBER, BKASH_PARTIAL_DEFAULT_BDT, type MobileWalletProvider } from './BkashPaymentPanel';
 import {
   buildBkashPaymentMeta,
@@ -16,6 +16,9 @@ import { getProductSizes, getSizeStock, isSizeAvailable } from '../lib/productSi
 import { isRenderableImageSrc } from '../lib/productImage';
 import { JerseyRenderer } from './JerseyRenderer';
 
+const isInsideFeniDistrict = (district: string) =>
+  district.trim().toLowerCase() === 'feni';
+
 interface CheckoutProps {
   cart: CartItem[];
   setCart: React.Dispatch<React.SetStateAction<CartItem[]>>;
@@ -24,6 +27,7 @@ interface CheckoutProps {
   onBackToCatalog: () => void;
   formatPrice: (amount: number) => string;
   appConfig: AppConfig;
+  currentUser?: UserType | null;
 }
 
 export const Checkout: React.FC<CheckoutProps> = ({
@@ -34,55 +38,29 @@ export const Checkout: React.FC<CheckoutProps> = ({
   onBackToCatalog,
   formatPrice,
   appConfig,
+  currentUser = null,
 }) => {
-  // Empty Cart Safe Guard
-  if (cart.length === 0) {
-    return (
-      <div className="max-w-md mx-auto my-16 text-center space-y-6 bg-[#121212] border-2 border-zinc-800 p-8 rounded-3xl text-white shadow-lg animate-fadeIn">
-        <div className="w-16 h-16 bg-zinc-800 rounded-full flex items-center justify-center mx-auto text-zinc-500 border border-zinc-800">
-          <ShoppingBag size={28} />
-        </div>
-        <h3 className="text-xl font-black uppercase tracking-tight text-white">Your Order Bag is Empty</h3>
-        <p className="text-xs text-zinc-400 font-mono">You do not have any vintage shirts in your checkout session. Return to the catalog to select legendary items.</p>
-        <button
-          onClick={onBackToCatalog}
-          className="w-full bg-red-600 hover:bg-red-700 text-white font-extrabold text-xs uppercase tracking-widest py-3.5 rounded-xl transition-all cursor-pointer"
-        >
-          Back to Catalog
-        </button>
-      </div>
-    );
-  }
+  type SavedProfileAddress = {
+    fullName: string;
+    phone: string;
+    email?: string;
+    addressLine1: string;
+    city: string;
+    postalCode?: string;
+  };
 
-  // Form State
+  // Form fields always start blank — user types or clicks “Fill from profile”
   const [fullName, setFullName] = useState('');
   const [email, setEmail] = useState('');
   const [addressLine1, setAddressLine1] = useState('');
-  const [city, setCity] = useState(appConfig.logoSubtext?.includes('DHAKA') ? 'Dhaka' : '');
+  const [city, setCity] = useState('');
   const [postalCode, setPostalCode] = useState('');
   const [phone, setPhone] = useState('');
-  
-  // Delivery Region (Inside Dhaka: 70 TK, Outside Dhaka: 130 TK)
+  const [savedProfile, setSavedProfile] = useState<SavedProfileAddress | null>(null);
+  const [profileLoaded, setProfileLoaded] = useState(false);
+
+  // Delivery: Inside Feni ৳70 · Outside Feni ৳120 (driven by district)
   const [deliveryRegion, setDeliveryRegion] = useState<'inside' | 'outside'>('inside');
-
-  // Saved Shipping Coordinates for One-Click suggest
-  const [savedAddresses, setSavedAddresses] = useState(() => {
-    const stored = localStorage.getItem('vault_shipping_addresses');
-    if (stored) {
-      try {
-        return JSON.parse(stored);
-      } catch (e) {
-        // Fallback
-      }
-    }
-    return [
-      // No dummy addresses — user adds shipping addresses at checkout
-    ];
-  });
-
-  const [saveThisAddress, setSaveThisAddress] = useState(false);
-  const [saveLabel, setSaveLabel] = useState<'Home' | 'Office' | 'Visitor'>('Home');
-  const [saveSuccessMsg, setSaveSuccessMsg] = useState(false);
 
   const [isPlacingOrder, setIsPlacingOrder] = useState(false);
   const [bkashNumber, setBkashNumber] = useState('');
@@ -111,44 +89,64 @@ export const Checkout: React.FC<CheckoutProps> = ({
     return `PRE-ORDER: ${lines.join('; ')}`;
   };
 
-  const handleSelectAddress = (addr: any) => {
-    setFullName(addr.fullName);
-    setAddressLine1(addr.addressLine1);
-    setCity(addr.city || 'Dhaka');
-    setPostalCode(addr.postalCode || '');
-    setPhone(addr.phone);
-    if (addr.city && addr.city.toLowerCase().includes('dhaka')) {
-      setDeliveryRegion('inside');
-    } else {
-      setDeliveryRegion('outside');
-    }
+  const applyDistrict = (district: string) => {
+    setCity(district);
+    const trimmed = district.trim();
+    if (!trimmed) return;
+    setDeliveryRegion(isInsideFeniDistrict(trimmed) ? 'inside' : 'outside');
   };
 
-  const handleSaveCurrentAddress = () => {
-    if (!fullName || !addressLine1 || !phone) {
-      alert('Please fill out Recipient Full Name, Address, and Phone first before saving.');
+  const fillFromProfile = () => {
+    if (!savedProfile) return;
+    setFullName(savedProfile.fullName || '');
+    setPhone(savedProfile.phone || '');
+    setEmail(savedProfile.email || '');
+    setAddressLine1(savedProfile.addressLine1 || '');
+    setPostalCode(
+      savedProfile.postalCode && savedProfile.postalCode !== 'N/A' ? savedProfile.postalCode : '',
+    );
+    if (savedProfile.city) applyDistrict(savedProfile.city);
+  };
+
+  // Load saved signup/profile address as a suggestion only (do not auto-fill inputs)
+  useEffect(() => {
+    if (!isApiEnabled() || !currentUser) {
+      setProfileLoaded(true);
       return;
     }
-    const newAddr = {
-      id: `addr-${Date.now()}`,
-      label: saveLabel,
-      fullName,
-      addressLine1,
-      city: city || 'Dhaka',
-      postalCode: postalCode || '',
-      country: 'Bangladesh',
-      phone,
-      isDefault: savedAddresses.length === 0,
+    let cancelled = false;
+    (async () => {
+      try {
+        const data = await api.listAddresses();
+        const items = data?.items || [];
+        if (cancelled) return;
+        const primary = items.find((a: { isDefault?: boolean }) => a.isDefault) || items[0];
+        if (primary) {
+          setSavedProfile({
+            fullName: primary.fullName || currentUser.fullName || '',
+            phone: primary.phone || currentUser.phone || '',
+            email: primary.email || currentUser.email || '',
+            addressLine1: primary.addressLine1 || '',
+            city: primary.city || '',
+            postalCode: primary.postalCode || '',
+          });
+        } else {
+          setSavedProfile(null);
+        }
+      } catch {
+        setSavedProfile(null);
+      } finally {
+        if (!cancelled) setProfileLoaded(true);
+      }
+    })();
+    return () => {
+      cancelled = true;
     };
-    const updated = [...savedAddresses, newAddr];
-    setSavedAddresses(updated);
-    localStorage.setItem('vault_shipping_addresses', JSON.stringify(updated));
-    setSaveSuccessMsg(true);
-    setTimeout(() => setSaveSuccessMsg(false), 3000);
-  };
+  }, [currentUser?.id]);
 
   const subtotal = cart.reduce((sum, item) => sum + item.product.price * item.quantity, 0);
-  const deliveryChargeBDT = deliveryRegion === 'inside' ? 70 : 130;
+  const deliveryChargeBDT = deliveryRegion === 'inside' ? 70 : 120;
+  const shipCityLabel = city.trim() || (deliveryRegion === 'inside' ? 'Feni' : 'Outside Feni');
   const grandTotal = subtotal + deliveryChargeBDT;
   const jerseyCount = cartJerseyCount(cart);
   const partialAdvanceBdt = calcPartialAdvanceBdt(jerseyCount, partialPerJerseyBdt, grandTotal);
@@ -174,6 +172,26 @@ export const Checkout: React.FC<CheckoutProps> = ({
     }
   }, [requiresFullBkashForNameset, bkashPayChoice]);
 
+  // Empty cart UI (after hooks so Rules of Hooks stay valid)
+  if (cart.length === 0) {
+    return (
+      <div className="max-w-md mx-auto my-16 text-center space-y-6 bg-[#121212] border-2 border-zinc-800 p-8 rounded-3xl text-white shadow-lg animate-fadeIn">
+        <div className="w-16 h-16 bg-zinc-800 rounded-full flex items-center justify-center mx-auto text-zinc-500 border border-zinc-800">
+          <ShoppingBag size={28} />
+        </div>
+        <h3 className="text-xl font-black uppercase tracking-tight text-white">Your Order Bag is Empty</h3>
+        <p className="text-xs text-zinc-400 font-mono">You do not have any vintage shirts in your checkout session. Return to the catalog to select legendary items.</p>
+        <button
+          onClick={onBackToCatalog}
+          type="button"
+          className="w-full bg-red-600 hover:bg-red-700 text-white font-extrabold text-sm uppercase tracking-wide py-3.5 rounded-xl transition-all cursor-pointer"
+        >
+          Go to Home
+        </button>
+      </div>
+    );
+  }
+
   const buildBkashPayNote = (extra?: string) => {
     const meta = buildBkashPaymentMeta(
       effectiveBkashPayChoice,
@@ -198,8 +216,8 @@ export const Checkout: React.FC<CheckoutProps> = ({
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (isPlacingOrder) return;
-    if (!fullName || !addressLine1 || !phone) {
-      alert('Please fill out all the required fields for secure delivery.');
+    if (!fullName || !addressLine1 || !phone || !city.trim()) {
+      alert('Please fill out name, address, district, and phone for delivery.');
       return;
     }
 
@@ -219,27 +237,6 @@ export const Checkout: React.FC<CheckoutProps> = ({
 
     setIsPlacingOrder(true);
     try {
-    if (saveThisAddress) {
-      const isDuplicate = savedAddresses.some(
-        (a: any) => a.addressLine1.toLowerCase().trim() === addressLine1.toLowerCase().trim()
-      );
-      if (!isDuplicate) {
-        const newAddr = {
-          id: `addr-${Date.now()}`,
-          label: saveLabel,
-          fullName,
-          addressLine1,
-          city: city || 'Dhaka',
-          postalCode: postalCode || 'N/A',
-          country: 'Bangladesh',
-          phone,
-          isDefault: savedAddresses.length === 0,
-        };
-        const updated = [...savedAddresses, newAddr];
-        localStorage.setItem('vault_shipping_addresses', JSON.stringify(updated));
-      }
-    }
-
     if (isApiEnabled()) {
       try {
         const created = await api.createOrder({
@@ -250,7 +247,7 @@ export const Checkout: React.FC<CheckoutProps> = ({
           shipPhone: phone,
           shipEmail: email || undefined,
           shipAddressLine1: addressLine1,
-          shipCity: city || (deliveryRegion === 'inside' ? 'Dhaka' : 'Outside Dhaka'),
+          shipCity: shipCityLabel,
           shipPostalCode: postalCode || 'N/A',
           bkashNumber,
           bkashTransactionId: bkashTransactionId.trim(),
@@ -289,7 +286,7 @@ export const Checkout: React.FC<CheckoutProps> = ({
               fullName,
               email: email || undefined,
               addressLine1,
-              city: city || (deliveryRegion === 'inside' ? 'Dhaka' : 'Outside Dhaka'),
+              city: shipCityLabel,
               postalCode: postalCode || 'N/A',
               country: 'Bangladesh',
               phone,
@@ -331,7 +328,7 @@ export const Checkout: React.FC<CheckoutProps> = ({
         fullName,
         email: email || undefined,
         addressLine1,
-        city: city || (deliveryRegion === 'inside' ? 'Dhaka' : 'Outside Dhaka'),
+        city: shipCityLabel,
         postalCode: postalCode || 'N/A',
         country: 'Bangladesh',
         phone,
@@ -368,7 +365,7 @@ export const Checkout: React.FC<CheckoutProps> = ({
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
         
         {/* Left Column: Form & Options */}
-        <form onSubmit={handleSubmit} className="lg:col-span-8 space-y-6">
+        <form onSubmit={handleSubmit} className="lg:col-span-8 space-y-6" autoComplete="off">
           
           {/* Header Title */}
           <div className="space-y-1">
@@ -406,6 +403,32 @@ export const Checkout: React.FC<CheckoutProps> = ({
             <h3 className="text-xs md:text-sm font-mono font-black text-white uppercase tracking-widest border-b-2 border-zinc-800 pb-2.5 flex items-center gap-2">
               <ClipboardCheck size={16} className="text-zinc-400" /> 1. Contact Information
             </h3>
+
+            {profileLoaded && savedProfile && (
+              <div className="rounded-xl border border-zinc-700 bg-zinc-900/80 p-3 space-y-2">
+                <p className="text-[11px] text-zinc-400 font-medium leading-relaxed">
+                  Fields stay empty until you type or fill from your saved profile address.
+                  Change the saved address anytime in your account profile.
+                </p>
+                <div className="text-[10px] text-zinc-500 font-mono leading-relaxed line-clamp-2">
+                  {[savedProfile.fullName, savedProfile.phone, savedProfile.addressLine1, savedProfile.city]
+                    .filter(Boolean)
+                    .join(' · ')}
+                </div>
+                <button
+                  type="button"
+                  onClick={fillFromProfile}
+                  className="w-full sm:w-auto bg-zinc-800 hover:bg-zinc-700 border border-zinc-600 text-white text-[11px] font-black uppercase tracking-wider px-4 py-2.5 rounded-lg transition-colors cursor-pointer"
+                >
+                  Fill from profile
+                </button>
+              </div>
+            )}
+            {profileLoaded && !savedProfile && (
+              <p className="text-[11px] text-zinc-400 font-medium leading-relaxed">
+                No saved address yet. Enter details below, or save an address in your profile for next time.
+              </p>
+            )}
             
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <div className="space-y-1.5">
@@ -456,44 +479,16 @@ export const Checkout: React.FC<CheckoutProps> = ({
               <MapPin size={16} className="text-zinc-400" /> 2. Delivery Address
             </h3>
 
-            {/* SAVED ADDRESSES QUICK SUGGESTIONS GRID */}
-            {savedAddresses.length > 0 && (
-              <div className="bg-zinc-900 border-2 border-zinc-800 p-4 rounded-xl space-y-2.5">
-                <span className="text-[10px] text-white font-mono font-black uppercase tracking-wider block flex items-center gap-1.5">
-                  <span className="w-1.5 h-1.5 rounded-full bg-zinc-800 animate-pulse" /> 
-                  ONE-CLICK SUGGESTIONS (SAVED ADDRESSES):
-                </span>
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
-                  {savedAddresses.map((addr: any) => (
-                    <button
-                      type="button"
-                      key={addr.id}
-                      onClick={() => handleSelectAddress(addr)}
-                      className="text-left bg-[#121212] hover:bg-zinc-800 border-2 border-zinc-800 hover:border-red-600 p-3.5 rounded-xl text-xs transition-all cursor-pointer flex flex-col justify-between shadow-xs"
-                    >
-                      <div className="flex justify-between items-center gap-2 mb-1.5">
-                        <span className="bg-zinc-800 text-zinc-100 text-[9px] font-mono px-2 py-0.5 rounded-md uppercase font-black border border-zinc-700">
-                          {addr.label}
-                        </span>
-                        {addr.isDefault && (
-                          <span className="text-zinc-300 font-mono text-[9px] font-black tracking-wide">PRIMARY</span>
-                        )}
-                      </div>
-                      <p className="font-extrabold text-white truncate">{addr.fullName}</p>
-                      <p className="text-zinc-300 text-[11px] font-medium truncate leading-tight mt-0.5">{addr.addressLine1}</p>
-                      <p className="text-[10px] font-mono text-zinc-100 mt-1 font-bold">Phone: {addr.phone}</p>
-                    </button>
-                  ))}
-                </div>
-              </div>
-            )}
+            <p className="text-[11px] text-zinc-400 font-medium leading-relaxed">
+              Leave blank and type for this order, or use Fill from profile above. Edit your permanent address in Profile anytime.
+            </p>
 
             <div className="space-y-1.5">
               <label className="text-[10px] text-white font-mono font-black block tracking-wider">FULL DETAILED ADDRESS (House, Flat, Road, Area) *</label>
               <textarea
                 required
                 rows={3}
-                placeholder="e.g. Flat 4B, House 12, Road 5, Sector 4, Uttara, Dhaka"
+                placeholder="e.g. Flat 4B, House 12, Road 5, Feni Sadar"
                 value={addressLine1}
                 onChange={(e) => setAddressLine1(e.target.value)}
                 className="w-full bg-zinc-900 border-2 border-zinc-700 focus:border-red-600 focus:bg-[#121212] rounded-xl py-3 px-4 text-xs font-bold focus:outline-none transition-colors resize-none leading-relaxed text-white placeholder-zinc-500"
@@ -502,79 +497,29 @@ export const Checkout: React.FC<CheckoutProps> = ({
 
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <div className="space-y-1.5">
-                <label className="text-[10px] text-white font-mono font-black block tracking-wider">CITY / DISTRICT</label>
+                <label className="text-[10px] text-white font-mono font-black block tracking-wider">DISTRICT *</label>
                 <input
                   type="text"
-                  placeholder="e.g. Dhaka"
+                  required
+                  placeholder="e.g. Feni"
                   value={city}
-                  onChange={(e) => setCity(e.target.value)}
+                  onChange={(e) => applyDistrict(e.target.value)}
                   className="w-full bg-zinc-900 border-2 border-zinc-700 focus:border-red-600 focus:bg-[#121212] rounded-xl py-3 px-4 text-xs font-bold focus:outline-none transition-colors text-white placeholder-zinc-500"
                 />
+                <span className="text-[10px] text-zinc-400 font-mono block font-medium">
+                  Type <span className="text-white font-bold">Feni</span> for ৳70 · any other district ৳120
+                </span>
               </div>
 
               <div className="space-y-1.5">
                 <label className="text-[10px] text-white font-mono font-black block tracking-wider">POSTAL CODE (OPTIONAL)</label>
                 <input
                   type="text"
-                  placeholder="e.g. 1230"
+                  placeholder="e.g. 3900"
                   value={postalCode}
                   onChange={(e) => setPostalCode(e.target.value)}
                   className="w-full bg-zinc-900 border-2 border-zinc-700 focus:border-red-600 focus:bg-[#121212] rounded-xl py-3 px-4 text-xs focus:outline-none transition-colors font-mono font-bold text-white placeholder-zinc-500"
                 />
-              </div>
-            </div>
-
-            {/* OPTION TO SAVE CURRENT ADDRESS */}
-            <div className="bg-zinc-900 border-2 border-zinc-800 p-4 rounded-xl space-y-3 mt-4">
-              <div className="flex items-center gap-2">
-                <input
-                  type="checkbox"
-                  id="checkoutSaveThisAddress"
-                  checked={saveThisAddress}
-                  onChange={(e) => setSaveThisAddress(e.target.checked)}
-                  className="w-3.5 h-3.5 accent-red-600 bg-[#121212] rounded border-zinc-700 cursor-pointer"
-                />
-                <label htmlFor="checkoutSaveThisAddress" className="text-[11px] text-white font-black cursor-pointer select-none">
-                  Save this address for future checkout suggestions
-                </label>
-              </div>
-
-              <div className="space-y-3 pl-5 sm:pl-6 border-l-2 border-zinc-700 transition-all">
-                <div className="space-y-1.5">
-                  <span className="text-[10px] text-zinc-100 font-mono font-bold block uppercase">ADDRESS LABEL:</span>
-                  <div className="flex gap-2">
-                    {['Home', 'Office', 'Visitor'].map((lbl) => {
-                      const isSelected = saveLabel === lbl;
-                      return (
-                        <button
-                          type="button"
-                          key={lbl}
-                          onClick={() => setSaveLabel(lbl as any)}
-                          className={`px-3 py-1.5 rounded-lg text-[10px] uppercase font-bold border-2 transition-all cursor-pointer ${
-                            isSelected
-                              ? 'bg-red-600 text-white border-red-600'
-                              : 'bg-[#121212] border-zinc-700 text-white hover:border-red-600'
-                          }`}
-                        >
-                          {lbl}
-                        </button>
-                      );
-                    })}
-                  </div>
-                </div>
-
-                <div className="flex items-center gap-2.5 pt-1">
-                  <button
-                    type="button"
-                    onClick={handleSaveCurrentAddress}
-                    className="bg-red-600 hover:bg-red-700 text-white font-extrabold text-[9px] uppercase tracking-wider px-3.5 py-1.5 rounded-lg transition-all cursor-pointer inline-flex items-center gap-1"
-                  >
-                    <Save size={10} /> Save Address Now
-                  </button>
-                  {saveSuccessMsg && (
-                    <span className="text-[10px] text-zinc-300 font-mono font-bold animate-fadeIn">✓ Saved successfully</span>
-                  )}
-                </div>
               </div>
             </div>
           </div>
@@ -586,53 +531,69 @@ export const Checkout: React.FC<CheckoutProps> = ({
             </h3>
 
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-              {/* Inside Dhaka Area */}
               <div
-                onClick={() => setDeliveryRegion('inside')}
+                onClick={() => {
+                  setDeliveryRegion('inside');
+                  if (!isInsideFeniDistrict(city)) setCity('Feni');
+                }}
                 className={`p-4 rounded-xl border-2 cursor-pointer flex justify-between items-center transition-all ${
                   deliveryRegion === 'inside'
-                    ? 'bg-zinc-900 border-zinc-900 text-white shadow-lg'
-                    : 'bg-[#121212] border-zinc-700 text-zinc-300 hover:border-red-600'
+                    ? 'bg-red-950/50 border-red-600 text-white shadow-lg ring-1 ring-red-600/40'
+                    : 'bg-zinc-950 border-zinc-700 text-zinc-300 hover:border-zinc-500'
                 }`}
-                id="shipping-inside-dhaka"
+                id="shipping-inside-feni"
               >
                 <div className="space-y-1">
                   <div className="flex items-center gap-1.5">
-                    <span className={`w-3.5 h-3.5 rounded-full border-2 flex items-center justify-center ${deliveryRegion === 'inside' ? 'border-zinc-900' : 'border-zinc-400'}`}>
-                      {deliveryRegion === 'inside' && <span className="w-1.5 h-1.5 rounded-full bg-zinc-800" />}
+                    <span
+                      className={`w-3.5 h-3.5 rounded-full border-2 flex items-center justify-center ${
+                        deliveryRegion === 'inside' ? 'border-red-500' : 'border-zinc-500'
+                      }`}
+                    >
+                      {deliveryRegion === 'inside' && <span className="w-1.5 h-1.5 rounded-full bg-red-500" />}
                     </span>
-                    <p className="text-xs font-black uppercase tracking-wider text-white">Inside Dhaka</p>
+                    <p className="text-xs font-black uppercase tracking-wider text-white">Inside Feni</p>
                   </div>
-                  <p className="text-[10px] text-zinc-400 font-medium leading-normal">Fast doorstep delivery within 24-48 hours inside capital limits.</p>
+                  <p className="text-[10px] text-zinc-400 font-medium leading-normal">
+                    Cash on delivery / local delivery within Feni district (24–48 hours).
+                  </p>
                 </div>
                 <div className="text-right flex-shrink-0 pl-2">
                   <span className="text-sm font-mono font-black text-white">৳70</span>
-                  <p className="text-[9px] text-zinc-600 font-mono font-bold">fee</p>
+                  <p className="text-[9px] text-zinc-500 font-mono font-bold">fee</p>
                 </div>
               </div>
 
-              {/* Outside Dhaka Area */}
               <div
-                onClick={() => setDeliveryRegion('outside')}
+                onClick={() => {
+                  setDeliveryRegion('outside');
+                  if (isInsideFeniDistrict(city)) setCity('');
+                }}
                 className={`p-4 rounded-xl border-2 cursor-pointer flex justify-between items-center transition-all ${
                   deliveryRegion === 'outside'
-                    ? 'bg-zinc-900 border-zinc-900 text-white shadow-lg'
-                    : 'bg-[#121212] border-zinc-700 text-zinc-300 hover:border-red-600'
+                    ? 'bg-red-950/50 border-red-600 text-white shadow-lg ring-1 ring-red-600/40'
+                    : 'bg-zinc-950 border-zinc-700 text-zinc-300 hover:border-zinc-500'
                 }`}
-                id="shipping-outside-dhaka"
+                id="shipping-outside-feni"
               >
                 <div className="space-y-1">
                   <div className="flex items-center gap-1.5">
-                    <span className={`w-3.5 h-3.5 rounded-full border-2 flex items-center justify-center ${deliveryRegion === 'outside' ? 'border-zinc-900' : 'border-zinc-400'}`}>
-                      {deliveryRegion === 'outside' && <span className="w-1.5 h-1.5 rounded-full bg-zinc-800" />}
+                    <span
+                      className={`w-3.5 h-3.5 rounded-full border-2 flex items-center justify-center ${
+                        deliveryRegion === 'outside' ? 'border-red-500' : 'border-zinc-500'
+                      }`}
+                    >
+                      {deliveryRegion === 'outside' && <span className="w-1.5 h-1.5 rounded-full bg-red-500" />}
                     </span>
-                    <p className="text-xs font-black uppercase tracking-wider text-white">Outside Dhaka</p>
+                    <p className="text-xs font-black uppercase tracking-wider text-white">Outside Feni</p>
                   </div>
-                  <p className="text-[10px] text-zinc-400 font-medium leading-normal">Standard courier service to all districts across Bangladesh (2-4 days).</p>
+                  <p className="text-[10px] text-zinc-400 font-medium leading-normal">
+                    Courier to all other districts across Bangladesh (2–4 days).
+                  </p>
                 </div>
                 <div className="text-right flex-shrink-0 pl-2">
-                  <span className="text-sm font-mono font-black text-white">৳130</span>
-                  <p className="text-[9px] text-zinc-600 font-mono font-bold">fee</p>
+                  <span className="text-sm font-mono font-black text-white">৳120</span>
+                  <p className="text-[9px] text-zinc-500 font-mono font-bold">fee</p>
                 </div>
               </div>
             </div>
@@ -649,7 +610,7 @@ export const Checkout: React.FC<CheckoutProps> = ({
                 <>
                   {requiresFullBkashForNameset && (
                     <p className="text-[11px] font-mono text-white bg-zinc-900 border border-zinc-800 rounded-lg px-3 py-2">
-                      Custom nameset printing selected — <strong>full bKash payment</strong> required.
+                      Custom font selected — <strong>full bKash payment</strong> required.
                       Per-jersey advance (৳{partialPerJerseyBdt} × qty) is not available for this order.
                     </p>
                   )}
@@ -665,27 +626,32 @@ export const Checkout: React.FC<CheckoutProps> = ({
                           onClick={() => setBkashPayChoice('full')}
                           className={`text-left rounded-xl border-2 p-4 transition-all cursor-pointer ${
                             effectiveBkashPayChoice === 'full'
-                              ? 'border-zinc-900 bg-zinc-900 shadow-sm ring-1 ring-red-600/30'
-                              : 'border-zinc-800 bg-zinc-900 hover:border-zinc-700'
+                              ? 'border-red-600 bg-red-950/60 shadow-md ring-2 ring-red-600/50'
+                              : 'border-zinc-700 bg-zinc-950 hover:border-zinc-500'
                           }`}
                         >
                           <div className="flex items-center gap-2 mb-1.5">
                             <span
-                              className={`w-4 h-4 rounded-full border-2 flex items-center justify-center ${
-                                effectiveBkashPayChoice === 'full' ? 'border-zinc-900' : 'border-zinc-400'
+                              className={`w-4 h-4 rounded-full border-2 flex items-center justify-center shrink-0 ${
+                                effectiveBkashPayChoice === 'full' ? 'border-red-500' : 'border-zinc-500'
                               }`}
                             >
                               {effectiveBkashPayChoice === 'full' && (
-                                <span className="w-2 h-2 rounded-full bg-zinc-800" />
+                                <span className="w-2 h-2 rounded-full bg-red-500" />
                               )}
                             </span>
                             <span className="text-xs font-black uppercase tracking-wider text-white">
                               Full Pay · পূর্ণ পেমেন্ট
                             </span>
+                            {effectiveBkashPayChoice === 'full' && (
+                              <span className="ml-auto text-[9px] font-black uppercase tracking-wider text-red-400 bg-red-950 border border-red-700 px-1.5 py-0.5 rounded">
+                                Selected
+                              </span>
+                            )}
                           </div>
                           <p className="text-[11px] text-zinc-300 font-medium pl-6">
                             bKash Send Money — full order:{' '}
-                            <span className="font-mono font-black">{formatPrice(grandTotal)}</span>
+                            <span className="font-mono font-black text-white">{formatPrice(grandTotal)}</span>
                           </p>
                         </button>
                         <button
@@ -693,29 +659,34 @@ export const Checkout: React.FC<CheckoutProps> = ({
                           onClick={() => setBkashPayChoice('partial')}
                           className={`text-left rounded-xl border-2 p-4 transition-all cursor-pointer ${
                             effectiveBkashPayChoice === 'partial'
-                              ? 'border-amber-500 bg-amber-50/60 shadow-sm ring-1 ring-amber-500/30'
-                              : 'border-zinc-800 bg-zinc-900 hover:border-zinc-700'
+                              ? 'border-red-600 bg-red-950/60 shadow-md ring-2 ring-red-600/50'
+                              : 'border-zinc-700 bg-zinc-950 hover:border-zinc-500'
                           }`}
                         >
                           <div className="flex items-center gap-2 mb-1.5">
                             <span
-                              className={`w-4 h-4 rounded-full border-2 flex items-center justify-center ${
-                                effectiveBkashPayChoice === 'partial' ? 'border-amber-500' : 'border-zinc-400'
+                              className={`w-4 h-4 rounded-full border-2 flex items-center justify-center shrink-0 ${
+                                effectiveBkashPayChoice === 'partial' ? 'border-red-500' : 'border-zinc-500'
                               }`}
                             >
                               {effectiveBkashPayChoice === 'partial' && (
-                                <span className="w-2 h-2 rounded-full bg-amber-500" />
+                                <span className="w-2 h-2 rounded-full bg-red-500" />
                               )}
                             </span>
                             <span className="text-xs font-black uppercase tracking-wider text-white">
                               Partial Pay · আংশিক এডভান্স
                             </span>
+                            {effectiveBkashPayChoice === 'partial' && (
+                              <span className="ml-auto text-[9px] font-black uppercase tracking-wider text-red-400 bg-red-950 border border-red-700 px-1.5 py-0.5 rounded">
+                                Selected
+                              </span>
+                            )}
                           </div>
                           <p className="text-[11px] text-zinc-300 font-medium pl-6">
-                            Pay <span className="font-mono font-black">৳{partialAdvanceBdt}</span> now
-                            <span className="text-zinc-600"> ({partialAdvanceBreakdown})</span>
+                            Pay <span className="font-mono font-black text-white">৳{partialAdvanceBdt}</span> now
+                            <span className="text-zinc-500"> ({partialAdvanceBreakdown})</span>
                             {' — '}rest{' '}
-                            <span className="font-mono font-black">{formatPrice(bkashDueOnDelivery)}</span> on delivery
+                            <span className="font-mono font-black text-white">{formatPrice(bkashDueOnDelivery)}</span> on delivery
                           </p>
                         </button>
                       </div>
@@ -893,7 +864,7 @@ export const Checkout: React.FC<CheckoutProps> = ({
             </div>
             
             <div className="flex justify-between items-center">
-              <span>Delivery Charge ({deliveryRegion === 'inside' ? 'Inside Dhaka' : 'Outside Dhaka'}):</span>
+              <span>Delivery Charge ({deliveryRegion === 'inside' ? 'Inside Feni' : 'Outside Feni'}):</span>
               <span className="text-white font-extrabold font-mono">৳{deliveryChargeBDT}</span>
             </div>
 
@@ -908,8 +879,8 @@ export const Checkout: React.FC<CheckoutProps> = ({
               <div
                 className={`rounded-xl border-2 p-3 space-y-2 transition-all ${
                   isPartialBkash
-                    ? 'border-amber-400 bg-amber-50/70'
-                    : 'border-zinc-900 bg-zinc-900'
+                    ? 'border-red-700/80 bg-zinc-950'
+                    : 'border-zinc-700 bg-zinc-950'
                 }`}
               >
                 <div className="flex items-center justify-between gap-2">
@@ -917,10 +888,10 @@ export const Checkout: React.FC<CheckoutProps> = ({
                     {isPartialBkash ? 'Partial Pay · আংশিক এডভান্স' : 'Full Pay · পূর্ণ পেমেন্ট'}
                   </span>
                   <span
-                    className={`text-[9px] font-black uppercase px-2 py-0.5 rounded-full ${
+                    className={`text-[9px] font-black uppercase px-2 py-0.5 rounded-md ${
                       isPartialBkash
-                        ? 'bg-amber-500 text-white'
-                        : 'bg-black text-white'
+                        ? 'bg-red-600 text-white'
+                        : 'bg-zinc-800 text-zinc-200 border border-zinc-600'
                     }`}
                   >
                     {walletPaymentLabel}
@@ -940,9 +911,9 @@ export const Checkout: React.FC<CheckoutProps> = ({
 
                 {isPartialBkash && (
                   <>
-                    <div className="flex justify-between items-center text-[10px] text-zinc-600">
+                    <div className="flex justify-between items-center text-[10px] text-zinc-400">
                       <span>Advance rate:</span>
-                      <span className="font-mono font-bold">{partialAdvanceBreakdown}</span>
+                      <span className="font-mono font-bold text-zinc-200">{partialAdvanceBreakdown}</span>
                     </div>
                     <div className="flex justify-between items-center text-[11px]">
                       <span className="text-zinc-400 font-medium">Due on delivery:</span>
@@ -953,7 +924,7 @@ export const Checkout: React.FC<CheckoutProps> = ({
                   </>
                 )}
 
-                <p className="text-[10px] text-zinc-600 font-medium leading-snug pt-1 border-t border-zinc-700">
+                <p className="text-[10px] text-zinc-400 font-medium leading-snug pt-1 border-t border-zinc-800">
                   {isPartialBkash
                     ? `Send ৳${Math.round(bkashSendAmountBdt).toLocaleString('en-BD')} now (${partialAdvanceBreakdown}) — remaining ৳${Math.round(bkashDueOnDelivery).toLocaleString('en-BD')} collected when your order arrives.`
                     : `Send the full ${formatPrice(grandTotal)} via ${walletPaymentLabel} Send Money to complete this order.`}
@@ -967,7 +938,7 @@ export const Checkout: React.FC<CheckoutProps> = ({
               </span>
               <span
                 className={`font-black text-xl font-mono ${
-                  isPartialBkash ? 'text-amber-700' : 'text-white'
+                  isPartialBkash ? 'text-red-500' : 'text-white'
                 }`}
               >
                 {formatPrice(bkashSendAmountBdt)}

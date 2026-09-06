@@ -1,6 +1,6 @@
 import React, { useState, useMemo } from 'react';
 import { Plus, Edit, Trash2, Image as ImageIcon, X, AlertTriangle, Search, Filter } from 'lucide-react';
-import { Product } from '../types';
+import { AppConfig, Product } from '../types';
 import { JerseyRenderer } from './JerseyRenderer';
 import { api, getToken, isApiEnabled } from '../lib/apiClient';
 import { uploadStoreImage } from '../lib/cloudinaryUpload';
@@ -16,6 +16,8 @@ import {
 import { confirmAsync, toast } from './UiFeedback';
 import { generateEan13, normalizeBarcode } from '../lib/retailCodes';
 import { BarcodeLabelPrint } from './admin/BarcodeLabelPrint';
+import { TournamentPatchesPanel } from './TournamentPatchesPanel';
+import { SizeChartsPanel } from './SizeChartsPanel';
 
 interface InventoryEditorProps {
   products: Product[];
@@ -23,6 +25,8 @@ interface InventoryEditorProps {
   formatPrice: (amount: number) => string;
   onRequireStaffLogin?: () => void;
   shopName?: string;
+  appConfig?: AppConfig;
+  onUpdateConfig?: (next: AppConfig | ((prev: AppConfig) => AppConfig)) => void;
 }
 
 export const InventoryEditor: React.FC<InventoryEditorProps> = ({
@@ -31,6 +35,8 @@ export const InventoryEditor: React.FC<InventoryEditorProps> = ({
   formatPrice,
   onRequireStaffLogin,
   shopName = 'Epic Vanskap',
+  appConfig,
+  onUpdateConfig,
 }) => {
   // Search and filter states
   const [searchTerm, setSearchTerm] = useState('');
@@ -390,6 +396,22 @@ export const InventoryEditor: React.FC<InventoryEditorProps> = ({
           <Plus size={14} className="stroke-[3]" /> Add New Jersey Release
         </button>
       </div>
+
+      {appConfig && onUpdateConfig ? (
+        <>
+          <TournamentPatchesPanel
+            appConfig={appConfig}
+            onUpdateConfig={onUpdateConfig}
+            onRequireStaffLogin={onRequireStaffLogin}
+            formatPrice={formatPrice}
+          />
+          <SizeChartsPanel
+            appConfig={appConfig}
+            onUpdateConfig={onUpdateConfig}
+            onRequireStaffLogin={onRequireStaffLogin}
+          />
+        </>
+      ) : null}
 
       {/* Filter and Search Bar */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-3">

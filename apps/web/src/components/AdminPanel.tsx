@@ -3203,6 +3203,8 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({
           formatPrice={formatPrice}
           onRequireStaffLogin={onRequireStaffLogin}
           shopName={appConfig?.logoText || 'Epic Vanskap'}
+          appConfig={appConfig}
+          onUpdateConfig={onUpdateConfig}
         />
       )}
 

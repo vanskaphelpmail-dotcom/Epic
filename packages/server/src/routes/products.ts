@@ -12,29 +12,83 @@ import {
 
 export const productsRouter = Router();
 
-async function persistSizeChartId(productId: string, sizeChartId?: string | null) {
-  if (sizeChartId === undefined) return;
+async function persistCatalogArrays(
+  productId: string,
+  opts: {
+    sizeChartId?: string | null;
+    sizeChartIds?: string[] | null;
+    categories?: string[] | null;
+  },
+) {
+  const { sizeChartId, sizeChartIds, categories } = opts;
   try {
-    await prisma.$executeRaw`
-      UPDATE products
-      SET "sizeChartId" = ${sizeChartId || null}
-      WHERE id = ${productId}
-    `;
+    if (sizeChartId !== undefined || sizeChartIds !== undefined) {
+      const ids =
+        sizeChartIds && sizeChartIds.length
+          ? sizeChartIds.map((s) => String(s).trim()).filter(Boolean)
+          : sizeChartId
+            ? [String(sizeChartId)]
+            : [];
+      const primary = ids[0] || sizeChartId || null;
+      await prisma.$executeRaw`
+        UPDATE products
+        SET "sizeChartId" = ${primary},
+            "sizeChartIds" = ${ids}::text[]
+        WHERE id = ${productId}
+      `;
+    }
+    if (categories !== undefined) {
+      const cats = (categories || []).map((s) => String(s).trim()).filter(Boolean);
+      await prisma.$executeRaw`
+        UPDATE products
+        SET categories = ${cats}::text[]
+        WHERE id = ${productId}
+      `;
+    }
   } catch (err) {
-    console.warn("[products] sizeChartId persist skipped", err);
+    console.warn("[products] catalog arrays persist skipped", err);
+    // Fallback: at least sizeChartId
+    if (sizeChartId !== undefined) {
+      try {
+        await prisma.$executeRaw`
+          UPDATE products SET "sizeChartId" = ${sizeChartId || null} WHERE id = ${productId}
+        `;
+      } catch {
+        /* ignore */
+      }
+    }
   }
 }
 
-async function loadSizeChartIds(ids: string[]): Promise<Map<string, string | null>> {
-  const map = new Map<string, string | null>();
+async function loadCatalogMeta(ids: string[]): Promise<
+  Map<string, { sizeChartId: string | null; sizeChartIds: string[]; categories: string[] }>
+> {
+  const map = new Map<string, { sizeChartId: string | null; sizeChartIds: string[]; categories: string[] }>();
   if (!ids.length) return map;
   try {
-    const rows = await prisma.$queryRaw<Array<{ id: string; sizeChartId: string | null }>>`
-      SELECT id, "sizeChartId" FROM products WHERE id IN (${Prisma.join(ids)})
+    const rows = await prisma.$queryRaw<
+      Array<{ id: string; sizeChartId: string | null; sizeChartIds: string[] | null; categories: string[] | null }>
+    >`
+      SELECT id, "sizeChartId", "sizeChartIds", categories FROM products WHERE id IN (${Prisma.join(ids)})
     `;
-    for (const row of rows) map.set(row.id, row.sizeChartId);
+    for (const row of rows) {
+      map.set(row.id, {
+        sizeChartId: row.sizeChartId,
+        sizeChartIds: Array.isArray(row.sizeChartIds) ? row.sizeChartIds : [],
+        categories: Array.isArray(row.categories) ? row.categories : [],
+      });
+    }
   } catch {
-    /* column / client mismatch — charts still resolve from category */
+    try {
+      const rows = await prisma.$queryRaw<Array<{ id: string; sizeChartId: string | null }>>`
+        SELECT id, "sizeChartId" FROM products WHERE id IN (${Prisma.join(ids)})
+      `;
+      for (const row of rows) {
+        map.set(row.id, { sizeChartId: row.sizeChartId, sizeChartIds: [], categories: [] });
+      }
+    } catch {
+      /* ignore */
+    }
   }
   return map;
 }
@@ -173,16 +227,21 @@ productsRouter.get("/", optionalAuth, async (req: AuthedRequest, res) => {
       prisma.product.count({ where }),
     ]);
 
-    const chartIds = await loadSizeChartIds(rows.map((p) => p.id));
+    const catalogMeta = await loadCatalogMeta(rows.map((p) => p.id));
 
     return res.json({
       success: true,
       data: {
         items: rows.map((p) => {
+          const meta = catalogMeta.get(p.id);
           const spa = toSpaProduct({
             ...p,
             longDescription: null,
-            sizeChartId: chartIds.get(p.id) ?? null,
+            sizeChartId: meta?.sizeChartId ?? null,
+            sizeChartIds: meta?.sizeChartIds ?? [],
+            categories: meta?.categories?.length
+              ? meta.categories
+              : undefined,
           } as Parameters<typeof toSpaProduct>[0]);
           if (!includeDraft) {
             const { costPrice: _cost, ...pub } = spa as typeof spa & { costPrice?: number };
@@ -268,6 +327,7 @@ const upsertSchema = z.object({
         id: z.string().min(1),
         label: z.string().min(1),
         priceBdt: z.number().int().nonnegative(),
+        image: z.string().optional(),
       }),
     )
     .optional(),
@@ -285,11 +345,13 @@ const upsertSchema = z.object({
   binCode: z.string().optional().nullable(),
   lowStockThreshold: z.number().int().optional(),
   category: z.string().optional(),
+  categories: z.array(z.string()).optional(),
   targetPage: z.string().optional(),
   pageName: z.string().optional(),
   pageNumber: z.number().int().optional(),
   categoryRow: z.number().int().optional(),
   sizeChartId: z.string().optional().nullable(),
+  sizeChartIds: z.array(z.string()).optional(),
 });
 
 async function resolveCategoryId(categoryName?: string | null) {
@@ -404,10 +466,16 @@ productsRouter.post("/", requirePermission("can_manage_products"), async (req: A
       data: productCreateData(body, categoryId),
       include: { category: true, club: true, league: true },
     });
-    await persistSizeChartId(created.id, body.sizeChartId);
+    await persistCatalogArrays(created.id, {
+      sizeChartId: body.sizeChartId,
+      sizeChartIds: body.sizeChartIds,
+      categories: body.categories?.length ? body.categories : body.category ? [body.category] : [],
+    });
     const spa = toSpaProduct({
       ...created,
-      sizeChartId: body.sizeChartId || null,
+      sizeChartId: body.sizeChartId || body.sizeChartIds?.[0] || null,
+      sizeChartIds: body.sizeChartIds || [],
+      categories: body.categories || [],
     } as Parameters<typeof toSpaProduct>[0]);
     return res.status(201).json({ success: true, data: spa });
   } catch (error) {
@@ -566,12 +634,21 @@ productsRouter.put("/:id", requirePermission("can_manage_products"), async (req:
       });
     }
 
-    await persistSizeChartId(updated.id, body.sizeChartId);
+    await persistCatalogArrays(updated.id, {
+      sizeChartId: body.sizeChartId,
+      sizeChartIds: body.sizeChartIds,
+      categories: body.categories,
+    });
     return res.json({
       success: true,
       data: toSpaProduct({
         ...updated,
-        sizeChartId: body.sizeChartId !== undefined ? body.sizeChartId || null : (updated as { sizeChartId?: string | null }).sizeChartId,
+        sizeChartId:
+          body.sizeChartId !== undefined
+            ? body.sizeChartId || null
+            : body.sizeChartIds?.[0] || (updated as { sizeChartId?: string | null }).sizeChartId,
+        sizeChartIds: body.sizeChartIds,
+        categories: body.categories,
       } as Parameters<typeof toSpaProduct>[0]),
     });
   } catch (error) {

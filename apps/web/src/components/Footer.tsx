@@ -147,7 +147,7 @@ export const Footer: React.FC<FooterProps> = ({ currentPage, setCurrentPage, app
                 </li>
                 <li>
                   <button onClick={() => setCurrentPage('about')} className="hover:text-zinc-400 text-left transition-colors hover:underline">
-                    About Epic Vanskap / Sourcing Story
+                    About Epic Vanskap
                   </button>
                 </li>
                 <li>

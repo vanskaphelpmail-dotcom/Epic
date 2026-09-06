@@ -1,4 +1,4 @@
-/** Official jersey size charts — Player, Retro, Fan, Customised Kit, Kids */
+/** Official jersey size charts — Player, Retro, Fan, Customised Kit, Kids + custom from Inventory */
 
 export type SizeChartColumn = {
   key: 'size' | 'age' | 'chest' | 'length';
@@ -24,7 +24,7 @@ export type SizeChartDef = {
   sizeOptions: string[];
 };
 
-const STANDARD_ADULT_COLUMNS: SizeChartColumn[] = [
+export const STANDARD_ADULT_COLUMNS: SizeChartColumn[] = [
   { key: 'size', label: 'Size' },
   { key: 'chest', label: 'Chest (in)' },
   { key: 'length', label: 'Length (in)' },
@@ -121,7 +121,7 @@ export const SIZE_CHARTS: Record<string, SizeChartDef> = {
   },
 };
 
-/** Charts offered in Product Manager size-chart dropdown (order matters). */
+/** Built-in charts offered in Product Manager (order matters). */
 export const SIZE_CHART_OPTIONS: SizeChartDef[] = [
   SIZE_CHARTS['player-edition'],
   SIZE_CHARTS.retro,
@@ -147,10 +147,52 @@ function normalizeKey(value?: string | null): string {
     .replace(/\s+/g, '-');
 }
 
+export function normalizeCustomChart(
+  raw: Partial<SizeChartDef> & { id?: string },
+  index = 0,
+): SizeChartDef | null {
+  const id = normalizeKey(raw.id) || `custom-chart-${index + 1}`;
+  const label = String(raw.label || raw.title || '').trim();
+  if (!label) return null;
+  const rows = Array.isArray(raw.rows) ? raw.rows : [];
+  const sizeOptions =
+    Array.isArray(raw.sizeOptions) && raw.sizeOptions.length
+      ? raw.sizeOptions.map(String)
+      : rows.map((r) => String(r.size)).filter(Boolean);
+  return {
+    id,
+    label,
+    title: String(raw.title || label).trim(),
+    note: String(raw.note || 'N.B: measurements may vary slightly').trim(),
+    columns: Array.isArray(raw.columns) && raw.columns.length ? raw.columns : STANDARD_ADULT_COLUMNS,
+    sizeOptions: sizeOptions.length ? sizeOptions : ['S', 'M', 'L', 'XL', '2XL'],
+    rows: rows.length
+      ? rows
+      : [
+          { size: 'S', chest: 36, length: 27 },
+          { size: 'M', chest: 38, length: 28 },
+          { size: 'L', chest: 40, length: 29 },
+          { size: 'XL', chest: 42, length: 30 },
+          { size: '2XL', chest: 44, length: 31 },
+        ],
+  };
+}
+
+/** Merge built-in + Inventory custom charts. */
+export function getAllSizeCharts(customCharts?: Partial<SizeChartDef>[] | null): SizeChartDef[] {
+  const custom = (customCharts || [])
+    .map((c, i) => normalizeCustomChart(c, i))
+    .filter((c): c is SizeChartDef => Boolean(c));
+  const byId = new Map<string, SizeChartDef>();
+  for (const c of SIZE_CHART_OPTIONS) byId.set(c.id, c);
+  for (const c of custom) byId.set(c.id, c);
+  return Array.from(byId.values());
+}
+
 /** Infer chart id from category / label (Kids, Customised Kit, Retro, …). */
 export function inferSizeChartId(category?: string | null): string {
   const key = normalizeKey(category);
-  if (!key) return 'player-edition';
+  if (!key) return '';
   if (key.includes('kid') || key.includes('junior') || key.includes('youth')) return 'kids';
   if (key.includes('custom')) return 'custom';
   if (key.includes('player')) return 'player-edition';
@@ -168,25 +210,78 @@ export function inferSizeChartId(category?: string | null): string {
   ) {
     return '';
   }
-  return 'player-edition';
+  // League / club style categories → no automatic edition chart
+  return '';
 }
 
-export function getSizeChartById(id?: string | null): SizeChartDef | null {
+export function getSizeChartById(
+  id?: string | null,
+  customCharts?: Partial<SizeChartDef>[] | null,
+): SizeChartDef | null {
   if (!id) return null;
-  return SIZE_CHARTS[normalizeKey(id)] || SIZE_CHARTS[id] || null;
+  const key = normalizeKey(id);
+  if (SIZE_CHARTS[key]) return SIZE_CHARTS[key];
+  if (SIZE_CHARTS[id]) return SIZE_CHARTS[id];
+  const custom = getAllSizeCharts(customCharts).find((c) => c.id === key || c.id === id);
+  return custom || null;
 }
 
 export function resolveSizeChart(
   category?: string | null,
   sizeChartId?: string | null,
+  customCharts?: Partial<SizeChartDef>[] | null,
 ): SizeChartDef | null {
-  const explicit = getSizeChartById(sizeChartId);
+  const explicit = getSizeChartById(sizeChartId, customCharts);
   if (explicit) return explicit;
   const inferred = inferSizeChartId(category);
   if (!inferred) return null;
-  return SIZE_CHARTS[inferred] || null;
+  return getSizeChartById(inferred, customCharts);
 }
 
+/** All charts for a product (multi Fan + Player, etc.). */
+export function resolveProductSizeCharts(
+  product: {
+    category?: string | null;
+    categories?: string[] | null;
+    sizeChartId?: string | null;
+    sizeChartIds?: string[] | null;
+  },
+  customCharts?: Partial<SizeChartDef>[] | null,
+): SizeChartDef[] {
+  const ids: string[] = [];
+  for (const id of product.sizeChartIds || []) {
+    if (id?.trim()) ids.push(id.trim());
+  }
+  if (product.sizeChartId?.trim()) {
+    for (const part of product.sizeChartId.split(',')) {
+      if (part.trim()) ids.push(part.trim());
+    }
+  }
+  if (!ids.length) {
+    const cats = [...(product.categories || []), ...(product.category ? [product.category] : [])];
+    for (const cat of cats) {
+      const inferred = inferSizeChartId(cat);
+      if (inferred) ids.push(inferred);
+    }
+  }
+  const unique = Array.from(new Set(ids.map(normalizeKey).filter(Boolean)));
+  const charts = unique
+    .map((id) => getSizeChartById(id, customCharts))
+    .filter((c): c is SizeChartDef => Boolean(c));
+  if (charts.length) return charts;
+  const fallback = resolveSizeChart(product.category, product.sizeChartId, customCharts);
+  return fallback ? [fallback] : [];
+}
+
+export function getProductCategories(product: {
+  category?: string | null;
+  categories?: string[] | null;
+}): string[] {
+  const list = [...(product.categories || []), ...(product.category ? [product.category] : [])]
+    .map((c) => String(c || '').trim())
+    .filter(Boolean);
+  return Array.from(new Set(list));
+}
 export function imageUploadLimitForCategory(category?: string): number {
   const inferred = inferSizeChartId(category) || 'default';
   return IMAGE_UPLOAD_LIMITS_BYTES[inferred] || IMAGE_UPLOAD_LIMITS_BYTES.default;

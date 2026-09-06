@@ -65,8 +65,8 @@ import { CustomerDashboard } from './components/CustomerDashboard';
 import { SellerModule } from './components/SellerModule';
 import { InfoPages } from './components/InfoPages';
 import { Footer } from './components/Footer';
-import { WhatsAppFloat } from './components/WhatsAppFloat';
 import { AuthScreen } from './components/AuthScreen';
+import { CustomerAuth } from './components/CustomerAuth';
 import { DynamicPageRenderer } from './components/DynamicPageRenderer';
 import { UiFeedbackHost, toast } from './components/UiFeedback';
 import { SlidersHorizontal, ArrowRight, CheckCircle, ShieldCheck, Heart, Sparkles, MessageSquare, BookOpen, Star, RotateCcw, Printer, Receipt, ShoppingBag, Download } from 'lucide-react';
@@ -258,6 +258,13 @@ const DEFAULT_APP_CONFIG: AppConfig = {
   bkashPaymentMode: 'both',
   bkashPartialAmountBdt: 300,
   leagues: DEFAULT_LEAGUES,
+  tournamentPatches: [
+    { id: 'patch-wc26', label: 'WC 26', priceBdt: 100 },
+    { id: 'patch-ucl', label: 'UCL', priceBdt: 100 },
+    { id: 'patch-pl', label: 'Premier League', priceBdt: 100 },
+    { id: 'patch-laliga', label: 'La Liga', priceBdt: 100 },
+  ],
+  customSizeCharts: [],
   pages: [
     { id: 'Premier League', name: 'Premier League', slug: 'premier-league', isCustom: false, visible: true, sections: [] },
     { id: 'La Liga', name: 'LALIGA', slug: 'laliga', isCustom: false, visible: true, sections: [] },
@@ -890,6 +897,7 @@ export default function App() {
               menuItems: cfg.menuItems,
               footerLocations: cfg.footerLocations,
               categoryItems: cfg.categoryItems,
+              tournamentPatches: cfg.tournamentPatches || [],
             })
             .catch((err) => {
               console.error('Failed to persist CMS settings', err);
@@ -1116,6 +1124,14 @@ export default function App() {
                     ...existing,
                     ...extras.filter((e) => !names.has(e.name.toLowerCase())),
                   ] as typeof next.categoryItems;
+                }
+                if (Array.isArray((settings as { tournamentPatches?: unknown }).tournamentPatches)) {
+                  next.tournamentPatches = (settings as { tournamentPatches: AppConfig['tournamentPatches'] })
+                    .tournamentPatches;
+                }
+                if (Array.isArray((settings as { customSizeCharts?: unknown }).customSizeCharts)) {
+                  next.customSizeCharts = (settings as { customSizeCharts: AppConfig['customSizeCharts'] })
+                    .customSizeCharts;
                 }
                 if (Array.isArray((settings as any).menuItems) && (settings as any).menuItems.length) {
                   next.menuItems = (settings as any).menuItems;
@@ -1471,9 +1487,11 @@ export default function App() {
     // Staff always enter admin after a successful AuthScreen login (token already set).
     if (isStaffRole(user.role) || canUseAdminPanel(user.role, !!getToken(), isApiEnabled())) {
       goToPage('admin', { adminTab: 'dashboard' });
+    } else if (checkoutLoginRequired) {
+      setCheckoutLoginRequired(false);
+      goToPage('checkout');
     } else {
       goToPage('home');
-      setCheckoutLoginRequired(false);
     }
   };
 
@@ -1583,7 +1601,7 @@ export default function App() {
       return;
     }
     const reserved = new Set([
-      'home', 'listing', 'details', 'cart', 'checkout', 'auth', 'dashboard', 'admin',
+      'home', 'listing', 'details', 'cart', 'checkout', 'auth', 'login', 'signup', 'dashboard', 'admin',
       'order-success', 'seller', 'faq', 'about', 'authenticity', 'contact', 'privacy',
       'refund', 'terms', 'shipping',
     ]);
@@ -1765,6 +1783,14 @@ export default function App() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [currentPage, currentUser]);
 
+  const requireCustomerLogin = () => {
+    if (currentUser && getToken()) return true;
+    setCheckoutLoginRequired(true);
+    goToPage('signup');
+    toast('Create an account (or sign in) to place your order.', 'info');
+    return false;
+  };
+
   // Add to Cart
   const handleAddToCart = (item: CartItem) => {
     setCart((prev) => {
@@ -1817,6 +1843,7 @@ export default function App() {
   // Product details — full customization (nameset, badges, computed price)
   const handleOrderNow = (item: CartItem) => {
     handleAddToCart(item);
+    if (!requireCustomerLogin()) return;
     goToPage('checkout');
   };
 
@@ -2252,8 +2279,8 @@ export default function App() {
             goToPage('listing', { search: query, category: selectedCategory });
           }}
           searchQuery={searchQuery}
-          currentUser={null}
-          onLogout={undefined}
+          currentUser={currentUser}
+          onLogout={handleLogout}
           appConfig={appConfig}
           formatPrice={formatPrice}
           products={products}
@@ -2588,6 +2615,7 @@ export default function App() {
               goToPage('details', { product: p });
             }}
             formatPrice={formatPrice}
+            tournamentPatches={appConfig.tournamentPatches}
           />
         )}
 
@@ -2596,14 +2624,17 @@ export default function App() {
           <Cart
             cart={cart}
             setCart={setCart}
-            onCheckout={() => goToPage('checkout')}
+            onCheckout={() => {
+              if (!requireCustomerLogin()) return;
+              goToPage('checkout');
+            }}
             onBackToCatalog={() => goToPage('listing')}
             formatPrice={formatPrice}
           />
         )}
 
-        {/* ROUTE 5: CHECKOUT — guest checkout, no login */}
-        {currentPage === 'checkout' && (
+        {/* ROUTE 5: CHECKOUT — requires customer login */}
+        {currentPage === 'checkout' && currentUser && getToken() && (
           <Checkout
             cart={cart}
             setCart={setCart}
@@ -2612,8 +2643,27 @@ export default function App() {
             onBackToCatalog={() => goToPage('listing')}
             formatPrice={formatPrice}
             appConfig={appConfig}
+            currentUser={currentUser}
           />
         )}
+        {currentPage === 'checkout' && (!currentUser || !getToken()) && (
+          <CustomerAuth
+            isCheckoutRedirect
+            initialMode="signup"
+            onLoginSuccess={handleLoginSuccess}
+            onCancel={() => goToPage('cart')}
+          />
+        )}
+
+        {(currentPage === 'login' || currentPage === 'signup') && (
+          <CustomerAuth
+            isCheckoutRedirect={checkoutLoginRequired}
+            initialMode={currentPage === 'signup' ? 'signup' : 'login'}
+            onLoginSuccess={handleLoginSuccess}
+            onCancel={() => goToPage(checkoutLoginRequired ? 'cart' : 'home')}
+          />
+        )}
+
         {currentPage === 'order-success' && lastPlacedOrder && (
           <section className="max-w-3xl mx-auto px-4 md:px-6 py-12 md:py-16 space-y-8 text-white animate-fadeIn">
             {/* STAGE 1: SUCCESS CELEBRATION CARD */}
@@ -2902,9 +2952,9 @@ export default function App() {
                   setLastPlacedOrder(null);
                   goToPage('listing');
                 }}
-                className="flex-1 bg-red-600 hover:bg-red-700 text-white font-extrabold text-xs uppercase tracking-widest py-3.5 rounded-xl cursor-pointer transition-all flex items-center justify-center gap-2"
+                className="flex-1 bg-red-600 hover:bg-red-700 text-white font-extrabold text-sm uppercase tracking-wide py-3.5 rounded-xl cursor-pointer transition-all flex items-center justify-center gap-2"
               >
-                <ShoppingBag size={14} /> Continue Shopping
+                <ShoppingBag size={14} /> Go to Home
               </button>
               <button
                 onClick={() => {
@@ -2970,11 +3020,9 @@ export default function App() {
 
       {!isAdminShell && (
         <>
-          {/* Mobile sticky bottom nav — Home / Search / Categories / Wishlist / Cart */}
           <MobileBottomNav
             currentPage={currentPage}
             searchQuery={searchQuery}
-            wishlistCount={wishlist.length}
             cartCount={cart.reduce((n, i) => n + i.quantity, 0)}
             onHome={() => {
               setSearchQuery('');
@@ -2983,25 +3031,20 @@ export default function App() {
               window.scrollTo({ top: 0, behavior: 'smooth' });
             }}
             onSearch={() => {
-              goToPage(currentPage === 'home' ? 'home' : currentPage);
               window.scrollTo({ top: 0, behavior: 'smooth' });
               requestAnimationFrame(() => {
-                const btn = document.getElementById('mobile-search-icon-btn');
-                btn?.click();
+                const input = document.getElementById('mobile-header-search') as HTMLInputElement | null;
+                input?.focus();
+                input?.scrollIntoView({ behavior: 'smooth', block: 'center' });
               });
             }}
             onCategories={() => {
               showAllJerseys();
             }}
-            onWishlist={() => {
-              goToPage('dashboard');
-            }}
             onCart={() => {
               goToPage('cart');
             }}
           />
-
-          <WhatsAppFloat hidden={false} />
         </>
       )}
     </div>

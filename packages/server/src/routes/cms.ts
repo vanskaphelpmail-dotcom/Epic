@@ -484,11 +484,38 @@ cmsRouter.put("/settings", requirePermission("can_manage_system_settings"), asyn
         categoryItems: z.any().optional(),
         menuItems: z.any().optional(),
         footerLocations: z.any().optional(),
+        tournamentPatches: z
+          .array(
+            z.object({
+              id: z.string().min(1),
+              label: z.string().min(1),
+              priceBdt: z.coerce.number().int().nonnegative(),
+              image: z.string().optional(),
+            }),
+          )
+          .optional()
+          .nullable(),
+        customSizeCharts: z.any().optional().nullable(),
       })
       .strict();
     const body = settingsSchema.parse(req.body || {});
 
     const updateData: Record<string, unknown> = { ...body };
+
+    if (body.tournamentPatches !== undefined) {
+      const items = Array.isArray(body.tournamentPatches) ? body.tournamentPatches : [];
+      updateData.tournamentPatches = items.map((item, index) => ({
+        id: item.id || `patch-${index + 1}`,
+        label: String(item.label || "").trim(),
+        priceBdt: Math.max(0, Math.round(Number(item.priceBdt) || 0)),
+        ...(item.image?.trim() ? { image: item.image.trim() } : {}),
+      })).filter((item) => item.label);
+    }
+
+    if (body.customSizeCharts !== undefined) {
+      const items = Array.isArray(body.customSizeCharts) ? body.customSizeCharts : [];
+      updateData.customSizeCharts = items;
+    }
 
     if (body.dailyDealItems !== undefined) {
       const items = Array.isArray(body.dailyDealItems) ? body.dailyDealItems : [];

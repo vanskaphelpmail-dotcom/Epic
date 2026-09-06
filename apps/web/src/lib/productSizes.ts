@@ -55,10 +55,34 @@ export function isSizeAvailable(product: Product, size: string): boolean {
   return getSizeStock(product, size) > 0;
 }
 
-/** Sizes shown on storefront (prefer keys from sizeStocks, else product.sizes). */
+/** Sizes shown on storefront (prefer keys from sizeStocks, else product.sizes), ordered S→3XL. */
 export function getProductSizes(product: Product): string[] {
   const fromMap = product.sizeStocks ? Object.keys(product.sizeStocks) : [];
-  if (fromMap.length) return fromMap.map(normalizeSizeLabel);
-  if (product.sizes?.length) return product.sizes.map(normalizeSizeLabel);
-  return [...DEFAULT_FALLBACK_SIZES];
+  const raw = fromMap.length
+    ? fromMap.map(normalizeSizeLabel)
+    : product.sizes?.length
+      ? product.sizes.map(normalizeSizeLabel)
+      : [...DEFAULT_FALLBACK_SIZES];
+  return sortProductSizes(raw);
+}
+
+/** Stable storefront order: XS, S, M, L, XL, 2XL, 3XL, then any extras. */
+export function sortProductSizes(sizes: string[]): string[] {
+  const order = new Map(STANDARD_PRODUCT_SIZES.map((s, i) => [s, i]));
+  const unique = Array.from(new Set(sizes.map(normalizeSizeLabel).filter(Boolean)));
+  return unique.sort((a, b) => {
+    const ia = order.has(a as (typeof STANDARD_PRODUCT_SIZES)[number])
+      ? order.get(a as (typeof STANDARD_PRODUCT_SIZES)[number])!
+      : 1000 + unique.indexOf(a);
+    const ib = order.has(b as (typeof STANDARD_PRODUCT_SIZES)[number])
+      ? order.get(b as (typeof STANDARD_PRODUCT_SIZES)[number])!
+      : 1000 + unique.indexOf(b);
+    return ia - ib;
+  });
+}
+
+/** Display label: show XXL for 2XL on storefront buttons. */
+export function displaySizeLabel(size: string): string {
+  const n = normalizeSizeLabel(size);
+  return n === '2XL' ? 'XXL' : n;
 }

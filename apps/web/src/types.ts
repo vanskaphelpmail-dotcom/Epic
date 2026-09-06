@@ -2,6 +2,8 @@ export interface ProductBadgeOption {
   id: string;
   label: string;
   priceBdt: number;
+  /** Optional short thumbnail shown on storefront patch picker */
+  image?: string;
 }
 
 export interface Product {
@@ -39,15 +41,15 @@ export interface Product {
   barcode?: string;
   badgeAvailable: boolean;
   printAvailable: boolean;
-  /** BDT add-on price for custom name + number printing */
+  /** BDT add-on price for custom font (name + number) printing */
   namesetPriceBdt?: number;
-  /** BDT add-on price for tournament sleeve badges */
+  /** BDT add-on price for tournament patches (legacy single price) */
   badgePriceBdt?: number;
-  /** Storefront label for nameset option */
+  /** Storefront label for custom font option */
   namesetLabel?: string;
-  /** Storefront tag for badge option (e.g. WC '26) — legacy single badge */
+  /** Storefront tag for patch option — legacy single patch */
   badgeLabel?: string;
-  /** Multiple tournament badge options (label + BDT price each) */
+  /** Multiple tournament patch options (label + BDT price + optional image each) */
   badgeOptions?: ProductBadgeOption[];
   rating: number;
   reviewsCount: number;
@@ -65,8 +67,12 @@ export interface Product {
   };
   category: string;
   categoryId?: string;
+  /** Multi-select storefront categories (e.g. Fan Edition + Premier League) */
+  categories?: string[];
   /** Explicit size chart id: player-edition | retro | fan-edition | custom | kids */
   sizeChartId?: string;
+  /** Multiple measurement charts for the same jersey */
+  sizeChartIds?: string[];
   pageNumber?: number;
   targetPage?: string;
   pageName?: string;
@@ -117,6 +123,8 @@ export interface CategoryItem {
   bannerImage?: string;
   icon?: string;
   status: 'Active' | 'Inactive';
+  /** Default size / measurement chart linked to this category */
+  sizeChartId?: string;
 }
 
 export type UserRole = 
@@ -444,6 +452,18 @@ export interface AppConfig {
   banners?: BannerConfig[];
   menuItems?: MenuItem[];
   categoryItems?: CategoryItem[];
+  /** Global Tournament Patch options (image + name + price) for all jerseys */
+  tournamentPatches?: ProductBadgeOption[];
+  /** Custom size / measurement charts managed in Inventory */
+  customSizeCharts?: Array<{
+    id: string;
+    label: string;
+    title: string;
+    note: string;
+    sizeOptions: string[];
+    columns: Array<{ key: 'size' | 'age' | 'chest' | 'length'; label: string }>;
+    rows: Array<{ size: string; chest: string | number; length: string | number; age?: string }>;
+  }>;
   leagues?: LeagueConfigItem[];
   stockLogs?: StockLog[];
 }
