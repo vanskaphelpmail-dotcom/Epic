@@ -4,6 +4,7 @@ dist/
 .next/
 apps/web/.next/
 apps/web/dist/
+*.tsbuildinfo
 coverage/
 .DS_Store
 *.log
