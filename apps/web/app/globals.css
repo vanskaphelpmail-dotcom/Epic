@@ -6,38 +6,58 @@
   --font-display: "DM Sans", ui-sans-serif, system-ui, sans-serif;
   --font-mono: "DM Sans", ui-sans-serif, system-ui, sans-serif;
 
-  /* Brand red scale (also remaps legacy emerald utilities) */
-  --color-brand: #e10600;
-  --color-brand-hover: #c10500;
-  --color-surface: #121212;
-  --color-surface-2: #1a1a1a;
+  /* Brand system — black / white / red (reference) */
+  --color-brand: #e30613;
+  --color-brand-hover: #c10510;
+  --color-surface: #ffffff;
+  --color-surface-2: #f8f8f7;
 
+  /* Legacy emerald utilities remapped to brand red */
   --color-emerald-50: #fff5f5;
   --color-emerald-100: #ffe5e5;
   --color-emerald-200: #ffc9c9;
   --color-emerald-300: #ffa8a8;
   --color-emerald-400: #ff6b6b;
   --color-emerald-500: #f23030;
-  --color-emerald-600: #e10600;
-  --color-emerald-700: #c10500;
-  --color-emerald-800: #9a0400;
-  --color-emerald-900: #7a0300;
+  --color-emerald-600: #e30613;
+  --color-emerald-700: #c10510;
+  --color-emerald-800: #9a040c;
+  --color-emerald-900: #7a0309;
   --color-emerald-950: #450a0a;
 }
 
 :root {
-  --ev-bg: #000000;
-  --ev-surface: #121212;
-  --ev-surface-2: #1a1a1a;
-  --ev-border: #2a2a2a;
-  --ev-text: #ffffff;
-  --ev-muted: #a3a3a3;
-  --ev-red: #e10600;
-  --ev-red-hover: #c10500;
+  --color-primary-red: #e30613;
+  --color-primary-black: #0a0a0a;
+  --color-white: #ffffff;
+  --color-background: #f8f8f7;
+  --color-surface: #ffffff;
+  --color-text-primary: #0a0a0a;
+  --color-text-secondary: #555555;
+  --color-border: #e5e5e5;
+
+  --ev-bg: var(--color-background);
+  --ev-surface: var(--color-surface);
+  --ev-surface-2: #f3f3f2;
+  --ev-border: var(--color-border);
+  --ev-text: var(--color-text-primary);
+  --ev-muted: var(--color-text-secondary);
+  --ev-red: var(--color-primary-red);
+  --ev-red-hover: #c10510;
+  --ev-black: var(--color-primary-black);
 }
 
 body {
   background-color: var(--ev-bg);
+  /* Extremely subtle diagonal line texture (reference) */
+  background-image: repeating-linear-gradient(
+    -32deg,
+    transparent 0,
+    transparent 11px,
+    rgba(10, 10, 10, 0.028) 11px,
+    rgba(10, 10, 10, 0.028) 12px
+  );
+  background-attachment: fixed;
   color: var(--ev-text);
   font-family: "DM Sans", var(--font-sans), sans-serif;
   overflow-x: hidden;
@@ -52,7 +72,7 @@ html {
   overflow-x: hidden;
   width: 100%;
   background-color: var(--ev-bg);
-  color-scheme: dark;
+  color-scheme: light;
 }
 
 html, body, input, button, select, textarea {
@@ -101,7 +121,7 @@ h1, h2, h3, h4, h5, h6, .font-sans.font-black, .font-display {
   }
 }
 
-/* Brand lockup — red + white on dark (logo image unchanged) */
+/* Brand lockup — red mark + black wordmark on light surfaces */
 .brand-logo-lockup {
   letter-spacing: -0.03em;
   gap: 0.4rem;
@@ -113,10 +133,11 @@ h1, h2, h3, h4, h5, h6, .font-sans.font-black, .font-display {
   text-transform: uppercase;
   line-height: 1;
   display: inline-block;
+  color: var(--color-primary-black);
 }
 
 .brand-word-jersey {
-  color: #e10600;
+  color: var(--color-primary-black);
   background: none;
   -webkit-background-clip: unset;
   background-clip: unset;
@@ -124,7 +145,7 @@ h1, h2, h3, h4, h5, h6, .font-sans.font-black, .font-display {
 }
 
 .brand-word-addicts {
-  color: #ffffff;
+  color: var(--color-primary-black);
   position: relative;
 }
 
@@ -146,12 +167,12 @@ h1, h2, h3, h4, h5, h6, .font-sans.font-black, .font-display {
   padding: 0.38rem 0.7rem;
   border-radius: 9999px;
   color: #ffffff !important;
-  background: linear-gradient(180deg, #e10600 0%, #c10500 100%) !important;
-  border: 1.5px solid #9a0400;
+  background: linear-gradient(180deg, #e30613 0%, #c10510 100%) !important;
+  border: 1.5px solid #9a040c;
   box-shadow:
-    0 0 0 1px rgba(225, 6, 0, 0.12),
+    0 0 0 1px rgba(227, 6, 19, 0.12),
     0 1px 0 rgba(255, 255, 255, 0.2) inset,
-    0 4px 14px rgba(225, 6, 0, 0.35);
+    0 4px 14px rgba(227, 6, 19, 0.28);
   text-shadow: none;
   backdrop-filter: blur(10px);
   -webkit-backdrop-filter: blur(10px);
@@ -270,20 +291,68 @@ main, section, header, footer, nav {
   }
 }
 
-/* Primary CTA utility used across storefront */
-.btn-brand {
-  background-color: var(--ev-red);
+/* Primary CTA — black (reference); red reserved for accents */
+.btn-brand,
+.btn-primary {
+  background-color: var(--color-primary-black);
   color: #fff;
-  border: 1px solid var(--ev-red);
+  border: 1px solid var(--color-primary-black);
+  transition: background-color 180ms ease, color 180ms ease, transform 180ms ease, border-color 180ms ease;
 }
-.btn-brand:hover {
-  background-color: var(--ev-red-hover);
-  border-color: var(--ev-red-hover);
+.btn-brand:hover,
+.btn-primary:hover {
+  background-color: #1a1a1a;
+  border-color: #1a1a1a;
+}
+
+.btn-secondary {
+  background-color: #fff;
+  color: var(--color-primary-black);
+  border: 1px solid var(--color-primary-black);
+  transition: background-color 180ms ease, color 180ms ease, border-color 180ms ease;
+}
+.btn-secondary:hover {
+  background-color: var(--color-primary-black);
+  color: #fff;
+}
+
+.btn-action {
+  background-color: var(--color-primary-black) !important;
+  color: #ffffff !important;
+  border: 1px solid var(--color-primary-black) !important;
+}
+.btn-action:hover {
+  background-color: #1a1a1a !important;
+  border-color: #1a1a1a !important;
+}
+
+/* Storefront light surfaces */
+.storefront-shell {
+  background-color: transparent;
+  color: var(--color-text-primary);
+}
+
+.ev-card {
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: 1rem;
+  box-shadow: 0 1px 2px rgba(10, 10, 10, 0.04);
+}
+
+input:focus,
+textarea:focus,
+select:focus {
+  outline: none;
+  border-color: var(--color-primary-red) !important;
+  box-shadow: 0 0 0 3px rgba(227, 6, 19, 0.15);
 }
 
 /* ---------------------------------------------------------------------------
    Admin Command Room — black / white / Inter (scoped; storefront unchanged)
 --------------------------------------------------------------------------- */
+.admin-shell {
+  background-image: none !important;
+}
 .admin-shell,
 .admin-shell *,
 .admin-shell input,

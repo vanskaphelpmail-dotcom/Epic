@@ -362,7 +362,7 @@ export const BiddingSection: React.FC<BiddingSectionProps> = ({ onAddToCart, set
                 <button
                   type="button"
                   onClick={() => handleCheckoutClick(item)}
-                  className="bg-red-600 hover:bg-red-700 text-white border border-zinc-900 py-2.5 px-2 rounded-xl text-[10px] font-black uppercase tracking-wider flex items-center justify-center gap-1 transition-all cursor-pointer font-sans shadow-md shadow-black/10"
+                  className="bg-black hover:bg-zinc-900 text-white border border-zinc-900 py-2.5 px-2 rounded-xl text-[10px] font-black uppercase tracking-wider flex items-center justify-center gap-1 transition-all cursor-pointer font-sans shadow-md shadow-black/10"
                   title="Checkout directly"
                 >
                   <span>CHECK OUT</span>
@@ -439,7 +439,7 @@ export const BiddingSection: React.FC<BiddingSectionProps> = ({ onAddToCart, set
                     setCurrentPage('cart');
                   }
                 }}
-                className="bg-red-600 hover:bg-red-700 text-white font-extrabold text-xs uppercase tracking-wider py-3.5 rounded-full transition-all cursor-pointer"
+                className="bg-black hover:bg-zinc-900 text-white font-extrabold text-xs uppercase tracking-wider py-3.5 rounded-full transition-all cursor-pointer"
               >
                 Go to Bag
               </button>

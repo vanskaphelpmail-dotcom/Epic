@@ -312,12 +312,12 @@ export const CustomerDashboard: React.FC<CustomerDashboardProps> = ({
   });
 
   return (
-    <section className="bg-[#0a0a0a] text-white py-10 px-4 md:px-12 max-w-7xl mx-auto min-h-screen">
+    <section className="bg-transparent text-[#0A0A0A] py-10 px-4 md:px-12 max-w-7xl mx-auto min-h-screen">
       
       {/* Dashboard Welcome Header */}
-      <div className="border-b border-zinc-800 pb-6 mb-8 flex flex-col sm:flex-row gap-5 justify-between items-start sm:items-center">
+      <div className="border-b border-[#E5E5E5] pb-6 mb-8 flex flex-col sm:flex-row gap-5 justify-between items-start sm:items-center">
         <div className="flex items-center gap-4">
-          <div className="w-14 h-14 rounded-full bg-red-600 border border-red-500 text-white flex items-center justify-center font-sans font-black text-xl shadow-sm">
+          <div className="w-14 h-14 rounded-full bg-[#E30613] border border-[#E30613] text-white flex items-center justify-center font-sans font-black text-xl shadow-sm">
             {(fullName || 'U')
               .split(/\s+/)
               .filter(Boolean)
@@ -326,14 +326,14 @@ export const CustomerDashboard: React.FC<CustomerDashboardProps> = ({
               .join('') || 'U'}
           </div>
           <div>
-            <h1 className="text-2xl font-black uppercase tracking-tight text-white">My Profile & Account</h1>
-            <p className="text-xs text-zinc-400 font-mono mt-1">
+            <h1 className="text-2xl font-black uppercase tracking-tight text-[#0A0A0A]">My Profile & Account</h1>
+            <p className="text-xs text-[#555555] font-mono mt-1">
               Signed in as{' '}
-              <span className="text-zinc-200 font-bold">{fullName || 'Collector'}</span>
+              <span className="text-[#0A0A0A] font-bold">{fullName || 'Collector'}</span>
               {email ? (
                 <>
                   {' '}
-                  · <span className="text-zinc-300">{email}</span>
+                  · <span className="text-[#555555]">{email}</span>
                 </>
               ) : null}
             </p>
@@ -342,13 +342,13 @@ export const CustomerDashboard: React.FC<CustomerDashboardProps> = ({
 
         {/* Dynamic mini counts */}
         <div className="flex gap-4 text-xs font-mono">
-          <div className="bg-[#121212] border border-zinc-700 px-4 py-2.5 rounded-xl text-center min-w-[88px]">
-            <p className="text-zinc-400 text-[10px] uppercase tracking-wider">My Orders</p>
-            <p className="text-white font-black text-sm mt-0.5">{activeOrders.length}</p>
+          <div className="bg-white border border-[#E5E5E5] px-4 py-2.5 rounded-xl text-center min-w-[88px]">
+            <p className="text-[#555555] text-[10px] uppercase tracking-wider">My Orders</p>
+            <p className="text-[#0A0A0A] font-black text-sm mt-0.5">{activeOrders.length}</p>
           </div>
-          <div className="bg-[#121212] border border-zinc-700 px-4 py-2.5 rounded-xl text-center min-w-[88px]">
-            <p className="text-zinc-400 text-[10px] uppercase tracking-wider">Wishlisted</p>
-            <p className="text-white font-black text-sm mt-0.5">{wishlist.length}</p>
+          <div className="bg-white border border-[#E5E5E5] px-4 py-2.5 rounded-xl text-center min-w-[88px]">
+            <p className="text-[#555555] text-[10px] uppercase tracking-wider">Wishlisted</p>
+            <p className="text-[#0A0A0A] font-black text-sm mt-0.5">{wishlist.length}</p>
           </div>
         </div>
       </div>
@@ -357,7 +357,7 @@ export const CustomerDashboard: React.FC<CustomerDashboardProps> = ({
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-10 items-start">
         
         {/* Left Col: Menu Navigation */}
-        <div className="lg:col-span-3 bg-[#121212] border-2 border-zinc-700 rounded-2xl p-4 space-y-2 text-xs font-semibold">
+        <div className="lg:col-span-3 bg-white border-2 border-[#E5E5E5] rounded-2xl p-4 space-y-2 text-xs font-semibold">
           {[
             { id: 'orders', label: 'My Order History', icon: ClipboardList },
             { id: 'wishlist', label: 'My Wishlist', icon: Heart },
@@ -371,8 +371,8 @@ export const CustomerDashboard: React.FC<CustomerDashboardProps> = ({
                 onClick={() => setActiveTab(item.id as any)}
                 className={`w-full text-left py-3 px-4 rounded-xl flex items-center gap-2.5 transition-all cursor-pointer ${
                   activeTab === item.id
-                    ? 'bg-red-600 text-white font-black shadow-sm'
-                    : 'text-zinc-300 hover:text-white hover:bg-zinc-800/80'
+                    ? 'bg-[#E30613] text-white font-black shadow-sm'
+                    : 'text-[#555555] hover:text-[#0A0A0A] hover:bg-[#F8F8F7]'
                 }`}
               >
                 <Icon size={14} /> {item.label}
@@ -386,19 +386,19 @@ export const CustomerDashboard: React.FC<CustomerDashboardProps> = ({
           
           {activeTab === 'orders' && (
             <div className="space-y-6 animate-fadeIn">
-              <h3 className="text-base font-bold uppercase tracking-tight text-white border-b border-zinc-700 pb-2">
+              <h3 className="text-base font-bold uppercase tracking-tight text-[#0A0A0A] border-b border-[#E5E5E5] pb-2">
                 Order History & Logistics tracking
               </h3>
 
               {activeOrders.length === 0 ? (
-                <div className="bg-[#121212] border-2 border-zinc-700 p-10 text-center rounded-2xl space-y-4">
-                  <p className="text-sm text-zinc-300 leading-relaxed">
+                <div className="bg-white border-2 border-[#E5E5E5] p-10 text-center rounded-2xl space-y-4">
+                  <p className="text-sm text-[#555555] leading-relaxed">
                     No orders yet. When you place an order, it will show up here with tracking.
                   </p>
                   <button
                     onClick={() => setCurrentPage('listing')}
                     type="button"
-                    className="inline-flex items-center justify-center gap-2 bg-red-600 hover:bg-red-700 text-white text-sm font-black uppercase tracking-wide px-6 py-3 rounded-xl cursor-pointer transition-colors"
+                    className="inline-flex items-center justify-center gap-2 bg-[#0A0A0A] hover:bg-black text-white text-sm font-black uppercase tracking-wide px-6 py-3 rounded-xl cursor-pointer transition-colors"
                   >
                     Go to Home
                   </button>
@@ -408,23 +408,23 @@ export const CustomerDashboard: React.FC<CustomerDashboardProps> = ({
                 {activeOrders.map((ord) => (
                   <div
                     key={ord.id}
-                    className="bg-[#121212] border-2 border-zinc-700 rounded-2xl overflow-hidden shadow-sm"
+                    className="bg-white border-2 border-[#E5E5E5] rounded-2xl overflow-hidden shadow-sm"
                   >
                     {/* Order header row */}
-                    <div className="bg-zinc-900 border-b border-zinc-700 p-4 md:p-6 flex flex-wrap justify-between items-center gap-4 text-xs font-mono text-white">
+                    <div className="bg-[#F8F8F7] border-b border-[#E5E5E5] p-4 md:p-6 flex flex-wrap justify-between items-center gap-4 text-xs font-mono text-[#0A0A0A]">
                       <div>
-                        <span className="text-zinc-400">ORDER NUMBER:</span>
-                        <p className="text-white font-bold text-sm">{ord.id}</p>
+                        <span className="text-[#555555]">ORDER NUMBER:</span>
+                        <p className="text-[#0A0A0A] font-bold text-sm">{ord.id}</p>
                       </div>
                       <div>
-                        <span className="text-zinc-400">DATE CONFIRMED:</span>
-                        <p className="text-white font-bold">{ord.date}</p>
+                        <span className="text-[#555555]">DATE CONFIRMED:</span>
+                        <p className="text-[#0A0A0A] font-bold">{ord.date}</p>
                       </div>
                       <div>
-                        <span className="text-zinc-400">TOTAL VALUE:</span>
-                        <p className="text-white font-extrabold text-sm">{displayPrice(ord.total)}</p>
+                        <span className="text-[#555555]">TOTAL VALUE:</span>
+                        <p className="text-[#0A0A0A] font-extrabold text-sm">{displayPrice(ord.total)}</p>
                       </div>
-                      <span className="bg-red-600 text-white px-3 py-1 rounded font-bold">
+                      <span className="bg-[#E30613] text-white px-3 py-1 rounded font-bold">
                         {ord.status.toUpperCase()}
                       </span>
                     </div>
@@ -433,53 +433,53 @@ export const CustomerDashboard: React.FC<CustomerDashboardProps> = ({
                     <div className="p-6 space-y-6">
                       <div className="space-y-3">
                         {ord.items.map((item, idx) => (
-                          <div key={idx} className="flex gap-4 items-center border-b border-zinc-800 pb-3 text-xs">
-                            <div className="w-12 h-12 bg-zinc-900 border border-zinc-700 rounded p-1 flex items-center justify-center">
+                          <div key={idx} className="flex gap-4 items-center border-b border-[#E5E5E5] pb-3 text-xs">
+                            <div className="w-12 h-12 bg-[#F8F8F7] border border-[#E5E5E5] rounded p-1 flex items-center justify-center">
                               <svg viewBox="0 0 200 240" className="w-full h-full">
                                 <rect width="200" height="240" rx="10" fill="#27272a" />
                                 <circle cx="100" cy="120" r="60" fill="#3f3f46" opacity="0.5" />
                               </svg>
                             </div>
                             <div className="flex-1">
-                              <h4 className="font-bold text-white hover:text-red-400 cursor-pointer" onClick={() => { onSelectProduct(item.product); setCurrentPage('details'); }}>
+                              <h4 className="font-bold text-[#0A0A0A] hover:text-[#E30613] cursor-pointer" onClick={() => { onSelectProduct(item.product); setCurrentPage('details'); }}>
                                 {item.product.name}
                               </h4>
-                              <p className="text-[10px] text-zinc-400 font-mono">
+                              <p className="text-[10px] text-[#555555] font-mono">
                                 Size: {item.selectedSize} | Qty: {item.quantity}
                               </p>
                             </div>
-                            <span className="text-white font-bold font-mono">{displayPrice(item.product.price)}</span>
+                            <span className="text-[#0A0A0A] font-bold font-mono">{displayPrice(item.product.price)}</span>
                           </div>
                         ))}
                       </div>
 
                       {/* Visual Logistics Tracking nodes */}
                       {ord.trackingNumber && (
-                        <div className="bg-zinc-900 border border-zinc-700 p-5 rounded-xl space-y-4 text-xs">
-                          <div className="flex justify-between items-center border-b border-zinc-700 pb-2">
-                            <span className="font-mono text-[10px] text-zinc-400">TRACKING COURIER: COURIER-POST EXCLUSIVE</span>
-                            <span className="font-mono font-black text-white">{ord.trackingNumber}</span>
+                        <div className="bg-[#F8F8F7] border border-[#E5E5E5] p-5 rounded-xl space-y-4 text-xs">
+                          <div className="flex justify-between items-center border-b border-[#E5E5E5] pb-2">
+                            <span className="font-mono text-[10px] text-[#555555]">TRACKING COURIER: COURIER-POST EXCLUSIVE</span>
+                            <span className="font-mono font-black text-[#0A0A0A]">{ord.trackingNumber}</span>
                           </div>
 
                           {/* Interactive milestones dots bar */}
                           <div className="relative pt-4 pb-2">
-                            <div className="absolute top-1/2 left-4 right-4 h-0.5 bg-zinc-700 -translate-y-1/2" />
+                            <div className="absolute top-1/2 left-4 right-4 h-0.5 bg-[#E5E5E5] -translate-y-1/2" />
                             <div className="relative flex justify-between items-center text-center">
                               <div className="space-y-1.5 flex flex-col items-center">
-                                <span className="w-3.5 h-3.5 rounded-full bg-red-600 border-4 border-zinc-900 z-10" />
-                                <p className="text-[9px] font-bold text-zinc-300 uppercase">Sourced & Sanitized</p>
+                                <span className="w-3.5 h-3.5 rounded-full bg-[#E30613] border-4 border-white z-10" />
+                                <p className="text-[9px] font-bold text-[#555555] uppercase">Sourced & Sanitized</p>
                               </div>
                               <div className="space-y-1.5 flex flex-col items-center">
-                                <span className="w-3.5 h-3.5 rounded-full bg-red-600 border-4 border-zinc-900 z-10" />
-                                <p className="text-[9px] font-bold text-zinc-300 uppercase">Verified Lab</p>
+                                <span className="w-3.5 h-3.5 rounded-full bg-[#E30613] border-4 border-white z-10" />
+                                <p className="text-[9px] font-bold text-[#555555] uppercase">Verified Lab</p>
                               </div>
                               <div className="space-y-1.5 flex flex-col items-center">
-                                <span className={`w-3.5 h-3.5 rounded-full border-4 border-zinc-900 z-10 ${ord.status === 'Shipped' || ord.status === 'Delivered' ? 'bg-red-600' : 'bg-zinc-600'}`} />
-                                <p className="text-[9px] font-bold text-zinc-400 uppercase">Departed Flight</p>
+                                <span className={`w-3.5 h-3.5 rounded-full border-4 border-white z-10 ${ord.status === 'Shipped' || ord.status === 'Delivered' ? 'bg-[#E30613]' : 'bg-[#E5E5E5]'}`} />
+                                <p className="text-[9px] font-bold text-[#555555] uppercase">Departed Flight</p>
                               </div>
                               <div className="space-y-1.5 flex flex-col items-center">
-                                <span className="w-3.5 h-3.5 rounded-full bg-zinc-600 border-4 border-zinc-900 z-10" />
-                                <p className="text-[9px] font-bold text-zinc-500 uppercase">Out for Delivery</p>
+                                <span className="w-3.5 h-3.5 rounded-full bg-[#E5E5E5] border-4 border-white z-10" />
+                                <p className="text-[9px] font-bold text-[#555555] uppercase">Out for Delivery</p>
                               </div>
                             </div>
                           </div>
@@ -496,19 +496,19 @@ export const CustomerDashboard: React.FC<CustomerDashboardProps> = ({
 
           {activeTab === 'wishlist' && (
             <div className="space-y-6 animate-fadeIn">
-              <h3 className="text-base font-bold uppercase tracking-tight text-white border-b border-zinc-700 pb-2">
+              <h3 className="text-base font-bold uppercase tracking-tight text-[#0A0A0A] border-b border-[#E5E5E5] pb-2">
                 My saved wishlist ({wishlist.length} Items)
               </h3>
 
               {wishlist.length === 0 ? (
-                <div className="bg-[#121212] border-2 border-zinc-700 p-10 text-center rounded-2xl space-y-4">
-                  <p className="text-sm text-zinc-300 leading-relaxed">
+                <div className="bg-white border-2 border-[#E5E5E5] p-10 text-center rounded-2xl space-y-4">
+                  <p className="text-sm text-[#555555] leading-relaxed">
                     No jerseys saved yet. Browse the catalog and tap the heart to add favorites.
                   </p>
                   <button
                     onClick={() => setCurrentPage('listing')}
                     type="button"
-                    className="inline-flex items-center justify-center gap-2 bg-red-600 hover:bg-red-700 text-white text-sm font-black uppercase tracking-wide px-6 py-3 rounded-xl cursor-pointer transition-colors"
+                    className="inline-flex items-center justify-center gap-2 bg-[#0A0A0A] hover:bg-black text-white text-sm font-black uppercase tracking-wide px-6 py-3 rounded-xl cursor-pointer transition-colors"
                   >
                     Go to Home
                   </button>
@@ -518,25 +518,25 @@ export const CustomerDashboard: React.FC<CustomerDashboardProps> = ({
                   {wishlist.map((w) => (
                     <div
                       key={w.id}
-                      className="bg-[#121212] border-2 border-zinc-700 rounded-2xl p-4 flex gap-4 items-center justify-between"
+                      className="bg-white border-2 border-[#E5E5E5] rounded-2xl p-4 flex gap-4 items-center justify-between"
                     >
                       <div className="flex gap-3 items-center cursor-pointer" onClick={() => { onSelectProduct(w); setCurrentPage('details'); }}>
-                        <div className="w-12 h-12 bg-zinc-900 border border-zinc-700 p-1 rounded flex items-center justify-center">
+                        <div className="w-12 h-12 bg-[#F8F8F7] border border-[#E5E5E5] p-1 rounded flex items-center justify-center">
                           <svg viewBox="0 0 200 240" className="w-full h-full">
                             <rect width="200" height="240" rx="10" fill="#27272a" />
                           </svg>
                         </div>
                         <div>
-                          <h4 className="text-xs font-bold text-white hover:text-red-400 leading-tight truncate max-w-[150px]">
+                          <h4 className="text-xs font-bold text-[#0A0A0A] hover:text-[#E30613] leading-tight truncate max-w-[150px]">
                             {w.name}
                           </h4>
-                          <span className="text-[10px] text-zinc-200 font-bold font-mono">{displayPrice(w.price)}</span>
+                          <span className="text-[10px] text-[#0A0A0A] font-bold font-mono">{displayPrice(w.price)}</span>
                         </div>
                       </div>
                       
                       <button
                         onClick={() => onRemoveWishlist(w)}
-                        className="text-zinc-400 hover:text-red-500 p-2 rounded-full cursor-pointer"
+                        className="text-[#555555] hover:text-[#E30613] p-2 rounded-full cursor-pointer"
                         title="Remove from wishlist"
                       >
                         <Trash2 size={14} />
@@ -549,37 +549,37 @@ export const CustomerDashboard: React.FC<CustomerDashboardProps> = ({
           )}
 
           {activeTab === 'profile' && (
-            <div className="bg-[#121212] border-2 border-zinc-700 p-6 rounded-2xl space-y-5 animate-fadeIn">
-              <h3 className="text-base font-bold uppercase tracking-tight text-white border-b border-zinc-700 pb-2 flex items-center gap-2">
-                <User size={18} className="text-red-500" /> Account & Security Profiles
+            <div className="bg-white border-2 border-[#E5E5E5] p-6 rounded-2xl space-y-5 animate-fadeIn">
+              <h3 className="text-base font-bold uppercase tracking-tight text-[#0A0A0A] border-b border-[#E5E5E5] pb-2 flex items-center gap-2">
+                <User size={18} className="text-[#E30613]" /> Account & Security Profiles
               </h3>
 
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 text-xs">
                 <div className="space-y-1.5">
-                  <span className="text-[10px] text-zinc-400 font-mono">COLLECTOR FULL NAME:</span>
+                  <span className="text-[10px] text-[#555555] font-mono">COLLECTOR FULL NAME:</span>
                   <input
                     type="text"
                     value={fullName}
                     onChange={(e) => setFullName(e.target.value)}
-                    className="w-full bg-zinc-950 border-2 border-zinc-700 rounded-lg py-2.5 px-3 text-xs text-white placeholder-zinc-500 focus:outline-none focus:border-red-600"
+                    className="w-full bg-[#F8F8F7] border-2 border-[#E5E5E5] rounded-lg py-2.5 px-3 text-xs text-[#0A0A0A] placeholder:text-[#555555] focus:outline-none focus:border-[#E30613]"
                   />
                 </div>
                 <div className="space-y-1.5">
-                  <span className="text-[10px] text-zinc-400 font-mono">REGISTRATION EMAIL ADDRESS:</span>
+                  <span className="text-[10px] text-[#555555] font-mono">REGISTRATION EMAIL ADDRESS:</span>
                   <input
                     type="email"
                     value={email}
                     readOnly
-                    className="w-full bg-zinc-900 border-2 border-zinc-700 rounded-lg py-2.5 px-3 text-xs text-zinc-300 focus:outline-none"
+                    className="w-full bg-[#F8F8F7] border-2 border-[#E5E5E5] rounded-lg py-2.5 px-3 text-xs text-[#555555] focus:outline-none"
                   />
                 </div>
                 <div className="space-y-1.5 col-span-2">
-                  <span className="text-[10px] text-zinc-400 font-mono">VERIFIED PHONE CONTACT:</span>
+                  <span className="text-[10px] text-[#555555] font-mono">VERIFIED PHONE CONTACT:</span>
                   <input
                     type="tel"
                     value={phone}
                     onChange={(e) => setPhone(e.target.value)}
-                    className="w-full bg-zinc-950 border-2 border-zinc-700 rounded-lg py-2.5 px-3 text-xs text-white placeholder-zinc-500 focus:outline-none focus:border-red-600"
+                    className="w-full bg-[#F8F8F7] border-2 border-[#E5E5E5] rounded-lg py-2.5 px-3 text-xs text-[#0A0A0A] placeholder:text-[#555555] focus:outline-none focus:border-[#E30613]"
                   />
                 </div>
               </div>
@@ -587,7 +587,7 @@ export const CustomerDashboard: React.FC<CustomerDashboardProps> = ({
               <button
                 onClick={() => void handleSaveProfile()}
                 disabled={profileBusy}
-                className="bg-red-600 hover:bg-red-700 disabled:opacity-60 text-white font-extrabold text-[10px] uppercase tracking-widest px-6 py-2.5 rounded-lg cursor-pointer"
+                className="bg-[#0A0A0A] hover:bg-black disabled:opacity-60 text-white font-extrabold text-[10px] uppercase tracking-widest px-6 py-2.5 rounded-lg cursor-pointer"
               >
                 {profileBusy ? 'Saving…' : 'Save Settings Profile'}
               </button>
@@ -595,15 +595,15 @@ export const CustomerDashboard: React.FC<CustomerDashboardProps> = ({
           )}
 
           {activeTab === 'addresses' && (
-            <div className="bg-[#121212] border-2 border-zinc-700 p-6 rounded-2xl space-y-6 animate-fadeIn">
-              <div className="flex justify-between items-center border-b border-zinc-700 pb-3">
-                <h3 className="text-base font-bold uppercase tracking-tight text-white flex items-center gap-2">
-                  <MapPin size={18} className="text-red-500" /> Saved Shipping Addresses
+            <div className="bg-white border-2 border-[#E5E5E5] p-6 rounded-2xl space-y-6 animate-fadeIn">
+              <div className="flex justify-between items-center border-b border-[#E5E5E5] pb-3">
+                <h3 className="text-base font-bold uppercase tracking-tight text-[#0A0A0A] flex items-center gap-2">
+                  <MapPin size={18} className="text-[#E30613]" /> Saved Shipping Addresses
                 </h3>
                 {!isEditingAddress && (
                   <button
                     onClick={handleOpenAddForm}
-                    className="bg-red-600 hover:bg-red-700 text-white font-extrabold text-[10px] uppercase tracking-wider py-2 px-4 rounded-xl flex items-center gap-1.5 transition-all cursor-pointer"
+                    className="bg-[#0A0A0A] hover:bg-black text-white font-extrabold text-[10px] uppercase tracking-wider py-2 px-4 rounded-xl flex items-center gap-1.5 transition-all cursor-pointer"
                   >
                     <Plus size={12} /> Add Address
                   </button>
@@ -613,14 +613,14 @@ export const CustomerDashboard: React.FC<CustomerDashboardProps> = ({
               {isEditingAddress ? (
                 /* ADD / EDIT ADDRESS FORM */
                 <form onSubmit={handleSaveAddress} className="space-y-4 text-xs">
-                  <div className="bg-zinc-950 border-2 border-zinc-700 p-4 rounded-2xl space-y-4">
-                    <p className="text-[10px] font-mono text-zinc-300 uppercase font-black">
+                  <div className="bg-[#F8F8F7] border-2 border-[#E5E5E5] p-4 rounded-2xl space-y-4">
+                    <p className="text-[10px] font-mono text-[#555555] uppercase font-black">
                       {editingAddressId ? 'Edit Shipping Address' : 'Add New Shipping Address'}
                     </p>
 
                     {/* ADDRESS LABEL OPTIONS (Home, Office, Visitor) */}
                     <div className="space-y-2">
-                      <label className="text-[10px] text-zinc-400 font-mono block uppercase font-bold">ADDRESS LABEL / TYPE:</label>
+                      <label className="text-[10px] text-[#555555] font-mono block uppercase font-bold">ADDRESS LABEL / TYPE:</label>
                       <div className="grid grid-cols-3 gap-2">
                         {[
                           { id: 'Home', icon: Home },
@@ -636,8 +636,8 @@ export const CustomerDashboard: React.FC<CustomerDashboardProps> = ({
                               onClick={() => setFormLabel(lbl.id as any)}
                               className={`p-3 rounded-xl border-2 flex flex-col sm:flex-row items-center justify-center gap-1.5 transition-all cursor-pointer font-bold ${
                                 isSelected
-                                  ? 'bg-red-600 text-white border-red-500 font-black'
-                                  : 'border-zinc-700 bg-zinc-900 text-zinc-300 hover:border-zinc-500'
+                                  ? 'bg-[#E30613] text-white border-[#E30613] font-black'
+                                  : 'border-[#E5E5E5] bg-[#F8F8F7] text-[#555555] hover:border-[#E5E5E5]'
                               }`}
                             >
                               <Icon size={14} />
@@ -651,63 +651,63 @@ export const CustomerDashboard: React.FC<CustomerDashboardProps> = ({
                     {/* Name & Phone fields */}
                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                       <div className="space-y-1.5">
-                        <label className="text-[10px] text-zinc-400 font-mono block uppercase">Recipient Full Name *</label>
+                        <label className="text-[10px] text-[#555555] font-mono block uppercase">Recipient Full Name *</label>
                         <input
                           type="text"
                           required
                           value={formFullName}
                           onChange={(e) => setFormFullName(e.target.value)}
                           placeholder="e.g. Yasin Ahmed"
-                          className="w-full bg-[#0a0a0a] border-2 border-zinc-700 rounded-lg py-2.5 px-3 text-xs text-white placeholder-zinc-500 focus:outline-none focus:border-red-600"
+                          className="w-full bg-[#F8F8F7] border-2 border-[#E5E5E5] rounded-lg py-2.5 px-3 text-xs text-[#0A0A0A] placeholder:text-[#555555] focus:outline-none focus:border-[#E30613]"
                         />
                       </div>
                       <div className="space-y-1.5">
-                        <label className="text-[10px] text-zinc-400 font-mono block uppercase">Active Contact Phone *</label>
+                        <label className="text-[10px] text-[#555555] font-mono block uppercase">Active Contact Phone *</label>
                         <input
                           type="tel"
                           required
                           value={formPhone}
                           onChange={(e) => setFormPhone(e.target.value)}
                           placeholder="e.g. 01840990700"
-                          className="w-full bg-[#0a0a0a] border-2 border-zinc-700 rounded-lg py-2.5 px-3 text-xs text-white placeholder-zinc-500 focus:outline-none focus:border-red-600"
+                          className="w-full bg-[#F8F8F7] border-2 border-[#E5E5E5] rounded-lg py-2.5 px-3 text-xs text-[#0A0A0A] placeholder:text-[#555555] focus:outline-none focus:border-[#E30613]"
                         />
                       </div>
                     </div>
 
                     {/* Detailed Address field */}
                     <div className="space-y-1.5">
-                      <label className="text-[10px] text-zinc-400 font-mono block uppercase">Detailed Delivery Address *</label>
+                      <label className="text-[10px] text-[#555555] font-mono block uppercase">Detailed Delivery Address *</label>
                       <textarea
                         required
                         rows={2}
                         value={formAddressLine1}
                         onChange={(e) => setFormAddressLine1(e.target.value)}
                         placeholder="e.g. Flat 4B, House 12, Road 5, Sector 4, Uttara"
-                        className="w-full bg-[#0a0a0a] border-2 border-zinc-700 rounded-lg py-2.5 px-3 text-xs text-white placeholder-zinc-500 focus:outline-none focus:border-red-600 resize-none"
+                        className="w-full bg-[#F8F8F7] border-2 border-[#E5E5E5] rounded-lg py-2.5 px-3 text-xs text-[#0A0A0A] placeholder:text-[#555555] focus:outline-none focus:border-[#E30613] resize-none"
                       />
                     </div>
 
                     {/* City / District & Postal code fields */}
                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                       <div className="space-y-1.5">
-                        <label className="text-[10px] text-zinc-400 font-mono block uppercase">City / District *</label>
+                        <label className="text-[10px] text-[#555555] font-mono block uppercase">City / District *</label>
                         <input
                           type="text"
                           required
                           value={formCity}
                           onChange={(e) => setFormCity(e.target.value)}
                           placeholder="e.g. Dhaka"
-                          className="w-full bg-[#0a0a0a] border-2 border-zinc-700 rounded-lg py-2.5 px-3 text-xs text-white placeholder-zinc-500 focus:outline-none focus:border-red-600"
+                          className="w-full bg-[#F8F8F7] border-2 border-[#E5E5E5] rounded-lg py-2.5 px-3 text-xs text-[#0A0A0A] placeholder:text-[#555555] focus:outline-none focus:border-[#E30613]"
                         />
                       </div>
                       <div className="space-y-1.5">
-                        <label className="text-[10px] text-zinc-400 font-mono block uppercase">Postal Code (Optional)</label>
+                        <label className="text-[10px] text-[#555555] font-mono block uppercase">Postal Code (Optional)</label>
                         <input
                           type="text"
                           value={formPostalCode}
                           onChange={(e) => setFormPostalCode(e.target.value)}
                           placeholder="e.g. 1230"
-                          className="w-full bg-[#0a0a0a] border-2 border-zinc-700 rounded-lg py-2.5 px-3 text-xs text-white placeholder-zinc-500 focus:outline-none focus:border-red-600"
+                          className="w-full bg-[#F8F8F7] border-2 border-[#E5E5E5] rounded-lg py-2.5 px-3 text-xs text-[#0A0A0A] placeholder:text-[#555555] focus:outline-none focus:border-[#E30613]"
                         />
                       </div>
                     </div>
@@ -720,9 +720,9 @@ export const CustomerDashboard: React.FC<CustomerDashboardProps> = ({
                         checked={formIsDefault}
                         disabled={editingAddressId !== null && addresses.find(a => a.id === editingAddressId)?.isDefault}
                         onChange={(e) => setFormIsDefault(e.target.checked)}
-                        className="w-3.5 h-3.5 accent-red-600 bg-[#0a0a0a] border-zinc-700 rounded"
+                        className="w-3.5 h-3.5 accent-red-600 bg-[#F8F8F7] border-[#E5E5E5] rounded"
                       />
-                      <label htmlFor="formIsDefault" className="text-[10px] text-zinc-300 font-mono cursor-pointer select-none">
+                      <label htmlFor="formIsDefault" className="text-[10px] text-[#555555] font-mono cursor-pointer select-none">
                         Make this my primary default delivery address
                       </label>
                     </div>
@@ -732,14 +732,14 @@ export const CustomerDashboard: React.FC<CustomerDashboardProps> = ({
                   <div className="flex gap-2.5">
                     <button
                       type="submit"
-                      className="bg-red-600 hover:bg-red-700 text-white font-extrabold text-[10px] uppercase tracking-widest py-3 px-6 rounded-xl transition-all cursor-pointer"
+                      className="bg-[#0A0A0A] hover:bg-black text-white font-extrabold text-[10px] uppercase tracking-widest py-3 px-6 rounded-xl transition-all cursor-pointer"
                     >
                       Save Address
                     </button>
                     <button
                       type="button"
                       onClick={() => setIsEditingAddress(false)}
-                      className="bg-zinc-900 hover:bg-zinc-800 border-2 border-zinc-700 text-zinc-200 font-bold text-[10px] uppercase tracking-widest py-3 px-6 rounded-xl transition-all cursor-pointer"
+                      className="bg-[#F8F8F7] hover:bg-[#F8F8F7] border-2 border-[#E5E5E5] text-[#0A0A0A] font-bold text-[10px] uppercase tracking-widest py-3 px-6 rounded-xl transition-all cursor-pointer"
                     >
                       Cancel
                     </button>
@@ -749,8 +749,8 @@ export const CustomerDashboard: React.FC<CustomerDashboardProps> = ({
                 /* SAVED ADDRESSES GRID LIST */
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   {addresses.length === 0 ? (
-                    <div className="col-span-2 text-center py-8 bg-zinc-950 border-2 border-zinc-700 rounded-xl">
-                      <p className="text-sm text-zinc-300 font-mono">No shipping addresses saved yet. Click Add Address to set one up.</p>
+                    <div className="col-span-2 text-center py-8 bg-[#F8F8F7] border-2 border-[#E5E5E5] rounded-xl">
+                      <p className="text-sm text-[#555555] font-mono">No shipping addresses saved yet. Click Add Address to set one up.</p>
                     </div>
                   ) : (
                     addresses.map((addr) => (
@@ -758,8 +758,8 @@ export const CustomerDashboard: React.FC<CustomerDashboardProps> = ({
                         key={addr.id}
                         className={`border-2 p-5 rounded-2xl space-y-3.5 text-xs transition-all flex flex-col justify-between ${
                           addr.isDefault
-                            ? 'border-red-700/70 bg-zinc-950'
-                            : 'border-zinc-700 bg-zinc-900 hover:border-zinc-500'
+                            ? 'border-[#E30613] bg-[#F8F8F7]'
+                            : 'border-[#E5E5E5] bg-[#F8F8F7] hover:border-[#E5E5E5]'
                         }`}
                       >
                         <div className="space-y-2.5">
@@ -768,8 +768,8 @@ export const CustomerDashboard: React.FC<CustomerDashboardProps> = ({
                             <div className="flex items-center gap-1.5 flex-wrap">
                               <span className={`inline-flex items-center gap-1 font-mono text-[9px] font-black px-2.5 py-0.5 rounded-md border ${
                                 addr.label === 'Home'
-                                  ? 'bg-red-600 text-white border-red-500'
-                                  : 'bg-zinc-800 text-zinc-200 border-zinc-600'
+                                  ? 'bg-[#E30613] text-white border-[#E30613]'
+                                  : 'bg-[#F8F8F7] text-[#0A0A0A] border-[#E5E5E5]'
                               }`}>
                                 {addr.label === 'Home' && <Home size={9} />}
                                 {addr.label === 'Office' && <Briefcase size={9} />}
@@ -778,7 +778,7 @@ export const CustomerDashboard: React.FC<CustomerDashboardProps> = ({
                               </span>
 
                               {addr.isDefault && (
-                                <span className="bg-zinc-800 text-zinc-100 font-mono text-[9px] font-bold px-2 py-0.5 rounded-md border border-zinc-600">
+                                <span className="bg-[#F8F8F7] text-[#0A0A0A] font-mono text-[9px] font-bold px-2 py-0.5 rounded-md border border-[#E5E5E5]">
                                   PRIMARY DEFAULT
                                 </span>
                               )}
@@ -787,7 +787,7 @@ export const CustomerDashboard: React.FC<CustomerDashboardProps> = ({
                             {!addr.isDefault && (
                               <button
                                 onClick={() => handleSetDefault(addr.id)}
-                                className="text-zinc-300 hover:text-white text-[9px] font-mono hover:underline cursor-pointer flex items-center gap-0.5"
+                                className="text-[#555555] hover:text-[#0A0A0A] text-[9px] font-mono hover:underline cursor-pointer flex items-center gap-0.5"
                               >
                                 <Check size={10} /> Make Default
                               </button>
@@ -796,30 +796,30 @@ export const CustomerDashboard: React.FC<CustomerDashboardProps> = ({
 
                           {/* Address details */}
                           <div className="space-y-1">
-                            <p className="font-black text-white text-sm">{addr.fullName}</p>
-                            <p className="text-zinc-300 font-medium leading-relaxed">{addr.addressLine1}</p>
-                            <p className="text-zinc-400 font-mono text-[10px]">
+                            <p className="font-black text-[#0A0A0A] text-sm">{addr.fullName}</p>
+                            <p className="text-[#555555] font-medium leading-relaxed">{addr.addressLine1}</p>
+                            <p className="text-[#555555] font-mono text-[10px]">
                               {addr.city}{addr.postalCode && addr.postalCode !== 'N/A' ? ` - ${addr.postalCode}` : ''}
                             </p>
-                            <p className="text-zinc-400 font-mono text-[10px] pt-1 block">
-                              Phone: <span className="text-white font-bold">{addr.phone}</span>
+                            <p className="text-[#555555] font-mono text-[10px] pt-1 block">
+                              Phone: <span className="text-[#0A0A0A] font-bold">{addr.phone}</span>
                             </p>
                           </div>
                         </div>
 
                         {/* Edit & Delete Action Row */}
-                        <div className="flex gap-2.5 pt-3 border-t border-zinc-700 mt-1">
+                        <div className="flex gap-2.5 pt-3 border-t border-[#E5E5E5] mt-1">
                           <button
                             type="button"
                             onClick={() => handleOpenEditForm(addr)}
-                            className="text-zinc-300 hover:text-white text-[10px] font-bold flex items-center gap-1 cursor-pointer transition-colors"
+                            className="text-[#555555] hover:text-[#0A0A0A] text-[10px] font-bold flex items-center gap-1 cursor-pointer transition-colors"
                           >
                             <Edit size={12} /> Edit
                           </button>
                           <button
                             type="button"
                             onClick={() => handleDeleteAddress(addr.id, addr.isDefault)}
-                            className="text-red-500 hover:text-red-400 text-[10px] font-bold flex items-center gap-1 cursor-pointer transition-colors ml-auto"
+                            className="text-[#E30613] hover:text-[#E30613] text-[10px] font-bold flex items-center gap-1 cursor-pointer transition-colors ml-auto"
                           >
                             <Trash2 size={12} /> Delete
                           </button>

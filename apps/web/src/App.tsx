@@ -274,37 +274,38 @@ const DEFAULT_APP_CONFIG: AppConfig = {
     { id: 'MLS', name: 'MLS', slug: 'mls', isCustom: false, visible: true, sections: [] },
     { id: 'Other Leagues', name: 'Other Leagues', slug: 'other-leagues', isCustom: false, visible: true, sections: [] },
     { id: 'International Teams', name: 'International Teams', slug: 'international-teams', isCustom: false, visible: true, sections: [] },
-    { id: 'Clearance', name: 'Outlet', slug: 'outlet', isCustom: false, visible: true, sections: [] },
+    { id: 'Clearance', name: 'Catalog', slug: 'catalog', isCustom: false, visible: true, sections: [] },
   ],
   homepageSections: [
-    { id: 'hero-slider', name: 'Hero Banner Slider', visible: true, bgColor: 'bg-black', padding: 'py-0', margin: 'my-0', title: 'WORLD CUP 2026 EDITION', subtitle: 'The Grandest Stage of Football', status: 'active' },
-    { id: 'trending-searches', name: 'Trending Searches bar', visible: true, bgColor: 'bg-black', padding: 'py-3.5', margin: 'my-2', status: 'active' },
-    { id: 'live-auction', name: 'Bidding & Live Auctions', visible: false, bgColor: 'bg-black', padding: 'py-12', margin: 'my-0', status: 'inactive' },
-    { id: 'daily-deals', name: 'Daily Deals Countdown', visible: false, bgColor: 'bg-black', padding: 'py-12', margin: 'my-4', title: 'LIMITED DAILY DEAL DECK', subtitle: '24-hour flash sale on ultra rare collectibles', status: 'inactive' },
-    { id: 'featured-collection', name: 'Featured Collection Row', visible: true, bgColor: 'bg-black', padding: 'py-12', margin: 'my-0', title: 'VERIFIED FEATURED CLASSICS', subtitle: 'Curated 1-of-1 historic collectibles', status: 'active', sectionType: 'product-row', productCategory: 'Featured', buttonText: 'VIEW ALL', buttonUrl: 'listing', maxProducts: 4 },
-    { id: 'latest-products', name: 'Latest Products Row', visible: true, bgColor: 'bg-black', padding: 'py-12', margin: 'my-0', title: 'LATEST WORKSHOP DROPS', subtitle: 'Freshly authenticated physical catalog arrivals', status: 'active', sectionType: 'product-row', productCategory: 'New In', buttonText: '', maxProducts: 4 },
-    { id: 'retro-collection', name: 'Retro Collection Row', visible: true, bgColor: 'bg-black', padding: 'py-12', margin: 'my-0', title: 'RETRO', subtitle: 'Rare 80s, 90s & 2000s vintage reissues', status: 'active', sectionType: 'product-row', productCategory: 'Retro', buttonText: 'VIEW ALL', buttonUrl: 'listing', maxProducts: 4 },
-    { id: 'product-row-la-liga', name: 'La Liga Row', visible: true, bgColor: 'bg-black', padding: 'py-12', margin: 'my-0', title: 'LA LIGA', subtitle: 'Shop La Liga — curated picks for collectors', status: 'active', sectionType: 'product-row', productCategory: 'La Liga', buttonText: 'VIEW ALL', buttonUrl: 'listing', maxProducts: 4 },
-    { id: 'product-row-world-cup', name: 'World Cup Row', visible: true, bgColor: 'bg-black', padding: 'py-12', margin: 'my-0', title: 'WORLD CUP', subtitle: 'National team World Cup kits & vault classics', status: 'active', sectionType: 'product-row', productCategory: 'World Cup', buttonText: 'VIEW ALL', buttonUrl: 'listing', maxProducts: 4 },
-    { id: 'player-edition', name: 'Player Edition Row', visible: true, bgColor: 'bg-black', padding: 'py-12', margin: 'my-0', title: 'PLAYER EDITION', subtitle: 'Slim-fit match issue quality kits', status: 'active', sectionType: 'product-row', productCategory: 'Player Edition', buttonText: 'VIEW ALL', buttonUrl: 'listing', maxProducts: 4 },
-    { id: 'kids-collection', name: 'Kids Collection Row', visible: true, bgColor: 'bg-black', padding: 'py-12', margin: 'my-0', title: 'KIDS', subtitle: 'Junior kits sized for ages 1–14', status: 'active', sectionType: 'product-row', productCategory: 'Kids', buttonText: 'VIEW ALL', buttonUrl: 'listing', maxProducts: 4 },
-    { id: 'customised-kit', name: 'Customised Kit Row', visible: true, bgColor: 'bg-black', padding: 'py-12', margin: 'my-0', title: 'CUSTOMISED KIT', subtitle: 'Custom printed kits with full size guide', status: 'active', sectionType: 'product-row', productCategory: 'Customised Kit', buttonText: 'VIEW ALL', buttonUrl: 'listing', maxProducts: 4 },
-    { id: 'fan-edition', name: 'Fan Edition Row', visible: true, bgColor: 'bg-black', padding: 'py-12', margin: 'my-0', title: 'FAN EDITION', subtitle: 'Comfortable stadium fan-fit replicas', status: 'active', sectionType: 'product-row', productCategory: 'Fan Edition', buttonText: 'VIEW ALL', buttonUrl: 'listing', maxProducts: 4 },
-    { id: 'preorder-jacket', name: 'Pre-Order Jacket Row', visible: true, bgColor: 'bg-black', padding: 'py-12', margin: 'my-0', title: 'PRE-ORDER · JACKET', subtitle: 'Reserve jackets before they land in Dhaka', status: 'active', sectionType: 'product-row', productCategory: 'Jacket', buttonText: 'VIEW ALL', buttonUrl: 'listing', maxProducts: 4 },
-    { id: 'preorder-track-suit', name: 'Pre-Order Track Suit Row', visible: true, bgColor: 'bg-black', padding: 'py-12', margin: 'my-0', title: 'PRE-ORDER · TRACK SUIT', subtitle: 'Upcoming track suit drops — reserve yours', status: 'active', sectionType: 'product-row', productCategory: 'Track Suit', buttonText: 'VIEW ALL', buttonUrl: 'listing', maxProducts: 4 },
-    { id: 'preorder-badminton', name: 'Pre-Order Badminton Row', visible: true, bgColor: 'bg-black', padding: 'py-12', margin: 'my-0', title: 'PRE-ORDER · BADMINTON RACKET', subtitle: 'Badminton rackets available for pre-order', status: 'active', sectionType: 'product-row', productCategory: 'Badminton Racket', buttonText: 'VIEW ALL', buttonUrl: 'listing', maxProducts: 4 },
-    { id: 'worldcup-collection', name: 'World Cup Vault Section', visible: false, bgColor: 'bg-black', padding: 'py-12', margin: 'my-0', title: 'WORLD CUP HERITAGE VAULT', subtitle: 'Historical match issue kits from 1970 to 2026', status: 'inactive' },
-    { id: 'current-season', name: 'Current Season Row', visible: true, bgColor: 'bg-black', padding: 'py-12', margin: 'my-0', title: 'CURRENT SEASON STOCK', subtitle: 'Direct from authorized team supplier docks', status: 'active', sectionType: 'product-row', productCategory: 'Current Season', buttonText: 'EXPLORE MODERN', buttonUrl: 'listing', maxProducts: 4 },
-    { id: 'mystery-box', name: 'Mystery Box Challenge', visible: false, bgColor: 'bg-black', padding: 'py-14', margin: 'my-6', title: 'THE VAULT MYSTERY BOX', subtitle: 'Receive one random 100% authentic retro or modern kit with premium certificates', status: 'inactive' },
-    { id: 'clearance', name: 'Clearance & Sale Rack', visible: true, bgColor: 'bg-black', padding: 'py-12', margin: 'my-0', title: 'OUTLET CLEARANCE SALE', subtitle: 'End of collection deadstock at cost prices', status: 'active', sectionType: 'product-row', productCategory: 'Clearance', buttonText: 'EXPLORE OUTLET', buttonUrl: 'listing', maxProducts: 4 },
-    { id: 'best-sellers', name: 'Best Sellers Grid', visible: true, bgColor: 'bg-black', padding: 'py-12', margin: 'my-0', title: 'BEST SELLERS', subtitle: 'Most reviewed and requested reissues', status: 'active', sectionType: 'product-row', productCategory: 'Best Sellers', buttonText: 'VIEW ALL', buttonUrl: 'listing', maxProducts: 4 },
-    { id: 'shop-by-legends', name: 'Shop by Legends portraits', visible: false, bgColor: 'bg-black', padding: 'py-12', margin: 'my-0', title: 'THE LEGENDS STORE', subtitle: 'Embroidered match prints of historical deities', status: 'inactive' },
-    { id: 'community-gallery', name: 'Dhaka Fan Community Gallery', visible: true, bgColor: 'bg-black', padding: 'py-12', margin: 'my-0', title: 'COLLECTORS IN DHAKA', subtitle: 'Fan gallery sharing local unboxings on Bailey Road', status: 'active' },
-    { id: 'testimonials', name: 'Testimonials Deck', visible: true, bgColor: 'bg-black', padding: 'py-12', margin: 'my-0', title: 'WHAT COLLECTORS DECLARE', subtitle: 'Genuine reviews from verified buyers', status: 'active' },
-    { id: 'video-banner', name: 'Video Feature Banner', visible: false, bgColor: 'bg-black', padding: 'py-16', margin: 'my-0', title: 'THE ART OF AUTHENTICATION', subtitle: 'A look inside our 12-point micro-fabric check laboratory in Dhaka', status: 'inactive' },
-    { id: 'instagram-feed', name: 'Instagram Feed Mockup', visible: false, bgColor: 'bg-black', padding: 'py-12', margin: 'my-0', title: 'FOLLOW @JERSEYADDICTS_BD', subtitle: 'Daily vintage drops, buyer photos, and restocks', status: 'inactive' },
-    { id: 'newsletter', name: 'Newsletter Subscription', visible: false, bgColor: 'bg-black', padding: 'py-12', margin: 'my-4', title: 'JOIN THE EXCLUSIVE CIRCLE', subtitle: 'Be first to receive physical workshop inventory arrivals', status: 'inactive' },
-    { id: 'store-locations', name: 'Physical Store Maps', visible: true, bgColor: 'bg-black', padding: 'py-12', margin: 'my-0', title: 'PHYSICAL OUTLET POINTS', subtitle: 'Visit us for physical sizing and authentications', status: 'active' }
+    { id: 'hero-slider', name: 'Hero Banner Slider', visible: true, bgColor: 'bg-transparent', padding: 'py-0', margin: 'my-0', title: 'WORLD CUP 2026 EDITION', subtitle: 'The Grandest Stage of Football', status: 'active' },
+    { id: 'trending-searches', name: 'Trending Searches bar', visible: true, bgColor: 'bg-transparent', padding: 'py-3.5', margin: 'my-2', status: 'active' },
+    { id: 'live-auction', name: 'Bidding & Live Auctions', visible: false, bgColor: 'bg-transparent', padding: 'py-12', margin: 'my-0', status: 'inactive' },
+    { id: 'daily-deals', name: 'Daily Deals Countdown', visible: false, bgColor: 'bg-transparent', padding: 'py-12', margin: 'my-4', title: 'LIMITED DAILY DEAL DECK', subtitle: '24-hour flash sale on ultra rare collectibles', status: 'inactive' },
+    { id: 'featured-collection', name: 'Featured Collection Row', visible: true, bgColor: 'bg-transparent', padding: 'py-12', margin: 'my-0', title: 'VERIFIED FEATURED CLASSICS', subtitle: 'Curated 1-of-1 historic collectibles', status: 'active', sectionType: 'product-row', productCategory: 'Featured', buttonText: 'VIEW ALL', buttonUrl: 'listing', maxProducts: 4 },
+    { id: 'latest-products', name: 'Latest Products Row', visible: true, bgColor: 'bg-transparent', padding: 'py-12', margin: 'my-0', title: 'LATEST WORKSHOP DROPS', subtitle: 'Freshly authenticated physical catalog arrivals', status: 'active', sectionType: 'product-row', productCategory: 'New In', buttonText: 'VIEW ALL', buttonUrl: 'listing', maxProducts: 8 },
+    { id: 'all-jerseys', name: 'All Jerseys Row', visible: true, bgColor: 'bg-transparent', padding: 'py-12', margin: 'my-0', title: 'ALL JERSEYS', subtitle: 'Complete storefront catalog — every kit in stock', status: 'active', sectionType: 'product-row', productCategory: 'All', buttonText: 'VIEW ALL', buttonUrl: 'listing', maxProducts: 500 },
+    { id: 'retro-collection', name: 'Retro Collection Row', visible: true, bgColor: 'bg-transparent', padding: 'py-12', margin: 'my-0', title: 'RETRO', subtitle: 'Rare 80s, 90s & 2000s vintage reissues', status: 'active', sectionType: 'product-row', productCategory: 'Retro', buttonText: 'VIEW ALL', buttonUrl: 'listing', maxProducts: 4 },
+    { id: 'product-row-la-liga', name: 'La Liga Row', visible: true, bgColor: 'bg-transparent', padding: 'py-12', margin: 'my-0', title: 'LA LIGA', subtitle: 'Shop La Liga — curated picks for collectors', status: 'active', sectionType: 'product-row', productCategory: 'La Liga', buttonText: 'VIEW ALL', buttonUrl: 'listing', maxProducts: 4 },
+    { id: 'product-row-world-cup', name: 'World Cup Row', visible: true, bgColor: 'bg-transparent', padding: 'py-12', margin: 'my-0', title: 'WORLD CUP', subtitle: 'National team World Cup kits & vault classics', status: 'active', sectionType: 'product-row', productCategory: 'World Cup', buttonText: 'VIEW ALL', buttonUrl: 'listing', maxProducts: 4 },
+    { id: 'player-edition', name: 'Player Edition Row', visible: true, bgColor: 'bg-transparent', padding: 'py-12', margin: 'my-0', title: 'PLAYER EDITION', subtitle: 'Slim-fit match issue quality kits', status: 'active', sectionType: 'product-row', productCategory: 'Player Edition', buttonText: 'VIEW ALL', buttonUrl: 'listing', maxProducts: 4 },
+    { id: 'kids-collection', name: 'Kids Collection Row', visible: true, bgColor: 'bg-transparent', padding: 'py-12', margin: 'my-0', title: 'KIDS', subtitle: 'Junior kits sized for ages 1–14', status: 'active', sectionType: 'product-row', productCategory: 'Kids', buttonText: 'VIEW ALL', buttonUrl: 'listing', maxProducts: 4 },
+    { id: 'customised-kit', name: 'Customised Kit Row', visible: true, bgColor: 'bg-transparent', padding: 'py-12', margin: 'my-0', title: 'CUSTOMISED KIT', subtitle: 'Custom printed kits with full size guide', status: 'active', sectionType: 'product-row', productCategory: 'Customised Kit', buttonText: 'VIEW ALL', buttonUrl: 'listing', maxProducts: 4 },
+    { id: 'fan-edition', name: 'Fan Edition Row', visible: true, bgColor: 'bg-transparent', padding: 'py-12', margin: 'my-0', title: 'FAN EDITION', subtitle: 'Comfortable stadium fan-fit replicas', status: 'active', sectionType: 'product-row', productCategory: 'Fan Edition', buttonText: 'VIEW ALL', buttonUrl: 'listing', maxProducts: 4 },
+    { id: 'preorder-jacket', name: 'Pre-Order Jacket Row', visible: true, bgColor: 'bg-transparent', padding: 'py-12', margin: 'my-0', title: 'PRE-ORDER · JACKET', subtitle: 'Reserve jackets before they land in Dhaka', status: 'active', sectionType: 'product-row', productCategory: 'Jacket', buttonText: 'VIEW ALL', buttonUrl: 'listing', maxProducts: 4 },
+    { id: 'preorder-track-suit', name: 'Pre-Order Track Suit Row', visible: true, bgColor: 'bg-transparent', padding: 'py-12', margin: 'my-0', title: 'PRE-ORDER · TRACK SUIT', subtitle: 'Upcoming track suit drops — reserve yours', status: 'active', sectionType: 'product-row', productCategory: 'Track Suit', buttonText: 'VIEW ALL', buttonUrl: 'listing', maxProducts: 4 },
+    { id: 'preorder-badminton', name: 'Pre-Order Badminton Row', visible: true, bgColor: 'bg-transparent', padding: 'py-12', margin: 'my-0', title: 'PRE-ORDER · BADMINTON RACKET', subtitle: 'Badminton rackets available for pre-order', status: 'active', sectionType: 'product-row', productCategory: 'Badminton Racket', buttonText: 'VIEW ALL', buttonUrl: 'listing', maxProducts: 4 },
+    { id: 'worldcup-collection', name: 'World Cup Vault Section', visible: false, bgColor: 'bg-transparent', padding: 'py-12', margin: 'my-0', title: 'WORLD CUP HERITAGE VAULT', subtitle: 'Historical match issue kits from 1970 to 2026', status: 'inactive' },
+    { id: 'current-season', name: 'Current Season Row', visible: true, bgColor: 'bg-transparent', padding: 'py-12', margin: 'my-0', title: 'CURRENT SEASON STOCK', subtitle: 'Direct from authorized team supplier docks', status: 'active', sectionType: 'product-row', productCategory: 'Current Season', buttonText: 'EXPLORE MODERN', buttonUrl: 'listing', maxProducts: 4 },
+    { id: 'mystery-box', name: 'Mystery Box Challenge', visible: false, bgColor: 'bg-transparent', padding: 'py-14', margin: 'my-6', title: 'THE VAULT MYSTERY BOX', subtitle: 'Receive one random 100% authentic retro or modern kit with premium certificates', status: 'inactive' },
+    { id: 'best-sellers', name: 'Best Sellers Grid', visible: true, bgColor: 'bg-transparent', padding: 'py-12', margin: 'my-0', title: 'BEST SELLERS', subtitle: 'Most reviewed and requested reissues', status: 'active', sectionType: 'product-row', productCategory: 'Best Sellers', buttonText: 'VIEW ALL', buttonUrl: 'listing', maxProducts: 4 },
+    { id: 'shop-by-legends', name: 'Shop by Legends portraits', visible: false, bgColor: 'bg-transparent', padding: 'py-12', margin: 'my-0', title: 'THE LEGENDS STORE', subtitle: 'Embroidered match prints of historical deities', status: 'inactive' },
+    { id: 'community-gallery', name: 'Dhaka Fan Community Gallery', visible: false, bgColor: 'bg-transparent', padding: 'py-12', margin: 'my-0', title: 'COLLECTORS IN DHAKA', subtitle: 'Fan gallery sharing local unboxings on Bailey Road', status: 'inactive' },
+    { id: 'testimonials', name: 'Testimonials Deck', visible: false, bgColor: 'bg-transparent', padding: 'py-12', margin: 'my-0', title: 'WHAT COLLECTORS DECLARE', subtitle: 'Genuine reviews from verified buyers', status: 'inactive' },
+    { id: 'video-banner', name: 'Video Feature Banner', visible: false, bgColor: 'bg-transparent', padding: 'py-16', margin: 'my-0', title: 'THE ART OF AUTHENTICATION', subtitle: 'A look inside our 12-point micro-fabric check laboratory in Dhaka', status: 'inactive' },
+    { id: 'instagram-feed', name: 'Instagram Feed Mockup', visible: false, bgColor: 'bg-transparent', padding: 'py-12', margin: 'my-0', title: 'FOLLOW @JERSEYADDICTS_BD', subtitle: 'Daily vintage drops, buyer photos, and restocks', status: 'inactive' },
+    { id: 'newsletter', name: 'Newsletter Subscription', visible: false, bgColor: 'bg-transparent', padding: 'py-12', margin: 'my-4', title: 'JOIN THE EXCLUSIVE CIRCLE', subtitle: 'Be first to receive physical workshop inventory arrivals', status: 'inactive' },
+    { id: 'clearance', name: 'Catalog Row', visible: true, bgColor: 'bg-transparent', padding: 'py-12', margin: 'my-0', title: 'CATALOG', subtitle: 'Browse the full Catalog collection', status: 'active', sectionType: 'product-row', productCategory: 'Clearance', buttonText: 'VIEW CATALOG', buttonUrl: 'listing', maxProducts: 4 },
+    { id: 'store-locations', name: 'Physical Store Maps', visible: true, bgColor: 'bg-transparent', padding: 'py-12', margin: 'my-0', title: 'PHYSICAL OUTLET POINTS', subtitle: 'Visit us for physical sizing and authentications', status: 'active' }
   ],
   banners: [
     {
@@ -574,7 +575,7 @@ const DEFAULT_APP_CONFIG: AppConfig = {
     { id: 'nav-main-6', name: 'MLS', placement: 'Main Menu', parentId: null, icon: 'Star', order: 6, url: 'MLS', status: 'Active' },
     { id: 'nav-main-7', name: 'Other Leagues', placement: 'Main Menu', parentId: null, icon: 'Globe', order: 7, url: 'Other Leagues', status: 'Active' },
     { id: 'nav-main-8', name: 'International Teams', placement: 'Main Menu', parentId: null, icon: 'Globe', order: 8, url: 'International Teams', status: 'Active' },
-    { id: 'nav-main-9', name: 'Outlet', placement: 'Main Menu', parentId: null, icon: 'Tag', order: 9, url: 'Clearance', status: 'Active' },
+    { id: 'nav-main-9', name: 'Catalog', placement: 'Main Menu', parentId: null, icon: 'Tag', order: 9, url: 'Clearance', status: 'Active' },
 
     // Mega Menu (opened via MORE)
     { id: 'nav-mega-cat-1', name: 'Top Clubs', placement: 'Mega Menu', parentId: null, icon: 'Trophy', order: 1, url: '#listing', status: 'Active' },
@@ -802,12 +803,10 @@ export default function App() {
             if (s.id === 'customised-kit') return { ...s, visible: true, status: 'active', sectionType: 'product-row', productCategory: s.productCategory || 'Customised Kit', buttonText: s.buttonText ?? 'VIEW ALL', buttonUrl: s.buttonUrl || 'listing', maxProducts: s.maxProducts ?? 4 };
             if (s.id === 'fan-edition') return { ...s, visible: true, status: 'active', sectionType: 'product-row', productCategory: s.productCategory || 'Fan Edition', buttonText: s.buttonText ?? 'VIEW ALL', buttonUrl: s.buttonUrl || 'listing', maxProducts: s.maxProducts ?? 4 };
             if (s.id === 'current-season') return { ...s, sectionType: 'product-row', productCategory: s.productCategory || 'Current Season', buttonText: s.buttonText ?? 'EXPLORE MODERN', buttonUrl: s.buttonUrl || 'listing', maxProducts: s.maxProducts ?? 4 };
-            if (s.id === 'clearance') return { ...s, sectionType: 'product-row', productCategory: s.productCategory || 'Clearance', buttonText: s.buttonText ?? 'EXPLORE OUTLET', buttonUrl: s.buttonUrl || 'listing', maxProducts: s.maxProducts ?? 4 };
-            if (s.id === 'latest-products') return { ...s, sectionType: 'product-row', productCategory: s.productCategory || 'New In', buttonText: s.buttonText ?? '', maxProducts: s.maxProducts ?? 4 };
-            if (s.id === 'hero-slider') return { ...s, visible: true, status: 'active', bgColor: 'bg-black', padding: 'py-0', margin: 'my-0' };
-            if (s.id === 'community-gallery') {
-              return { ...s, visible: true, status: 'active', title: 'COLLECTORS IN DHAKA', subtitle: 'Fan gallery sharing local unboxings on Bailey Road' };
-            }
+            if (s.id === 'clearance') return { ...s, sectionType: 'product-row', productCategory: s.productCategory || 'Clearance', title: s.title?.includes('OUTLET') ? 'CATALOG' : (s.title || 'CATALOG'), buttonText: /outlet/i.test(s.buttonText || '') ? 'VIEW CATALOG' : (s.buttonText ?? 'VIEW CATALOG'), buttonUrl: s.buttonUrl || 'listing', maxProducts: s.maxProducts ?? 4 };
+            if (s.id === 'latest-products') return { ...s, visible: true, status: 'active', sectionType: 'product-row', productCategory: s.productCategory || 'New In', buttonText: s.buttonText ?? 'VIEW ALL', buttonUrl: s.buttonUrl || 'listing', maxProducts: Math.max(8, s.maxProducts ?? 8) };
+            if (s.id === 'all-jerseys') return { ...s, visible: true, status: 'active', sectionType: 'product-row', productCategory: 'All', buttonText: s.buttonText ?? 'VIEW ALL', buttonUrl: s.buttonUrl || 'listing', maxProducts: Math.max(500, s.maxProducts ?? 500) };
+            if (s.id === 'hero-slider') return { ...s, visible: true, status: 'active', bgColor: 'bg-transparent', padding: 'py-0', margin: 'my-0' };
             return s;
           });
           parsed.homepageSections = normalizeHomepageSections(parsed.homepageSections);
@@ -2176,7 +2175,7 @@ export default function App() {
         p.category !== 'Mystery' &&
         !/mystery/i.test(p.name) &&
         p.id !== 'shirt-7' &&
-        (!p.status || p.status === 'Active') &&
+        (!p.status || p.status === 'Active' || p.status === 'Draft') &&
         !p.isTrashed &&
         !p.isArchived
     );
@@ -2260,7 +2259,7 @@ export default function App() {
   };
 
   const getThemeBgClass = () => {
-    return 'bg-[#121212]';
+    return 'bg-[#F8F8F7]';
   };
 
   const formatPrice = (amount: number): string => {
@@ -2272,7 +2271,7 @@ export default function App() {
   const isAdminShell = currentPage === 'admin' || currentPage === 'auth';
 
   return (
-    <div className={`min-h-screen w-full min-w-0 overflow-x-hidden bg-black text-white selection:bg-red-600 selection:text-white flex flex-col justify-between`}>
+    <div className={`min-h-screen w-full min-w-0 overflow-x-hidden bg-transparent text-[#0A0A0A] selection:bg-[#E30613] selection:text-white storefront-shell flex flex-col justify-between`}>
       <UiFeedbackHost />
 
       {/* Storefront chrome — hidden on secret admin portal */}
@@ -2421,16 +2420,16 @@ export default function App() {
           <section className="max-w-7xl mx-auto px-4 md:px-12 py-6 sm:py-10 min-h-screen w-full min-w-0 overflow-x-hidden">
             
             {/* Catalog Banner */}
-            <div className="border-b border-zinc-800 pb-6 mb-6 sm:mb-8 flex flex-col md:flex-row justify-between items-start md:items-end gap-4">
+            <div className="border-b border-[#E5E5E5] pb-6 mb-6 sm:mb-8 flex flex-col md:flex-row justify-between items-start md:items-end gap-4">
               <div className="min-w-0">
-                <h1 className="text-xl sm:text-2xl md:text-3xl font-black uppercase tracking-tight text-white font-display break-words">
+                <h1 className="text-xl sm:text-2xl md:text-3xl font-black uppercase tracking-tight text-[#0A0A0A] font-display break-words">
                   {selectedCategory && selectedCategory !== 'All'
                     ? resolveStorefrontPage(selectedCategory)
                       ? canonicalTargetPageName(selectedCategory)
                       : selectedCategory
                     : 'All Jerseys'}
                 </h1>
-                <p className="text-xs text-zinc-400 font-mono mt-1">
+                <p className="text-xs text-[#555555] font-mono mt-1">
                   Showing {filteredProducts.length} verified original jerseys
                   {(!selectedCategory || selectedCategory === 'All') && selectedBrand === 'All' && selectedCondition === 'All' && !searchQuery
                     ? ' · full stock'
@@ -2444,7 +2443,7 @@ export default function App() {
               {(selectedBrand !== 'All' || selectedCategory !== 'All' || selectedCondition !== 'All' || searchQuery !== '') && (
                 <button
                   onClick={resetFilters}
-                  className="bg-red-50 border border-red-200 text-red-700 text-[11px] font-mono px-3.5 py-1.5 rounded-full flex items-center gap-1.5 cursor-pointer hover:bg-red-100"
+                  className="bg-red-50 border border-red-200 text-[#E30613] text-[11px] font-mono px-3.5 py-1.5 rounded-full flex items-center gap-1.5 cursor-pointer hover:bg-red-100"
                 >
                   <RotateCcw size={11} /> Clear All Filter Parameters
                 </button>
@@ -2459,43 +2458,43 @@ export default function App() {
                 <button
                   type="button"
                   onClick={() => setMobileFiltersOpen((open) => !open)}
-                  className="w-full flex items-center justify-center gap-2 bg-zinc-900 border border-zinc-800 text-zinc-100 text-xs font-bold uppercase tracking-wider py-3 rounded-xl cursor-pointer"
+                  className="w-full flex items-center justify-center gap-2 bg-white border border-[#E5E5E5] text-[#0A0A0A] text-xs font-bold uppercase tracking-wider py-3 rounded-xl cursor-pointer"
                 >
                   <SlidersHorizontal size={14} />
                   {mobileFiltersOpen ? 'Hide Filters' : 'Show Filters'}
                   {(selectedBrand !== 'All' || selectedCategory !== 'All' || selectedCondition !== 'All' || searchQuery !== '') && (
-                    <span className="bg-zinc-700 text-white text-[9px] font-black px-2 py-0.5 rounded-full">Active</span>
+                    <span className="bg-[#E30613] text-white text-[9px] font-black px-2 py-0.5 rounded-full">Active</span>
                   )}
                 </button>
               </div>
               
               {/* Left Column: Filter Sidebar */}
-              <div className={`lg:col-span-3 bg-[#121212] border border-zinc-800 rounded-2xl p-4 sm:p-6 space-y-6 shadow-sm w-full min-w-0 ${mobileFiltersOpen ? 'block' : 'hidden lg:block'}`}>
+              <div className={`lg:col-span-3 bg-white border border-[#E5E5E5] rounded-2xl p-4 sm:p-6 space-y-6 shadow-sm w-full min-w-0 ${mobileFiltersOpen ? 'block' : 'hidden lg:block'}`}>
                 
-                <div className="flex justify-between items-center border-b border-zinc-800 pb-2">
-                  <h3 className="text-xs font-mono font-black text-zinc-400 uppercase tracking-widest flex items-center gap-1.5">
+                <div className="flex justify-between items-center border-b border-[#E5E5E5] pb-2">
+                  <h3 className="text-xs font-mono font-black text-[#555555] uppercase tracking-widest flex items-center gap-1.5">
                     <SlidersHorizontal size={13} /> Filter Engine
                   </h3>
-                  <button onClick={resetFilters} className="text-[10px] text-zinc-600 hover:text-zinc-100 font-mono uppercase">
+                  <button onClick={resetFilters} className="text-[10px] text-[#555555] hover:text-[#0A0A0A] font-mono uppercase">
                     Reset
                   </button>
                 </div>
 
                 {/* Search */}
                 <div className="space-y-2">
-                  <span className="text-[10px] text-zinc-300 font-mono font-bold uppercase tracking-wider block">Keyword Search:</span>
+                  <span className="text-[10px] text-[#555555] font-mono font-bold uppercase tracking-wider block">Keyword Search:</span>
                   <input
                     type="text"
                     placeholder="Search player, club, SKU..."
                     value={searchQuery}
                     onChange={(e) => setSearchQuery(e.target.value)}
-                    className="w-full bg-zinc-900 border border-zinc-800 rounded-xl py-2 px-3 text-white placeholder-zinc-500 text-xs focus:outline-none focus:border-red-600 focus:ring-1 focus:ring-red-600/10 font-mono"
+                    className="w-full bg-[#F8F8F7] border border-[#E5E5E5] rounded-xl py-2 px-3 text-[#0A0A0A] placeholder:text-[#555555] text-xs focus:outline-none focus:border-[#E30613] focus:ring-1 focus:ring-[#E30613]/10 font-mono"
                   />
                 </div>
 
                 {/* Brands */}
                 <div className="space-y-2">
-                  <span className="text-[10px] text-zinc-300 font-mono font-bold uppercase tracking-wider block">Brands:</span>
+                  <span className="text-[10px] text-[#555555] font-mono font-bold uppercase tracking-wider block">Brands:</span>
                   <div className="space-y-1.5 max-h-48 overflow-y-auto pr-1">
                     {listingFilterOptions.brands.map((b) => (
                       <button
@@ -2503,7 +2502,7 @@ export default function App() {
                         key={b}
                         onClick={() => setSelectedBrand(b)}
                         className={`w-full text-left text-xs px-2.5 py-1.5 rounded-lg cursor-pointer transition-colors ${
-                          selectedBrand === b ? 'bg-black text-white font-extrabold shadow-sm' : 'hover:bg-zinc-900 text-zinc-100'
+                          selectedBrand === b ? 'bg-[#0A0A0A] text-white font-extrabold shadow-sm' : 'hover:bg-[#F8F8F7] text-[#0A0A0A]'
                         }`}
                       >
                         {b}
@@ -2514,7 +2513,7 @@ export default function App() {
 
                 {/* Categories — live values from catalog */}
                 <div className="space-y-2">
-                  <span className="text-[10px] text-zinc-300 font-mono font-bold uppercase tracking-wider block">Category:</span>
+                  <span className="text-[10px] text-[#555555] font-mono font-bold uppercase tracking-wider block">Category:</span>
                   <div className="space-y-1.5 max-h-56 overflow-y-auto pr-1">
                     {listingFilterOptions.categories.map((cat) => {
                       const label = canonicalTargetPageName(cat) || cat;
@@ -2527,7 +2526,7 @@ export default function App() {
                           key={cat}
                           onClick={() => setSelectedCategory(cat)}
                           className={`w-full text-left text-xs px-2.5 py-1.5 rounded-lg cursor-pointer transition-colors ${
-                            selected ? 'bg-black text-white font-extrabold shadow-sm' : 'hover:bg-zinc-900 text-zinc-100'
+                            selected ? 'bg-[#0A0A0A] text-white font-extrabold shadow-sm' : 'hover:bg-[#F8F8F7] text-[#0A0A0A]'
                           }`}
                         >
                           {label}
@@ -2539,7 +2538,7 @@ export default function App() {
 
                 {/* Conditions */}
                 <div className="space-y-2">
-                  <span className="text-[10px] text-zinc-300 font-mono font-bold uppercase tracking-wider block">Condition Matrix:</span>
+                  <span className="text-[10px] text-[#555555] font-mono font-bold uppercase tracking-wider block">Condition Matrix:</span>
                   <div className="space-y-1.5">
                     {listingFilterOptions.conditions.map((cond) => (
                       <button
@@ -2547,7 +2546,7 @@ export default function App() {
                         key={cond}
                         onClick={() => setSelectedCondition(cond)}
                         className={`w-full text-left text-xs px-2.5 py-1.5 rounded-lg cursor-pointer transition-colors ${
-                          selectedCondition === cond ? 'bg-black text-white font-extrabold shadow-sm' : 'hover:bg-zinc-900 text-zinc-100'
+                          selectedCondition === cond ? 'bg-[#0A0A0A] text-white font-extrabold shadow-sm' : 'hover:bg-[#F8F8F7] text-[#0A0A0A]'
                         }`}
                       >
                         {cond}
@@ -2558,11 +2557,11 @@ export default function App() {
 
                 {/* Sorting Select */}
                 <div className="space-y-2">
-                  <span className="text-[10px] text-zinc-300 font-mono font-bold uppercase tracking-wider block">Sort Catalogue:</span>
+                  <span className="text-[10px] text-[#555555] font-mono font-bold uppercase tracking-wider block">Sort Catalogue:</span>
                   <select
                     value={sortBy}
                     onChange={(e) => setSortBy(e.target.value)}
-                    className="w-full bg-zinc-900 border border-zinc-800 rounded-xl py-2 px-3 text-white text-xs focus:outline-none focus:border-red-600"
+                    className="w-full bg-[#F8F8F7] border border-[#E5E5E5] rounded-xl py-2 px-3 text-[#0A0A0A] text-xs focus:outline-none focus:border-[#E30613]"
                   >
                     <option value="featured">Sourced Featured</option>
                     <option value="price-low">Price: Low-to-High</option>
@@ -2578,13 +2577,13 @@ export default function App() {
               {/* Right Column: Active catalog items matching filters */}
               <div className="lg:col-span-9 w-full min-w-0">
                 {filteredProducts.length === 0 ? (
-                  <div className="bg-[#121212] border border-zinc-800 rounded-2xl p-12 text-center space-y-4 shadow-sm">
-                    <p className="text-zinc-300 text-sm max-w-sm mx-auto">
+                  <div className="bg-white border border-[#E5E5E5] rounded-2xl p-12 text-center space-y-4 shadow-sm">
+                    <p className="text-[#555555] text-sm max-w-sm mx-auto">
                       No vintage jerseys found matching the selected search query or category parameters inside the database.
                     </p>
                     <button
                       onClick={resetFilters}
-                      className="bg-red-600 hover:bg-red-700 text-white font-extrabold text-xs uppercase tracking-widest px-6 py-2.5 rounded-full cursor-pointer transition-all shadow-md shadow-black/10"
+                      className="bg-[#0A0A0A] hover:bg-black text-white font-extrabold text-xs uppercase tracking-widest px-6 py-2.5 rounded-full cursor-pointer transition-all shadow-md shadow-black/10"
                     >
                       Clear Active Filters
                     </button>
@@ -2705,7 +2704,7 @@ export default function App() {
                       invoiceElement.scrollIntoView({ behavior: 'smooth' });
                     }
                   }}
-                  className="flex-1 bg-red-600 hover:bg-red-700 text-white font-extrabold text-xs uppercase tracking-widest py-3 rounded-xl cursor-pointer transition-all flex items-center justify-center gap-2"
+                  className="flex-1 bg-black hover:bg-zinc-900 text-white font-extrabold text-xs uppercase tracking-widest py-3 rounded-xl cursor-pointer transition-all flex items-center justify-center gap-2"
                 >
                   <Receipt size={14} /> View Invoice & Bill
                 </button>
@@ -2966,7 +2965,7 @@ export default function App() {
                   setLastPlacedOrder(null);
                   goToPage('listing');
                 }}
-                className="flex-1 bg-red-600 hover:bg-red-700 text-white font-extrabold text-sm uppercase tracking-wide py-3.5 rounded-xl cursor-pointer transition-all flex items-center justify-center gap-2"
+                className="flex-1 bg-black hover:bg-zinc-900 text-white font-extrabold text-sm uppercase tracking-wide py-3.5 rounded-xl cursor-pointer transition-all flex items-center justify-center gap-2"
               >
                 <ShoppingBag size={14} /> Go to Home
               </button>

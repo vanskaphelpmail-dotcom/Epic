@@ -114,6 +114,9 @@ export function toSpaProduct(
     shortDescription: p.shortDescription ?? undefined,
     longDescription: p.longDescription ?? undefined,
     features: p.features,
+    tags: Array.isArray((p as { tags?: string[] }).tags)
+      ? (p as { tags: string[] }).tags
+      : undefined,
     material: p.material ?? undefined,
     dimensions: p.dimensions ?? undefined,
     specification: {

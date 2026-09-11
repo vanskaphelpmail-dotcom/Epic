@@ -176,7 +176,7 @@ export const ProductManager: React.FC<ProductManagerProps> = ({
   const [activeTab, setActiveTab] = useState<'products' | 'inventory' | 'categories' | 'import-export'>('products');
   
   // Product Status Filter (Active | Draft only)
-  const [productStatusFilter, setProductStatusFilter] = useState<'Active' | 'Draft'>('Active');
+  const [productStatusFilter, setProductStatusFilter] = useState<'All' | 'Active' | 'Draft'>('All');
   
   // Inventory Sub-Filter State
   const [inventorySubTab, setInventorySubTab] = useState<'all' | 'low-stock' | 'out-of-stock' | 'clearance' | 'damaged' | 'history'>('all');
@@ -362,6 +362,8 @@ export const ProductManager: React.FC<ProductManagerProps> = ({
   const [pShortDesc, setPShortDesc] = useState('');
   const [pLongDesc, setPLongDesc] = useState('');
   const [pFeatures, setPFeatures] = useState('');
+  const [pTags, setPTags] = useState<string[]>([]);
+  const [pTagDraft, setPTagDraft] = useState('');
   const [pMaterial, setPMaterial] = useState('100% Recycled Polyester Mesh');
   const [pSeason, setPSeason] = useState('2025/2026');
   const [pYear, setPYear] = useState<number>(2026);
@@ -531,6 +533,8 @@ export const ProductManager: React.FC<ProductManagerProps> = ({
     setPShortDesc('');
     setPLongDesc('');
     setPFeatures('Official Patches, Sublimated Sponsor, Vintage Collar');
+    setPTags([]);
+    setPTagDraft('');
     setPMaterial('100% Recycled Polyester Mesh');
     setPSeason('2025/2026');
     setPYear(2026);
@@ -626,9 +630,11 @@ export const ProductManager: React.FC<ProductManagerProps> = ({
     setEditingProduct(product);
     setPName(product.name || '');
     setPSlug(product.slug || '');
-    setPShortDesc(product.shortDescription || product.description || '');
+    setPShortDesc(product.shortDescription || '');
     setPLongDesc(product.longDescription || product.description || '');
     setPFeatures(Array.isArray(product.features) ? product.features.join(', ') : (product.features || ''));
+    setPTags(Array.isArray(product.tags) ? product.tags.slice(0, 8) : []);
+    setPTagDraft('');
     setPMaterial(product.material || product.specification?.material || '100% Polyester');
     setPSeason(product.season || '');
     setPYear(product.year || 2026);
@@ -867,6 +873,8 @@ export const ProductManager: React.FC<ProductManagerProps> = ({
           ? normalizeBarcode(pBarcode) || undefined
           : normalizeBarcode(pBarcode) || generateEan13(resolvedSku);
     const featuresArr = pFeatures ? pFeatures.split(',').map(f => f.trim()).filter(Boolean) : [];
+    const tagsArr = pTags.map((t) => t.trim()).filter(Boolean).slice(0, 8);
+    const longDesc = pLongDesc.slice(0, 1000);
     const selectedPageObj = storefrontPages.find(
       (p) => p.id === pTargetPage || p.name === pTargetPage,
     );
@@ -899,10 +907,11 @@ export const ProductManager: React.FC<ProductManagerProps> = ({
       id: editingProduct ? editingProduct.id : `shirt-${Date.now()}`,
       name: pName,
       slug: finalSlug,
-      shortDescription: pShortDesc,
-      longDescription: pLongDesc,
-      description: pShortDesc || pLongDesc || `${resolvedBrand} ${pName} - ${pSeason}`,
+      shortDescription: pShortDesc || longDesc.slice(0, 160),
+      longDescription: longDesc,
+      description: longDesc || pShortDesc || `${resolvedBrand} ${pName} - ${pSeason}`,
       features: featuresArr,
+      tags: tagsArr,
       material: pMaterial,
       season: pSeason,
       year: Number(pYear) || 2026,
@@ -989,6 +998,7 @@ export const ProductManager: React.FC<ProductManagerProps> = ({
           shortDescription: updatedProduct.shortDescription,
           longDescription: updatedProduct.longDescription,
           features: updatedProduct.features,
+          tags: updatedProduct.tags || [],
           image: updatedProduct.image,
           images: updatedProduct.images || updatedProduct.gallery || [updatedProduct.image],
           brand: updatedProduct.brand,
@@ -1280,41 +1290,142 @@ export const ProductManager: React.FC<ProductManagerProps> = ({
     updateConfig({ ...appConfig, categoryItems: updated });
   };
 
-  // Bulk Export JSON / CSV
+  // Bulk Export JSON / CSV (Excel-compatible)
+  const csvEscape = (value: unknown): string => {
+    const raw = value == null ? '' : String(value);
+    const normalized = raw.replace(/\r\n/g, '\n').replace(/\r/g, '\n');
+    if (/[",\n]/.test(normalized)) {
+      return `"${normalized.replace(/"/g, '""')}"`;
+    }
+    return normalized;
+  };
+
   const handleExportData = (type: 'json' | 'csv') => {
     if (type === 'json') {
-      const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(products, null, 2));
+      const dataStr = 'data:text/json;charset=utf-8,' + encodeURIComponent(JSON.stringify(products, null, 2));
       const downloadAnchor = document.createElement('a');
-      downloadAnchor.setAttribute("href", dataStr);
-      downloadAnchor.setAttribute("download", `jersey_vault_products_${Date.now()}.json`);
+      downloadAnchor.setAttribute('href', dataStr);
+      downloadAnchor.setAttribute('download', `epic_vanskap_products_${Date.now()}.json`);
       document.body.appendChild(downloadAnchor);
       downloadAnchor.click();
       downloadAnchor.remove();
-    } else {
-      // CSV Export
-      const headers = ['id', 'name', 'sku', 'brand', 'season', 'category', 'pageNumber', 'categoryRow', 'costPrice', 'price', 'stock', 'status'];
-      const rows = products.map(p => [
-        p.id,
-        `"${p.name.replace(/"/g, '""')}"`,
-        p.sku,
-        p.brand,
-        p.season,
-        p.category,
-        p.pageNumber || 1,
-        p.categoryRow || 1,
-        p.costPrice || 0,
-        p.price,
-        p.stock,
-        p.status || 'Active'
-      ]);
-      const csvContent = "data:text/csv;charset=utf-8," + [headers.join(','), ...rows.map(e => e.join(','))].join('\n');
-      const downloadAnchor = document.createElement('a');
-      downloadAnchor.setAttribute("href", encodeURI(csvContent));
-      downloadAnchor.setAttribute("download", `jersey_vault_products_${Date.now()}.csv`);
-      document.body.appendChild(downloadAnchor);
-      downloadAnchor.click();
-      downloadAnchor.remove();
+      return;
     }
+
+    // Microsoft Excel CSV: UTF-8 BOM + CRLF + quoted fields
+    const headers = [
+      'ID',
+      'Product Name',
+      'SKU',
+      'Barcode',
+      'Brand',
+      'Season',
+      'Year',
+      'Category',
+      'Categories',
+      'Target Page',
+      'Page Name',
+      'Page Number',
+      'Row Order',
+      'Cost Price (BDT)',
+      'Original Price (BDT)',
+      'Sale Price (BDT)',
+      'Discount (BDT)',
+      'Current Stock',
+      'Alert Threshold',
+      'Sizes',
+      'Size Stocks',
+      'Stock Status',
+      'Clearance',
+      'Damaged',
+      'Damaged Qty',
+      'Pre-Order',
+      'Pre-Order ETA',
+      'Warehouse',
+      'Bin Code',
+      'Gender',
+      'Condition',
+      'Color',
+      'League',
+      'Club',
+      'National Team',
+      'Tags',
+      'Status',
+      'Featured',
+      'Best Seller',
+      'Short Description',
+      'Long Description',
+    ];
+
+    const rows = products.map((p) => {
+      const sizeStocks =
+        p.sizeStocks && typeof p.sizeStocks === 'object'
+          ? Object.entries(p.sizeStocks)
+              .map(([sz, qty]) => `${sz}:${qty}`)
+              .join('; ')
+          : '';
+      const stockQty = Number(p.stock) || 0;
+      const threshold = Number(p.lowStockThreshold) || 0;
+      let stockStatus = 'In Stock';
+      if (stockQty <= 0) stockStatus = 'Out of Stock';
+      else if (threshold > 0 && stockQty <= threshold) stockStatus = 'Low Stock';
+
+      return [
+        p.id,
+        p.name || '',
+        p.sku || '',
+        p.barcode || '',
+        p.brand || '',
+        p.season || '',
+        p.year ?? '',
+        p.category || '',
+        Array.isArray(p.categories) ? p.categories.join('; ') : '',
+        p.targetPage || '',
+        p.pageName || '',
+        p.pageNumber ?? '',
+        p.categoryRow ?? '',
+        p.costPrice ?? '',
+        p.originalPrice ?? '',
+        p.price ?? '',
+        p.discount ?? '',
+        stockQty,
+        threshold,
+        Array.isArray(p.sizes) ? p.sizes.join('; ') : '',
+        sizeStocks,
+        stockStatus,
+        p.isClearance ? 'Yes' : 'No',
+        p.isDamaged ? 'Yes' : 'No',
+        p.damagedQty ?? 0,
+        p.isPreOrder ? 'Yes' : 'No',
+        p.preOrderEta || '',
+        p.warehouse || '',
+        p.binCode || '',
+        p.gender || '',
+        p.condition || '',
+        p.color || '',
+        p.league || '',
+        p.club || '',
+        p.nationalTeam || p.country || '',
+        Array.isArray(p.tags) ? p.tags.join('; ') : '',
+        p.status || 'Active',
+        p.isFeatured ? 'Yes' : 'No',
+        p.isBestSeller ? 'Yes' : 'No',
+        p.shortDescription || '',
+        p.longDescription || p.description || '',
+      ].map(csvEscape);
+    });
+
+    const csvBody = [headers.map(csvEscape).join(','), ...rows.map((r) => r.join(','))].join('\r\n');
+    // BOM helps Excel on Windows detect UTF-8
+    const blob = new Blob(['\uFEFF' + csvBody], { type: 'text/csv;charset=utf-8;' });
+    const url = URL.createObjectURL(blob);
+    const downloadAnchor = document.createElement('a');
+    downloadAnchor.href = url;
+    downloadAnchor.download = `epic_vanskap_inventory_${new Date().toISOString().slice(0, 10)}.csv`;
+    document.body.appendChild(downloadAnchor);
+    downloadAnchor.click();
+    downloadAnchor.remove();
+    URL.revokeObjectURL(url);
   };
 
   // Bulk Import
@@ -1341,11 +1452,13 @@ export const ProductManager: React.FC<ProductManagerProps> = ({
   // Filtered Products List
   const filteredProducts = useMemo(() => {
     return products.filter(p => {
-      // Status Filter (Active | Draft only)
+      // Status Filter (Active | Draft | All)
       if (p.status === 'Trashed' || p.isTrashed) return false;
       if (p.isArchived || p.status === 'Archived') return false;
-      const status = p.status === 'Draft' ? 'Draft' : 'Active';
-      if (status !== productStatusFilter) return false;
+      if (productStatusFilter !== 'All') {
+        const status = p.status === 'Draft' ? 'Draft' : 'Active';
+        if (status !== productStatusFilter) return false;
+      }
 
       // Page Filter
       if (filterPage !== 'All') {
@@ -1452,8 +1565,9 @@ export const ProductManager: React.FC<ProductManagerProps> = ({
 
           <button
             type="button"
-            onClick={() => handleExportData('json')}
+            onClick={() => handleExportData('csv')}
             className="bg-white text-emerald-900 border border-emerald-200 hover:bg-emerald-50 text-xs font-semibold px-3 py-2 rounded-xl transition-all flex items-center gap-1.5 cursor-pointer"
+            title="Export all inventory data as Excel CSV"
           >
             <Download size={14} />
             <span>Bulk Export</span>
@@ -1516,6 +1630,15 @@ export const ProductManager: React.FC<ProductManagerProps> = ({
           {/* Status Sub-Filters & Quick Stats */}
           <div className="flex flex-wrap items-center justify-between gap-3 bg-emerald-50/50 p-3 rounded-2xl border border-emerald-100">
             <div className="flex items-center gap-2">
+              <button
+                type="button"
+                onClick={() => setProductStatusFilter('All')}
+                className={`text-xs font-bold px-3 py-1.5 rounded-lg transition-all cursor-pointer ${
+                  productStatusFilter === 'All' ? 'bg-emerald-800 text-white shadow-sm' : 'bg-white text-emerald-900 border hover:bg-emerald-100'
+                }`}
+              >
+                All ({activeCount + draftCount})
+              </button>
               <button
                 type="button"
                 onClick={() => setProductStatusFilter('Active')}
@@ -2402,16 +2525,25 @@ export const ProductManager: React.FC<ProductManagerProps> = ({
                   </div>
                 </div>
 
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-xs">
+                <div className="grid grid-cols-1 gap-4 text-xs">
                   <div>
-                    <label className="font-bold text-emerald-950 block mb-1">Short Description</label>
-                    <input
-                      type="text"
-                      placeholder="Brief headline summary"
-                      value={pShortDesc}
-                      onChange={(e) => setPShortDesc(e.target.value)}
-                      className="w-full bg-emerald-50/40 border border-emerald-200 rounded-xl px-3 py-2"
+                    <div className="flex items-center justify-between mb-1">
+                      <label className="font-bold text-emerald-950 block">Long Description</label>
+                      <span className={`font-mono text-[10px] ${pLongDesc.length >= 1000 ? 'text-rose-600 font-bold' : 'text-emerald-700'}`}>
+                        {pLongDesc.length}/1000
+                      </span>
+                    </div>
+                    <textarea
+                      rows={4}
+                      maxLength={1000}
+                      placeholder="Full product story, authenticity notes, fit details…"
+                      value={pLongDesc}
+                      onChange={(e) => setPLongDesc(e.target.value.slice(0, 1000))}
+                      className="w-full bg-emerald-50/40 border border-emerald-200 rounded-xl px-3 py-2 resize-y min-h-[96px]"
                     />
+                    <p className="text-[10px] text-emerald-700 font-mono mt-1">
+                      Shown on the product page. Maximum 1000 characters.
+                    </p>
                   </div>
                   <div>
                     <label className="font-bold text-emerald-950 block mb-1">Key Features (Comma Separated)</label>
@@ -2563,6 +2695,76 @@ export const ProductManager: React.FC<ProductManagerProps> = ({
                       onChange={(e) => setPCategoryRow(Number(e.target.value))}
                       className="w-full bg-emerald-50/40 border border-emerald-200 rounded-xl px-3 py-2 font-mono"
                     />
+                  </div>
+
+                  <div className="md:col-span-3">
+                    <div className="flex items-center justify-between mb-1">
+                      <label className="font-bold text-emerald-950 block">
+                        Tags <span className="font-mono text-emerald-700 font-medium">(max 8 · search keywords)</span>
+                      </label>
+                      <span className={`font-mono text-[10px] ${pTags.length >= 8 ? 'text-rose-600 font-bold' : 'text-emerald-700'}`}>
+                        {pTags.length}/8
+                      </span>
+                    </div>
+                    <div className="flex gap-2">
+                      <input
+                        type="text"
+                        value={pTagDraft}
+                        maxLength={48}
+                        placeholder="Type a tag (e.g. AC Milan, Yamal, 2026) then Add"
+                        disabled={pTags.length >= 8}
+                        onChange={(e) => setPTagDraft(e.target.value)}
+                        onKeyDown={(e) => {
+                          if (e.key !== 'Enter') return;
+                          e.preventDefault();
+                          const next = pTagDraft.trim().replace(/^#/, '');
+                          if (!next || pTags.length >= 8) return;
+                          if (pTags.some((t) => t.toLowerCase() === next.toLowerCase())) {
+                            setPTagDraft('');
+                            return;
+                          }
+                          setPTags((prev) => [...prev, next].slice(0, 8));
+                          setPTagDraft('');
+                        }}
+                        className="flex-1 bg-emerald-50/40 border border-emerald-200 rounded-xl px-3 py-2 disabled:opacity-50"
+                      />
+                      <button
+                        type="button"
+                        disabled={pTags.length >= 8 || !pTagDraft.trim()}
+                        onClick={() => {
+                          const next = pTagDraft.trim().replace(/^#/, '');
+                          if (!next || pTags.length >= 8) return;
+                          if (pTags.some((t) => t.toLowerCase() === next.toLowerCase())) {
+                            setPTagDraft('');
+                            return;
+                          }
+                          setPTags((prev) => [...prev, next].slice(0, 8));
+                          setPTagDraft('');
+                        }}
+                        className="shrink-0 px-3 py-2 rounded-xl bg-emerald-900 text-white font-bold text-[10px] uppercase disabled:opacity-40 cursor-pointer"
+                      >
+                        Add Tag
+                      </button>
+                    </div>
+                    {pTags.length > 0 && (
+                      <div className="flex flex-wrap gap-1.5 mt-2">
+                        {pTags.map((tag) => (
+                          <button
+                            key={tag}
+                            type="button"
+                            onClick={() => setPTags((prev) => prev.filter((t) => t !== tag))}
+                            className="inline-flex items-center gap-1 px-2 py-1 rounded-lg bg-emerald-100 text-emerald-950 text-[10px] font-bold uppercase tracking-wide border border-emerald-200 hover:bg-rose-50 hover:border-rose-200 cursor-pointer"
+                            title="Remove tag"
+                          >
+                            {tag}
+                            <span className="text-emerald-700/70">×</span>
+                          </button>
+                        ))}
+                      </div>
+                    )}
+                    <p className="text-[10px] text-emerald-700 font-mono mt-1">
+                      Tags appear below product photos and help customers find this jersey by name in search.
+                    </p>
                   </div>
                 </div>
               </div>

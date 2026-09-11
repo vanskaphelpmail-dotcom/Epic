@@ -9,7 +9,7 @@ import { DEFAULT_CLUBS } from '../data/clubsData';
 import { DEFAULT_INTERNATIONAL_TEAMS } from '../data/internationalTeamsData';
 import { navigateFromCmsUrl } from '../lib/navigateFromCmsUrl';
 import { isBannerLive, isHeroBannerType } from '../lib/bannerVisibility';
-import { getProductsForHomepageSection, isProductRowSection, normalizeHomepageSections, resolveSectionCategory } from '../lib/homepageSections';
+import { getProductsForHomepageSection, isCatalogAssignedProduct, isProductRowSection, normalizeHomepageSections, resolveSectionCategory } from '../lib/homepageSections';
 import { buildCatalogSearchKeywords, productMatchesSearchQuery, productMatchesNationalTeam } from '../lib/catalogSearch';
 import { DEFAULT_FALLBACK_SIZES } from '../lib/productSizes';
 import {
@@ -29,9 +29,9 @@ import {
 } from 'lucide-react';
 import type { BannerConfig } from '../types';
 
-/** Hero frame: mobile hugs image height (no letterbox); desktop stays wide cinematic */
+/** Hero frame: responsive cinematic ratios; image always covers (no letterbox / white gap). */
 const HERO_BANNER_FRAME =
-  'aspect-auto min-h-0 h-auto leading-none sm:min-h-0 sm:aspect-[21/9]';
+  'aspect-[5/4] min-[480px]:aspect-[16/10] sm:aspect-[16/9] lg:aspect-[21/9] xl:aspect-[2.4/1]';
 
 /** Always-available local cover (never depends on Unsplash / CDN / base64) */
 const HERO_FALLBACK_COVER = '/hero-cover.svg';
@@ -47,17 +47,24 @@ function isUsableHeroImageSrc(src?: string | null): boolean {
   return false;
 }
 
-function heroBannerFallbackImage(banner: BannerConfig, preferMobile = false) {
-  const ordered = preferMobile
-    ? [banner.mobileImage, banner.tabletImage, banner.desktopImage, banner.image]
-    : [banner.desktopImage, banner.tabletImage, banner.mobileImage, banner.image];
+function heroBannerFallbackImage(
+  banner: BannerConfig,
+  viewport: 'mobile' | 'tablet' | 'desktop' | boolean = 'desktop',
+) {
+  const mode = typeof viewport === 'boolean' ? (viewport ? 'mobile' : 'desktop') : viewport;
+  const ordered =
+    mode === 'mobile'
+      ? [banner.mobileImage, banner.tabletImage, banner.desktopImage, banner.image]
+      : mode === 'tablet'
+        ? [banner.tabletImage, banner.desktopImage, banner.mobileImage, banner.image]
+        : [banner.desktopImage, banner.tabletImage, banner.mobileImage, banner.image];
   for (const src of ordered) {
     if (isUsableHeroImageSrc(src)) return String(src).trim();
   }
   return HERO_FALLBACK_COVER;
 }
 
-/** Renders cover immediately; swaps to fallback if the URL fails */
+/** Cover fills the frame on every breakpoint — no empty margin under the artwork. */
 const HeroCoverImage: React.FC<{ src: string; slideKey: string }> = ({ src, slideKey }) => {
   const [activeSrc, setActiveSrc] = useState(src || HERO_FALLBACK_COVER);
   const [failed, setFailed] = useState(false);
@@ -74,9 +81,7 @@ const HeroCoverImage: React.FC<{ src: string; slideKey: string }> = ({ src, slid
       src={activeSrc}
       alt=""
       aria-hidden="true"
-      // Mobile: in-flow so the frame height matches the artwork (no empty gap under image).
-      // sm+: absolute + cover inside fixed cinematic aspect ratio.
-      className="relative z-0 m-0 block h-auto w-full max-w-full align-top object-cover object-center sm:absolute sm:inset-0 sm:h-full sm:w-full"
+      className="absolute inset-0 z-0 m-0 block h-full w-full max-w-none object-cover object-center"
       loading="eager"
       decoding="async"
       referrerPolicy="no-referrer"
@@ -109,34 +114,35 @@ interface DynamicPageRendererProps {
 }
 
 export const DEFAULT_HOMEPAGE_SECTIONS: PageSection[] = [
-  { id: 'hero-slider', name: 'Hero Banner Slider', visible: true, bgColor: 'bg-black', padding: 'py-0', margin: 'my-0', title: 'WORLD CUP 2026 EDITION', subtitle: 'The Grandest Stage of Football', status: 'active' },
-  { id: 'trending-searches', name: 'Trending Searches bar', visible: true, bgColor: 'bg-black', padding: 'py-3.5', margin: 'my-2', status: 'active' },
-  { id: 'live-auction', name: 'Bidding & Live Auctions', visible: false, bgColor: 'bg-black', padding: 'py-12', margin: 'my-0', status: 'inactive' },
-  { id: 'daily-deals', name: 'Daily Deals Countdown', visible: false, bgColor: 'bg-black', padding: 'py-12', margin: 'my-4', title: 'LIMITED DAILY DEAL DECK', subtitle: '24-hour flash sale on ultra rare collectibles', status: 'inactive' },
-  { id: 'featured-collection', name: 'Featured Collection Row', visible: true, bgColor: 'bg-black', padding: 'py-12', margin: 'my-0', title: 'VERIFIED FEATURED CLASSICS', subtitle: 'Curated 1-of-1 historic collectibles', status: 'active', sectionType: 'product-row', productCategory: 'Featured', buttonText: 'VIEW ALL', buttonUrl: 'listing', maxProducts: 4 },
-  { id: 'latest-products', name: 'Latest Products Row', visible: true, bgColor: 'bg-black', padding: 'py-12', margin: 'my-0', title: 'LATEST WORKSHOP DROPS', subtitle: 'Freshly authenticated physical catalog arrivals', status: 'active', sectionType: 'product-row', productCategory: 'New In', buttonText: '', maxProducts: 4 },
-  { id: 'retro-collection', name: 'Retro Collection Row', visible: true, bgColor: 'bg-black', padding: 'py-12', margin: 'my-0', title: 'RETRO', subtitle: 'Rare 80s, 90s & 2000s vintage reissues', status: 'active', sectionType: 'product-row', productCategory: 'Retro', buttonText: 'VIEW ALL', buttonUrl: 'listing', maxProducts: 4 },
-  { id: 'product-row-la-liga', name: 'La Liga Row', visible: true, bgColor: 'bg-black', padding: 'py-12', margin: 'my-0', title: 'LA LIGA', subtitle: 'Shop La Liga — curated picks for collectors', status: 'active', sectionType: 'product-row', productCategory: 'La Liga', buttonText: 'VIEW ALL', buttonUrl: 'listing', maxProducts: 4 },
-  { id: 'product-row-world-cup', name: 'World Cup Row', visible: true, bgColor: 'bg-black', padding: 'py-12', margin: 'my-0', title: 'WORLD CUP', subtitle: 'National team World Cup kits & vault classics', status: 'active', sectionType: 'product-row', productCategory: 'World Cup', buttonText: 'VIEW ALL', buttonUrl: 'listing', maxProducts: 4 },
-  { id: 'player-edition', name: 'Player Edition Row', visible: true, bgColor: 'bg-black', padding: 'py-12', margin: 'my-0', title: 'PLAYER EDITION', subtitle: 'Slim-fit match issue quality kits', status: 'active', sectionType: 'product-row', productCategory: 'Player Edition', buttonText: 'VIEW ALL', buttonUrl: 'listing', maxProducts: 4 },
-  { id: 'kids-collection', name: 'Kids Collection Row', visible: true, bgColor: 'bg-black', padding: 'py-12', margin: 'my-0', title: 'KIDS', subtitle: 'Junior kits sized for ages 1–14', status: 'active', sectionType: 'product-row', productCategory: 'Kids', buttonText: 'VIEW ALL', buttonUrl: 'listing', maxProducts: 4 },
-  { id: 'customised-kit', name: 'Customised Kit Row', visible: true, bgColor: 'bg-black', padding: 'py-12', margin: 'my-0', title: 'CUSTOMISED KIT', subtitle: 'Custom printed kits with full size guide', status: 'active', sectionType: 'product-row', productCategory: 'Customised Kit', buttonText: 'VIEW ALL', buttonUrl: 'listing', maxProducts: 4 },
-  { id: 'fan-edition', name: 'Fan Edition Row', visible: true, bgColor: 'bg-black', padding: 'py-12', margin: 'my-0', title: 'FAN EDITION', subtitle: 'Comfortable stadium fan-fit replicas', status: 'active', sectionType: 'product-row', productCategory: 'Fan Edition', buttonText: 'VIEW ALL', buttonUrl: 'listing', maxProducts: 4 },
-  { id: 'preorder-jacket', name: 'Pre-Order Jacket Row', visible: true, bgColor: 'bg-black', padding: 'py-12', margin: 'my-0', title: 'PRE-ORDER · JACKET', subtitle: 'Reserve jackets before they land in Dhaka', status: 'active', sectionType: 'product-row', productCategory: 'Jacket', buttonText: 'VIEW ALL', buttonUrl: 'listing', maxProducts: 4 },
-  { id: 'preorder-track-suit', name: 'Pre-Order Track Suit Row', visible: true, bgColor: 'bg-black', padding: 'py-12', margin: 'my-0', title: 'PRE-ORDER · TRACK SUIT', subtitle: 'Upcoming track suit drops — reserve yours', status: 'active', sectionType: 'product-row', productCategory: 'Track Suit', buttonText: 'VIEW ALL', buttonUrl: 'listing', maxProducts: 4 },
-  { id: 'preorder-badminton', name: 'Pre-Order Badminton Row', visible: true, bgColor: 'bg-black', padding: 'py-12', margin: 'my-0', title: 'PRE-ORDER · BADMINTON RACKET', subtitle: 'Badminton rackets available for pre-order', status: 'active', sectionType: 'product-row', productCategory: 'Badminton Racket', buttonText: 'VIEW ALL', buttonUrl: 'listing', maxProducts: 4 },
-  { id: 'worldcup-collection', name: 'World Cup Vault Section', visible: false, bgColor: 'bg-black', padding: 'py-12', margin: 'my-0', title: 'WORLD CUP HERITAGE VAULT', subtitle: 'Historical match issue kits from 1970 to 2026', status: 'inactive' },
-  { id: 'current-season', name: 'Current Season Row', visible: true, bgColor: 'bg-black', padding: 'py-12', margin: 'my-0', title: 'CURRENT SEASON STOCK', subtitle: 'Direct from authorized team supplier docks', status: 'active', sectionType: 'product-row', productCategory: 'Current Season', buttonText: 'EXPLORE MODERN', buttonUrl: 'listing', maxProducts: 4 },
-  { id: 'mystery-box', name: 'Mystery Box Challenge', visible: false, bgColor: 'bg-black', padding: 'py-14', margin: 'my-6', title: 'THE VAULT MYSTERY BOX', subtitle: 'Receive one random 100% authentic retro or modern kit with premium certificates', status: 'inactive' },
-  { id: 'clearance', name: 'Clearance & Sale Rack', visible: true, bgColor: 'bg-black', padding: 'py-12', margin: 'my-0', title: 'OUTLET CLEARANCE SALE', subtitle: 'End of collection deadstock at cost prices', status: 'active', sectionType: 'product-row', productCategory: 'Clearance', buttonText: 'EXPLORE OUTLET', buttonUrl: 'listing', maxProducts: 4 },
-  { id: 'best-sellers', name: 'Best Sellers Grid', visible: true, bgColor: 'bg-black', padding: 'py-12', margin: 'my-0', title: 'BEST SELLERS', subtitle: 'Most reviewed and requested reissues', status: 'active', sectionType: 'product-row', productCategory: 'Best Sellers', buttonText: 'VIEW ALL', buttonUrl: 'listing', maxProducts: 4 },
-  { id: 'shop-by-legends', name: 'Shop by Legends portraits', visible: false, bgColor: 'bg-black', padding: 'py-12', margin: 'my-0', title: 'THE LEGENDS STORE', subtitle: 'Embroidered match prints of historical deities', status: 'inactive' },
-  { id: 'community-gallery', name: 'Dhaka Fan Community Gallery', visible: true, bgColor: 'bg-black', padding: 'py-12', margin: 'my-0', title: 'COLLECTORS IN DHAKA', subtitle: 'Fan gallery sharing local unboxings on Bailey Road', status: 'active' },
-  { id: 'testimonials', name: 'Testimonials Deck', visible: true, bgColor: 'bg-black', padding: 'py-12', margin: 'my-0', title: 'WHAT COLLECTORS DECLARE', subtitle: 'Genuine reviews from verified buyers', status: 'active' },
-  { id: 'video-banner', name: 'Video Feature Banner', visible: false, bgColor: 'bg-black', padding: 'py-16', margin: 'my-0', title: 'THE ART OF AUTHENTICATION', subtitle: 'A look inside our 12-point micro-fabric check laboratory in Dhaka', status: 'inactive' },
-  { id: 'instagram-feed', name: 'Instagram Feed Mockup', visible: false, bgColor: 'bg-black', padding: 'py-12', margin: 'my-0', title: 'FOLLOW @JERSEYADDICTS_BD', subtitle: 'Daily vintage drops, buyer photos, and restocks', status: 'inactive' },
-  { id: 'newsletter', name: 'Newsletter Subscription', visible: false, bgColor: 'bg-black', padding: 'py-12', margin: 'my-4', title: 'JOIN THE EXCLUSIVE CIRCLE', subtitle: 'Be first to receive physical workshop inventory arrivals', status: 'inactive' },
-  { id: 'store-locations', name: 'Physical Store Maps', visible: true, bgColor: 'bg-black', padding: 'py-12', margin: 'my-0', title: 'PHYSICAL OUTLET POINTS', subtitle: 'Visit us for physical sizing and authentications', status: 'active' },
+  { id: 'hero-slider', name: 'Hero Banner Slider', visible: true, bgColor: 'bg-transparent', padding: 'py-0', margin: 'my-0', title: 'WORLD CUP 2026 EDITION', subtitle: 'The Grandest Stage of Football', status: 'active' },
+  { id: 'trending-searches', name: 'Trending Searches bar', visible: true, bgColor: 'bg-transparent', padding: 'py-3.5', margin: 'my-2', status: 'active' },
+  { id: 'live-auction', name: 'Bidding & Live Auctions', visible: false, bgColor: 'bg-transparent', padding: 'py-12', margin: 'my-0', status: 'inactive' },
+  { id: 'daily-deals', name: 'Daily Deals Countdown', visible: false, bgColor: 'bg-transparent', padding: 'py-12', margin: 'my-4', title: 'LIMITED DAILY DEAL DECK', subtitle: '24-hour flash sale on ultra rare collectibles', status: 'inactive' },
+  { id: 'featured-collection', name: 'Featured Collection Row', visible: true, bgColor: 'bg-transparent', padding: 'py-12', margin: 'my-0', title: 'VERIFIED FEATURED CLASSICS', subtitle: 'Curated 1-of-1 historic collectibles', status: 'active', sectionType: 'product-row', productCategory: 'Featured', buttonText: 'VIEW ALL', buttonUrl: 'listing', maxProducts: 4 },
+  { id: 'latest-products', name: 'Latest Products Row', visible: true, bgColor: 'bg-transparent', padding: 'py-12', margin: 'my-0', title: 'LATEST WORKSHOP DROPS', subtitle: 'Freshly authenticated physical catalog arrivals', status: 'active', sectionType: 'product-row', productCategory: 'New In', buttonText: 'VIEW ALL', buttonUrl: 'listing', maxProducts: 8 },
+  { id: 'all-jerseys', name: 'All Jerseys Row', visible: true, bgColor: 'bg-transparent', padding: 'py-12', margin: 'my-0', title: 'ALL JERSEYS', subtitle: 'Complete storefront catalog — every kit in stock', status: 'active', sectionType: 'product-row', productCategory: 'All', buttonText: 'VIEW ALL', buttonUrl: 'listing', maxProducts: 500 },
+  { id: 'retro-collection', name: 'Retro Collection Row', visible: true, bgColor: 'bg-transparent', padding: 'py-12', margin: 'my-0', title: 'RETRO', subtitle: 'Rare 80s, 90s & 2000s vintage reissues', status: 'active', sectionType: 'product-row', productCategory: 'Retro', buttonText: 'VIEW ALL', buttonUrl: 'listing', maxProducts: 4 },
+  { id: 'product-row-la-liga', name: 'La Liga Row', visible: true, bgColor: 'bg-transparent', padding: 'py-12', margin: 'my-0', title: 'LA LIGA', subtitle: 'Shop La Liga — curated picks for collectors', status: 'active', sectionType: 'product-row', productCategory: 'La Liga', buttonText: 'VIEW ALL', buttonUrl: 'listing', maxProducts: 4 },
+  { id: 'product-row-world-cup', name: 'World Cup Row', visible: true, bgColor: 'bg-transparent', padding: 'py-12', margin: 'my-0', title: 'WORLD CUP', subtitle: 'National team World Cup kits & vault classics', status: 'active', sectionType: 'product-row', productCategory: 'World Cup', buttonText: 'VIEW ALL', buttonUrl: 'listing', maxProducts: 4 },
+  { id: 'player-edition', name: 'Player Edition Row', visible: true, bgColor: 'bg-transparent', padding: 'py-12', margin: 'my-0', title: 'PLAYER EDITION', subtitle: 'Slim-fit match issue quality kits', status: 'active', sectionType: 'product-row', productCategory: 'Player Edition', buttonText: 'VIEW ALL', buttonUrl: 'listing', maxProducts: 4 },
+  { id: 'kids-collection', name: 'Kids Collection Row', visible: true, bgColor: 'bg-transparent', padding: 'py-12', margin: 'my-0', title: 'KIDS', subtitle: 'Junior kits sized for ages 1–14', status: 'active', sectionType: 'product-row', productCategory: 'Kids', buttonText: 'VIEW ALL', buttonUrl: 'listing', maxProducts: 4 },
+  { id: 'customised-kit', name: 'Customised Kit Row', visible: true, bgColor: 'bg-transparent', padding: 'py-12', margin: 'my-0', title: 'CUSTOMISED KIT', subtitle: 'Custom printed kits with full size guide', status: 'active', sectionType: 'product-row', productCategory: 'Customised Kit', buttonText: 'VIEW ALL', buttonUrl: 'listing', maxProducts: 4 },
+  { id: 'fan-edition', name: 'Fan Edition Row', visible: true, bgColor: 'bg-transparent', padding: 'py-12', margin: 'my-0', title: 'FAN EDITION', subtitle: 'Comfortable stadium fan-fit replicas', status: 'active', sectionType: 'product-row', productCategory: 'Fan Edition', buttonText: 'VIEW ALL', buttonUrl: 'listing', maxProducts: 4 },
+  { id: 'preorder-jacket', name: 'Pre-Order Jacket Row', visible: true, bgColor: 'bg-transparent', padding: 'py-12', margin: 'my-0', title: 'PRE-ORDER · JACKET', subtitle: 'Reserve jackets before they land in Dhaka', status: 'active', sectionType: 'product-row', productCategory: 'Jacket', buttonText: 'VIEW ALL', buttonUrl: 'listing', maxProducts: 4 },
+  { id: 'preorder-track-suit', name: 'Pre-Order Track Suit Row', visible: true, bgColor: 'bg-transparent', padding: 'py-12', margin: 'my-0', title: 'PRE-ORDER · TRACK SUIT', subtitle: 'Upcoming track suit drops — reserve yours', status: 'active', sectionType: 'product-row', productCategory: 'Track Suit', buttonText: 'VIEW ALL', buttonUrl: 'listing', maxProducts: 4 },
+  { id: 'preorder-badminton', name: 'Pre-Order Badminton Row', visible: true, bgColor: 'bg-transparent', padding: 'py-12', margin: 'my-0', title: 'PRE-ORDER · BADMINTON RACKET', subtitle: 'Badminton rackets available for pre-order', status: 'active', sectionType: 'product-row', productCategory: 'Badminton Racket', buttonText: 'VIEW ALL', buttonUrl: 'listing', maxProducts: 4 },
+  { id: 'worldcup-collection', name: 'World Cup Vault Section', visible: false, bgColor: 'bg-transparent', padding: 'py-12', margin: 'my-0', title: 'WORLD CUP HERITAGE VAULT', subtitle: 'Historical match issue kits from 1970 to 2026', status: 'inactive' },
+  { id: 'current-season', name: 'Current Season Row', visible: true, bgColor: 'bg-transparent', padding: 'py-12', margin: 'my-0', title: 'CURRENT SEASON STOCK', subtitle: 'Direct from authorized team supplier docks', status: 'active', sectionType: 'product-row', productCategory: 'Current Season', buttonText: 'EXPLORE MODERN', buttonUrl: 'listing', maxProducts: 4 },
+  { id: 'mystery-box', name: 'Mystery Box Challenge', visible: false, bgColor: 'bg-transparent', padding: 'py-14', margin: 'my-6', title: 'THE VAULT MYSTERY BOX', subtitle: 'Receive one random 100% authentic retro or modern kit with premium certificates', status: 'inactive' },
+  { id: 'clearance', name: 'Catalog Row', visible: true, bgColor: 'bg-transparent', padding: 'py-12', margin: 'my-0', title: 'CATALOG', subtitle: 'Browse the full Catalog collection', status: 'active', sectionType: 'product-row', productCategory: 'Clearance', buttonText: 'VIEW CATALOG', buttonUrl: 'listing', maxProducts: 4 },
+  { id: 'best-sellers', name: 'Best Sellers Grid', visible: true, bgColor: 'bg-transparent', padding: 'py-12', margin: 'my-0', title: 'BEST SELLERS', subtitle: 'Most reviewed and requested reissues', status: 'active', sectionType: 'product-row', productCategory: 'Best Sellers', buttonText: 'VIEW ALL', buttonUrl: 'listing', maxProducts: 4 },
+  { id: 'shop-by-legends', name: 'Shop by Legends portraits', visible: false, bgColor: 'bg-transparent', padding: 'py-12', margin: 'my-0', title: 'THE LEGENDS STORE', subtitle: 'Embroidered match prints of historical deities', status: 'inactive' },
+  { id: 'community-gallery', name: 'Dhaka Fan Community Gallery', visible: false, bgColor: 'bg-transparent', padding: 'py-12', margin: 'my-0', title: 'COLLECTORS IN DHAKA', subtitle: 'Fan gallery sharing local unboxings on Bailey Road', status: 'inactive' },
+  { id: 'testimonials', name: 'Testimonials Deck', visible: false, bgColor: 'bg-transparent', padding: 'py-12', margin: 'my-0', title: 'WHAT COLLECTORS DECLARE', subtitle: 'Genuine reviews from verified buyers', status: 'inactive' },
+  { id: 'video-banner', name: 'Video Feature Banner', visible: false, bgColor: 'bg-transparent', padding: 'py-16', margin: 'my-0', title: 'THE ART OF AUTHENTICATION', subtitle: 'A look inside our 12-point micro-fabric check laboratory in Dhaka', status: 'inactive' },
+  { id: 'instagram-feed', name: 'Instagram Feed Mockup', visible: false, bgColor: 'bg-transparent', padding: 'py-12', margin: 'my-0', title: 'FOLLOW @JERSEYADDICTS_BD', subtitle: 'Daily vintage drops, buyer photos, and restocks', status: 'inactive' },
+  { id: 'newsletter', name: 'Newsletter Subscription', visible: false, bgColor: 'bg-transparent', padding: 'py-12', margin: 'my-4', title: 'JOIN THE EXCLUSIVE CIRCLE', subtitle: 'Be first to receive physical workshop inventory arrivals', status: 'inactive' },
+  { id: 'store-locations', name: 'Physical Store Maps', visible: true, bgColor: 'bg-transparent', padding: 'py-12', margin: 'my-0', title: 'PHYSICAL OUTLET POINTS', subtitle: 'Visit us for physical sizing and authentications', status: 'active' },
 ];
 
 export const DynamicPageRenderer: React.FC<DynamicPageRendererProps> = ({
@@ -164,15 +170,24 @@ export const DynamicPageRenderer: React.FC<DynamicPageRendererProps> = ({
   const [showPopupBanner, setShowPopupBanner] = useState(false);
   const [dealSize, setDealSize] = useState('M');
   const [activeDealProductId, setActiveDealProductId] = useState<string | null>(null);
-  const [preferMobileHero, setPreferMobileHero] = useState(false);
+  const [heroViewport, setHeroViewport] = useState<'mobile' | 'tablet' | 'desktop'>('desktop');
 
   useEffect(() => {
     if (typeof window === 'undefined' || !window.matchMedia) return;
-    const mq = window.matchMedia('(max-width: 639px)');
-    const apply = () => setPreferMobileHero(mq.matches);
+    const mobileMq = window.matchMedia('(max-width: 639px)');
+    const tabletMq = window.matchMedia('(min-width: 640px) and (max-width: 1023px)');
+    const apply = () => {
+      if (mobileMq.matches) setHeroViewport('mobile');
+      else if (tabletMq.matches) setHeroViewport('tablet');
+      else setHeroViewport('desktop');
+    };
     apply();
-    mq.addEventListener('change', apply);
-    return () => mq.removeEventListener('change', apply);
+    mobileMq.addEventListener('change', apply);
+    tabletMq.addEventListener('change', apply);
+    return () => {
+      mobileMq.removeEventListener('change', apply);
+      tabletMq.removeEventListener('change', apply);
+    };
   }, []);
 
   const catalogProducts = products.filter(
@@ -180,7 +195,11 @@ export const DynamicPageRenderer: React.FC<DynamicPageRendererProps> = ({
   );
 
   const trendingKeywords = useMemo(
-    () => buildCatalogSearchKeywords(catalogProducts, 5),
+    () =>
+      buildCatalogSearchKeywords(
+        catalogProducts.filter((p) => !isCatalogAssignedProduct(p)),
+        5,
+      ),
     // eslint-disable-next-line react-hooks/exhaustive-deps
     [products],
   );
@@ -315,7 +334,9 @@ export const DynamicPageRenderer: React.FC<DynamicPageRendererProps> = ({
           section.id === 'shop-by-international-team' ||
           section.id === 'shop-by-legends' ||
           section.id === 'newsletter' ||
-          section.id === 'live-auction'
+          section.id === 'live-auction' ||
+          section.id === 'testimonials' ||
+          section.id === 'community-gallery'
         ) {
           return null;
         }
@@ -333,7 +354,8 @@ export const DynamicPageRenderer: React.FC<DynamicPageRendererProps> = ({
         if (section.id === 'daily-deals' && (!dailyDealEnabled || flashDeals.length === 0)) return null;
         if (section.id === 'community-gallery') {
           const galleryItems = catalogProducts.filter((p) => p.isFeatured || p.isBestSeller).slice(0, 4);
-          if (galleryItems.length === 0) return null;
+          const fallback = galleryItems.length > 0 ? galleryItems : catalogProducts.slice(0, 4);
+          if (fallback.length === 0) return null;
         }
         if (section.id === 'trending-searches' && trendingKeywords.length === 0) return null;
 
@@ -355,22 +377,22 @@ export const DynamicPageRenderer: React.FC<DynamicPageRendererProps> = ({
           'shop-by-club',
           'shop-by-international-team',
         ]);
-        // Never paint emerald/amber empty-looking strips on the black storefront
+        // Prefer light/transparent section shells on the premium light storefront
         const safeBg =
           !section.bgColor ||
-          /emerald|amber|purple|indigo|gradient/i.test(section.bgColor)
-            ? 'bg-black'
+          /emerald|amber|purple|indigo|gradient|bg-black|bg-zinc-9|bg-\[#121212\]|bg-\[#0a0a0a\]/i.test(section.bgColor)
+            ? 'bg-transparent'
             : section.bgColor;
         const containerStyle =
           section.id === 'hero-slider'
-            ? `bg-[#121212] pt-2.5 pb-0 sm:pt-4 sm:pb-5 lg:pt-5 lg:pb-6 my-0 ${getAnimationClass(section.animation)} transition-all duration-300 relative`
+            ? `bg-transparent pt-2 pb-0 sm:pt-3 sm:pb-0 lg:pt-4 lg:pb-0 my-0 ${getAnimationClass(section.animation)} transition-all duration-300 relative`
             : section.id === 'trending-searches'
               ? `hidden lg:block ${safeBg} ${section.padding} ${section.margin} ${getAnimationClass(section.animation)} transition-all duration-300 relative`
               : compactShopIds.has(section.id)
-                ? `bg-[#121212] pt-3 pb-5 sm:pt-8 sm:pb-10 lg:py-10 my-0 ${getAnimationClass(section.animation)} transition-all duration-300 relative`
+                ? `bg-transparent pt-3 pb-5 sm:pt-8 sm:pb-10 lg:py-10 my-0 ${getAnimationClass(section.animation)} transition-all duration-300 relative`
                 : `${safeBg} ${section.padding} ${section.margin} ${getAnimationClass(section.animation)} transition-all duration-300 relative`;
-        const headingColor = 'text-white';
-        const subColor = 'text-zinc-300';
+        const headingColor = 'text-[#0A0A0A]';
+        const subColor = 'text-[#555555]';
 
         return (
           <div key={`${section.id}-${idx}`} className={containerStyle} id={`section-${section.id}`}>
@@ -381,7 +403,7 @@ export const DynamicPageRenderer: React.FC<DynamicPageRendererProps> = ({
             {section.id === 'hero-slider' && activeHeroBanners.length > 0 && (
               <div className="w-full max-w-[1440px] mx-auto px-3 sm:px-4 md:px-5 lg:px-6">
                 <div
-                  className={`relative w-full overflow-hidden rounded-xl sm:rounded-2xl lg:rounded-3xl border border-zinc-800 shadow-md sm:shadow-lg bg-transparent sm:bg-zinc-950 ${HERO_BANNER_FRAME}`}
+                  className={`relative w-full overflow-hidden rounded-xl sm:rounded-2xl lg:rounded-3xl border border-[#E5E5E5] shadow-md sm:shadow-lg bg-[#0A0A0A] ${HERO_BANNER_FRAME}`}
                 >
                 {(() => {
                     const currentSlide = activeHeroBanners[heroSlideIndex % activeHeroBanners.length];
@@ -394,7 +416,7 @@ export const DynamicPageRenderer: React.FC<DynamicPageRendererProps> = ({
                     const hasCta =
                       !!ctaLabel && !!(currentSlide.productId || (currentSlide.buttonUrl || '').trim());
                     const hasOverlay = !!(subtitleText || titleText || descriptionText || hasCta);
-                    const coverSrc = heroBannerFallbackImage(currentSlide, preferMobileHero);
+                    const coverSrc = heroBannerFallbackImage(currentSlide, heroViewport);
 
                     return (
                       <>
@@ -438,7 +460,7 @@ export const DynamicPageRenderer: React.FC<DynamicPageRendererProps> = ({
                                       openNewTab: currentSlide.openNewTab,
                                     });
                                   }}
-                                  className="bg-red-600 hover:bg-red-700 text-white font-extrabold text-[10px] sm:text-xs uppercase tracking-widest px-5 py-3 sm:px-8 sm:py-4 rounded-xl cursor-pointer transition-all hover:scale-105 shadow-lg shadow-red-600/30"
+                                  className="bg-[#0A0A0A] hover:bg-black text-white font-extrabold text-[10px] sm:text-xs uppercase tracking-widest px-5 py-3 sm:px-8 sm:py-4 rounded-xl cursor-pointer transition-all hover:scale-105 shadow-lg shadow-black/20"
                                 >
                                   {ctaLabel}
                                 </button>
@@ -489,8 +511,8 @@ export const DynamicPageRenderer: React.FC<DynamicPageRendererProps> = ({
             {/* 2. TRENDING SEARCHES BAR — desktop only (outer wrapper also hidden) */}
             {section.id === 'trending-searches' && (
               <div className="max-w-7xl mx-auto px-4 sm:px-6 flex flex-wrap items-center justify-center gap-3 md:gap-4">
-                <span className="text-[10px] font-mono font-black text-zinc-100 flex items-center gap-1.5 uppercase">
-                  <Flame size={12} className="text-amber-500 animate-pulse" />
+                <span className="text-[10px] font-mono font-black text-[#0A0A0A] flex items-center gap-1.5 uppercase">
+                  <Flame size={12} className="text-[#E30613] animate-pulse" />
                   Trending searches BD:
                 </span>
                 {trendingKeywords.map((kw) => (
@@ -501,7 +523,7 @@ export const DynamicPageRenderer: React.FC<DynamicPageRendererProps> = ({
                       if (onSearch) onSearch(kw);
                       setCurrentPage('listing');
                     }}
-                    className="bg-[#121212] hover:bg-zinc-800/50 text-[10.5px] font-sans font-bold border border-zinc-800 text-zinc-100 px-3.5 py-1.5 rounded-full cursor-pointer transition-all"
+                    className="bg-white hover:bg-[#F8F8F7] text-[10.5px] font-sans font-bold border border-[#E5E5E5] text-[#0A0A0A] px-3.5 py-1.5 rounded-full cursor-pointer transition-all"
                   >
                     {kw}
                   </button>
@@ -531,14 +553,14 @@ export const DynamicPageRenderer: React.FC<DynamicPageRendererProps> = ({
                         if (onSearch) onSearch(league.searchQuery || league.name);
                         else setCurrentPage('listing');
                       }}
-                      className="bg-[#121212] hover:bg-zinc-900/90 border border-zinc-800 rounded-lg sm:rounded-2xl p-1.5 sm:p-5 text-center cursor-pointer transition-all duration-300 group hover:scale-[1.02] flex flex-col items-center justify-between min-h-[78px] sm:min-h-[160px]"
+                      className="bg-white hover:bg-[#F8F8F7] border border-[#E5E5E5] rounded-lg sm:rounded-2xl p-1.5 sm:p-5 text-center cursor-pointer transition-all duration-300 group hover:scale-[1.02] flex flex-col items-center justify-between min-h-[78px] sm:min-h-[160px]"
                     >
-                      <div className="h-8 w-8 sm:h-16 sm:w-16 mb-1 sm:mb-3 flex items-center justify-center overflow-hidden rounded-md bg-[#121212]">
+                      <div className="h-8 w-8 sm:h-16 sm:w-16 mb-1 sm:mb-3 flex items-center justify-center overflow-hidden rounded-md bg-[#F8F8F7]">
                         <LeagueLogo league={league} className="h-8 w-8 sm:h-16 sm:w-16 group-hover:scale-105 transition-transform duration-300" />
                       </div>
                       <div className="min-w-0 w-full px-0.5">
-                        <h4 className="text-[8px] sm:text-xs font-black text-white uppercase leading-tight line-clamp-2">{league.name}</h4>
-                        <span className="text-[7px] sm:text-[10px] text-zinc-400 font-mono font-bold mt-0.5 block">
+                        <h4 className="text-[8px] sm:text-xs font-black text-[#0A0A0A] uppercase leading-tight line-clamp-2">{league.name}</h4>
+                        <span className="text-[7px] sm:text-[10px] text-[#555555] font-mono font-bold mt-0.5 block">
                           <span className="sm:hidden">{displayCount}</span>
                           <span className="hidden sm:inline">{displayCount} verified jerseys</span>
                         </span>
@@ -574,9 +596,9 @@ export const DynamicPageRenderer: React.FC<DynamicPageRendererProps> = ({
                           if (onSearch) onSearch(club.searchQuery || club.name);
                           else setCurrentPage('listing');
                         }}
-                        className="bg-[#121212] hover:bg-zinc-900/90 border border-zinc-800 rounded-lg sm:rounded-2xl p-1.5 sm:p-5 text-center cursor-pointer transition-all duration-300 group hover:scale-[1.02] flex flex-col items-center justify-between min-h-[78px] sm:min-h-[160px]"
+                        className="bg-white hover:bg-[#F8F8F7] border border-[#E5E5E5] rounded-lg sm:rounded-2xl p-1.5 sm:p-5 text-center cursor-pointer transition-all duration-300 group hover:scale-[1.02] flex flex-col items-center justify-between min-h-[78px] sm:min-h-[160px]"
                       >
-                        <div className="h-8 w-8 sm:h-16 sm:w-16 mb-1 sm:mb-3 flex items-center justify-center overflow-hidden rounded-md bg-[#121212]">
+                        <div className="h-8 w-8 sm:h-16 sm:w-16 mb-1 sm:mb-3 flex items-center justify-center overflow-hidden rounded-md bg-[#F8F8F7]">
                           <img
                             src={club.logoUrl}
                             alt={`${club.name} logo`}
@@ -586,10 +608,10 @@ export const DynamicPageRenderer: React.FC<DynamicPageRendererProps> = ({
                           />
                         </div>
                         <div className="min-w-0 w-full px-0.5">
-                          <h4 className="text-[8px] sm:text-xs font-black text-white uppercase leading-tight line-clamp-2">
+                          <h4 className="text-[8px] sm:text-xs font-black text-[#0A0A0A] uppercase leading-tight line-clamp-2">
                             {club.name}
                           </h4>
-                          <span className="text-[7px] sm:text-[10px] text-zinc-400 font-mono font-bold mt-0.5 block">
+                          <span className="text-[7px] sm:text-[10px] text-[#555555] font-mono font-bold mt-0.5 block">
                             <span className="sm:hidden">{count}</span>
                             <span className="hidden sm:inline">{count} verified jerseys</span>
                           </span>
@@ -604,37 +626,37 @@ export const DynamicPageRenderer: React.FC<DynamicPageRendererProps> = ({
             {/* 6. DAILY DEALS / HOT DEALS */}
             {section.id === 'daily-deals' && activeFlashDeal && (
               <div className="max-w-7xl mx-auto px-4 sm:px-6">
-                <div className="bg-[#121212] border-2 border-amber-500 rounded-2xl sm:rounded-3xl p-4 sm:p-6 md:p-8 shadow-xl relative overflow-hidden flex flex-col md:flex-row items-center gap-6 md:gap-8 w-full min-w-0">
-                  <div className="absolute top-0 right-0 bg-amber-500 text-white font-mono text-[9px] font-black uppercase tracking-widest px-4 py-1 rounded-bl-xl shadow-sm">
+                <div className="bg-white border-2 border-[#E30613] rounded-2xl sm:rounded-3xl p-4 sm:p-6 md:p-8 shadow-xl relative overflow-hidden flex flex-col md:flex-row items-center gap-6 md:gap-8 w-full min-w-0">
+                  <div className="absolute top-0 right-0 bg-[#E30613] text-white font-mono text-[9px] font-black uppercase tracking-widest px-4 py-1 rounded-bl-xl shadow-sm">
                     FLASH OFFER VAULT
                   </div>
                   
                   {/* Countdown Timer Visual */}
-                  <div className="space-y-4 md:border-r border-zinc-800 pr-0 md:pr-10 shrink-0">
-                    <span className="bg-amber-100 text-amber-800 text-[10px] font-mono tracking-widest px-3 py-1 rounded-full font-extrabold uppercase">
+                  <div className="space-y-4 md:border-r border-[#E5E5E5] pr-0 md:pr-10 shrink-0">
+                    <span className="bg-red-50 text-[#E30613] text-[10px] font-mono tracking-widest px-3 py-1 rounded-full font-extrabold uppercase">
                       {activeFlashDeal.deal.isHotDeal ? '🔥 HOT DEAL' : 'HURRY! LIMITED OFFER'}
                     </span>
-                    <h3 className="text-2xl font-black text-white uppercase leading-tight font-display">
+                    <h3 className="text-2xl font-black text-[#0A0A0A] uppercase leading-tight font-display">
                       {section.title || 'HOT DEALS'}
                     </h3>
-                    <p className="text-xs text-zinc-300 leading-relaxed max-w-sm">
+                    <p className="text-xs text-[#555555] leading-relaxed max-w-sm">
                       {flashDeals.length > 1
                         ? `Admin-picked hot deals — ${flashDeals.length} kits with fixed flash prices. Switch kits below to claim yours.`
                         : 'Admin-picked flash price on a coveted kit. Once the timer hits zero, this offer can change.'}
                     </p>
                     
                     <div className="flex gap-2 font-mono text-center">
-                      <div className="bg-zinc-950 text-white p-2.5 rounded-lg min-w-[50px]">
+                      <div className="bg-[#0A0A0A] text-white p-2.5 rounded-lg min-w-[50px]">
                         <span className="block font-black text-base">{String(dealTimeLeft.hrs).padStart(2, '0')}</span>
                         <span className="text-[8px] text-zinc-400">HRS</span>
                       </div>
-                      <span className="text-white font-black self-center text-lg">:</span>
-                      <div className="bg-zinc-950 text-white p-2.5 rounded-lg min-w-[50px]">
+                      <span className="text-[#0A0A0A] font-black self-center text-lg">:</span>
+                      <div className="bg-[#0A0A0A] text-white p-2.5 rounded-lg min-w-[50px]">
                         <span className="block font-black text-base">{String(dealTimeLeft.mins).padStart(2, '0')}</span>
                         <span className="text-[8px] text-zinc-400">MINS</span>
                       </div>
-                      <span className="text-white font-black self-center text-lg">:</span>
-                      <div className="bg-zinc-950 text-white p-2.5 rounded-lg min-w-[50px]">
+                      <span className="text-[#0A0A0A] font-black self-center text-lg">:</span>
+                      <div className="bg-[#0A0A0A] text-white p-2.5 rounded-lg min-w-[50px]">
                         <span className="block font-black text-base">{String(dealTimeLeft.secs).padStart(2, '0')}</span>
                         <span className="text-[8px] text-zinc-400">SECS</span>
                       </div>
@@ -654,11 +676,11 @@ export const DynamicPageRenderer: React.FC<DynamicPageRendererProps> = ({
                               onClick={() => setActiveDealProductId(product.id)}
                               className={`shrink-0 flex items-center gap-2 rounded-xl border px-2.5 py-1.5 cursor-pointer transition-colors ${
                                 selected
-                                  ? 'border-amber-500 bg-amber-50'
-                                  : 'border-zinc-800 bg-[#121212] hover:bg-zinc-900/60'
+                                  ? 'border-[#E30613] bg-red-50'
+                                  : 'border-[#E5E5E5] bg-white hover:bg-[#F8F8F7]'
                               }`}
                             >
-                              <div className="h-10 w-8 rounded-md bg-zinc-900 overflow-hidden flex items-center justify-center">
+                              <div className="h-10 w-8 rounded-md bg-[#F8F8F7] overflow-hidden flex items-center justify-center">
                                 <JerseyRenderer
                                   productId={product.id}
                                   uploadedImage={product.uploadedImage}
@@ -666,11 +688,11 @@ export const DynamicPageRenderer: React.FC<DynamicPageRendererProps> = ({
                                 />
                               </div>
                               <div className="text-left max-w-[120px]">
-                                <p className="text-[9px] font-black text-white uppercase truncate leading-tight">
+                                <p className="text-[9px] font-black text-[#0A0A0A] uppercase truncate leading-tight">
                                   {deal.isHotDeal ? 'HOT · ' : ''}
                                   {product.name}
                                 </p>
-                                <p className="text-[10px] font-black text-red-600">
+                                <p className="text-[10px] font-black text-[#E30613]">
                                   {formatPrice(deal.dealPrice)}
                                 </p>
                               </div>
@@ -681,9 +703,9 @@ export const DynamicPageRenderer: React.FC<DynamicPageRendererProps> = ({
                     )}
 
                     <div className="flex flex-col sm:flex-row items-center gap-6">
-                      <div className="h-44 w-36 rounded-xl bg-zinc-900 p-2 border border-zinc-800 flex items-center justify-center relative">
+                      <div className="h-44 w-36 rounded-xl bg-[#F8F8F7] p-2 border border-[#E5E5E5] flex items-center justify-center relative">
                         {activeFlashDeal.deal.isHotDeal && (
-                          <span className="absolute -top-2 -left-2 z-10 bg-amber-500 text-white text-[8px] font-black uppercase tracking-wider px-2 py-0.5 rounded-full flex items-center gap-0.5 shadow">
+                          <span className="absolute -top-2 -left-2 z-10 bg-[#E30613] text-white text-[8px] font-black uppercase tracking-wider px-2 py-0.5 rounded-full flex items-center gap-0.5 shadow">
                             <Flame size={10} /> Hot Deal
                           </span>
                         )}
@@ -694,23 +716,23 @@ export const DynamicPageRenderer: React.FC<DynamicPageRendererProps> = ({
                         />
                       </div>
                       <div className="space-y-3 flex-1 w-full">
-                        <div className="flex gap-1 text-amber-400">
+                        <div className="flex gap-1 text-[#E30613]">
                           {[...Array(5)].map((_, i) => (
                             <Star
                               key={i}
                               size={11}
                               className={
                                 i < Math.round(Number(activeFlashDeal.product.rating) || 5)
-                                  ? 'fill-amber-400'
+                                  ? 'fill-[#E30613]'
                                   : ''
                               }
                             />
                           ))}
                         </div>
-                        <h4 className="text-base font-extrabold text-white uppercase leading-snug">
+                        <h4 className="text-base font-extrabold text-[#0A0A0A] uppercase leading-snug">
                           {activeFlashDeal.product.name}
                         </h4>
-                        <p className="text-[10px] text-zinc-400 font-mono">
+                        <p className="text-[10px] text-[#555555] font-mono">
                           Size Available:{' '}
                           {(activeFlashDeal.product.sizes || []).join(', ') || 'M, L'} •{' '}
                           {activeFlashDeal.product.condition} Condition
@@ -723,8 +745,8 @@ export const DynamicPageRenderer: React.FC<DynamicPageRendererProps> = ({
                               onClick={() => setDealSize(sz)}
                               className={`h-8 w-8 rounded-lg text-[10px] font-black border cursor-pointer ${
                                 dealSize === sz
-                                  ? 'bg-black border-zinc-900 text-white'
-                                  : 'bg-[#121212] border-zinc-800 text-zinc-100'
+                                  ? 'bg-[#0A0A0A] border-[#0A0A0A] text-white'
+                                  : 'bg-white border-[#E5E5E5] text-[#0A0A0A]'
                               }`}
                             >
                               {sz}
@@ -756,11 +778,11 @@ export const DynamicPageRenderer: React.FC<DynamicPageRendererProps> = ({
                           return (
                             <>
                               <div className="flex items-center gap-3 flex-wrap">
-                                <span className="text-2xl font-black text-red-600">
+                                <span className="text-2xl font-black text-[#E30613]">
                                   {formatPrice(dealPrice)}
                                 </span>
                                 {compareAt > dealPrice && (
-                                  <span className="text-xs text-zinc-400 line-through font-bold">
+                                  <span className="text-xs text-[#555555] line-through font-bold">
                                     {formatPrice(compareAt)}
                                   </span>
                                 )}
@@ -770,20 +792,20 @@ export const DynamicPageRenderer: React.FC<DynamicPageRendererProps> = ({
                                   </span>
                                 )}
                               </div>
-                              <div className="w-full bg-zinc-800 rounded-full h-1.5 overflow-hidden">
+                              <div className="w-full bg-[#E5E5E5] rounded-full h-1.5 overflow-hidden">
                                 <div
-                                  className="bg-amber-500 h-full transition-all"
+                                  className="bg-[#E30613] h-full transition-all"
                                   style={{ width: `${claimed}%` }}
                                 />
                               </div>
-                              <div className="flex justify-between text-[9px] font-mono text-zinc-400">
+                              <div className="flex justify-between text-[9px] font-mono text-[#555555]">
                                 <span>Limited stock — claim while available</span>
                                 <span className="font-bold">{claimed}% Claimed</span>
                               </div>
                               <button
                                 type="button"
                                 onClick={() => handleQuickAdd?.(pricedProduct)}
-                                className="bg-red-600 hover:bg-red-700 text-white font-extrabold text-xs uppercase tracking-widest px-4 py-2.5 rounded-xl cursor-pointer w-full transition-all flex items-center justify-center gap-1.5"
+                                className="bg-[#0A0A0A] hover:bg-black text-white font-extrabold text-xs uppercase tracking-widest px-4 py-2.5 rounded-xl cursor-pointer w-full transition-all flex items-center justify-center gap-1.5"
                               >
                                 Add to Cart
                               </button>
@@ -804,10 +826,15 @@ export const DynamicPageRenderer: React.FC<DynamicPageRendererProps> = ({
               const ctaLabel = section.buttonText || 'VIEW ALL';
               return (
                 <div className="max-w-7xl mx-auto px-4 sm:px-6 space-y-6">
-                  <div className="flex justify-between items-end border-b border-zinc-800 pb-3">
+                  <div className="flex justify-between items-end border-b border-[#E5E5E5] pb-3">
                     <div>
                       <h2 className={`text-xl md:text-2xl font-black uppercase tracking-tight ${headingColor}`}>
                         {section.title || section.name}
+                        {section.id === 'all-jerseys' ? (
+                          <span className="ml-2 text-sm md:text-base font-mono text-[#555555] normal-case tracking-normal">
+                            ({catalogProducts.filter((p) => p.status !== 'Trashed' && p.status !== 'Archived' && !p.isTrashed && !p.isArchived).length})
+                          </span>
+                        ) : null}
                       </h2>
                       <p className={`text-xs font-mono ${subColor}`}>{section.subtitle || ''}</p>
                     </div>
@@ -815,12 +842,15 @@ export const DynamicPageRenderer: React.FC<DynamicPageRendererProps> = ({
                       <button
                         type="button"
                         onClick={() => {
+                          if (section.id === 'all-jerseys' || !category || /^all$/i.test(category)) {
+                            setSelectedCategory?.('All');
+                            setCurrentPage('listing');
+                            return;
+                          }
                           // Pass category as destination so history + filter apply in one step
-                          // (avoids stale selectedCategory when setState hasn't flushed yet)
-                          if (category) setCurrentPage(category);
-                          else setCurrentPage(section.buttonUrl || 'listing');
+                          setCurrentPage(category);
                         }}
-                        className="text-xs font-bold font-mono text-zinc-300 hover:text-white flex items-center gap-1 cursor-pointer"
+                        className="text-xs font-bold font-mono px-3 py-1.5 rounded-lg bg-white hover:bg-[#F8F8F7] text-[#0A0A0A] border border-[#0A0A0A] flex items-center gap-1 cursor-pointer transition-colors"
                       >
                         {ctaLabel} <ArrowRight size={12} />
                       </button>
@@ -865,24 +895,29 @@ export const DynamicPageRenderer: React.FC<DynamicPageRendererProps> = ({
                   <p className={`text-xs font-mono ${subColor}`}>{section.subtitle || 'Verified kits unboxed by Bailey Road collectors'}</p>
                 </div>
                 <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-                  {catalogProducts.filter((p) => p.isFeatured || p.isBestSeller).slice(0, 4).map((prod, idx) => (
+                  {(
+                    (() => {
+                      const featured = catalogProducts.filter((p) => p.isFeatured || p.isBestSeller).slice(0, 4);
+                      return featured.length > 0 ? featured : catalogProducts.slice(0, 4);
+                    })()
+                  ).map((prod, idx) => (
                     <button
                       key={prod.id}
                       type="button"
                       onClick={() => onSelectProduct(prod)}
-                      className="bg-[#121212] border border-zinc-800 rounded-2xl overflow-hidden relative group shadow-sm text-left cursor-pointer hover:border-red-600 hover:-translate-y-1 transition-all"
+                      className="bg-white border border-[#E5E5E5] rounded-2xl overflow-hidden relative group shadow-sm text-left cursor-pointer hover:border-[#E30613] hover:-translate-y-1 transition-all"
                     >
-                      <div className="h-48 w-full bg-gradient-to-b from-zinc-800 to-white flex items-center justify-center p-4 relative overflow-hidden">
-                        <div className="absolute inset-0 opacity-30 bg-[radial-gradient(circle_at_30%_20%,rgba(16,185,129,0.35),transparent_55%)]" />
+                      <div className="h-48 w-full bg-gradient-to-b from-[#F8F8F7] to-white flex items-center justify-center p-4 relative overflow-hidden">
+                        <div className="absolute inset-0 opacity-30 bg-[radial-gradient(circle_at_30%_20%,rgba(227,6,19,0.15),transparent_55%)]" />
                         <div className="relative z-10 w-full max-w-[140px] transform group-hover:scale-105 transition-transform duration-300">
                           <JerseyRenderer productId={prod.id} uploadedImage={prod.uploadedImage} imageKey={prod.image} />
                         </div>
                       </div>
-                      <div className="px-3 py-3 border-t border-zinc-800 space-y-1">
-                        <span className="text-[9px] font-mono font-black text-zinc-400 uppercase tracking-wider">
+                      <div className="px-3 py-3 border-t border-[#E5E5E5] space-y-1">
+                        <span className="text-[9px] font-mono font-black text-[#555555] uppercase tracking-wider">
                           {prod.brand} • Bailey Road #{idx + 1}
                         </span>
-                        <h4 className="text-[11px] font-black text-white uppercase leading-snug line-clamp-2">
+                        <h4 className="text-[11px] font-black text-[#0A0A0A] uppercase leading-snug line-clamp-2">
                           {prod.name}
                         </h4>
                       </div>
@@ -905,14 +940,14 @@ export const DynamicPageRenderer: React.FC<DynamicPageRendererProps> = ({
                     { id: 2, name: 'Fahim Chowdhury', quote: 'Been looking for the Spain 2026 Yamal jersey for literal years. Finally secured it at Epic Vanskap BD with custom physics certificates. Unrivaled experience.', rating: 5, date: '2026-07-08' },
                     { id: 3, name: 'Anika Bushra', quote: 'Extremely fast delivery inside Dhaka (secured within 24 hours). The vacuum packaging smelled wonderful, complete with care instructions.', rating: 5, date: '2026-07-05' }
                   ].map((t) => (
-                    <div key={t.id} className="bg-[#121212] border border-zinc-800 p-5 rounded-2xl space-y-3 relative shadow-sm">
-                      <div className="flex gap-1 text-amber-500">
-                        {[...Array(t.rating)].map((_, i) => <Star key={i} size={11} className="fill-amber-500 text-amber-500" />)}
+                    <div key={t.id} className="bg-white border border-[#E5E5E5] p-5 rounded-2xl space-y-3 relative shadow-sm">
+                      <div className="flex gap-1 text-[#E30613]">
+                        {[...Array(t.rating)].map((_, i) => <Star key={i} size={11} className="fill-[#E30613] text-[#E30613]" />)}
                       </div>
-                      <p className="text-zinc-300 text-[11.5px] italic leading-relaxed">"{t.quote}"</p>
-                      <div className="border-t border-zinc-800 pt-2 flex justify-between items-center text-[10px] font-mono">
-                        <span className="text-white font-bold">{t.name.toUpperCase()}</span>
-                        <span className="text-zinc-400 font-bold">✓ VERIFIED COLLECTOR</span>
+                      <p className="text-[#555555] text-[11.5px] italic leading-relaxed">"{t.quote}"</p>
+                      <div className="border-t border-[#E5E5E5] pt-2 flex justify-between items-center text-[10px] font-mono">
+                        <span className="text-[#0A0A0A] font-bold">{t.name.toUpperCase()}</span>
+                        <span className="text-[#555555] font-bold">✓ VERIFIED COLLECTOR</span>
                       </div>
                     </div>
                   ))}
@@ -945,9 +980,9 @@ export const DynamicPageRenderer: React.FC<DynamicPageRendererProps> = ({
                           if (onSearch) onSearch(team.searchQuery || team.name);
                           else setCurrentPage('listing');
                         }}
-                        className="bg-[#121212] hover:bg-zinc-900/90 border border-zinc-800 rounded-md sm:rounded-2xl p-1 sm:p-5 text-center cursor-pointer transition-all duration-300 group hover:scale-[1.02] flex flex-col items-center justify-between min-h-[68px] sm:min-h-[160px]"
+                        className="bg-white hover:bg-[#F8F8F7] border border-[#E5E5E5] rounded-md sm:rounded-2xl p-1 sm:p-5 text-center cursor-pointer transition-all duration-300 group hover:scale-[1.02] flex flex-col items-center justify-between min-h-[68px] sm:min-h-[160px]"
                       >
-                        <div className="h-6 w-9 sm:h-12 sm:w-[5rem] mb-0.5 sm:mb-3 flex items-center justify-center overflow-hidden rounded bg-[#121212] border border-zinc-800 shrink-0">
+                        <div className="h-6 w-9 sm:h-12 sm:w-[5rem] mb-0.5 sm:mb-3 flex items-center justify-center overflow-hidden rounded bg-[#F8F8F7] border border-[#E5E5E5] shrink-0">
                           <img
                             src={team.flagUrl}
                             alt={`${team.name} flag`}
@@ -957,10 +992,10 @@ export const DynamicPageRenderer: React.FC<DynamicPageRendererProps> = ({
                           />
                         </div>
                         <div className="min-w-0 w-full px-0.5">
-                          <h4 className="text-[7px] sm:text-xs font-black text-white uppercase leading-tight line-clamp-2">
+                          <h4 className="text-[7px] sm:text-xs font-black text-[#0A0A0A] uppercase leading-tight line-clamp-2">
                             {team.name}
                           </h4>
-                          <span className="text-[6px] sm:text-[10px] text-zinc-400 font-mono font-bold mt-0.5 block">
+                          <span className="text-[6px] sm:text-[10px] text-[#555555] font-mono font-bold mt-0.5 block">
                             <span className="sm:hidden">{count}</span>
                             <span className="hidden sm:inline">{count} verified jerseys</span>
                           </span>
@@ -1005,11 +1040,11 @@ export const DynamicPageRenderer: React.FC<DynamicPageRendererProps> = ({
                         },
                       ]
                   ).map((loc) => (
-                    <div key={loc.city} className="bg-[#121212] border border-zinc-800 p-6 rounded-2xl space-y-3 shadow-sm relative">
-                      <span className="absolute top-4 right-4 text-zinc-300"><MapPin size={20} /></span>
-                      <h4 className="text-xs font-black text-white uppercase">{loc.city}</h4>
-                      <p className="text-[11px] text-zinc-300 leading-relaxed font-sans">{loc.address}</p>
-                      <div className="text-[9px] font-mono text-zinc-400 space-y-1 pt-2 border-t border-zinc-800">
+                    <div key={loc.city} className="bg-white border border-[#E5E5E5] p-6 rounded-2xl space-y-3 shadow-sm relative">
+                      <span className="absolute top-4 right-4 text-[#555555]"><MapPin size={20} /></span>
+                      <h4 className="text-xs font-black text-[#0A0A0A] uppercase">{loc.city}</h4>
+                      <p className="text-[11px] text-[#555555] leading-relaxed font-sans">{loc.address}</p>
+                      <div className="text-[9px] font-mono text-[#555555] space-y-1 pt-2 border-t border-[#E5E5E5]">
                         <span className="block">HOURS: {loc.hours}</span>
                         <span className="block">TELEPHONE: {loc.phone}</span>
                       </div>
@@ -1026,7 +1061,7 @@ export const DynamicPageRenderer: React.FC<DynamicPageRendererProps> = ({
       {/* DYNAMIC POPUP BANNER MODAL OVERLAY */}
       {showPopupBanner && activePopupBanner && (
         <div className="fixed inset-0 z-50 bg-zinc-950/85 backdrop-blur-md flex items-center justify-center p-4 animate-in fade-in duration-300">
-          <div className="bg-[#121212] border border-zinc-800 rounded-3xl max-w-lg w-full overflow-hidden shadow-2xl relative my-auto">
+          <div className="bg-white border border-[#E5E5E5] rounded-3xl max-w-lg w-full overflow-hidden shadow-2xl relative my-auto">
             <button
               onClick={() => setShowPopupBanner(false)}
               className="absolute top-4 right-4 z-20 bg-black/60 hover:bg-black text-white p-2 rounded-full backdrop-blur-md transition-all cursor-pointer"
@@ -1035,7 +1070,7 @@ export const DynamicPageRenderer: React.FC<DynamicPageRendererProps> = ({
               <X size={16} />
             </button>
 
-            <div className="relative h-56 bg-zinc-950 overflow-hidden">
+            <div className="relative h-56 bg-[#F8F8F7] overflow-hidden">
               <picture className="w-full h-full">
                 {activePopupBanner.desktopImage && <source media="(min-width: 1024px)" srcSet={activePopupBanner.desktopImage} />}
                 {activePopupBanner.tabletImage && <source media="(min-width: 640px)" srcSet={activePopupBanner.tabletImage} />}
@@ -1061,7 +1096,7 @@ export const DynamicPageRenderer: React.FC<DynamicPageRendererProps> = ({
             </div>
 
             <div className="p-6 space-y-4 text-center">
-              <p className="text-xs text-zinc-300 leading-relaxed font-sans">
+              <p className="text-xs text-[#555555] leading-relaxed font-sans">
                 {activePopupBanner.description || 'Exclusive deal offer available now for vault members.'}
               </p>
 
@@ -1082,13 +1117,13 @@ export const DynamicPageRenderer: React.FC<DynamicPageRendererProps> = ({
                       openNewTab: activePopupBanner.openNewTab,
                     });
                   }}
-                  className="bg-red-600 hover:bg-red-700 text-white font-extrabold text-xs uppercase tracking-widest py-3.5 px-6 rounded-xl transition-all cursor-pointer shadow-md hover:scale-[1.02]"
+                  className="bg-[#0A0A0A] hover:bg-black text-white font-extrabold text-xs uppercase tracking-widest py-3.5 px-6 rounded-xl transition-all cursor-pointer shadow-md hover:scale-[1.02]"
                 >
                   {activePopupBanner.cta || activePopupBanner.ctaText || 'CLAIM EXCLUSIVE ACCESS'}
                 </button>
                 <button
                   onClick={() => setShowPopupBanner(false)}
-                  className="text-[10px] font-mono text-zinc-400 hover:underline uppercase py-1"
+                  className="text-[10px] font-mono text-[#555555] hover:underline uppercase py-1"
                 >
                   No thanks, continue browsing
                 </button>

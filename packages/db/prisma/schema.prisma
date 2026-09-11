@@ -328,6 +328,8 @@ model Product {
   shortDescription String?
   longDescription  String?          @db.Text
   features         String[]         @default([])
+  /// Search / display keywords (max 8 in app)
+  tags             String[]         @default([])
 
   // Pricing (store BDT integers / minor units as preferred; app uses exchangeRate)
   price            Decimal          @db.Decimal(12, 2)

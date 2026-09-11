@@ -75,10 +75,10 @@ export const STOREFRONT_PAGES: StorefrontPageDef[] = [
   },
   {
     id: 'Clearance',
-    name: 'Outlet',
+    name: 'Catalog',
     pageNumber: 3,
-    slug: 'outlet',
-    aliases: ['OUTLET', 'Outlet', 'Sale', 'Clearance Vault', 'Clearance'],
+    slug: 'catalog',
+    aliases: ['OUTLET', 'Outlet', 'Catalog', 'Sale', 'Clearance Vault', 'Clearance'],
   },
 ];
 
@@ -258,8 +258,9 @@ const LISTING_CATEGORY_ALIASES: Record<string, string[]> = {
   training: ['training', 'pre match', 'pre-match', 'warmup'],
   retro: ['retro', 'legends', 'retro store'],
   'retro store': ['retro', 'legends', 'retro store'],
-  outlet: ['outlet', 'clearance', 'sale'],
-  clearance: ['outlet', 'clearance', 'sale'],
+  outlet: ['outlet', 'clearance', 'sale', 'catalog'],
+  clearance: ['outlet', 'clearance', 'sale', 'catalog'],
+  catalog: ['outlet', 'clearance', 'sale', 'catalog'],
 };
 
 /**

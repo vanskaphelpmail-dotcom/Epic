@@ -1,5 +1,5 @@
-import React, { useEffect, useState } from 'react';
-import { Heart, Share2, Star, CheckCircle, ShieldAlert, ShoppingCart, ArrowLeft, ArrowRight, ShieldCheck, Zap, Ruler, ChevronDown, X, Trophy } from 'lucide-react';
+import React, { useEffect, useRef, useState } from 'react';
+import { Heart, Share2, Star, CheckCircle, ShieldAlert, ShoppingCart, ArrowLeft, ArrowRight, ShieldCheck, Zap, Ruler, ChevronDown, ChevronLeft, ChevronRight, X, Trophy } from 'lucide-react';
 import { Product, CartItem, ProductBadgeOption } from '../types';
 import { JerseyRenderer } from './JerseyRenderer';
 import { isRenderableImageSrc } from '../lib/productImage';
@@ -13,6 +13,7 @@ import {
   sumSelectedBadgePrices,
 } from '../lib/productAddons';
 import { toast } from './UiFeedback';
+import { flyImageToCart } from '../lib/flyToCart';
 
 interface ProductDetailsProps {
   product: Product;
@@ -59,6 +60,7 @@ export const ProductDetails: React.FC<ProductDetailsProps> = ({
   const [addedConfirm, setAddedConfirm] = useState(false);
   const [galleryIndex, setGalleryIndex] = useState(0);
   const [galleryPaused, setGalleryPaused] = useState(false);
+  const galleryRef = useRef<HTMLDivElement>(null);
   const [measurementOpen, setMeasurementOpen] = useState(false);
   const [activeChartId, setActiveChartId] = useState(() => sizeCharts[0]?.id || '');
   const sizeChart = sizeCharts.find((c) => c.id === activeChartId) || sizeCharts[0] || null;
@@ -183,6 +185,7 @@ export const ProductDetails: React.FC<ProductDetailsProps> = ({
       toast(`Size ${selectedSize} is currently out of stock.`, 'error');
       return;
     }
+    flyImageToCart(galleryRef.current, mainImageSrc);
     onAddToCart(buildCartItem());
     setAddedConfirm(true);
     setTimeout(() => setAddedConfirm(false), 2500);
@@ -197,22 +200,24 @@ export const ProductDetails: React.FC<ProductDetailsProps> = ({
   };
 
   return (
-    <section className="bg-[#121212] text-white py-10 px-4 md:px-12 max-w-7xl mx-auto min-h-screen">
+    <section className="bg-transparent text-[#0A0A0A] py-10 px-4 md:px-12 max-w-7xl mx-auto min-h-screen">
       
       <button
         onClick={onBackToCatalog}
         type="button"
-        className="inline-flex items-center gap-2 mb-8 px-4 py-2.5 rounded-xl bg-zinc-900 border border-zinc-700 text-white hover:border-red-600 hover:bg-zinc-800 text-sm font-black uppercase tracking-wide cursor-pointer transition-colors shadow-sm"
+        className="inline-flex items-center gap-2 mb-8 px-4 py-2.5 rounded-xl bg-[#F8F8F7] border border-[#E5E5E5] text-[#0A0A0A] hover:border-[#E30613] hover:bg-[#F8F8F7] text-sm font-black uppercase tracking-wide cursor-pointer transition-colors shadow-sm"
       >
-        <ArrowLeft size={16} className="text-red-500 shrink-0" /> Go to Home
+        <ArrowLeft size={16} className="text-[#E30613] shrink-0" /> Go to Home
       </button>
 
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-12 items-start w-full min-w-0">
         
-        {/* Left Column: Interactive 360 SVG Jersey Showcase & View Rotator */}
-        <div className="lg:col-span-6 space-y-6">
+        {/* Left Column: product image gallery */}
+        <div className="lg:col-span-6 space-y-4">
           <div
-            className="relative bg-white border border-zinc-800 rounded-3xl p-2 sm:p-4 flex items-center justify-center aspect-[4/5] sm:aspect-[3/4] max-h-[min(82vh,720px)] w-full overflow-hidden group shadow-2xl"
+            ref={galleryRef}
+            data-product-fly-image
+            className="relative group bg-transparent m-0 p-0 flex items-center justify-center aspect-[4/5] sm:aspect-[3/4] max-h-[min(82vh,720px)] w-full overflow-hidden"
             onMouseEnter={() => setGalleryPaused(true)}
             onMouseLeave={() => setGalleryPaused(false)}
             onTouchStart={(e) => {
@@ -234,14 +239,13 @@ export const ProductDetails: React.FC<ProductDetailsProps> = ({
               );
             }}
           >
-            <div className="absolute w-64 h-64 rounded-full bg-zinc-800/20 blur-[120px] pointer-events-none" />
-
-            <div className="relative w-full h-full flex items-center justify-center px-1 sm:px-2">
+            <div className="relative w-full h-full flex items-center justify-center m-0 p-0">
               {showPhoto ? (
                 <img
+                  key={`${product.id}-${safeGalleryIndex}`}
                   src={mainImageSrc}
                   alt={product.name}
-                  className="max-h-full max-w-full w-auto h-auto object-contain drop-shadow-lg transition-opacity duration-300"
+                  className="h-full w-full max-h-full max-w-full object-contain object-center select-none transition-opacity duration-300"
                   referrerPolicy="no-referrer"
                   draggable={false}
                 />
@@ -259,20 +263,44 @@ export const ProductDetails: React.FC<ProductDetailsProps> = ({
             </div>
 
             {galleryImages.length > 1 && (
-              <div className="absolute bottom-3 left-0 right-0 z-20 flex justify-center items-center gap-1.5">
-                {galleryImages.map((_, i) => (
-                  <button
-                    key={`pd-dot-${i}`}
-                    type="button"
-                    aria-label={`Show image ${i + 1}`}
-                    aria-current={i === safeGalleryIndex}
-                    onClick={() => setGalleryIndex(i)}
-                    className={`h-2 rounded-full transition-all cursor-pointer ${
-                      i === safeGalleryIndex ? 'w-5 bg-red-600' : 'w-2 bg-zinc-400/80 hover:bg-zinc-600'
-                    }`}
-                  />
-                ))}
-              </div>
+              <>
+                <button
+                  type="button"
+                  aria-label="Previous image"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    setGalleryIndex((i) => (i - 1 + galleryImages.length) % galleryImages.length);
+                  }}
+                  className="absolute left-2 top-1/2 -translate-y-1/2 z-20 flex h-10 w-10 items-center justify-center rounded-full bg-black/45 text-white border border-white/10 opacity-0 group-hover:opacity-100 focus:opacity-100 transition-opacity duration-200 cursor-pointer hover:bg-black/65"
+                >
+                  <ChevronLeft size={20} strokeWidth={2} />
+                </button>
+                <button
+                  type="button"
+                  aria-label="Next image"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    setGalleryIndex((i) => (i + 1) % galleryImages.length);
+                  }}
+                  className="absolute right-2 top-1/2 -translate-y-1/2 z-20 flex h-10 w-10 items-center justify-center rounded-full bg-black/45 text-white border border-white/10 opacity-0 group-hover:opacity-100 focus:opacity-100 transition-opacity duration-200 cursor-pointer hover:bg-black/65"
+                >
+                  <ChevronRight size={20} strokeWidth={2} />
+                </button>
+                <div className="absolute bottom-3 left-0 right-0 z-20 flex justify-center items-center gap-1.5">
+                  {galleryImages.map((_, i) => (
+                    <button
+                      key={`pd-dot-${i}`}
+                      type="button"
+                      aria-label={`Show image ${i + 1}`}
+                      aria-current={i === safeGalleryIndex}
+                      onClick={() => setGalleryIndex(i)}
+                      className={`h-2 rounded-full transition-all cursor-pointer ${
+                        i === safeGalleryIndex ? 'w-5 bg-[#E30613]' : 'w-2 bg-white/40 hover:bg-white/70'
+                      }`}
+                    />
+                  ))}
+                </div>
+              </>
             )}
           </div>
 
@@ -283,8 +311,8 @@ export const ProductDetails: React.FC<ProductDetailsProps> = ({
                   key={i}
                   type="button"
                   onClick={() => setGalleryIndex(i)}
-                  className={`h-16 w-16 rounded-xl overflow-hidden border-2 cursor-pointer ${
-                    safeGalleryIndex === i ? 'border-red-600' : 'border-zinc-800'
+                  className={`h-16 w-16 rounded-xl overflow-hidden border-2 cursor-pointer transition-colors ${
+                    safeGalleryIndex === i ? 'border-[#E30613]' : 'border-[#E5E5E5] hover:border-[#E5E5E5]'
                   }`}
                 >
                   {isRenderableImageSrc(src) ? (
@@ -292,11 +320,11 @@ export const ProductDetails: React.FC<ProductDetailsProps> = ({
                       src={src}
                       alt=""
                       loading="lazy"
-                      className="w-full h-full object-contain bg-zinc-950"
+                      className="w-full h-full object-contain bg-white"
                       referrerPolicy="no-referrer"
                     />
                   ) : (
-                    <div className="w-full h-full bg-zinc-900 flex items-center justify-center text-[10px] font-bold text-zinc-300">
+                    <div className="w-full h-full bg-[#F8F8F7] flex items-center justify-center text-[10px] font-bold text-[#555555]">
                       View {i + 1}
                     </div>
                   )}
@@ -304,18 +332,31 @@ export const ProductDetails: React.FC<ProductDetailsProps> = ({
               ))}
             </div>
           )}
+
+          {Array.isArray(product.tags) && product.tags.length > 0 && (
+            <div className="flex flex-wrap gap-2 justify-center pt-1">
+              {product.tags.slice(0, 8).map((tag) => (
+                <span
+                  key={tag}
+                  className="inline-flex items-center px-2.5 py-1 rounded-lg bg-[#F8F8F7] border border-[#E5E5E5] text-[10px] font-mono font-bold uppercase tracking-wider text-[#555555]"
+                >
+                  {tag}
+                </span>
+              ))}
+            </div>
+          )}
         </div>
 
         {/* Right Column: Customization Panel & Buying controls */}
-        <div className="lg:col-span-6 space-y-8 text-white">
+        <div className="lg:col-span-6 space-y-8 text-[#0A0A0A]">
           
           {/* Header Title Info */}
           <div className="space-y-3">
             <div className="flex flex-wrap items-center gap-2">
-              <span className="bg-zinc-800 text-zinc-300 font-mono text-[10px] font-black uppercase px-3 py-1 rounded border border-zinc-800">
+              <span className="bg-[#F8F8F7] text-[#555555] font-mono text-[10px] font-black uppercase px-3 py-1 rounded border border-[#E5E5E5]">
                 {product.season} season
               </span>
-              <span className="bg-zinc-900 text-zinc-400 font-mono text-[10px] font-black uppercase px-3 py-1 rounded border border-zinc-800">
+              <span className="bg-[#F8F8F7] text-[#555555] font-mono text-[10px] font-black uppercase px-3 py-1 rounded border border-[#E5E5E5]">
                 {product.brand} Authentic
               </span>
               {product.isPreOrder && (
@@ -324,13 +365,13 @@ export const ProductDetails: React.FC<ProductDetailsProps> = ({
                 </span>
               )}
               {!product.isPreOrder && product.stock <= 3 && (
-                <span className="bg-red-50 text-red-600 border border-red-100 font-mono text-[10px] font-black uppercase px-3 py-1 rounded animate-pulse">
+                <span className="bg-red-50 text-[#E30613] border border-red-100 font-mono text-[10px] font-black uppercase px-3 py-1 rounded animate-pulse">
                   Only {product.stock} Left in Stock
                 </span>
               )}
             </div>
 
-            <h1 className="text-3xl md:text-4xl font-black tracking-tight uppercase leading-tight text-white">
+            <h1 className="text-3xl md:text-4xl font-black tracking-tight uppercase leading-tight text-[#0A0A0A]">
               {product.name}
             </h1>
 
@@ -339,48 +380,48 @@ export const ProductDetails: React.FC<ProductDetailsProps> = ({
               <div className="flex flex-wrap items-baseline gap-2">
                 {hasProductDiscount(product) ? (
                   <>
-                    <span className="text-zinc-600 text-sm line-through font-mono">
+                    <span className="text-[#555555] text-sm line-through font-mono">
                       {formatPrice(product.originalPrice!)}
                     </span>
-                    <span className="text-zinc-300 text-2xl font-black">{formatPrice(finalPrice)}</span>
+                    <span className="text-[#0A0A0A] text-2xl font-black">{formatPrice(finalPrice)}</span>
                     <span className="bg-rose-50 text-rose-700 border border-rose-100 text-[10px] font-black uppercase tracking-wider px-2 py-0.5 rounded-full">
                       {getProductDiscountPercent(product)}% OFF
                     </span>
                   </>
                 ) : (
-                  <span className="text-zinc-300 text-2xl font-black">{formatPrice(finalPrice)}</span>
+                  <span className="text-[#0A0A0A] text-2xl font-black">{formatPrice(finalPrice)}</span>
                 )}
                 {customizationCost > 0 && (
-                  <span className="text-[10px] text-zinc-400 font-mono">
+                  <span className="text-[10px] text-[#555555] font-mono">
                     (Includes Font +{formatPrice(namesetPrice)})
                   </span>
                 )}
               </div>
-              <div className="h-5 w-px bg-zinc-800" />
+              <div className="h-5 w-px bg-[#F8F8F7]" />
               <div className="flex items-center gap-1.5">
-                <div className="flex text-zinc-400">
-                  <Star size={13} className="fill-zinc-700 text-zinc-600" />
+                <div className="flex text-[#555555]">
+                  <Star size={13} className="fill-zinc-700 text-[#555555]" />
                 </div>
                 <span className="text-sm font-bold">{product.rating}</span>
-                <span className="text-zinc-600 text-xs">({product.reviewsCount} verified orders)</span>
+                <span className="text-[#555555] text-xs">({product.reviewsCount} verified orders)</span>
               </div>
             </div>
           </div>
 
-          <p className="text-zinc-300 text-base leading-relaxed">
-            {product.shortDescription || product.description || product.longDescription}
+          <p className="text-[#555555] text-base leading-relaxed">
+            {product.longDescription || product.shortDescription || product.description}
           </p>
 
           {/* Size Selector Form */}
           <div className="space-y-3">
-            <label className="text-xs font-mono font-bold tracking-widest text-zinc-300 uppercase">
+            <label className="text-xs font-mono font-bold tracking-widest text-[#555555] uppercase">
               Select Curated Sizing
               <span className={`ml-2 normal-case tracking-normal font-bold ${
                 product.isPreOrder
                   ? 'text-amber-700'
                   : sizeStock <= 0
                     ? 'text-rose-700'
-                    : 'text-zinc-400'
+                    : 'text-[#555555]'
               }`}>
                 {product.isPreOrder
                   ? `(Pre-order${product.preOrderEta ? ` — ${product.preOrderEta}` : ''})`
@@ -404,10 +445,10 @@ export const ProductDetails: React.FC<ProductDetailsProps> = ({
                     onClick={() => available && setSelectedSize(sz)}
                     className={`w-12 h-12 rounded-xl text-xs font-mono font-black border transition-all ${
                       !available
-                        ? 'bg-zinc-900 border-zinc-700 text-zinc-500 line-through cursor-not-allowed opacity-60'
+                        ? 'bg-[#F8F8F7] border-[#E5E5E5] text-[#555555] line-through cursor-not-allowed opacity-60'
                         : selected
-                          ? 'bg-red-600 border-red-600 text-white shadow-lg shadow-red-600/25 cursor-pointer'
-                          : 'bg-[#121212] border-zinc-800 text-white hover:border-red-600 cursor-pointer'
+                          ? 'bg-[#0A0A0A] border-[#0A0A0A] text-white shadow-lg shadow-black/20 cursor-pointer'
+                          : 'bg-white border-[#E5E5E5] text-[#0A0A0A] hover:border-[#E30613] cursor-pointer'
                     }`}
                   >
                     {displaySizeLabel(sz)}
@@ -421,7 +462,7 @@ export const ProductDetails: React.FC<ProductDetailsProps> = ({
                   type="button"
                   onClick={() => setMeasurementOpen((o) => !o)}
                   aria-expanded={measurementOpen}
-                  className="w-full sm:w-auto inline-flex items-center justify-between gap-2 px-4 py-2.5 rounded-xl border border-zinc-700 bg-zinc-900/80 text-zinc-200 text-[11px] font-bold uppercase tracking-wider hover:border-red-600 hover:text-white transition-colors cursor-pointer"
+                  className="w-full sm:w-auto inline-flex items-center justify-between gap-2 px-4 py-2.5 rounded-xl border border-[#E5E5E5] bg-[#F8F8F7] text-[#0A0A0A] text-[11px] font-bold uppercase tracking-wider hover:border-[#E30613] hover:text-[#0A0A0A] transition-colors cursor-pointer"
                 >
                   <span className="inline-flex items-center gap-1.5">
                     <Ruler size={13} aria-hidden />
@@ -443,8 +484,8 @@ export const ProductDetails: React.FC<ProductDetailsProps> = ({
                             onClick={() => setActiveChartId(c.id)}
                             className={`px-3 py-1.5 rounded-lg text-[10px] font-black uppercase tracking-wider cursor-pointer border ${
                               (sizeChart?.id || '') === c.id
-                                ? 'bg-red-600 border-red-600 text-white'
-                                : 'bg-zinc-900 border-zinc-700 text-zinc-300 hover:border-red-600'
+                                ? 'bg-[#0A0A0A] border-[#0A0A0A] text-white'
+                                : 'bg-white border-[#E5E5E5] text-[#0A0A0A] hover:border-[#E30613]'
                             }`}
                           >
                             {c.label}
@@ -453,10 +494,10 @@ export const ProductDetails: React.FC<ProductDetailsProps> = ({
                       </div>
                     )}
                     {sizeChart && (
-                      <div className="overflow-x-auto border border-zinc-800 rounded-2xl bg-zinc-900 w-full">
+                      <div className="overflow-x-auto border border-[#E5E5E5] rounded-2xl bg-[#F8F8F7] w-full">
                         <table className="w-full min-w-[280px] text-left text-xs">
                           <thead>
-                            <tr className="border-b border-zinc-800 text-[10px] font-mono uppercase tracking-wider text-zinc-400">
+                            <tr className="border-b border-[#E5E5E5] text-[10px] font-mono uppercase tracking-wider text-[#555555]">
                               {sizeChart.columns.map((col) => (
                                 <th key={col.key} className="px-3 py-2 whitespace-nowrap">
                                   {col.label}
@@ -466,7 +507,7 @@ export const ProductDetails: React.FC<ProductDetailsProps> = ({
                           </thead>
                           <tbody>
                             {sizeChart.rows.map((row) => (
-                              <tr key={row.size} className="border-b border-zinc-800 last:border-0">
+                              <tr key={row.size} className="border-b border-[#E5E5E5] last:border-0">
                                 {sizeChart.columns.map((col) => {
                                   const value =
                                     col.key === 'size'
@@ -481,8 +522,8 @@ export const ProductDetails: React.FC<ProductDetailsProps> = ({
                                       key={col.key}
                                       className={`px-3 py-2 ${
                                         col.key === 'size'
-                                          ? 'font-black text-white'
-                                          : 'font-mono text-zinc-300'
+                                          ? 'font-black text-[#0A0A0A]'
+                                          : 'font-mono text-[#555555]'
                                       }`}
                                     >
                                       {value}
@@ -493,7 +534,7 @@ export const ProductDetails: React.FC<ProductDetailsProps> = ({
                             ))}
                           </tbody>
                         </table>
-                        <p className="px-3 py-2 text-[10px] text-zinc-400 font-mono border-t border-zinc-800">
+                        <p className="px-3 py-2 text-[10px] text-[#555555] font-mono border-t border-[#E5E5E5]">
                           {sizeChart.title} — {sizeChart.note}
                         </p>
                       </div>
@@ -510,16 +551,16 @@ export const ProductDetails: React.FC<ProductDetailsProps> = ({
               <div
                 className={`rounded-xl border p-4 sm:p-5 transition-colors ${
                   enableNameset
-                    ? 'border-red-600 bg-[#121212]'
-                    : 'border-zinc-700 bg-[#0a0a0a]'
+                    ? 'border-[#E30613] bg-white'
+                    : 'border-[#E5E5E5] bg-[#F8F8F7]'
                 }`}
               >
                 <label className="flex items-start gap-3 cursor-pointer">
                   <span
                     className={`mt-0.5 flex h-5 w-5 shrink-0 items-center justify-center rounded border transition-colors ${
                       enableNameset
-                        ? 'border-red-600 bg-red-600 text-white'
-                        : 'border-zinc-500 bg-transparent'
+                        ? 'border-[#0A0A0A] bg-[#0A0A0A] text-white'
+                        : 'border-[#E5E5E5] bg-transparent'
                     }`}
                     aria-hidden
                   >
@@ -532,10 +573,10 @@ export const ProductDetails: React.FC<ProductDetailsProps> = ({
                     className="sr-only"
                   />
                   <div className="flex-1 min-w-0">
-                    <span className="text-xs sm:text-sm font-bold tracking-wide text-white uppercase block">
+                    <span className="text-xs sm:text-sm font-bold tracking-wide text-[#0A0A0A] uppercase block">
                       Add {namesetLabel} (+{formatPrice(namesetPrice)})
                     </span>
-                    <p className="text-[11px] text-zinc-400 mt-1 leading-relaxed">
+                    <p className="text-[11px] text-[#555555] mt-1 leading-relaxed">
                       Optional — add a player name &amp; number with custom font when needed. Character limit may apply
                       and full payment ({formatPrice(namesetPrice)}) is finalised.
                     </p>
@@ -545,7 +586,7 @@ export const ProductDetails: React.FC<ProductDetailsProps> = ({
                 {enableNameset && (
                   <div className="mt-4 grid grid-cols-1 sm:grid-cols-2 gap-3">
                     <div className="space-y-1.5">
-                      <span className="text-[10px] text-zinc-400 font-semibold uppercase tracking-wider">
+                      <span className="text-[10px] text-[#555555] font-semibold uppercase tracking-wider">
                         Player Last Name
                       </span>
                       <input
@@ -554,11 +595,11 @@ export const ProductDetails: React.FC<ProductDetailsProps> = ({
                         placeholder="e.g. ZIDANE"
                         value={customName}
                         onChange={(e) => setCustomName(e.target.value.toUpperCase())}
-                        className="w-full bg-black border border-zinc-700 rounded-lg py-2.5 px-3 text-white placeholder-zinc-500 text-xs focus:outline-none focus:border-red-600"
+                        className="w-full bg-white border border-[#E5E5E5] rounded-lg py-2.5 px-3 text-[#0A0A0A] placeholder:text-[#555555] text-xs focus:outline-none focus:border-[#E30613]"
                       />
                     </div>
                     <div className="space-y-1.5">
-                      <span className="text-[10px] text-zinc-400 font-semibold uppercase tracking-wider">
+                      <span className="text-[10px] text-[#555555] font-semibold uppercase tracking-wider">
                         Squad Number (0–99)
                       </span>
                       <input
@@ -571,7 +612,7 @@ export const ProductDetails: React.FC<ProductDetailsProps> = ({
                           const val = e.target.value;
                           setCustomNumber(val === '' ? '' : Math.min(99, Math.max(0, Number(val))));
                         }}
-                        className="w-full bg-black border border-zinc-700 rounded-lg py-2.5 px-3 text-white placeholder-zinc-500 text-xs focus:outline-none focus:border-red-600"
+                        className="w-full bg-white border border-[#E5E5E5] rounded-lg py-2.5 px-3 text-[#0A0A0A] placeholder:text-[#555555] text-xs focus:outline-none focus:border-[#E30613]"
                       />
                     </div>
                   </div>
@@ -583,16 +624,16 @@ export const ProductDetails: React.FC<ProductDetailsProps> = ({
             <div
               className={`rounded-xl border p-4 sm:p-5 transition-colors ${
                 enableBadges
-                  ? 'border-red-600 bg-[#121212]'
-                  : 'border-zinc-700 bg-[#0a0a0a]'
+                  ? 'border-[#E30613] bg-white'
+                  : 'border-[#E5E5E5] bg-[#F8F8F7]'
               }`}
             >
               <label className="flex items-start gap-3 cursor-pointer">
                 <span
                   className={`mt-0.5 flex h-5 w-5 shrink-0 items-center justify-center rounded border transition-colors ${
                     enableBadges
-                      ? 'border-red-600 bg-red-600 text-white'
-                      : 'border-zinc-500 bg-transparent'
+                      ? 'border-[#0A0A0A] bg-[#0A0A0A] text-white'
+                      : 'border-[#E5E5E5] bg-transparent'
                   }`}
                   aria-hidden
                 >
@@ -605,10 +646,10 @@ export const ProductDetails: React.FC<ProductDetailsProps> = ({
                   className="sr-only"
                 />
                 <div className="flex-1 min-w-0">
-                  <span className="text-xs sm:text-sm font-bold tracking-wide text-white uppercase block">
+                  <span className="text-xs sm:text-sm font-bold tracking-wide text-[#0A0A0A] uppercase block">
                     Select Tournament Patch
                   </span>
-                  <p className="text-[11px] text-zinc-400 mt-1 leading-relaxed">
+                  <p className="text-[11px] text-[#555555] mt-1 leading-relaxed">
                     Add one or more patches — each selected patch has its own price.
                   </p>
                 </div>
@@ -618,14 +659,14 @@ export const ProductDetails: React.FC<ProductDetailsProps> = ({
                 <button
                   type="button"
                   onClick={openBadgeSheet}
-                  className="mt-4 w-full flex items-center justify-between gap-3 bg-black border border-zinc-700 hover:border-red-600 rounded-lg py-3 px-3.5 text-left transition-colors cursor-pointer"
+                  className="mt-4 w-full flex items-center justify-between gap-3 bg-white border border-[#E5E5E5] hover:border-[#E30613] rounded-lg py-3 px-3.5 text-left transition-colors cursor-pointer"
                 >
-                  <span className={`text-xs min-w-0 ${selectedBadges.length ? 'text-white font-semibold' : 'text-zinc-500'}`}>
+                  <span className={`text-xs min-w-0 ${selectedBadges.length ? 'text-[#0A0A0A] font-semibold' : 'text-[#555555]'}`}>
                     {selectedBadges.length
                       ? selectedBadges.map((b) => b.label).join(', ')
                       : 'Select tournament patches'}
                   </span>
-                  <ChevronDown size={16} className="text-zinc-400 shrink-0" />
+                  <ChevronDown size={16} className="text-[#555555] shrink-0" />
                 </button>
               )}
 
@@ -634,17 +675,17 @@ export const ProductDetails: React.FC<ProductDetailsProps> = ({
                   {selectedBadges.map((badge) => (
                     <span
                       key={badge.id}
-                      className="inline-flex items-center gap-2 rounded-lg border border-zinc-700 bg-black px-2 py-1.5"
+                      className="inline-flex items-center gap-2 rounded-lg border border-[#E5E5E5] bg-[#F8F8F7] px-2 py-1.5"
                     >
                       {badge.image && isRenderableImageSrc(badge.image) ? (
                         <img src={badge.image} alt="" className="h-7 w-7 rounded object-cover" />
                       ) : (
-                        <span className="h-7 w-7 rounded bg-zinc-900 border border-zinc-700 flex items-center justify-center">
-                          <Trophy size={12} className="text-zinc-400" />
+                        <span className="h-7 w-7 rounded bg-[#F8F8F7] border border-[#E5E5E5] flex items-center justify-center">
+                          <Trophy size={12} className="text-[#555555]" />
                         </span>
                       )}
-                      <span className="text-[11px] text-white font-semibold">{badge.label}</span>
-                      <span className="text-[10px] text-red-500 font-bold">+{formatPrice(badge.priceBdt)}</span>
+                      <span className="text-[11px] text-[#0A0A0A] font-semibold">{badge.label}</span>
+                      <span className="text-[10px] text-[#E30613] font-bold">+{formatPrice(badge.priceBdt)}</span>
                     </span>
                   ))}
                 </div>
@@ -661,18 +702,18 @@ export const ProductDetails: React.FC<ProductDetailsProps> = ({
                 aria-label="Close patch picker"
                 onClick={cancelBadgeSheet}
               />
-              <div className="relative w-full max-w-md mx-auto bg-[#121212] border border-zinc-800 rounded-t-2xl sm:rounded-2xl shadow-2xl p-5 sm:p-6 space-y-4 animate-fadeIn">
+              <div className="relative w-full max-w-md mx-auto bg-white border border-[#E5E5E5] rounded-t-2xl sm:rounded-2xl shadow-2xl p-5 sm:p-6 space-y-4 animate-fadeIn">
                 <div className="flex items-start justify-between gap-3">
                   <div>
-                    <h3 className="text-base font-bold text-white">Select Tournament Patch</h3>
-                    <p className="text-[11px] text-zinc-400 mt-0.5">
+                    <h3 className="text-base font-bold text-[#0A0A0A]">Select Tournament Patch</h3>
+                    <p className="text-[11px] text-[#555555] mt-0.5">
                       Choose one or more patches. Each has its own add-on price.
                     </p>
                   </div>
                   <button
                     type="button"
                     onClick={cancelBadgeSheet}
-                    className="p-1.5 rounded-lg text-zinc-400 hover:text-white hover:bg-zinc-800 transition-colors cursor-pointer"
+                    className="p-1.5 rounded-lg text-[#555555] hover:text-[#0A0A0A] hover:bg-[#F8F8F7] transition-colors cursor-pointer"
                     aria-label="Close"
                   >
                     <X size={18} />
@@ -689,13 +730,13 @@ export const ProductDetails: React.FC<ProductDetailsProps> = ({
                         onClick={() => togglePendingBadge(badge.id)}
                         className={`w-full flex items-center gap-3 rounded-xl border px-3.5 py-3 text-left transition-colors cursor-pointer ${
                           selected
-                            ? 'border-red-600 bg-red-600/10'
-                            : 'border-zinc-700 bg-black hover:border-zinc-500'
+                            ? 'border-[#E30613] bg-red-50'
+                            : 'border-[#E5E5E5] bg-white hover:border-[#0A0A0A]'
                         }`}
                       >
                         <span
                           className={`h-4 w-4 rounded border-2 flex items-center justify-center shrink-0 ${
-                            selected ? 'border-red-600 bg-red-600' : 'border-zinc-500'
+                            selected ? 'border-[#0A0A0A] bg-[#0A0A0A]' : 'border-[#E5E5E5]'
                           }`}
                         >
                           {selected ? <CheckCircle size={10} className="text-white" strokeWidth={3} /> : null}
@@ -704,15 +745,15 @@ export const ProductDetails: React.FC<ProductDetailsProps> = ({
                           <img
                             src={badge.image}
                             alt=""
-                            className="h-10 w-10 rounded-lg object-cover border border-zinc-700 shrink-0"
+                            className="h-10 w-10 rounded-lg object-cover border border-[#E5E5E5] shrink-0"
                           />
                         ) : (
-                          <span className="flex h-10 w-10 items-center justify-center rounded-lg bg-zinc-900 border border-zinc-700 text-white shrink-0">
+                          <span className="flex h-10 w-10 items-center justify-center rounded-lg bg-[#F8F8F7] border border-[#E5E5E5] text-[#0A0A0A] shrink-0">
                             <Trophy size={16} />
                           </span>
                         )}
-                        <span className="flex-1 text-sm font-semibold text-white">{badge.label}</span>
-                        <span className="text-xs font-bold text-red-500">+{formatPrice(badge.priceBdt)}</span>
+                        <span className="flex-1 text-sm font-semibold text-[#0A0A0A]">{badge.label}</span>
+                        <span className="text-xs font-bold text-[#E30613]">+{formatPrice(badge.priceBdt)}</span>
                       </button>
                     );
                   })}
@@ -721,14 +762,14 @@ export const ProductDetails: React.FC<ProductDetailsProps> = ({
                 <button
                   type="button"
                   onClick={applyBadgeSelection}
-                  className="w-full bg-red-600 hover:bg-red-700 text-white font-extrabold text-xs uppercase tracking-widest py-3.5 rounded-xl transition-colors cursor-pointer"
+                  className="w-full bg-[#0A0A0A] hover:bg-black text-white font-extrabold text-xs uppercase tracking-widest py-3.5 rounded-xl transition-colors cursor-pointer"
                 >
                   Apply {pendingBadgeIds.length ? `(${pendingBadgeIds.length})` : 'Patches'}
                 </button>
                 <button
                   type="button"
                   onClick={cancelBadgeSheet}
-                  className="w-full text-zinc-400 hover:text-white text-xs font-semibold py-2 transition-colors cursor-pointer"
+                  className="w-full text-[#555555] hover:text-[#0A0A0A] text-xs font-semibold py-2 transition-colors cursor-pointer"
                 >
                   Cancel
                 </button>
@@ -739,7 +780,7 @@ export const ProductDetails: React.FC<ProductDetailsProps> = ({
           {/* Cart Buttons & Utility Bar */}
           <div className="space-y-3.5 pt-2">
             {addedConfirm && (
-              <div className="bg-zinc-900 border border-zinc-8000/20 text-zinc-400 text-xs font-bold font-mono py-2.5 px-4 rounded-xl text-center tracking-wide animate-fadeIn">
+              <div className="bg-[#F8F8F7] border border-[#E5E5E5] text-[#555555] text-xs font-bold font-mono py-2.5 px-4 rounded-xl text-center tracking-wide animate-fadeIn">
                 ✓ SHIRT SUCCESFULLY INTEGRATED INTO YOUR BAG!
               </div>
             )}
@@ -759,7 +800,7 @@ export const ProductDetails: React.FC<ProductDetailsProps> = ({
                   <button
                     type="button"
                     onClick={handleOrderNowSubmit}
-                    className="sm:col-span-12 bg-red-600 hover:bg-red-700 text-white font-extrabold text-xs uppercase tracking-widest py-4 rounded-full shadow-lg shadow-black/10 flex items-center justify-center gap-2 cursor-pointer transition-all active:scale-98 font-sans"
+                    className="sm:col-span-12 bg-[#0A0A0A] hover:bg-black text-white font-extrabold text-xs uppercase tracking-widest py-4 rounded-full shadow-lg shadow-black/10 flex items-center justify-center gap-2 cursor-pointer transition-all active:scale-98 font-sans"
                     id="order-now-button"
                   >
                     <Zap size={15} className="fill-white" /> ORDER NOW
@@ -768,7 +809,7 @@ export const ProductDetails: React.FC<ProductDetailsProps> = ({
                   <button
                     type="button"
                     onClick={handleAddToCartSubmit}
-                    className="sm:col-span-8 bg-transparent hover:bg-red-600/10 text-white border-2 border-red-600 font-extrabold text-xs uppercase tracking-widest py-4 rounded-full shadow-sm flex items-center justify-center gap-2 cursor-pointer transition-all active:scale-98 font-sans"
+                    className="sm:col-span-8 bg-white hover:bg-[#F8F8F7] text-[#0A0A0A] border-2 border-[#0A0A0A] font-extrabold text-xs uppercase tracking-widest py-4 rounded-full shadow-sm flex items-center justify-center gap-2 cursor-pointer transition-all active:scale-98 font-sans"
                     id="add-to-bag-button"
                   >
                     <ShoppingCart size={15} /> ADD TO CART
@@ -781,24 +822,24 @@ export const ProductDetails: React.FC<ProductDetailsProps> = ({
                 onClick={() => onAddToWishlist(product)}
                 className={`${product.isPreOrder ? 'sm:col-span-4' : 'sm:col-span-4'} border py-4 rounded-full flex items-center justify-center gap-2 text-xs font-bold uppercase tracking-wider transition-all cursor-pointer ${
                   isWishlisted
-                    ? 'border-red-500 bg-red-600/20 text-red-500'
-                    : 'border-zinc-700 hover:border-red-600 text-zinc-300 bg-[#121212]'
+                    ? 'border-[#E30613] bg-red-50 text-[#E30613]'
+                    : 'border-[#E5E5E5] hover:border-[#E30613] text-[#555555] bg-white'
                 }`}
               >
-                <Heart size={14} className={isWishlisted ? 'fill-red-500 text-red-500' : ''} />
+                <Heart size={14} className={isWishlisted ? 'fill-[#E30613] text-[#E30613]' : ''} />
                 {isWishlisted ? 'Wishlisted' : 'Wishlist'}
               </button>
             </div>
 
             {/* Share / Security Trust features */}
-            <div className="flex flex-wrap justify-between items-center text-xs text-zinc-600 pt-4 border-t border-zinc-800">
+            <div className="flex flex-wrap justify-between items-center text-xs text-[#555555] pt-4 border-t border-[#E5E5E5]">
               <button
                 onClick={handleShare}
-                className="flex items-center gap-1.5 hover:text-white transition-colors cursor-pointer"
+                className="flex items-center gap-1.5 hover:text-[#0A0A0A] transition-colors cursor-pointer"
               >
                 <Share2 size={13} /> {copiedLink ? 'Link Copied!' : 'Share Jersey Details'}
               </button>
-              <div className="flex items-center gap-1.5 font-mono text-[10px] text-zinc-400">
+              <div className="flex items-center gap-1.5 font-mono text-[10px] text-[#555555]">
                 <ShieldCheck size={13} />
                 <span>Verified original with lifetime guarantee</span>
               </div>
@@ -810,12 +851,12 @@ export const ProductDetails: React.FC<ProductDetailsProps> = ({
 
       {/* Related Products Section */}
       {relatedProducts.length > 0 && (
-        <div className="mt-20 border-t border-zinc-800 pt-12 space-y-6">
+        <div className="mt-20 border-t border-[#E5E5E5] pt-12 space-y-6">
           <div className="flex justify-between items-center">
-            <h2 className="text-xl font-bold uppercase tracking-tight text-white">
+            <h2 className="text-xl font-bold uppercase tracking-tight text-[#0A0A0A]">
               Related Jerseys
             </h2>
-            <span className="text-xs text-zinc-400 font-mono font-bold tracking-widest uppercase">
+            <span className="text-xs text-[#555555] font-mono font-bold tracking-widest uppercase">
               Curated Selection
             </span>
           </div>
@@ -829,9 +870,9 @@ export const ProductDetails: React.FC<ProductDetailsProps> = ({
                 <div
                   key={rp.id}
                   onClick={() => onSelectProduct(rp)}
-                  className="group bg-zinc-900 hover:bg-zinc-900/60 border border-zinc-800 hover:border-zinc-700 rounded-2xl p-4 cursor-pointer transition-all duration-300"
+                  className="group bg-[#F8F8F7] hover:bg-[#F8F8F7] border border-[#E5E5E5] hover:border-[#E5E5E5] rounded-2xl p-4 cursor-pointer transition-all duration-300"
                 >
-                  <div className="aspect-[3/4] bg-zinc-950 rounded-xl flex items-center justify-center p-3 relative mb-3 overflow-hidden">
+                  <div className="aspect-[3/4] bg-[#F8F8F7] rounded-xl flex items-center justify-center p-3 relative mb-3 overflow-hidden">
                     {relatedImg ? (
                       <img
                         src={relatedImg}
@@ -851,11 +892,11 @@ export const ProductDetails: React.FC<ProductDetailsProps> = ({
                     )}
                   </div>
                   <div className="space-y-1">
-                    <span className="text-[9px] font-mono uppercase text-zinc-400 block">{rp.brand} • {rp.season}</span>
-                    <h3 className="text-xs font-bold text-white group-hover:text-zinc-400 transition-colors line-clamp-2">
+                    <span className="text-[9px] font-mono uppercase text-[#555555] block">{rp.brand} • {rp.season}</span>
+                    <h3 className="text-xs font-bold text-[#0A0A0A] group-hover:text-[#555555] transition-colors line-clamp-2">
                       {rp.name}
                     </h3>
-                    <p className="text-xs font-black text-zinc-300">{formatPrice(rp.price)}</p>
+                    <p className="text-xs font-black text-[#0A0A0A]">{formatPrice(rp.price)}</p>
                   </div>
                 </div>
               );

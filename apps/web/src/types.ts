@@ -57,6 +57,8 @@ export interface Product {
   shortDescription?: string;
   longDescription?: string;
   features?: string[];
+  /** Search keywords shown below product photos (max 8) */
+  tags?: string[];
   material?: string;
   dimensions?: string;
   specification: {

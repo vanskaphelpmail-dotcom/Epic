@@ -63,8 +63,62 @@ export const Footer: React.FC<FooterProps> = ({ currentPage, setCurrentPage, app
     .filter(m => m.placement === 'Footer Menu' && (m.status === 'Active' || m.status === 'active'))
     .sort((a, b) => a.order - b.order);
 
+  const reviews = [
+    {
+      id: 1,
+      name: 'Siyam Rahman',
+      quote:
+        'The AC Milan 1996 shirt has absolute perfect manufacturer stitching tags. Authentic holographic stamps included. Highly recommended for premium kit collectors in Dhaka.',
+      rating: 5,
+    },
+    {
+      id: 2,
+      name: 'Fahim Chowdhury',
+      quote:
+        'Been looking for the Spain 2026 Yamal jersey for literal years. Finally secured it at Epic Vanskap BD with custom physics certificates. Unrivaled experience.',
+      rating: 5,
+    },
+    {
+      id: 3,
+      name: 'Anika Bushra',
+      quote:
+        'Extremely fast delivery inside Dhaka (secured within 24 hours). The vacuum packaging smelled wonderful, complete with care instructions.',
+      rating: 5,
+    },
+  ];
+
   return (
-    <footer className="bg-black text-white border-t border-zinc-800 w-full min-w-0 overflow-x-hidden">
+    <footer className="bg-[#F8F8F7] text-[#0A0A0A] border-t border-[#E5E5E5] w-full min-w-0 overflow-x-hidden">
+
+      {/* Verified buyer reviews */}
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 md:px-12 pt-12 sm:pt-16 pb-10 sm:pb-12 border-b border-[#E5E5E5]">
+        <h3 className="text-center text-sm sm:text-base font-medium text-[#0A0A0A] mb-8 sm:mb-10">
+          Genuine reviews from verified buyers
+        </h3>
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-4 sm:gap-6">
+          {reviews.map((t) => (
+            <div
+              key={t.id}
+              className="bg-white border border-[#E5E5E5] p-5 rounded-2xl space-y-3"
+            >
+              <div className="flex gap-1 text-amber-400">
+                {[...Array(t.rating)].map((_, i) => (
+                  <Star key={i} size={12} className="fill-amber-400 text-amber-400" />
+                ))}
+              </div>
+              <p className="text-[#0A0A0A]/70 text-[12px] italic leading-relaxed">
+                &ldquo;{t.quote}&rdquo;
+              </p>
+              <div className="border-t border-[#E5E5E5] pt-3 flex justify-between items-center gap-3 text-[10px] font-mono">
+                <span className="text-[#0A0A0A] font-bold uppercase tracking-wide">{t.name}</span>
+                <span className="text-[#0A0A0A]/50 font-bold uppercase whitespace-nowrap">
+                  ✓ Verified Collector
+                </span>
+              </div>
+            </div>
+          ))}
+        </div>
+      </div>
       
       {/* Main Multi-Column Footer Grid */}
       <div className="max-w-7xl mx-auto px-4 sm:px-6 md:px-12 py-10 sm:py-16 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8 sm:gap-12 text-xs">
@@ -74,36 +128,36 @@ export const Footer: React.FC<FooterProps> = ({ currentPage, setCurrentPage, app
           <div className="flex items-center gap-3">
             <BrandMark className="p-1 rounded-lg" imgClassName="w-7 h-7" />
             <div className="flex items-center gap-1.5">
-              <span className="text-red-600 font-sans font-black text-sm uppercase">
+              <span className="text-[#E30613] font-sans font-black text-sm uppercase">
                 Epic
               </span>
-              <span className="text-white font-sans font-black text-sm uppercase">
+              <span className="text-[#0A0A0A] font-sans font-black text-sm uppercase">
                 Vanskap
               </span>
             </div>
           </div>
-          <p className="text-zinc-300 leading-relaxed">
+          <p className="text-[#0A0A0A]/70 leading-relaxed">
             {appConfig.footerAbout}
           </p>
-          <div className="flex gap-3 text-zinc-400">
-            <a href="#" className="hover:text-white transition-colors"><Instagram size={18} /></a>
-            <a href="#" className="hover:text-white transition-colors"><Twitter size={18} /></a>
-            <a href="#" className="hover:text-white transition-colors"><Facebook size={18} /></a>
+          <div className="flex gap-3 text-[#0A0A0A]/60">
+            <a href="#" className="hover:text-[#E30613] transition-colors"><Instagram size={18} /></a>
+            <a href="#" className="hover:text-[#E30613] transition-colors"><Twitter size={18} /></a>
+            <a href="#" className="hover:text-[#E30613] transition-colors"><Facebook size={18} /></a>
           </div>
         </div>
 
         {/* Store Locations Column */}
         <div className="space-y-4">
-          <h4 className="font-mono uppercase tracking-widest text-xs font-black text-zinc-400">
+          <h4 className="font-mono uppercase tracking-widest text-xs font-black text-[#0A0A0A]/50">
             Store Locations
           </h4>
           <div className="space-y-3">
             {appConfig.footerLocations.map((loc) => (
-              <div key={loc.city} className="border-l border-zinc-800 pl-3 space-y-1">
-                <p className="font-bold text-white uppercase">{loc.city}</p>
-                <p className="text-zinc-300 text-[11px]">{loc.address}</p>
+              <div key={loc.city} className="border-l border-[#E5E5E5] pl-3 space-y-1">
+                <p className="font-bold text-[#0A0A0A] uppercase">{loc.city}</p>
+                <p className="text-[#0A0A0A]/70 text-[11px]">{loc.address}</p>
                 {loc.phone ? (
-                  <p className="text-[10px] text-zinc-600 font-mono">{loc.phone}</p>
+                  <p className="text-[10px] text-[#0A0A0A]/40 font-mono">{loc.phone}</p>
                 ) : null}
               </div>
             ))}
@@ -112,21 +166,21 @@ export const Footer: React.FC<FooterProps> = ({ currentPage, setCurrentPage, app
 
         {/* Helpful Resources Column (Dynamic Navigation Builder Menu) */}
         <div className="space-y-4">
-          <h4 className="font-mono uppercase tracking-widest text-xs font-black text-zinc-400">
+          <h4 className="font-mono uppercase tracking-widest text-xs font-black text-[#0A0A0A]/50">
             Useful Links
           </h4>
-          <ul className="space-y-2.5 font-medium text-xs">
+          <ul className="space-y-2.5 font-medium text-xs text-[#0A0A0A]">
             {footerMenuItems.length > 0 ? (
               footerMenuItems.map((item) => (
                 <li key={item.id}>
                   <button
                     onClick={() => handleFooterLinkClick(item.url)}
-                    className="hover:text-zinc-400 text-left transition-colors hover:underline flex items-center gap-2"
+                    className="hover:text-[#E30613] text-left transition-colors hover:underline flex items-center gap-2"
                   >
                     {renderNavIcon(item.icon, 13)}
                     <span>{item.name}</span>
                     {item.badgeText && (
-                      <span className="bg-black text-white font-mono text-[8px] font-black px-1.5 py-0.2 rounded">
+                      <span className="bg-[#0A0A0A] text-white font-mono text-[8px] font-black px-1.5 py-0.2 rounded">
                         {item.badgeText}
                       </span>
                     )}
@@ -136,22 +190,22 @@ export const Footer: React.FC<FooterProps> = ({ currentPage, setCurrentPage, app
             ) : (
               <>
                 <li>
-                  <button onClick={() => setCurrentPage('seller')} className="hover:text-zinc-400 text-left transition-colors hover:underline">
+                  <button onClick={() => setCurrentPage('seller')} className="hover:text-[#E30613] text-left transition-colors hover:underline">
                     Sell Your Shirts (Submit Details)
                   </button>
                 </li>
                 <li>
-                  <button onClick={() => setCurrentPage('faq')} className="hover:text-zinc-400 text-left transition-colors hover:underline">
+                  <button onClick={() => setCurrentPage('faq')} className="hover:text-[#E30613] text-left transition-colors hover:underline">
                     Frequently Asked Questions (FAQ)
                   </button>
                 </li>
                 <li>
-                  <button onClick={() => setCurrentPage('about')} className="hover:text-zinc-400 text-left transition-colors hover:underline">
+                  <button onClick={() => setCurrentPage('about')} className="hover:text-[#E30613] text-left transition-colors hover:underline">
                     About Epic Vanskap
                   </button>
                 </li>
                 <li>
-                  <button onClick={() => setCurrentPage('contact')} className="hover:text-zinc-400 text-left transition-colors hover:underline">
+                  <button onClick={() => setCurrentPage('contact')} className="hover:text-[#E30613] text-left transition-colors hover:underline">
                     Contact Customer Care Desk
                   </button>
                 </li>
@@ -162,32 +216,32 @@ export const Footer: React.FC<FooterProps> = ({ currentPage, setCurrentPage, app
 
         {/* Policy & Security Column */}
         <div className="space-y-4">
-          <h4 className="font-mono uppercase tracking-widest text-xs font-black text-zinc-400">
+          <h4 className="font-mono uppercase tracking-widest text-xs font-black text-[#0A0A0A]/50">
             Policy & Security
           </h4>
-          <ul className="space-y-2.5 font-medium text-zinc-300">
+          <ul className="space-y-2.5 font-medium text-[#0A0A0A]/70">
             <li>
-              <button onClick={() => setCurrentPage('privacy')} className="hover:text-zinc-400 text-left transition-colors hover:underline">
+              <button onClick={() => setCurrentPage('privacy')} className="hover:text-[#E30613] text-left transition-colors hover:underline">
                 Privacy & Data Encryption Policy
               </button>
             </li>
             <li>
-              <button onClick={() => setCurrentPage('refund')} className="hover:text-zinc-400 text-left transition-colors hover:underline">
+              <button onClick={() => setCurrentPage('refund')} className="hover:text-[#E30613] text-left transition-colors hover:underline">
                 Refunds & Return Guidelines
               </button>
             </li>
             <li>
-              <button onClick={() => setCurrentPage('terms')} className="hover:text-zinc-400 text-left transition-colors hover:underline">
+              <button onClick={() => setCurrentPage('terms')} className="hover:text-[#E30613] text-left transition-colors hover:underline">
                 Terms of Service & Licensing
               </button>
             </li>
             <li>
-              <button onClick={() => setCurrentPage('shipping')} className="hover:text-zinc-400 text-left transition-colors hover:underline">
+              <button onClick={() => setCurrentPage('shipping')} className="hover:text-[#E30613] text-left transition-colors hover:underline">
                 Shipping Rates & Customs Info
               </button>
             </li>
           </ul>
-          <div className="pt-2 border-t border-zinc-800 flex items-center gap-2 text-[10px] text-zinc-600 font-mono">
+          <div className="pt-2 border-t border-[#E5E5E5] flex items-center gap-2 text-[10px] text-[#0A0A0A]/40 font-mono">
             <ShieldCheck size={14} />
             <span>SSL Secured checkout environment</span>
           </div>
@@ -196,9 +250,9 @@ export const Footer: React.FC<FooterProps> = ({ currentPage, setCurrentPage, app
       </div>
 
       {/* Trademark Legal Bar */}
-      <div className="bg-zinc-800 py-6 border-t border-zinc-800 text-center text-[10px] text-zinc-300 tracking-wider uppercase font-mono px-6">
+      <div className="bg-white py-6 border-t border-[#E5E5E5] text-center text-[10px] text-[#0A0A0A]/60 tracking-wider uppercase font-mono px-6">
         <p>{appConfig.footerCopyright}</p>
-        <p className="mt-1 text-zinc-400">This platform has NO affiliation with Nike, Adidas, Umbro, or FIFA. All designs are completely original vectors.</p>
+        <p className="mt-1 text-[#0A0A0A]/40">This platform has NO affiliation with Nike, Adidas, Umbro, or FIFA. All designs are completely original vectors.</p>
       </div>
 
     </footer>

@@ -1741,7 +1741,7 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({
           </div>
         </header>
 
-        <div className="flex-1 w-full min-w-0 px-4 sm:px-6 lg:px-8 py-5 md:py-6">
+        <div className="flex-1 w-full min-w-0 max-w-full overflow-x-hidden px-3 sm:px-6 lg:px-8 py-5 md:py-6">
 
       {/* RENDER ACTIVE TAB */}
       {activeSidebarTab === 'dashboard' && (() => {
@@ -2122,7 +2122,7 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({
         };
 
         return (
-          <div className="space-y-8 animate-fadeIn">
+          <div className="space-y-6 sm:space-y-8 animate-fadeIn min-w-0 w-full overflow-x-hidden">
             
             {/* Summary cards — Ouds-style */}
             {(() => {
@@ -2304,14 +2304,14 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({
             </div>
 
             {/* Sales performance */}
-            <div className="bg-white border border-zinc-200 rounded-xl p-5 md:p-6">
-              <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-5 border-b border-zinc-100 pb-4">
-                <div>
+            <div className="bg-white border border-zinc-200 rounded-xl p-4 sm:p-5 md:p-6 min-w-0 overflow-hidden">
+              <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 sm:gap-4 mb-5 border-b border-zinc-100 pb-4">
+                <div className="min-w-0">
                   <h3 className="text-[15px] font-semibold text-zinc-950">Sales performance</h3>
                   <p className="text-[12px] text-zinc-500 mt-0.5">Monthly revenue and order volume</p>
                 </div>
                 
-                <div className="flex bg-zinc-100 p-1 rounded-lg border border-zinc-200">
+                <div className="flex bg-zinc-100 p-1 rounded-lg border border-zinc-200 shrink-0">
                   <button
                     onClick={() => setChartMetric('revenue')}
                     className={`px-3 py-1.5 rounded-md text-[12px] font-semibold transition-all cursor-pointer ${chartMetric === 'revenue' ? 'bg-zinc-950 text-white shadow-sm' : 'text-zinc-700 hover:text-zinc-950'}`}
@@ -2328,24 +2328,24 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({
               </div>
 
               {chartMetric === 'revenue' ? (
-                <div>
-                  <div className="mb-3 flex justify-between items-center text-[10px] font-mono text-emerald-800">
-                    <span>July Sourced Revenue Progress (৳ Taka):</span>
-                    <span className="font-extrabold text-emerald-950 text-xs">Baseline + Real Time Tracker</span>
+                <div className="min-w-0">
+                  <div className="mb-3 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-1 text-[10px] font-mono text-emerald-800">
+                    <span className="min-w-0">July Sourced Revenue Progress (৳ Taka):</span>
+                    <span className="font-extrabold text-emerald-950 text-[10px] sm:text-xs shrink-0">Baseline + Real Time Tracker</span>
                   </div>
                   
                   {/* SVG Line Graph with Area fill */}
-                  <div className="h-64 w-full bg-emerald-50/20 rounded-2xl border border-emerald-50 relative p-4 flex flex-col justify-between">
-                    <div className="absolute inset-0 flex flex-col justify-between p-4 pointer-events-none opacity-40">
-                      <div className="border-b border-emerald-100 w-full h-0 text-[8px] font-mono text-emerald-600">৳2,00,000</div>
-                      <div className="border-b border-emerald-100 w-full h-0 text-[8px] font-mono text-emerald-600">৳1,50,000</div>
-                      <div className="border-b border-emerald-100 w-full h-0 text-[8px] font-mono text-emerald-600">৳1,00,000</div>
-                      <div className="border-b border-emerald-100 w-full h-0 text-[8px] font-mono text-emerald-600">৳50,000</div>
+                  <div className="h-56 sm:h-64 w-full max-w-full min-w-0 bg-emerald-50/20 rounded-2xl border border-emerald-50 relative p-2 sm:p-4 flex flex-col justify-between overflow-hidden">
+                    <div className="absolute inset-0 flex flex-col justify-between p-2 sm:p-4 pointer-events-none opacity-40">
+                      <div className="border-b border-emerald-100 w-full h-0 text-[7px] sm:text-[8px] font-mono text-emerald-600">৳2,00,000</div>
+                      <div className="border-b border-emerald-100 w-full h-0 text-[7px] sm:text-[8px] font-mono text-emerald-600">৳1,50,000</div>
+                      <div className="border-b border-emerald-100 w-full h-0 text-[7px] sm:text-[8px] font-mono text-emerald-600">৳1,00,000</div>
+                      <div className="border-b border-emerald-100 w-full h-0 text-[7px] sm:text-[8px] font-mono text-emerald-600">৳50,000</div>
                     </div>
                     
                     {/* SVG Curve Area chart */}
-                    <div className="relative w-full h-48 mt-4">
-                      <svg className="w-full h-full overflow-visible" viewBox="0 0 1200 300" preserveAspectRatio="none">
+                    <div className="relative w-full h-40 sm:h-48 mt-2 sm:mt-4 min-w-0 overflow-hidden">
+                      <svg className="w-full h-full block" viewBox="0 0 1200 300" preserveAspectRatio="none" aria-hidden="true">
                         <defs>
                           <linearGradient id="revenueGrad" x1="0" y1="0" x2="0" y2="1">
                             <stop offset="0%" stopColor="#18181b" stopOpacity="0.35" />
@@ -2376,6 +2376,7 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({
                           fill="none"
                           stroke="#18181b"
                           strokeWidth="3"
+                          vectorEffect="non-scaling-stroke"
                           points={`
                             100,${300 - (monthlyData[0].revenue / 200000) * 300} 
                             200,${300 - (monthlyData[1].revenue / 200000) * 300} 
@@ -2394,30 +2395,30 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({
                         <circle cx="700" cy={300 - (Math.min(200000, monthlyData[6].revenue) / 200000) * 300} r="6" fill="#18181b" stroke="#ffffff" strokeWidth="2" />
                       </svg>
                       {/* Interactive indicator for active month */}
-                      <div className="absolute top-2 left-[58%] -translate-x-1/2 bg-emerald-950 text-white rounded-lg p-2.5 shadow-lg border border-emerald-800 text-[10px] font-mono pointer-events-none">
+                      <div className="absolute top-1 sm:top-2 left-1/2 -translate-x-1/2 max-w-[min(92%,240px)] bg-emerald-950 text-white rounded-lg p-2 sm:p-2.5 shadow-lg border border-emerald-800 text-[9px] sm:text-[10px] font-mono pointer-events-none z-10">
                         <span className="block font-bold text-emerald-400">JULY 2026 (CUR)</span>
-                        <span className="block text-xs font-black">৳{monthlyData[6].revenue.toLocaleString()} Taka</span>
-                        <span className="text-[9px] text-emerald-300">({curTrend.sales || 0} orders · {curTrend.month})</span>
+                        <span className="block text-[11px] sm:text-xs font-black truncate">৳{monthlyData[6].revenue.toLocaleString()} Taka</span>
+                        <span className="text-[8px] sm:text-[9px] text-emerald-300">({curTrend.sales || 0} orders · {curTrend.month})</span>
                       </div>
                     </div>
 
-                    <div className="flex justify-between text-[9px] font-mono text-emerald-850 px-2 mt-4 pt-1 border-t border-emerald-100">
+                    <div className="flex justify-between gap-px text-[7px] sm:text-[9px] font-mono text-emerald-850 mt-2 sm:mt-4 pt-1 border-t border-emerald-100 min-w-0">
                       {monthlyData.map((d, i) => (
-                        <span key={i} className={d.month === 'Jul' ? 'font-black text-emerald-950 underline' : ''}>{d.month}</span>
+                        <span key={i} className={`flex-1 text-center truncate ${d.month === 'Jul' ? 'font-black text-emerald-950 underline' : ''}`}>{d.month}</span>
                       ))}
                     </div>
                   </div>
                 </div>
               ) : (
-                <div>
-                  <div className="mb-3 flex justify-between items-center text-[10px] font-mono text-emerald-850">
+                <div className="min-w-0">
+                  <div className="mb-3 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-1 text-[10px] font-mono text-emerald-850">
                     <span>Sourced Orders Handled Per Month:</span>
-                    <span className="font-extrabold text-emerald-950">Vitals Volume Tracker</span>
+                    <span className="font-extrabold text-emerald-950 shrink-0">Vitals Volume Tracker</span>
                   </div>
 
                   {/* SVG Bar Chart */}
-                  <div className="h-64 w-full bg-emerald-50/20 rounded-2xl border border-emerald-50 p-4 flex flex-col justify-between">
-                    <div className="h-44 flex items-end justify-between gap-2.5 md:gap-5 pt-6 relative">
+                  <div className="h-56 sm:h-64 w-full max-w-full min-w-0 bg-emerald-50/20 rounded-2xl border border-emerald-50 p-2 sm:p-4 flex flex-col justify-between overflow-hidden">
+                    <div className="h-40 sm:h-44 flex items-end justify-between gap-0.5 sm:gap-2 md:gap-4 pt-6 relative min-w-0">
                       <div className="absolute inset-0 flex flex-col justify-between pointer-events-none opacity-30">
                         <div className="border-b border-emerald-100 w-full" />
                         <div className="border-b border-emerald-100 w-full" />
@@ -2426,20 +2427,20 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({
                       </div>
 
                       {monthlyData.map((item, idx) => (
-                        <div key={idx} className="flex-1 flex flex-col items-center gap-1 group relative cursor-pointer h-full justify-end">
+                        <div key={idx} className="flex-1 min-w-0 flex flex-col items-center gap-1 group relative cursor-pointer h-full justify-end">
                           <div className="absolute -top-6 bg-emerald-950 text-white px-1.5 py-0.5 rounded text-[8px] font-mono opacity-0 group-hover:opacity-100 transition-opacity z-10 whitespace-nowrap">
                             {item.orders} sales
                           </div>
                           <div
-                            className={`w-full hover:bg-emerald-850 rounded-t-md transition-all duration-350 shadow ${item.month === 'Jul' ? 'bg-emerald-800' : 'bg-emerald-600/40'}`}
+                            className={`w-full max-w-full hover:bg-emerald-850 rounded-t-md transition-all duration-350 shadow ${item.month === 'Jul' ? 'bg-emerald-800' : 'bg-emerald-600/40'}`}
                             style={{ height: `${(item.orders / 65) * 100}%` }}
                           />
-                          <span className={`text-[8px] font-mono mt-1 ${item.month === 'Jul' ? 'font-black text-emerald-950' : 'text-emerald-700'}`}>{item.month}</span>
+                          <span className={`text-[7px] sm:text-[8px] font-mono mt-1 truncate max-w-full ${item.month === 'Jul' ? 'font-black text-emerald-950' : 'text-emerald-700'}`}>{item.month}</span>
                         </div>
                       ))}
                     </div>
                     
-                    <div className="text-[9px] font-mono text-emerald-700 text-center mt-2">
+                    <div className="text-[8px] sm:text-[9px] font-mono text-emerald-700 text-center mt-2 px-1 leading-snug">
                       Bar heights are scaled relative to standard monthly volume capacity (max 65 orders limit).
                     </div>
                   </div>
@@ -2447,17 +2448,17 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({
               )}
 
               {/* MONTHLY COMPARISON STUDY */}
-              <div className="mt-8 pt-6 border-t border-emerald-100">
+              <div className="mt-6 sm:mt-8 pt-5 sm:pt-6 border-t border-emerald-100 min-w-0">
                 <h4 className="text-xs font-black uppercase text-emerald-950 mb-3 font-mono flex items-center gap-1.5">
-                  <RefreshCw size={12} className="text-emerald-700" />
-                  Monthly Comparison Ledger ({curTrend.month} vs {prevTrend.month})
+                  <RefreshCw size={12} className="text-emerald-700 shrink-0" />
+                  <span className="min-w-0">Monthly Comparison Ledger ({curTrend.month} vs {prevTrend.month})</span>
                 </h4>
                 
-                <div className="grid grid-cols-1 sm:grid-cols-4 gap-4">
-                  <div className="bg-emerald-50/30 p-3.5 rounded-xl border border-emerald-100/50 flex flex-col justify-between">
+                <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-3 sm:gap-4">
+                  <div className="bg-emerald-50/30 p-3.5 rounded-xl border border-emerald-100/50 flex flex-col justify-between min-w-0">
                     <span className="text-[9px] text-emerald-700 font-mono block">REVENUE ({curTrend.month})</span>
                     <div className="flex items-baseline gap-2 mt-1">
-                      <span className="text-base font-black text-emerald-950">{formatPrice(curRevenue)}</span>
+                      <span className="text-base font-black text-emerald-950 truncate">{formatPrice(curRevenue)}</span>
                     </div>
                     <span className="text-[9px] font-mono font-bold text-emerald-800 block mt-1 flex items-center gap-1">
                       {revMom >= 0 ? <ArrowUpRight size={10} className="text-emerald-700" /> : <ArrowDownRight size={10} className="text-rose-600" />}
@@ -2465,7 +2466,7 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({
                     </span>
                   </div>
 
-                  <div className="bg-emerald-50/30 p-3.5 rounded-xl border border-emerald-100/50 flex flex-col justify-between">
+                  <div className="bg-emerald-50/30 p-3.5 rounded-xl border border-emerald-100/50 flex flex-col justify-between min-w-0">
                     <span className="text-[9px] text-emerald-700 font-mono block">ORDERS PROCESSED</span>
                     <div className="flex items-baseline gap-2 mt-1">
                       <span className="text-base font-black text-emerald-950">{curOrdersCount} orders</span>
@@ -2476,10 +2477,10 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({
                     </span>
                   </div>
 
-                  <div className="bg-emerald-50/30 p-3.5 rounded-xl border border-emerald-100/50 flex flex-col justify-between">
+                  <div className="bg-emerald-50/30 p-3.5 rounded-xl border border-emerald-100/50 flex flex-col justify-between min-w-0">
                     <span className="text-[9px] text-emerald-700 font-mono block">AVERAGE ORDER VALUE</span>
                     <div className="flex items-baseline gap-2 mt-1">
-                      <span className="text-base font-black text-emerald-950">{formatPrice(avgOrderValue)}</span>
+                      <span className="text-base font-black text-emerald-950 truncate">{formatPrice(avgOrderValue)}</span>
                     </div>
                     <span className="text-[9px] font-mono font-bold text-emerald-800 block mt-1 flex items-center gap-1">
                       {aovMom >= 0 ? <ArrowUpRight size={10} className="text-emerald-700" /> : <ArrowDownRight size={10} className="text-rose-600" />}
@@ -2487,7 +2488,7 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({
                     </span>
                   </div>
 
-                  <div className="bg-emerald-50/30 p-3.5 rounded-xl border border-emerald-100/50 flex flex-col justify-between">
+                  <div className="bg-emerald-50/30 p-3.5 rounded-xl border border-emerald-100/50 flex flex-col justify-between min-w-0">
                     <span className="text-[9px] text-emerald-700 font-mono block">CUSTOMERS IN CRM</span>
                     <div className="flex items-baseline gap-2 mt-1">
                       <span className="text-base font-black text-emerald-950">{customers.length} Collectors</span>
@@ -2502,13 +2503,13 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({
             </div>
 
             {/* LEADERBOARDS & RANKINGS */}
-            <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+            <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4 sm:gap-6 min-w-0">
               
               {/* TOP SELLING PRODUCTS */}
-              <div className="bg-white border border-emerald-100 rounded-2xl p-5 shadow-sm flex flex-col justify-between">
-                <div>
+              <div className="bg-white border border-emerald-100 rounded-2xl p-4 sm:p-5 shadow-sm flex flex-col justify-between min-w-0 overflow-hidden">
+                <div className="min-w-0">
                   <h3 className="text-xs font-black uppercase text-emerald-950 font-mono flex items-center gap-2 mb-3">
-                    <Shirt size={13} className="text-emerald-800" />
+                    <Shirt size={13} className="text-emerald-800 shrink-0" />
                     Top Selling Products
                   </h3>
                   <div className="space-y-3">
@@ -2516,8 +2517,8 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({
                       <p className="text-[11px] text-emerald-700 font-mono">No paid orders yet — leaderboard fills from live Neon sales.</p>
                     )}
                     {topProducts.map((p, idx) => (
-                      <div key={idx} className="flex justify-between items-center text-xs border-b border-emerald-50/60 pb-2">
-                        <div className="min-w-0 pr-3">
+                      <div key={idx} className="flex justify-between items-center text-xs border-b border-emerald-50/60 pb-2 gap-2 min-w-0">
+                        <div className="min-w-0 pr-1 sm:pr-3">
                           <span className="font-mono text-[10px] text-emerald-700 font-bold block">#0{idx+1} RANKING</span>
                           <span className="font-bold text-emerald-950 truncate block">{p.name}</span>
                         </div>
@@ -2532,10 +2533,10 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({
               </div>
 
               {/* TOP SELLING TEAMS */}
-              <div className="bg-white border border-emerald-100 rounded-2xl p-5 shadow-sm flex flex-col justify-between">
-                <div>
+              <div className="bg-white border border-emerald-100 rounded-2xl p-4 sm:p-5 shadow-sm flex flex-col justify-between min-w-0 overflow-hidden">
+                <div className="min-w-0">
                   <h3 className="text-xs font-black uppercase text-emerald-950 font-mono flex items-center gap-2 mb-3">
-                    <Users size={13} className="text-emerald-800" />
+                    <Users size={13} className="text-emerald-800 shrink-0" />
                     Top Shipping Cities
                   </h3>
                   <div className="space-y-3">
@@ -2543,8 +2544,8 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({
                       <p className="text-[11px] text-emerald-700 font-mono">No city data yet from live orders.</p>
                     )}
                     {(topCities.length ? topCities : topTeams).map((t, idx) => (
-                      <div key={idx} className="flex justify-between items-center text-xs border-b border-emerald-50/60 pb-2">
-                        <div className="min-w-0 pr-3">
+                      <div key={idx} className="flex justify-between items-center text-xs border-b border-emerald-50/60 pb-2 gap-2 min-w-0">
+                        <div className="min-w-0 pr-1 sm:pr-3">
                           <span className="font-mono text-[10px] text-emerald-700 font-bold block">#0{idx+1} CITY</span>
                           <span className="font-bold text-emerald-950 truncate block">{t.name}</span>
                         </div>
@@ -2558,16 +2559,16 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({
               </div>
 
               {/* TOP SELLING LEAGUES */}
-              <div className="bg-white border border-emerald-100 rounded-2xl p-5 shadow-sm flex flex-col justify-between">
-                <div>
+              <div className="bg-white border border-emerald-100 rounded-2xl p-4 sm:p-5 shadow-sm flex flex-col justify-between min-w-0 overflow-hidden md:col-span-2 xl:col-span-1">
+                <div className="min-w-0">
                   <h3 className="text-xs font-black uppercase text-emerald-950 font-mono flex items-center gap-2 mb-3">
-                    <AreaChart size={13} className="text-emerald-800" />
+                    <AreaChart size={13} className="text-emerald-800 shrink-0" />
                     Top Selling Leagues / Formats
                   </h3>
                   <div className="space-y-3">
                     {topLeagues.map((l, idx) => (
-                      <div key={idx} className="flex justify-between items-center text-xs border-b border-emerald-50/60 pb-2">
-                        <div className="min-w-0 pr-3">
+                      <div key={idx} className="flex justify-between items-center text-xs border-b border-emerald-50/60 pb-2 gap-2 min-w-0">
+                        <div className="min-w-0 pr-1 sm:pr-3">
                           <span className="font-mono text-[10px] text-emerald-700 font-bold block">#0{idx+1} CLASSIFICATION</span>
                           <span className="font-bold text-emerald-950 truncate block">{l.name}</span>
                         </div>
@@ -2584,22 +2585,22 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({
             </div>
 
             {/* CUSTOMER COMMAND DESK (CUSTOMER DIRECTORY + PROFILE SAVE FORM) */}
-            <div className="bg-white border border-emerald-100 rounded-3xl p-6 shadow-sm">
-              <div className="border-b border-emerald-50 pb-4 mb-6">
+            <div className="bg-white border border-emerald-100 rounded-2xl sm:rounded-3xl p-4 sm:p-6 shadow-sm min-w-0 overflow-hidden">
+              <div className="border-b border-emerald-50 pb-4 mb-5 sm:mb-6">
                 <h3 className="text-sm font-black uppercase text-emerald-950 flex items-center gap-2">
-                  <UserCheck size={16} className="text-emerald-800" />
-                  Epic Vanskap BD Customer Directory & CRM Room
+                  <UserCheck size={16} className="text-emerald-800 shrink-0" />
+                  <span className="min-w-0 leading-snug">Epic Vanskap BD Customer Directory & CRM Room</span>
                 </h3>
-                <p className="text-[10px] text-emerald-700 font-mono">Manage persistent customer portfolios and save collectors profiles</p>
+                <p className="text-[10px] text-emerald-700 font-mono mt-1">Manage persistent customer portfolios and save collectors profiles</p>
               </div>
 
-              <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
+              <div className="grid grid-cols-1 xl:grid-cols-12 gap-6 xl:gap-8 min-w-0">
                 
                 {/* LEFT SIDE: CUSTOMER SEARCH & LISTS (8 Columns) */}
-                <div className="lg:col-span-7 space-y-4">
-                  <div className="flex flex-col sm:flex-row gap-3">
+                <div className="xl:col-span-7 space-y-4 min-w-0">
+                  <div className="flex flex-col gap-3">
                     {/* Search bar */}
-                    <div className="relative flex-1">
+                    <div className="relative flex-1 min-w-0">
                       <span className="absolute inset-y-0 left-0 pl-3.5 flex items-center text-emerald-600 pointer-events-none">
                         <Search size={14} />
                       </span>
@@ -2612,23 +2613,23 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({
                       />
                     </div>
                     {/* CRM Filters */}
-                    <div className="flex bg-emerald-50 p-1 rounded-xl border border-emerald-100 shrink-0">
+                    <div className="flex flex-wrap bg-emerald-50 p-1 rounded-xl border border-emerald-100 gap-1">
                       <button
                         onClick={() => setCustomerFilter('all')}
-                        className={`px-2.5 py-1 rounded-lg text-[10px] font-bold transition-all cursor-pointer ${customerFilter === 'all' ? 'bg-emerald-800 text-white' : 'text-emerald-800 hover:text-emerald-900'}`}
+                        className={`px-2.5 py-1.5 rounded-lg text-[10px] font-bold transition-all cursor-pointer ${customerFilter === 'all' ? 'bg-emerald-800 text-white' : 'text-emerald-800 hover:text-emerald-900'}`}
                       >
                         All
                       </button>
                       <button
                         onClick={() => setCustomerFilter('repeated')}
-                        className={`px-2.5 py-1 rounded-lg text-[10px] font-bold transition-all cursor-pointer ${customerFilter === 'repeated' ? 'bg-emerald-800 text-white' : 'text-emerald-800 hover:text-emerald-900'}`}
+                        className={`px-2.5 py-1.5 rounded-lg text-[10px] font-bold transition-all cursor-pointer ${customerFilter === 'repeated' ? 'bg-emerald-800 text-white' : 'text-emerald-800 hover:text-emerald-900'}`}
                         title="Customers who made 2 or more orders"
                       >
-                        Repeated Customer List (2+)
+                        Repeated (2+)
                       </button>
                       <button
                         onClick={() => setCustomerFilter('best')}
-                        className={`px-2.5 py-1 rounded-lg text-[10px] font-bold transition-all cursor-pointer ${customerFilter === 'best' ? 'bg-emerald-800 text-white' : 'text-emerald-800 hover:text-emerald-900'}`}
+                        className={`px-2.5 py-1.5 rounded-lg text-[10px] font-bold transition-all cursor-pointer ${customerFilter === 'best' ? 'bg-emerald-800 text-white' : 'text-emerald-800 hover:text-emerald-900'}`}
                         title="Customers ranked by highest spending volume"
                       >
                         Best Customers
@@ -2637,15 +2638,15 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({
                   </div>
 
                   {/* Customer directory table container */}
-                  <div className="border border-emerald-100 rounded-xl overflow-hidden overflow-x-auto">
-                    <table className="w-full text-left border-collapse text-xs">
+                  <div className="border border-emerald-100 rounded-xl overflow-hidden overflow-x-auto max-w-full">
+                    <table className="w-full min-w-[560px] text-left border-collapse text-xs">
                       <thead>
                         <tr className="bg-emerald-50/50 border-b border-emerald-100 text-[10px] font-mono text-emerald-800 uppercase">
-                          <th className="py-2.5 px-4">Collector Profile</th>
-                          <th className="py-2.5 px-4">Contact</th>
-                          <th className="py-2.5 px-4 text-center">Orders</th>
-                          <th className="py-2.5 px-4 text-right">Total Spent</th>
-                          <th className="py-2.5 px-4 text-center">Action</th>
+                          <th className="py-2.5 px-3 sm:px-4">Collector Profile</th>
+                          <th className="py-2.5 px-3 sm:px-4">Contact</th>
+                          <th className="py-2.5 px-3 sm:px-4 text-center">Orders</th>
+                          <th className="py-2.5 px-3 sm:px-4 text-right">Total Spent</th>
+                          <th className="py-2.5 px-3 sm:px-4 text-center">Action</th>
                         </tr>
                       </thead>
                       <tbody className="divide-y divide-emerald-50 bg-white">
@@ -2658,8 +2659,8 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({
                         ) : (
                           displayCustomers.map((c) => (
                             <tr key={c.id} className="hover:bg-emerald-50/30 transition-colors">
-                              <td className="py-3 px-4">
-                                <div className="font-extrabold text-emerald-950 flex items-center gap-1">
+                              <td className="py-3 px-3 sm:px-4">
+                                <div className="font-extrabold text-emerald-950 flex items-center gap-1 flex-wrap">
                                   {c.fullName}
                                   {c.ordersCount >= 2 && (
                                     <span className="bg-emerald-100 text-emerald-850 font-mono text-[8px] px-1.5 py-0.5 rounded uppercase font-bold" title="Repeated Customer">
@@ -2669,17 +2670,17 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({
                                 </div>
                                 <span className="text-[9px] text-emerald-700 font-mono block">{c.city} • Joined {c.joinedDate}</span>
                               </td>
-                              <td className="py-3 px-4 font-mono text-[10px] text-emerald-850">
-                                <span className="block">{c.email}</span>
+                              <td className="py-3 px-3 sm:px-4 font-mono text-[10px] text-emerald-850">
+                                <span className="block break-all">{c.email}</span>
                                 <span className="text-emerald-700 text-[9px] block">{c.phone}</span>
                               </td>
-                              <td className="py-3 px-4 text-center font-bold text-emerald-950 font-mono">
+                              <td className="py-3 px-3 sm:px-4 text-center font-bold text-emerald-950 font-mono">
                                 {c.ordersCount}
                               </td>
-                              <td className="py-3 px-4 text-right font-black text-emerald-900 font-mono">
+                              <td className="py-3 px-3 sm:px-4 text-right font-black text-emerald-900 font-mono whitespace-nowrap">
                                 {formatPrice(c.totalSpent)}
                               </td>
-                              <td className="py-3 px-4 text-center">
+                              <td className="py-3 px-3 sm:px-4 text-center">
                                 <button
                                   onClick={() => handleSelectCustomer(c)}
                                   className="bg-emerald-50 hover:bg-emerald-800 hover:text-white border border-emerald-200 text-emerald-800 text-[9px] font-mono uppercase px-2.5 py-1.5 rounded-lg transition-all cursor-pointer inline-flex items-center gap-1"
@@ -2697,10 +2698,10 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({
                 </div>
 
                 {/* RIGHT SIDE: CUSTOMER SAVE / UPDATE FORM (5 Columns) */}
-                <div className="lg:col-span-5 bg-emerald-50/30 border border-emerald-100 rounded-2xl p-5">
+                <div className="xl:col-span-5 bg-emerald-50/30 border border-emerald-100 rounded-2xl p-4 sm:p-5 min-w-0">
                   <div className="border-b border-emerald-100 pb-3 mb-4">
                     <h4 className="text-xs font-black uppercase text-emerald-950 font-mono flex items-center gap-1.5">
-                      <Save size={13} className="text-emerald-800" />
+                      <Save size={13} className="text-emerald-800 shrink-0" />
                       {custFormId ? 'Modify Collector Profile' : 'Save Customer Information'}
                     </h4>
                     <p className="text-[9px] text-emerald-700 font-mono">Input fields below will compile straight to secure persistent directory storage.</p>
@@ -2732,7 +2733,7 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({
                       />
                     </div>
 
-                    <div className="grid grid-cols-2 gap-3">
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                       <div className="space-y-1">
                         <label className="text-[9px] font-mono text-emerald-700 uppercase font-bold block">PHONE NUMBER *</label>
                         <input
@@ -2771,7 +2772,7 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({
                       />
                     </div>
 
-                    <div className="grid grid-cols-2 gap-3">
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                       <div className="space-y-1">
                         <label className="text-[9px] font-mono text-emerald-700 uppercase block">SIMULATED ORDERS COUNT</label>
                         <input
@@ -2807,7 +2808,7 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({
                       />
                     </div>
 
-                    <div className="grid grid-cols-2 gap-2 pt-2">
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 pt-2">
                       <button
                         type="submit"
                         className="bg-emerald-800 hover:bg-emerald-900 text-white font-extrabold text-xs uppercase tracking-wider py-3 rounded-xl transition-all cursor-pointer shadow-sm text-center"
@@ -7719,6 +7720,9 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({
         </div>
       )}
 
+        </div>
+      </div>
+
       {/* ========================================== */}
       {/* MODAL 1: MANAGE ORDER DETAILS OVERLAY      */}
       {/* ========================================== */}
@@ -8074,47 +8078,57 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({
       {/* MODAL 2: OFFICIAL PRINTABLE INVOICE        */}
       {/* ========================================== */}
       {isInvoiceModalOpen && invoiceOrder && (
-        <div className="fixed inset-0 bg-black/75 backdrop-blur-xs z-50 flex items-center justify-center p-4 overflow-y-auto">
-          <div className="bg-white text-zinc-900 rounded-3xl max-w-2xl w-full max-h-[92vh] overflow-y-auto p-8 shadow-2xl space-y-6 relative border-4 border-emerald-900">
+        <div
+          className="fixed inset-0 bg-black/75 backdrop-blur-xs z-[120] flex items-center justify-center p-3 sm:p-4 overflow-y-auto"
+          role="dialog"
+          aria-modal="true"
+          onClick={(e) => {
+            if (e.target === e.currentTarget) setIsInvoiceModalOpen(false);
+          }}
+        >
+          <div className="bg-white text-zinc-900 rounded-2xl sm:rounded-3xl max-w-2xl w-full max-h-[92vh] overflow-hidden shadow-2xl relative border-2 border-emerald-900 flex flex-col">
             
-            {/* Modal Controls */}
-            <div className="flex justify-between items-center border-b pb-4 print:hidden">
+            {/* Modal Controls — sticky */}
+            <div className="shrink-0 sticky top-0 z-20 flex flex-wrap justify-between items-center gap-2 border-b bg-white px-4 sm:px-6 py-3 print:hidden">
               <span className="font-mono text-xs font-black uppercase text-emerald-900">
-                Official Dhaka Jersey Vault Invoice
+                Official Invoice
               </span>
               <div className="flex items-center gap-2">
                 <button
                   type="button"
                   onClick={() => window.print()}
-                  className="bg-emerald-900 hover:bg-black text-white text-xs font-bold px-4 py-2 rounded-xl cursor-pointer flex items-center gap-1.5"
+                  className="bg-emerald-900 hover:bg-black text-white text-xs font-bold px-4 py-2.5 rounded-xl cursor-pointer flex items-center gap-1.5"
                 >
                   <Printer size={14} />
-                  <span>Print Official Invoice</span>
+                  <span>Print</span>
                 </button>
                 <button
                   type="button"
                   onClick={() => setIsInvoiceModalOpen(false)}
-                  className="bg-zinc-100 hover:bg-zinc-200 text-zinc-800 p-2 rounded-full cursor-pointer"
+                  className="bg-zinc-100 hover:bg-zinc-200 text-zinc-800 px-3 py-2.5 rounded-xl cursor-pointer inline-flex items-center gap-1.5 text-xs font-bold"
+                  aria-label="Close invoice"
                 >
-                  <X size={18} />
+                  <X size={16} />
+                  Close
                 </button>
               </div>
             </div>
 
+            <div className="flex-1 min-h-0 overflow-y-auto p-5 sm:p-8 space-y-6">
             {/* Printable Invoice Header */}
-            <div className="flex justify-between items-start border-b-2 border-emerald-900 pb-6">
-              <div>
-                <h2 className="text-xl font-black uppercase text-emerald-950 tracking-tight">DHAKA JERSEY VAULT</h2>
+            <div className="flex justify-between items-start border-b-2 border-emerald-900 pb-6 gap-3">
+              <div className="min-w-0">
+                <h2 className="text-xl font-black uppercase text-emerald-950 tracking-tight">Epic Vanskap</h2>
                 <p className="text-xs text-zinc-600">Authentic Retro & Match-Issue Football Kits</p>
-                <p className="text-[11px] text-zinc-500 font-mono mt-1">Bailey Road HQ, Dhaka-1217, Bangladesh</p>
-                <p className="text-[11px] text-zinc-500 font-mono">Hotline: +880 1840-990700 | dhakajersey.bd</p>
+                <p className="text-[11px] text-zinc-500 font-mono mt-1">Shop no: B: 67-68, 1st Floor, Feni Garden City Market, Feni, 3900</p>
+                <p className="text-[11px] text-zinc-500 font-mono">Hotline: +880 1840-990700</p>
               </div>
 
-              <div className="text-right font-mono">
+              <div className="text-right font-mono shrink-0">
                 <span className="bg-emerald-900 text-white text-[10px] font-bold px-2 py-1 rounded uppercase block mb-1">
                   INVOICE RECEIPT
                 </span>
-                <p className="text-sm font-black text-emerald-950">{invoiceOrder.id}</p>
+                <p className="text-sm font-black text-emerald-950 break-all max-w-[180px] ml-auto">{invoiceOrder.id}</p>
                 <p className="text-[11px] text-zinc-600">Date: {invoiceOrder.date}</p>
                 <p className="text-[11px] text-zinc-600">Status: <b className="uppercase text-emerald-900">{invoiceOrder.status}</b></p>
               </div>
@@ -8200,20 +8214,17 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({
             <div className="border-t-2 border-dashed border-zinc-300 pt-6 flex justify-between items-center text-[10px] font-mono text-zinc-500">
               <div>
                 <p className="font-bold text-zinc-800">Verified by Dispatch Officer</p>
-                <p>Dhaka Jersey Vault Warehouse</p>
+                <p>Epic Vanskap Warehouse</p>
               </div>
               <div className="text-right">
                 <span className="tracking-widest font-bold text-xs text-zinc-900 block">||| | |||| | |||||| | ||</span>
                 <span>*{invoiceOrder.id}*</span>
               </div>
             </div>
-
+            </div>
           </div>
         </div>
       )}
-
-        </div>
-      </div>
     </section>
   );
 };

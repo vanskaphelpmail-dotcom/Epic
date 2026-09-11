@@ -40,20 +40,20 @@ export const Cart: React.FC<CartProps> = ({ cart, setCart, onCheckout, onBackToC
 
   if (cart.length === 0) {
     return (
-      <section className="max-w-4xl mx-auto px-6 py-16 text-center text-white space-y-6">
-        <div className="w-20 h-20 bg-zinc-900 border border-zinc-800 rounded-full flex items-center justify-center mx-auto text-zinc-400 shadow-xl">
+      <section className="max-w-4xl mx-auto px-6 py-16 text-center text-[#0A0A0A] space-y-6">
+        <div className="w-20 h-20 bg-[#F8F8F7] border border-[#E5E5E5] rounded-full flex items-center justify-center mx-auto text-[#555555] shadow-xl">
           <ShoppingCart size={32} />
         </div>
         <div className="space-y-2">
           <h1 className="text-2xl font-black uppercase tracking-tight">Your Jersey Bag is Empty</h1>
-          <p className="text-zinc-300 text-sm max-w-md mx-auto leading-relaxed">
+          <p className="text-[#555555] text-sm max-w-md mx-auto leading-relaxed">
             There are currently no vintage items inside your bag. Explore our historical collections and secure a piece of football legacy today.
           </p>
         </div>
         <button
           onClick={onBackToCatalog}
           type="button"
-          className="inline-flex items-center justify-center gap-2 bg-red-600 hover:bg-red-700 text-white font-black text-sm uppercase tracking-wide px-8 py-3.5 rounded-xl cursor-pointer transition-all shadow-lg shadow-red-600/20"
+          className="inline-flex items-center justify-center gap-2 bg-[#0A0A0A] hover:bg-black text-white font-black text-sm uppercase tracking-wide px-8 py-3.5 rounded-xl cursor-pointer transition-all shadow-lg shadow-black/20"
         >
           Go to Home
         </button>
@@ -62,19 +62,19 @@ export const Cart: React.FC<CartProps> = ({ cart, setCart, onCheckout, onBackToC
   }
 
   return (
-    <section className="bg-black text-white py-10 px-4 md:px-12 max-w-7xl mx-auto min-h-screen">
+    <section className="bg-transparent text-[#0A0A0A] py-10 px-4 md:px-12 max-w-7xl mx-auto min-h-screen">
       
-      <div className="flex justify-between items-end border-b border-zinc-800 pb-4 mb-8">
+      <div className="flex justify-between items-end border-b border-[#E5E5E5] pb-4 mb-8">
         <div>
-          <h1 className="text-3xl font-black uppercase tracking-tight text-white">Shopping Bag</h1>
-          <p className="text-xs text-zinc-600 font-mono">
+          <h1 className="text-3xl font-black uppercase tracking-tight text-[#0A0A0A]">Shopping Bag</h1>
+          <p className="text-xs text-[#555555] font-mono">
             {cart.length} unique item{cart.length > 1 ? 's' : ''} • Checked & sanitized
           </p>
         </div>
         <button
           onClick={onBackToCatalog}
           type="button"
-          className="inline-flex items-center gap-2 px-3.5 py-2 rounded-xl bg-zinc-900 border border-zinc-700 text-white hover:border-red-600 hover:bg-zinc-800 text-xs sm:text-sm font-black uppercase tracking-wide cursor-pointer transition-colors"
+          className="inline-flex items-center gap-2 px-3.5 py-2 rounded-xl bg-[#F8F8F7] border border-[#E5E5E5] text-[#0A0A0A] hover:border-[#E30613] hover:bg-[#F8F8F7] text-xs sm:text-sm font-black uppercase tracking-wide cursor-pointer transition-colors"
         >
           Go to Home
         </button>
@@ -85,16 +85,16 @@ export const Cart: React.FC<CartProps> = ({ cart, setCart, onCheckout, onBackToC
         {/* Left Col: Cart Items list */}
         <div className="lg:col-span-8 space-y-4">
           {/* Free Shipping Tracker */}
-          <div className="bg-zinc-900 border border-zinc-800 p-4 rounded-2xl space-y-2 text-xs">
+          <div className="bg-[#F8F8F7] border border-[#E5E5E5] p-4 rounded-2xl space-y-2 text-xs">
             <div className="flex justify-between items-center font-semibold">
-              <span className="text-zinc-100">
+              <span className="text-[#0A0A0A]">
                 {isEligibleForFreeShipping
                   ? '✓ Congratulations! You qualify for Free Premium Sourced Shipping.'
                   : `Add ${formatPrice(150 - subtotal)} more to unlock Free Premium Sourced Shipping`}
               </span>
-              <span className="text-zinc-300 font-mono">{progressToFreeShipping}%</span>
+              <span className="text-[#555555] font-mono">{progressToFreeShipping}%</span>
             </div>
-            <div className="w-full bg-zinc-800 h-2 rounded-full overflow-hidden">
+            <div className="w-full bg-[#F8F8F7] h-2 rounded-full overflow-hidden">
               <div
                 className="bg-gradient-to-r from-red-600 to-red-700 h-full transition-all duration-500"
                 style={{ width: `${progressToFreeShipping}%` }}
@@ -107,11 +107,11 @@ export const Cart: React.FC<CartProps> = ({ cart, setCart, onCheckout, onBackToC
             {cart.map((item, index) => (
               <div
                 key={index}
-                className="bg-[#121212] border border-zinc-800 rounded-2xl p-4 md:p-6 flex flex-col sm:flex-row gap-5 items-start sm:items-center justify-between"
+                className="bg-white border border-[#E5E5E5] rounded-2xl p-4 md:p-6 flex flex-col sm:flex-row gap-5 items-start sm:items-center justify-between"
               >
                 {/* Product Detail Thumbnail and Info */}
                 <div className="flex gap-4 items-center">
-                  <div className="w-20 h-20 bg-zinc-900 rounded-xl p-1.5 flex items-center justify-center border border-zinc-800 relative flex-shrink-0 overflow-hidden">
+                  <div className="w-20 h-20 bg-[#F8F8F7] rounded-xl p-1.5 flex items-center justify-center border border-[#E5E5E5] relative flex-shrink-0 overflow-hidden">
                     <JerseyRenderer
                       productId={item.product.id}
                       uploadedImage={
@@ -126,20 +126,20 @@ export const Cart: React.FC<CartProps> = ({ cart, setCart, onCheckout, onBackToC
                     />
                   </div>
                   <div>
-                    <span className="text-[9px] font-mono uppercase text-zinc-400 font-black">
+                    <span className="text-[9px] font-mono uppercase text-[#555555] font-black">
                       {item.product.brand} • {item.product.season}
                     </span>
-                    <h3 className="text-sm font-bold tracking-tight text-white hover:text-zinc-400 cursor-pointer">
+                    <h3 className="text-sm font-bold tracking-tight text-[#0A0A0A] hover:text-[#555555] cursor-pointer">
                       {item.product.name}
                     </h3>
                     
                     {/* Display customization details */}
                     <div className="flex flex-wrap gap-2 pt-1">
-                      <span className="bg-zinc-800 text-zinc-300 text-[10px] font-mono px-2 py-0.5 rounded">
+                      <span className="bg-[#F8F8F7] text-[#555555] text-[10px] font-mono px-2 py-0.5 rounded">
                         Size: {item.selectedSize}
                       </span>
                       {item.customPrint?.name && (
-                        <span className="bg-zinc-900 text-zinc-400 text-[10px] font-mono px-2 py-0.5 rounded border border-zinc-800">
+                        <span className="bg-[#F8F8F7] text-[#555555] text-[10px] font-mono px-2 py-0.5 rounded border border-[#E5E5E5]">
                           Print: {item.customPrint.name} #{item.customPrint.number}
                         </span>
                       )}
@@ -152,14 +152,14 @@ export const Cart: React.FC<CartProps> = ({ cart, setCart, onCheckout, onBackToC
                         return (
                           <span
                             key={label}
-                            className="bg-zinc-900 text-zinc-400 text-[10px] font-mono px-2 py-0.5 rounded border border-zinc-800"
+                            className="bg-[#F8F8F7] text-[#555555] text-[10px] font-mono px-2 py-0.5 rounded border border-[#E5E5E5]"
                           >
                             + {label}{custom ? `: ${custom}` : ''}
                           </span>
                         );
                       })}
                       {!item.selectedBadges?.length && item.addBadge && (
-                        <span className="bg-zinc-900 text-zinc-400 text-[10px] font-mono px-2 py-0.5 rounded border border-zinc-800">
+                        <span className="bg-[#F8F8F7] text-[#555555] text-[10px] font-mono px-2 py-0.5 rounded border border-[#E5E5E5]">
                           + Tournament Patch
                         </span>
                       )}
@@ -171,7 +171,7 @@ export const Cart: React.FC<CartProps> = ({ cart, setCart, onCheckout, onBackToC
                         return (
                           <span
                             key={`text-${id}`}
-                            className="bg-zinc-900 text-zinc-400 text-[10px] font-mono px-2 py-0.5 rounded border border-zinc-800"
+                            className="bg-[#F8F8F7] text-[#555555] text-[10px] font-mono px-2 py-0.5 rounded border border-[#E5E5E5]"
                           >
                             + Patch: {text}
                           </span>
@@ -185,17 +185,17 @@ export const Cart: React.FC<CartProps> = ({ cart, setCart, onCheckout, onBackToC
                 <div className="flex items-center justify-between sm:justify-end gap-6 w-full sm:w-auto">
                   
                   {/* Quantity adjustment */}
-                  <div className="flex items-center gap-1.5 bg-zinc-900 border border-zinc-800 p-1.5 rounded-full text-white">
+                  <div className="flex items-center gap-1.5 bg-[#F8F8F7] border border-[#E5E5E5] p-1.5 rounded-full text-[#0A0A0A]">
                     <button
                       onClick={() => updateQuantity(index, -1)}
-                      className="p-1 bg-[#121212] hover:bg-zinc-800 text-zinc-300 rounded-full transition-all"
+                      className="p-1 bg-white hover:bg-[#F8F8F7] text-[#555555] rounded-full transition-all"
                     >
                       <Minus size={11} />
                     </button>
                     <span className="text-xs font-mono font-bold px-2">{item.quantity}</span>
                     <button
                       onClick={() => updateQuantity(index, 1)}
-                      className="p-1 bg-[#121212] hover:bg-zinc-800 text-zinc-300 rounded-full transition-all"
+                      className="p-1 bg-white hover:bg-[#F8F8F7] text-[#555555] rounded-full transition-all"
                     >
                       <Plus size={11} />
                     </button>
@@ -203,10 +203,10 @@ export const Cart: React.FC<CartProps> = ({ cart, setCart, onCheckout, onBackToC
 
                   {/* Price */}
                   <div className="text-right">
-                    <p className="text-sm font-black text-zinc-300">
+                    <p className="text-sm font-black text-[#555555]">
                       {formatPrice(item.product.price * item.quantity)}
                     </p>
-                    <p className="text-[10px] text-zinc-600 font-mono">
+                    <p className="text-[10px] text-[#555555] font-mono">
                       {formatPrice(item.product.price)} each
                     </p>
                   </div>
@@ -214,7 +214,7 @@ export const Cart: React.FC<CartProps> = ({ cart, setCart, onCheckout, onBackToC
                   {/* Remove Button */}
                   <button
                     onClick={() => removeItem(index)}
-                    className="p-2 text-zinc-400 hover:text-red-600 hover:bg-red-50 rounded-full transition-all cursor-pointer"
+                    className="p-2 text-[#555555] hover:text-[#E30613] hover:bg-red-50 rounded-full transition-all cursor-pointer"
                     aria-label="Delete Item"
                   >
                     <Trash2 size={16} />
@@ -229,37 +229,37 @@ export const Cart: React.FC<CartProps> = ({ cart, setCart, onCheckout, onBackToC
 
         {/* Right Col: Checkout Order summary */}
         <div className="lg:col-span-4 space-y-6">
-          <div className="bg-zinc-900 border border-zinc-800 rounded-2xl p-6 space-y-4">
-            <h4 className="text-xs font-mono font-black text-zinc-300 uppercase tracking-widest border-b border-zinc-800 pb-2">
+          <div className="bg-[#F8F8F7] border border-[#E5E5E5] rounded-2xl p-6 space-y-4">
+            <h4 className="text-xs font-mono font-black text-[#555555] uppercase tracking-widest border-b border-[#E5E5E5] pb-2">
               Order Pricing Summary
             </h4>
-            <div className="space-y-2.5 text-xs text-zinc-300">
+            <div className="space-y-2.5 text-xs text-[#555555]">
               <div className="flex justify-between">
                 <span>Original Subtotal:</span>
-                <span className="text-white font-mono">{formatPrice(subtotal)}</span>
+                <span className="text-[#0A0A0A] font-mono">{formatPrice(subtotal)}</span>
               </div>
               <div className="flex justify-between">
                 <span>Curated Sourced Shipping:</span>
-                <span className="text-white font-mono">
-                  {shippingCost === 0 ? <span className="text-zinc-400 font-bold uppercase">FREE</span> : formatPrice(shippingCost)}
+                <span className="text-[#0A0A0A] font-mono">
+                  {shippingCost === 0 ? <span className="text-[#555555] font-bold uppercase">FREE</span> : formatPrice(shippingCost)}
                 </span>
               </div>
-              <div className="border-t border-zinc-800 pt-3 flex justify-between items-end text-sm">
-                <span className="text-zinc-100 font-bold">Estimated Grand Total:</span>
-                <span className="text-zinc-300 font-black text-xl font-mono">{formatPrice(grandTotal)}</span>
+              <div className="border-t border-[#E5E5E5] pt-3 flex justify-between items-end text-sm">
+                <span className="text-[#0A0A0A] font-bold">Estimated Grand Total:</span>
+                <span className="text-[#555555] font-black text-xl font-mono">{formatPrice(grandTotal)}</span>
               </div>
             </div>
 
             <button
               onClick={onCheckout}
-              className="w-full bg-red-600 hover:bg-red-700 text-white font-black text-xs uppercase tracking-widest py-4 rounded-full flex items-center justify-center gap-2 cursor-pointer shadow-lg shadow-red-600/25 transition-all"
+              className="w-full bg-[#0A0A0A] hover:bg-black text-white font-black text-xs uppercase tracking-widest py-4 rounded-full flex items-center justify-center gap-2 cursor-pointer shadow-lg shadow-black/20 transition-all"
               id="proceed-to-checkout-btn"
             >
               Proceed to Secure Checkout <ArrowRight size={15} />
             </button>
 
-            <div className="flex items-center justify-center gap-2 text-[10px] text-zinc-600 font-mono pt-2">
-              <CreditCard size={12} className="text-zinc-400" />
+            <div className="flex items-center justify-center gap-2 text-[10px] text-[#555555] font-mono pt-2">
+              <CreditCard size={12} className="text-[#555555]" />
               <span>Checkout processes are 256-bit encrypted</span>
             </div>
           </div>

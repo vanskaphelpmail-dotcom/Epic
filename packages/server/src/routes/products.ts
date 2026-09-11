@@ -118,7 +118,11 @@ productsRouter.get("/", optionalAuth, async (req: AuthedRequest, res) => {
             deletedAt: null,
             NOT: { status: "TRASHED" as const },
           }
-        : { deletedAt: null, status: "ACTIVE" as const }),
+        : {
+            // Storefront: show Active + Draft so newly added kits appear immediately
+            deletedAt: null,
+            status: { in: ["ACTIVE", "DRAFT"] as const },
+          }),
       ...(featured ? { isFeatured: true } : {}),
       ...(bestSeller ? { isBestSeller: true } : {}),
       ...(q
@@ -131,6 +135,8 @@ productsRouter.get("/", optionalAuth, async (req: AuthedRequest, res) => {
                   { sku: { contains: q, mode: "insensitive" as const } },
                   { description: { contains: q, mode: "insensitive" as const } },
                   { shortDescription: { contains: q, mode: "insensitive" as const } },
+                  { longDescription: { contains: q, mode: "insensitive" as const } },
+                  { tags: { has: q } },
                   { country: { contains: q, mode: "insensitive" as const } },
                   { nationalTeam: { contains: q, mode: "insensitive" as const } },
                   { season: { contains: q, mode: "insensitive" as const } },
@@ -165,7 +171,9 @@ productsRouter.get("/", optionalAuth, async (req: AuthedRequest, res) => {
           discountAmount: true,
           description: true,
           shortDescription: true,
+          longDescription: true,
           features: true,
+          tags: true,
           imageUrl: true,
           galleryUrls: true,
           brandName: true,
@@ -298,8 +306,9 @@ const upsertSchema = z.object({
   discount: z.number().nonnegative().nullable().optional(),
   description: z.string().min(1),
   shortDescription: z.string().optional(),
-  longDescription: z.string().optional(),
+  longDescription: z.string().max(1000).optional(),
   features: z.array(z.string()).optional(),
+  tags: z.array(z.string().min(1).max(48)).max(8).optional(),
   image: z.string().min(1),
   images: z.array(z.string()).optional(),
   brand: z.string().min(1),
@@ -413,6 +422,7 @@ function productCreateData(body: z.infer<typeof upsertSchema>, categoryId?: stri
     shortDescription: body.shortDescription,
     longDescription: body.longDescription,
     features: body.features || [],
+    tags: (body.tags || []).map((t) => String(t).trim()).filter(Boolean).slice(0, 8),
     imageUrl: body.image,
     galleryUrls: body.images?.length ? body.images : [body.image],
     brandName: body.brand,
@@ -568,6 +578,14 @@ productsRouter.put("/:id", requirePermission("can_manage_products"), async (req:
         ...(body.shortDescription != null ? { shortDescription: body.shortDescription } : {}),
         ...(body.longDescription != null ? { longDescription: body.longDescription } : {}),
         ...(body.features != null ? { features: body.features } : {}),
+        ...(body.tags != null
+          ? {
+              tags: body.tags
+                .map((t) => String(t).trim())
+                .filter(Boolean)
+                .slice(0, 8),
+            }
+          : {}),
         ...(body.image != null ? { imageUrl: body.image } : {}),
         ...(body.images != null ? { galleryUrls: body.images } : {}),
         ...(body.brand != null ? { brandName: body.brand } : {}),

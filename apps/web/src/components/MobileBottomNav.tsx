@@ -3,7 +3,10 @@ import { Home, Search, LayoutGrid, ShoppingBag } from 'lucide-react';
 
 export type MobileTab = 'home' | 'categories' | 'cart' | 'whatsapp' | 'search';
 
-const WHATSAPP_URL = 'https://wa.me/8801865962232';
+const WHATSAPP_NUMBER = '8801865962232';
+const WHATSAPP_URL = `https://wa.me/${WHATSAPP_NUMBER}`;
+const WHATSAPP_DISPLAY = '01865-962232';
+const WHATSAPP_GREEN = 'text-[#25D366]';
 
 function WhatsAppIcon({ className }: { className?: string }) {
   return (
@@ -59,7 +62,7 @@ export const MobileBottomNav: React.FC<MobileBottomNavProps> = ({
 
   const itemClass = (tab: MobileTab) =>
     `flex flex-1 flex-col items-center justify-center gap-0.5 py-1.5 min-w-0 transition-colors cursor-pointer ${
-      active === tab ? 'text-red-500' : 'text-zinc-500'
+      active === tab ? 'text-[#E30613]' : 'text-[#0A0A0A]'
     }`;
 
   const go = (tab: MobileTab, action: () => void) => {
@@ -70,7 +73,7 @@ export const MobileBottomNav: React.FC<MobileBottomNavProps> = ({
   return (
     <nav
       aria-label="Mobile primary"
-      className="lg:hidden fixed inset-x-0 bottom-0 z-[45] bg-black border-t border-zinc-800 shadow-[0_-4px_24px_rgba(0,0,0,0.65)]"
+      className="lg:hidden fixed inset-x-0 bottom-0 z-[45] bg-white border-t border-[#E5E5E5] shadow-[0_-4px_24px_rgba(0,0,0,0.08)]"
       style={{ paddingBottom: 'env(safe-area-inset-bottom, 0px)' }}
     >
       <div className="flex items-stretch justify-between px-0.5 pt-1 max-w-lg mx-auto">
@@ -84,11 +87,21 @@ export const MobileBottomNav: React.FC<MobileBottomNavProps> = ({
           <span className={`text-[9px] leading-none ${active === 'categories' ? 'font-bold' : 'font-medium'}`}>Categories</span>
         </button>
 
-        <button type="button" className={itemClass('cart')} onClick={() => go('cart', onCart)} aria-current={active === 'cart' ? 'page' : undefined}>
+        <button
+          type="button"
+          className={itemClass('cart')}
+          onClick={() => go('cart', onCart)}
+          aria-current={active === 'cart' ? 'page' : undefined}
+          data-cart-target="mobile"
+          aria-label="Shopping cart"
+        >
           <span className="relative inline-flex">
             <ShoppingBag size={22} strokeWidth={active === 'cart' ? 2.5 : 1.75} />
             {cartCount > 0 && (
-              <span className="absolute -top-1 -right-2 min-w-[14px] h-[14px] px-0.5 rounded-full bg-red-600 text-white text-[8px] font-black flex items-center justify-center">
+              <span
+                data-cart-count
+                className="absolute -top-1 -right-2 min-w-[14px] h-[14px] px-0.5 rounded-full bg-[#E30613] text-white text-[8px] font-black flex items-center justify-center"
+              >
                 {cartCount > 9 ? '9+' : cartCount}
               </span>
             )}
@@ -100,13 +113,13 @@ export const MobileBottomNav: React.FC<MobileBottomNavProps> = ({
           href={WHATSAPP_URL}
           target="_blank"
           rel="noopener noreferrer"
-          className={itemClass('whatsapp')}
+          className={`flex flex-1 flex-col items-center justify-center gap-0.5 py-1.5 min-w-0 transition-colors cursor-pointer ${WHATSAPP_GREEN}`}
           onClick={() => setForcedTab('whatsapp')}
-          aria-label="Chat on WhatsApp"
+          aria-label={`Chat on WhatsApp ${WHATSAPP_DISPLAY}`}
         >
-          <WhatsAppIcon className={`w-[22px] h-[22px] ${active === 'whatsapp' ? 'text-[#25D366]' : 'text-zinc-500'}`} />
-          <span className={`text-[9px] leading-none ${active === 'whatsapp' ? 'font-bold text-[#25D366]' : 'font-medium'}`}>
-            WhatsApp
+          <WhatsAppIcon className={`w-[22px] h-[22px] ${WHATSAPP_GREEN}`} />
+          <span className={`text-[8px] sm:text-[9px] leading-none tracking-tight ${WHATSAPP_GREEN} ${active === 'whatsapp' ? 'font-bold' : 'font-semibold'}`}>
+            {WHATSAPP_DISPLAY}
           </span>
         </a>
 

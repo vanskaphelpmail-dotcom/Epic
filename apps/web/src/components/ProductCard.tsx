@@ -4,6 +4,7 @@ import { Product } from '../types';
 import { JerseyRenderer } from './JerseyRenderer';
 import { isRenderableImageSrc } from '../lib/productImage';
 import { hasProductDiscount } from '../lib/productPricing';
+import { flyImageToCart } from '../lib/flyToCart';
 
 interface ProductCardProps {
   product: Product;
@@ -38,6 +39,7 @@ export const ProductCard: React.FC<ProductCardProps> = ({
   const [slide, setSlide] = useState(0);
   const [paused, setPaused] = useState(false);
   const touchStartX = useRef<number | null>(null);
+  const imageAreaRef = useRef<HTMLDivElement>(null);
   const slideCount = galleryImages.length;
 
   useEffect(() => {
@@ -63,6 +65,7 @@ export const ProductCard: React.FC<ProductCardProps> = ({
   const salePrice = Number(product.price) || 0;
   const originalPrice = Number(product.originalPrice) || 0;
   const activeIndex = slideCount ? Math.min(slide, slideCount - 1) : 0;
+  const activeImageSrc = galleryImages[activeIndex] || product.uploadedImage || product.image;
 
   const handleWishlist = (e: React.MouseEvent) => {
     e.stopPropagation();
@@ -71,6 +74,7 @@ export const ProductCard: React.FC<ProductCardProps> = ({
 
   const handleAddToCart = (e: React.MouseEvent) => {
     e.stopPropagation();
+    flyImageToCart(imageAreaRef.current, activeImageSrc);
     if (onQuickAdd) {
       onQuickAdd(product);
       return;
@@ -99,13 +103,15 @@ export const ProductCard: React.FC<ProductCardProps> = ({
   return (
     <div
       onClick={() => onSelect(product)}
-      className="group bg-[#121212] border border-zinc-800 hover:border-red-600 rounded-xl lg:rounded-2xl p-1.5 sm:p-2 lg:p-3 cursor-pointer shadow-sm hover:shadow-lg hover:shadow-red-600/10 transition-all duration-300 relative flex flex-col h-full min-w-0 overflow-visible"
+      className="group bg-white border border-[#E5E5E5] hover:border-[#0A0A0A]/25 rounded-2xl p-2 sm:p-2.5 lg:p-3 cursor-pointer shadow-[0_1px_3px_rgba(10,10,10,0.06)] hover:shadow-[0_8px_24px_rgba(10,10,10,0.08)] transition-all duration-200 relative flex flex-col h-full min-w-0 overflow-visible"
       id={`product-card-${product.id}`}
       title={product.name}
     >
       <div className="min-w-0 flex flex-col flex-1">
         <div
-          className="relative mb-2 sm:mb-2.5 lg:mb-3 w-full aspect-[4/5] sm:aspect-[3/4] shrink-0 overflow-hidden rounded-lg lg:rounded-xl bg-white"
+          ref={imageAreaRef}
+          data-product-fly-image
+          className="relative mb-2 sm:mb-2.5 lg:mb-3 w-full aspect-[4/5] sm:aspect-[3/4] shrink-0 overflow-hidden rounded-xl bg-[#FAFAF9]"
           onMouseEnter={() => setPaused(true)}
           onMouseLeave={() => setPaused(false)}
           onTouchStart={onTouchStart}
@@ -120,12 +126,12 @@ export const ProductCard: React.FC<ProductCardProps> = ({
                 {galleryImages.map((src, i) => (
                   <div
                     key={`${product.id}-slide-${i}`}
-                    className="relative h-full w-full min-w-full flex items-center justify-center p-1 sm:p-1.5 lg:p-2 box-border bg-white"
+                    className="relative h-full w-full min-w-full flex items-center justify-center box-border bg-transparent"
                   >
                     <img
                       src={src}
                       alt={`${product.name} view ${i + 1}`}
-                      className="max-h-full max-w-full w-auto h-auto object-contain object-center select-none"
+                      className="max-h-full max-w-full w-auto h-auto object-contain object-center select-none transition-transform duration-200 group-hover:scale-[1.03]"
                       loading={i === 0 ? 'eager' : 'lazy'}
                       referrerPolicy="no-referrer"
                       draggable={false}
@@ -148,8 +154,8 @@ export const ProductCard: React.FC<ProductCardProps> = ({
                       }}
                       className={`h-2 rounded-full transition-all cursor-pointer ${
                         i === activeIndex
-                          ? 'w-5 bg-red-600'
-                          : 'w-2 bg-zinc-400/80 hover:bg-zinc-600'
+                          ? 'w-5 bg-[#E30613]'
+                          : 'w-2 bg-zinc-300 hover:bg-zinc-500'
                       }`}
                     />
                   ))}
@@ -157,7 +163,7 @@ export const ProductCard: React.FC<ProductCardProps> = ({
               )}
             </>
           ) : (
-            <div className="absolute inset-0 flex items-center justify-center p-2 sm:p-3 overflow-hidden bg-white [&_img]:!max-h-full [&_img]:!max-w-full [&_img]:!h-auto [&_img]:!w-auto [&_img]:!object-contain [&_img]:!rounded-none [&_svg]:max-h-full [&_svg]:max-w-full [&_svg]:h-auto [&_svg]:w-auto">
+            <div className="absolute inset-0 flex items-center justify-center overflow-hidden bg-transparent [&_img]:!max-h-full [&_img]:!max-w-full [&_img]:!h-auto [&_img]:!w-auto [&_img]:!object-contain [&_img]:!rounded-none [&_svg]:max-h-full [&_svg]:max-w-full [&_svg]:h-auto [&_svg]:w-auto">
               <JerseyRenderer
                 productId={product.id}
                 uploadedImage={product.uploadedImage}
@@ -168,7 +174,7 @@ export const ProductCard: React.FC<ProductCardProps> = ({
 
           <button
             onClick={handleWishlist}
-            className="absolute top-1.5 right-1.5 sm:top-2 sm:right-2 z-20 flex items-center justify-center w-7 h-7 sm:w-8 sm:h-8 rounded-full bg-black/75 shadow-md border border-zinc-700 transition-transform hover:scale-105 active:scale-95 cursor-pointer"
+            className="absolute top-1.5 right-1.5 sm:top-2 sm:right-2 z-20 flex items-center justify-center w-7 h-7 sm:w-8 sm:h-8 rounded-full bg-white/95 shadow-sm border border-[#E5E5E5] transition-transform duration-200 hover:scale-105 active:scale-95 cursor-pointer"
             aria-label={isWishlisted ? 'Remove from Wishlist' : 'Add to Wishlist'}
             aria-pressed={isWishlisted}
             type="button"
@@ -178,32 +184,32 @@ export const ProductCard: React.FC<ProductCardProps> = ({
               strokeWidth={2.25}
               className={
                 isWishlisted
-                  ? 'fill-red-500 text-red-500 transition-colors'
-                  : 'fill-transparent text-white transition-colors'
+                  ? 'fill-[#E30613] text-[#E30613] transition-colors'
+                  : 'fill-transparent text-[#0A0A0A] transition-colors'
               }
             />
           </button>
 
           {product.isPreOrder && (
-            <span className="absolute top-1.5 left-1.5 sm:top-2 sm:left-2 z-20 bg-red-600 text-white text-[8px] lg:text-[9px] font-black uppercase tracking-wider px-1.5 py-0.5 lg:px-2 lg:py-1 rounded-md shadow-sm">
+            <span className="absolute top-1.5 left-1.5 sm:top-2 sm:left-2 z-20 bg-[#E30613] text-white text-[8px] lg:text-[9px] font-black uppercase tracking-wider px-1.5 py-0.5 lg:px-2 lg:py-1 rounded-md shadow-sm">
               Pre-Order
             </span>
           )}
         </div>
 
         <div className="flex flex-col gap-0.5 sm:gap-1 mb-1.5 sm:mb-2 min-w-0 px-0.5">
-          <span className="block text-[9px] sm:text-[10px] font-mono uppercase tracking-widest text-zinc-500 font-bold truncate">
+          <span className="block text-[9px] sm:text-[10px] font-mono uppercase tracking-widest text-[#555555] font-bold truncate">
             {brandLine}
           </span>
-          <h3 className="block text-white text-[11px] sm:text-xs lg:text-sm font-black tracking-tight line-clamp-2 min-h-[2rem] sm:min-h-[2.25rem] lg:min-h-[2.5rem] group-hover:text-red-500 transition-colors text-left leading-snug">
+          <h3 className="block text-[#0A0A0A] text-[11px] sm:text-xs lg:text-sm font-black tracking-tight line-clamp-2 min-h-[2rem] sm:min-h-[2.25rem] lg:min-h-[2.5rem] group-hover:text-[#E30613] transition-colors duration-200 text-left leading-snug">
             {product.name || 'Jersey'}
           </h3>
           <div className="flex items-baseline gap-1.5 flex-wrap pt-0.5">
-            <span className="text-sm sm:text-base lg:text-lg font-black text-red-500 tabular-nums">
+            <span className="text-sm sm:text-base lg:text-lg font-black text-[#0A0A0A] tabular-nums">
               {formatPrice(salePrice)}
             </span>
             {showDiscount && originalPrice > salePrice ? (
-              <span className="text-[10px] sm:text-xs text-zinc-500 line-through font-bold tabular-nums">
+              <span className="text-[10px] sm:text-xs text-[#555555] line-through font-bold tabular-nums">
                 {formatPrice(originalPrice)}
               </span>
             ) : null}
@@ -215,7 +221,7 @@ export const ProductCard: React.FC<ProductCardProps> = ({
         <button
           onClick={handleAddToCart}
           type="button"
-          className="w-full bg-red-600 hover:bg-red-700 text-white border border-red-600 py-2 sm:py-2.5 lg:py-3 px-2 sm:px-3 rounded-lg lg:rounded-xl text-[10px] sm:text-[11px] font-black uppercase tracking-wider flex items-center justify-center gap-1.5 sm:gap-2 transition-all cursor-pointer font-sans"
+          className="w-full bg-[#0A0A0A] hover:bg-black text-white border border-[#0A0A0A] py-2 sm:py-2.5 lg:py-3 px-2 sm:px-3 rounded-full text-[10px] sm:text-[11px] font-black uppercase tracking-wider flex items-center justify-center gap-1.5 sm:gap-2 transition-all duration-200 cursor-pointer font-sans hover:scale-[1.01] active:scale-[0.99]"
           title="Add to cart"
           id={`add-to-cart-${product.id}`}
         >

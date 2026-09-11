@@ -1,5 +1,5 @@
 import { PageSection, Product, CategoryItem } from '../types';
-import { storefrontLabelsMatch } from './storefrontPages';
+import { resolveStorefrontPage, storefrontLabelsMatch } from './storefrontPages';
 import { getProductCategories } from './sizeCharts';
 
 /** Sections permanently removed from the live storefront (still may exist in old DB rows). */
@@ -15,7 +15,57 @@ export const REMOVED_HOMEPAGE_SECTION_IDS = new Set([
   'shop-by-club',
   'shop-by-international-team',
   'newsletter',
+  'community-gallery',
 ]);
+
+/** Ensure All Jerseys row exists so the homepage always lists the full catalog. */
+export function ensureAllJerseysSection(sections: PageSection[]): PageSection[] {
+  const existing = sections.find((s) => s.id === 'all-jerseys');
+  const row: PageSection = {
+    id: 'all-jerseys',
+    name: 'All Jerseys Row',
+    visible: true,
+    bgColor: 'bg-transparent',
+    padding: 'py-12',
+    margin: 'my-0',
+    title: 'ALL JERSEYS',
+    subtitle: 'Complete storefront catalog — every kit in stock',
+    status: 'active',
+    sectionType: 'product-row',
+    productCategory: 'All',
+    productSelectionMode: 'category',
+    buttonText: 'VIEW ALL',
+    buttonUrl: 'listing',
+    maxProducts: Math.max(500, existing?.maxProducts ?? 500),
+  };
+  if (existing) {
+    return sections.map((s) =>
+      s.id === 'all-jerseys'
+        ? {
+            ...row,
+            ...existing,
+            id: 'all-jerseys',
+            visible: true,
+            status: 'active',
+            sectionType: 'product-row',
+            productCategory: existing.productCategory || 'All',
+            maxProducts: Math.max(500, existing.maxProducts ?? 500),
+            title: existing.title || row.title,
+            subtitle: existing.subtitle || row.subtitle,
+          }
+        : s,
+    );
+  }
+  const afterLatest = sections.findIndex((s) => s.id === 'latest-products');
+  if (afterLatest >= 0) {
+    return [...sections.slice(0, afterLatest + 1), row, ...sections.slice(afterLatest + 1)];
+  }
+  const afterFeatured = sections.findIndex((s) => s.id === 'featured-collection');
+  if (afterFeatured >= 0) {
+    return [...sections.slice(0, afterFeatured + 1), row, ...sections.slice(afterFeatured + 1)];
+  }
+  return [row, ...sections];
+}
 
 export function normalizeHomepageSections(sections: PageSection[]): PageSection[] {
   const seen = new Set<string>();
@@ -25,27 +75,21 @@ export function normalizeHomepageSections(sections: PageSection[]): PageSection[
     seen.add(s.id);
     return true;
   });
-  const darkened = filtered.map((s) => {
-    const bg = String(s.bgColor || '');
-    const isLightOrTinted =
-      !bg ||
-      /\bbg-white\b/.test(bg) ||
-      /\bbg-zinc-50\b/.test(bg) ||
-      /\bbg-gray-50\b/.test(bg) ||
-      /\bbg-amber-/.test(bg) ||
-      /\bbg-emerald-/.test(bg) ||
-      /\bbg-red-/.test(bg) ||
-      /from-purple|to-indigo|gradient/i.test(bg);
-    return isLightOrTinted ? { ...s, bgColor: 'bg-black' } : s;
-  });
-  return ensureJerseyHomepageOrder(darkened);
+  const darkened = filtered.map((s) => ({
+    ...s,
+    // Storefront is light — never keep dark CMS section paints
+    bgColor: 'bg-transparent',
+  }));
+  return ensureCatalogSectionAtBottom(
+    ensureAllJerseysSection(ensureJerseyHomepageOrder(darkened)),
+  );
 }
 
 const LATEST_PRODUCTS_SECTION: PageSection = {
   id: 'latest-products',
   name: 'Latest Products Row',
   visible: true,
-  bgColor: 'bg-black',
+  bgColor: 'bg-transparent',
   padding: 'py-12',
   margin: 'my-0',
   title: 'LATEST WORKSHOP DROPS',
@@ -61,7 +105,7 @@ const RETRO_SECTION: PageSection = {
   id: 'retro-collection',
   name: 'Retro Collection Row',
   visible: true,
-  bgColor: 'bg-black',
+  bgColor: 'bg-transparent',
   padding: 'py-12',
   margin: 'my-0',
   title: 'RETRO',
@@ -78,7 +122,7 @@ const LA_LIGA_SECTION: PageSection = {
   id: 'product-row-la-liga',
   name: 'La Liga Row',
   visible: true,
-  bgColor: 'bg-black',
+  bgColor: 'bg-transparent',
   padding: 'py-12',
   margin: 'my-0',
   title: 'LA LIGA',
@@ -96,7 +140,7 @@ const WORLD_CUP_SECTION: PageSection = {
   id: 'product-row-world-cup',
   name: 'World Cup Row',
   visible: true,
-  bgColor: 'bg-black',
+  bgColor: 'bg-transparent',
   padding: 'py-12',
   margin: 'my-0',
   title: 'WORLD CUP',
@@ -114,7 +158,7 @@ const PLAYER_EDITION_SECTION: PageSection = {
   id: 'player-edition',
   name: 'Player Edition Row',
   visible: true,
-  bgColor: 'bg-black',
+  bgColor: 'bg-transparent',
   padding: 'py-12',
   margin: 'my-0',
   title: 'PLAYER EDITION',
@@ -224,6 +268,48 @@ export function ensureJerseyHomepageOrder(sections: PageSection[]): PageSection[
   return [...rest.slice(0, insertAt), ...jerseyBlock, ...rest.slice(insertAt)];
 }
 
+/** Catalog (legacy Clearance/Outlet) product row always sits near the page bottom. */
+export function ensureCatalogSectionAtBottom(sections: PageSection[]): PageSection[] {
+  const catalogIdx = sections.findIndex((s) => s.id === 'clearance');
+  if (catalogIdx < 0) return sections;
+  const catalog = {
+    ...sections[catalogIdx],
+    title: 'CATALOG',
+    subtitle: sections[catalogIdx].subtitle?.includes('deadstock')
+      ? 'Browse the full Catalog collection'
+      : sections[catalogIdx].subtitle || 'Browse the full Catalog collection',
+    buttonText: /outlet|explore/i.test(sections[catalogIdx].buttonText || '')
+      ? 'VIEW CATALOG'
+      : sections[catalogIdx].buttonText || 'VIEW CATALOG',
+  };
+  const without = sections.filter((_, i) => i !== catalogIdx);
+  const endAnchor = without.findIndex(
+    (s) => s.id === 'store-locations' || s.id === 'newsletter',
+  );
+  if (endAnchor >= 0) {
+    return [...without.slice(0, endAnchor), catalog, ...without.slice(endAnchor)];
+  }
+  return [...without, catalog];
+}
+
+/** Products assigned to Catalog / Clearance / Outlet — only belong in the Catalog homepage row. */
+export function isCatalogAssignedProduct(p: Product): boolean {
+  if (p.isClearance) return true;
+  const fields = [p.category, p.pageName, p.targetPage, ...(getProductCategories(p) || [])].filter(
+    (v) => String(v || '').trim(),
+  );
+  return fields.some((v) => {
+    const page = resolveStorefrontPage(String(v));
+    if (page?.id === 'Clearance' || page?.slug === 'catalog') return true;
+    const key = String(v).toLowerCase().trim();
+    return (
+      /^(clearance|outlet|catalog)$/.test(key) ||
+      key === 'clearance vault' ||
+      key === 'catalog collection'
+    );
+  });
+}
+
 /** @deprecated use ensureJerseyHomepageOrder */
 export function ensureShopByLeagueAfterPlayerEdition(sections: PageSection[]): PageSection[] {
   return ensureJerseyHomepageOrder(sections);
@@ -255,6 +341,7 @@ export const LEGACY_PRODUCT_CATEGORY: Record<string, string> = {
   clearance: 'Clearance',
   'best-sellers': 'Best Sellers',
   'latest-products': 'New In',
+  'all-jerseys': 'All',
 };
 
 export function resolveSectionCategory(section: PageSection): string | undefined {
@@ -299,81 +386,166 @@ function sortByCategoryRow(a: Product, b: Product): number {
   return String(a.name || '').localeCompare(String(b.name || ''));
 }
 
+/** Broad match so homepage rows fill from category, page, league, tags, or name. */
+export function productMatchesHomepageCategory(p: Product, cat: string): boolean {
+  if (!cat?.trim()) return false;
+  if (/^all(\s*jerseys)?$/i.test(cat.trim())) return true;
+  const productCats = getProductCategories(p);
+  if (productCats.some((c) => storefrontLabelsMatch(c, cat))) return true;
+  if (storefrontLabelsMatch(p.category || '', cat)) return true;
+  if (storefrontLabelsMatch(p.targetPage || '', cat)) return true;
+  if (storefrontLabelsMatch(p.pageName || '', cat)) return true;
+  if (storefrontLabelsMatch(p.league || '', cat)) return true;
+  if (storefrontLabelsMatch(p.club || '', cat)) return true;
+  if (storefrontLabelsMatch(p.nationalTeam || '', cat)) return true;
+  if (storefrontLabelsMatch(p.country || '', cat)) return true;
+  if ((p.tags || []).some((t) => storefrontLabelsMatch(t, cat))) return true;
+
+  if (
+    storefrontLabelsMatch(cat, 'Retro') &&
+    (storefrontLabelsMatch(p.category || '', 'Legends') ||
+      storefrontLabelsMatch(p.targetPage || '', 'Legends') ||
+      storefrontLabelsMatch(p.pageName || '', 'Retro Store'))
+  ) {
+    return true;
+  }
+  if (
+    storefrontLabelsMatch(cat, 'World Cup') &&
+    (storefrontLabelsMatch(p.targetPage || '', 'World Cup') ||
+      storefrontLabelsMatch(p.targetPage || '', 'World Cup Vault') ||
+      storefrontLabelsMatch(p.pageName || '', 'World Cup') ||
+      /world\s*cup/i.test(p.name || ''))
+  ) {
+    return true;
+  }
+  if (
+    storefrontLabelsMatch(cat, 'La Liga') &&
+    (storefrontLabelsMatch(p.targetPage || '', 'La Liga') ||
+      storefrontLabelsMatch(p.pageName || '', 'La Liga') ||
+      /la\s*liga/i.test(p.name || '') ||
+      /real madrid|barcelona|atletico|athletic club|sevilla|valencia/i.test(p.name || ''))
+  ) {
+    return true;
+  }
+  if (
+    storefrontLabelsMatch(cat, 'Premier League') &&
+    (/premier\s*league|\bepl\b/i.test(p.name || '') ||
+      /arsenal|chelsea|liverpool|manchester|tottenham|newcastle/i.test(p.name || ''))
+  ) {
+    return true;
+  }
+  if (
+    storefrontLabelsMatch(cat, 'Player Edition') &&
+    /player\s*(edition|version|fit)/i.test(p.name || '')
+  ) {
+    return true;
+  }
+  if (
+    storefrontLabelsMatch(cat, 'Fan Edition') &&
+    /fan\s*(edition|version|fit)/i.test(p.name || '')
+  ) {
+    return true;
+  }
+  if (
+    storefrontLabelsMatch(cat, 'Current Season') &&
+    /20\d{2}\s*\/\s*2\d|current\s*season/i.test(`${p.name || ''} ${p.season || ''}`)
+  ) {
+    return true;
+  }
+  if (
+    storefrontLabelsMatch(cat, 'Best Sellers') &&
+    (p.isBestSeller || storefrontLabelsMatch(p.category || '', 'Best Sellers'))
+  ) {
+    return true;
+  }
+  if (
+    storefrontLabelsMatch(cat, 'Featured') &&
+    (p.isFeatured || storefrontLabelsMatch(p.category || '', 'Featured'))
+  ) {
+    return true;
+  }
+  if (
+    storefrontLabelsMatch(cat, 'Clearance') ||
+    storefrontLabelsMatch(cat, 'Catalog') ||
+    storefrontLabelsMatch(cat, 'Outlet')
+  ) {
+    return isCatalogAssignedProduct(p);
+  }
+
+  const catLower = cat.toLowerCase().trim();
+  if (catLower.length >= 3) {
+    const hay = [p.name, p.brand, ...(p.tags || [])].join(' ').toLowerCase();
+    if (hay.includes(catLower)) return true;
+  }
+  return false;
+}
+
 export function getProductsForHomepageSection(section: PageSection, products: Product[]): Product[] {
   const max = Math.max(4, section.maxProducts ?? 4);
   const activeProducts = products.filter(isActiveCatalogProduct);
+  if (activeProducts.length === 0) return [];
+
+  const catalogProducts = activeProducts.filter(isCatalogAssignedProduct);
+  // Prefer non-Catalog kits for Featured/Latest/league rows; fall back so rows never blank
+  const nonCatalog = activeProducts.filter((p) => !isCatalogAssignedProduct(p));
+  const mainPool = nonCatalog.length > 0 ? nonCatalog : activeProducts;
+  const isCatalogRow = section.id === 'clearance';
+
   const manualIds = section.selectedProductIds || [];
 
-  if (usesManualProductSelection(section) && manualIds.length > 0) {
+  // Manual pick only when IDs exist — empty manual mode must not blank the homepage
+  if (manualIds.length > 0 && usesManualProductSelection(section)) {
     const byId = new Map(activeProducts.map((p) => [p.id, p]));
-    return manualIds.map((id) => byId.get(id)).filter((p): p is Product => !!p).slice(0, max);
+    const picked = manualIds.map((id) => byId.get(id)).filter((p): p is Product => !!p);
+    if (isCatalogRow) {
+      const scoped = picked.filter(isCatalogAssignedProduct);
+      if (scoped.length > 0) return scoped.slice(0, max);
+    } else if (picked.length > 0) {
+      return picked.slice(0, max);
+    }
   }
 
-  if (section.productSelectionMode === 'manual') {
+  // Catalog page products → Catalog row (bottom)
+  if (isCatalogRow) {
+    if (catalogProducts.length > 0) {
+      return [...catalogProducts].sort(sortByCategoryRow).slice(0, max);
+    }
     return [];
   }
 
-  // Latest drops = newest catalog items (don't require a "New In" category match)
+  // All Jerseys — every active kit as ProductCards (no Catalog exclusion, no low cap)
+  if (section.id === 'all-jerseys') {
+    return [...activeProducts].sort(sortByCategoryRow);
+  }
+
+  // Latest Workshop Drops — prefer non-Catalog, never blank
   if (section.id === 'latest-products') {
-    return activeProducts.slice(0, max);
+    return mainPool.slice(0, max);
   }
 
   const cat = resolveSectionCategory(section);
 
   if (cat) {
-    const byCategory = activeProducts
-      .filter((p) => {
-        const productCats = getProductCategories(p);
-        if (productCats.some((c) => storefrontLabelsMatch(c, cat))) return true;
-        if (storefrontLabelsMatch(p.category || '', cat)) return true;
-        // Legends / Retro Store products also fill the Retro homepage row
-        if (
-          storefrontLabelsMatch(cat, 'Retro') &&
-          (storefrontLabelsMatch(p.category || '', 'Legends') ||
-            storefrontLabelsMatch(p.targetPage || '', 'Legends') ||
-            storefrontLabelsMatch(p.pageName || '', 'Retro Store'))
-        ) {
-          return true;
-        }
-        // World Cup row also picks vault / page-tagged kits
-        if (
-          storefrontLabelsMatch(cat, 'World Cup') &&
-          (storefrontLabelsMatch(p.targetPage || '', 'World Cup') ||
-            storefrontLabelsMatch(p.targetPage || '', 'World Cup Vault') ||
-            storefrontLabelsMatch(p.pageName || '', 'World Cup') ||
-            /world\s*cup/i.test(p.name || ''))
-        ) {
-          return true;
-        }
-        // La Liga row also matches league / name tags
-        if (
-          storefrontLabelsMatch(cat, 'La Liga') &&
-          (storefrontLabelsMatch(p.targetPage || '', 'La Liga') ||
-            storefrontLabelsMatch(p.pageName || '', 'La Liga') ||
-            /la\s*liga/i.test(p.name || '') ||
-            /real madrid|barcelona|atletico|athletic club|sevilla|valencia/i.test(p.name || ''))
-        ) {
-          return true;
-        }
-        return false;
-      })
+    const byCategory = mainPool
+      .filter((p) => productMatchesHomepageCategory(p, cat))
       .sort(sortByCategoryRow);
     if (byCategory.length > 0) return byCategory.slice(0, max);
   }
 
   if (section.id === 'featured-collection') {
-    const featured = activeProducts.filter((p) => p.isFeatured).sort(sortByCategoryRow);
+    const featured = mainPool.filter((p) => p.isFeatured).sort(sortByCategoryRow);
     if (featured.length) return featured.slice(0, max);
+    return mainPool.slice(0, max);
   }
   if (section.id === 'best-sellers') {
-    const best = activeProducts.filter((p) => p.isBestSeller).sort(sortByCategoryRow);
+    const best = mainPool.filter((p) => p.isBestSeller).sort(sortByCategoryRow);
     if (best.length) return best.slice(0, max);
+    return mainPool.slice(0, max);
   }
-  if (section.id === 'clearance') {
-    const clearance = activeProducts
-      .filter((p) => p.category === 'Clearance' || p.originalPrice || p.isClearance)
-      .sort(sortByCategoryRow);
-    if (clearance.length) return clearance.slice(0, max);
+
+  // Unknown product-row with no category hits: show stock rather than hide forever
+  if (isProductRowSection(section)) {
+    return mainPool.slice(0, max);
   }
 
   return [];
@@ -454,7 +626,7 @@ export function ensureHomepageRowsForCategories(
       id,
       name: `${name} Row`,
       visible: true,
-      bgColor: 'bg-black',
+      bgColor: 'bg-transparent',
       padding: 'py-12',
       margin: 'my-0',
       title: name.toUpperCase(),

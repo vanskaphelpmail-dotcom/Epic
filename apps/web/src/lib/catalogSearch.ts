@@ -28,6 +28,8 @@ export function productSearchText(product: Product): string {
     product.season,
     product.shortDescription,
     product.description,
+    product.longDescription,
+    ...(Array.isArray(product.tags) ? product.tags : []),
     product.player?.name,
     storefrontSearchLabel(product.targetPage),
     storefrontSearchLabel(product.pageName),
