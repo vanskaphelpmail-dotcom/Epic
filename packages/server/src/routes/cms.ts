@@ -333,6 +333,9 @@ cmsRouter.get("/homepage", async (_req, res) => {
             : settings
               ? []
               : undefined,
+          clubShowcase: Array.isArray((settings as { clubShowcase?: unknown }).clubShowcase)
+            ? (settings as { clubShowcase: unknown[] }).clubShowcase
+            : undefined,
         }
       : null;
 
@@ -516,6 +519,20 @@ cmsRouter.put("/settings", requirePermission("can_manage_system_settings"), asyn
           )
           .optional()
           .nullable(),
+        clubShowcase: z
+          .array(
+            z.object({
+              id: z.string().min(1),
+              name: z.string().min(1),
+              categoryId: z.string().optional(),
+              searchQuery: z.string().optional(),
+              count: z.coerce.number().int().nonnegative().optional(),
+              logoUrl: z.string().optional(),
+              status: z.enum(["Active", "Inactive"]).optional(),
+            }),
+          )
+          .optional()
+          .nullable(),
         customSizeCharts: z.any().optional().nullable(),
       })
       .strict();
@@ -531,6 +548,21 @@ cmsRouter.put("/settings", requirePermission("can_manage_system_settings"), asyn
         priceBdt: Math.max(0, Math.round(Number(item.priceBdt) || 0)),
         ...(item.image?.trim() ? { image: item.image.trim() } : {}),
       })).filter((item) => item.label);
+    }
+
+    if (body.clubShowcase !== undefined) {
+      const items = Array.isArray(body.clubShowcase) ? body.clubShowcase : [];
+      updateData.clubShowcase = items
+        .map((item, index) => ({
+          id: String(item.id || `club-${index + 1}`).trim() || `club-${index + 1}`,
+          name: String(item.name || "").trim(),
+          categoryId: String(item.categoryId || item.name || "").trim(),
+          searchQuery: String(item.searchQuery || item.name || "").trim(),
+          count: Math.max(0, Math.round(Number(item.count) || 0)),
+          logoUrl: String(item.logoUrl || "").trim(),
+          status: item.status === "Inactive" ? "Inactive" : "Active",
+        }))
+        .filter((item) => item.name);
     }
 
     if (body.customSizeCharts !== undefined) {

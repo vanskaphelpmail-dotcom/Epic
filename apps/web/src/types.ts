@@ -57,7 +57,7 @@ export interface Product {
   shortDescription?: string;
   longDescription?: string;
   features?: string[];
-  /** Search keywords shown below product photos (max 8) */
+  /** Search keywords shown below product photos (max 20) */
   tags?: string[];
   material?: string;
   dimensions?: string;
@@ -418,6 +418,16 @@ export interface LeagueConfigItem {
   status: 'Active' | 'Inactive';
 }
 
+export interface ClubConfigItem {
+  id: string;
+  name: string;
+  categoryId: string;
+  searchQuery: string;
+  count: number;
+  logoUrl: string;
+  status: 'Active' | 'Inactive';
+}
+
 export interface AppConfig {
   logoText: string;
   logoSubtext: string;
@@ -467,5 +477,7 @@ export interface AppConfig {
     rows: Array<{ size: string; chest: string | number; length: string | number; age?: string }>;
   }>;
   leagues?: LeagueConfigItem[];
+  /** Football club logo showcase under the homepage banner */
+  clubs?: ClubConfigItem[];
   stockLogs?: StockLog[];
 }

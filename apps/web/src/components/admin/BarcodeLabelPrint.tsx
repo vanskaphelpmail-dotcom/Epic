@@ -2,6 +2,7 @@
 
 import React, { useEffect, useMemo, useRef, useState } from 'react';
 import JsBarcode from 'jsbarcode';
+import { BrandWordmark } from '../BrandWordmark';
 
 export type BarcodeLabelItem = {
   shopName: string;
@@ -72,12 +73,12 @@ function LabelFace({
         fontFamily: 'Inter, Arial, Helvetica, sans-serif',
       }}
     >
-      <p
-        className="text-black uppercase leading-none"
-        style={{ fontSize: 13, fontWeight: 700, letterSpacing: '0.06em' }}
-      >
-        {shopName}
-      </p>
+      <BrandWordmark
+        text={shopName || 'Epic Vanskap'}
+        showBadge={false}
+        wordClassName="!text-[13px]"
+        className="!gap-1 !p-0 justify-center"
+      />
       <p className="text-black leading-none" style={{ fontSize: 12, fontWeight: 400, marginTop: 5 }}>
         {location}
       </p>

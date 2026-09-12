@@ -334,15 +334,20 @@ export const ProductDetails: React.FC<ProductDetailsProps> = ({
           )}
 
           {Array.isArray(product.tags) && product.tags.length > 0 && (
-            <div className="flex flex-wrap gap-2 justify-center pt-1">
-              {product.tags.slice(0, 8).map((tag) => (
-                <span
-                  key={tag}
-                  className="inline-flex items-center px-2.5 py-1 rounded-lg bg-[#F8F8F7] border border-[#E5E5E5] text-[10px] font-mono font-bold uppercase tracking-wider text-[#555555]"
-                >
-                  {tag}
-                </span>
-              ))}
+            <div className="w-full space-y-2 pt-2">
+              <p className="text-[10px] font-mono font-bold uppercase tracking-widest text-[#555555] text-center">
+                Search tags
+              </p>
+              <div className="flex flex-wrap gap-2 justify-center">
+                {product.tags.slice(0, 20).map((tag) => (
+                  <span
+                    key={tag}
+                    className="inline-flex items-center max-w-full px-3 py-1.5 rounded-lg bg-white border border-[#E5E5E5] text-[11px] font-mono font-bold tracking-wide text-[#0A0A0A] shadow-sm"
+                  >
+                    {tag}
+                  </span>
+                ))}
+              </div>
             </div>
           )}
         </div>
@@ -408,9 +413,16 @@ export const ProductDetails: React.FC<ProductDetailsProps> = ({
             </div>
           </div>
 
-          <p className="text-[#555555] text-base leading-relaxed">
-            {product.longDescription || product.shortDescription || product.description}
-          </p>
+          {(product.longDescription || product.shortDescription || product.description) && (
+            <div className="space-y-2">
+              <p className="text-[10px] font-mono font-bold uppercase tracking-widest text-[#555555]">
+                Description
+              </p>
+              <p className="text-[#555555] text-base leading-relaxed whitespace-pre-wrap break-words">
+                {product.longDescription || product.description || product.shortDescription}
+              </p>
+            </div>
+          )}
 
           {/* Size Selector Form */}
           <div className="space-y-3">

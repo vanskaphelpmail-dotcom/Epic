@@ -137,6 +137,8 @@ productsRouter.get("/", optionalAuth, async (req: AuthedRequest, res) => {
                   { shortDescription: { contains: q, mode: "insensitive" as const } },
                   { longDescription: { contains: q, mode: "insensitive" as const } },
                   { tags: { has: q } },
+                  { tags: { has: q.toLowerCase() } },
+                  { tags: { has: q.toUpperCase() } },
                   { country: { contains: q, mode: "insensitive" as const } },
                   { nationalTeam: { contains: q, mode: "insensitive" as const } },
                   { season: { contains: q, mode: "insensitive" as const } },
@@ -306,9 +308,9 @@ const upsertSchema = z.object({
   discount: z.number().nonnegative().nullable().optional(),
   description: z.string().min(1),
   shortDescription: z.string().optional(),
-  longDescription: z.string().max(1000).optional(),
+  longDescription: z.string().optional(),
   features: z.array(z.string()).optional(),
-  tags: z.array(z.string().min(1).max(48)).max(8).optional(),
+  tags: z.array(z.string().min(1)).max(20).optional(),
   image: z.string().min(1),
   images: z.array(z.string()).optional(),
   brand: z.string().min(1),
@@ -422,7 +424,7 @@ function productCreateData(body: z.infer<typeof upsertSchema>, categoryId?: stri
     shortDescription: body.shortDescription,
     longDescription: body.longDescription,
     features: body.features || [],
-    tags: (body.tags || []).map((t) => String(t).trim()).filter(Boolean).slice(0, 8),
+    tags: (body.tags || []).map((t) => String(t).trim()).filter(Boolean).slice(0, 20),
     imageUrl: body.image,
     galleryUrls: body.images?.length ? body.images : [body.image],
     brandName: body.brand,
@@ -583,7 +585,7 @@ productsRouter.put("/:id", requirePermission("can_manage_products"), async (req:
               tags: body.tags
                 .map((t) => String(t).trim())
                 .filter(Boolean)
-                .slice(0, 8),
+                .slice(0, 20),
             }
           : {}),
         ...(body.image != null ? { imageUrl: body.image } : {}),

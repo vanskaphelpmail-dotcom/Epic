@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { ShieldCheck, ArrowLeft, Truck, ClipboardCheck, AlertCircle, MapPin, ShoppingBag, Trash2, Info } from 'lucide-react';
+import { ShieldCheck, ArrowLeft, Truck, ClipboardCheck, AlertCircle, MapPin, ShoppingBag, Trash2, Info, Check } from 'lucide-react';
 import { CartItem, Order, AppConfig, User as UserType } from '../types';
 import { BkashPaymentPanel, BKASH_DEFAULT_NUMBER, BKASH_PARTIAL_DEFAULT_BDT, type MobileWalletProvider } from './BkashPaymentPanel';
 import {
@@ -59,13 +59,13 @@ export const Checkout: React.FC<CheckoutProps> = ({
   const [savedProfile, setSavedProfile] = useState<SavedProfileAddress | null>(null);
   const [profileLoaded, setProfileLoaded] = useState(false);
 
-  // Delivery: Inside Feni ৳70 · Outside Feni ৳120 (driven by district)
+  // Delivery: Inside Feni 70 · Outside Feni 120 (driven by district)
   const [deliveryRegion, setDeliveryRegion] = useState<'inside' | 'outside'>('inside');
 
   const [isPlacingOrder, setIsPlacingOrder] = useState(false);
   const [bkashNumber, setBkashNumber] = useState('');
   const [bkashTransactionId, setBkashTransactionId] = useState('');
-  /** Admin setting = advance per jersey (default ৳300). */
+  /** Admin setting = advance per jersey (default 300). */
   const partialPerJerseyBdt = appConfig.bkashPartialAmountBdt ?? BKASH_PARTIAL_DEFAULT_BDT;
   /** Nameset / jersey name printing forces full bKash only. */
   const requiresFullBkashForNameset = cartRequiresFullBkashPayment(cart);
@@ -374,8 +374,8 @@ export const Checkout: React.FC<CheckoutProps> = ({
             </h1>
             <p className="text-xs text-[#555555] font-mono font-medium">
               {isPartialBkash
-                ? `Fill in delivery details, then send ৳${bkashSendAmountBdt} advance via bKash Send Money and submit your TrxID. Pay the rest on delivery.`
-                : `Fill in delivery details, then send the full order amount (৳${grandTotal.toLocaleString('en-BD')}) via bKash Send Money and submit your TrxID.`}
+                ? `Fill in delivery details, then send ${bkashSendAmountBdt} advance via bKash Send Money and submit your TrxID. Pay the rest on delivery.`
+                : `Fill in delivery details, then send the full order amount (${grandTotal.toLocaleString('en-BD')}) via bKash Send Money and submit your TrxID.`}
             </p>
           </div>
 
@@ -507,7 +507,7 @@ export const Checkout: React.FC<CheckoutProps> = ({
                   className="w-full bg-[#F8F8F7] border-2 border-[#E5E5E5] focus:border-[#E30613] focus:bg-white rounded-xl py-3 px-4 text-xs font-bold focus:outline-none transition-colors text-[#0A0A0A] placeholder:text-[#555555]"
                 />
                 <span className="text-[10px] text-[#555555] font-mono block font-medium">
-                  Type <span className="text-[#0A0A0A] font-bold">Feni</span> for ৳70 · any other district ৳120
+                  Type <span className="text-[#0A0A0A] font-bold">Feni</span> for 70 · any other district 120
                 </span>
               </div>
 
@@ -559,7 +559,7 @@ export const Checkout: React.FC<CheckoutProps> = ({
                   </p>
                 </div>
                 <div className="text-right flex-shrink-0 pl-2">
-                  <span className="text-sm font-mono font-black text-[#0A0A0A]">৳70</span>
+                  <span className="text-sm font-mono font-black text-[#0A0A0A]">70</span>
                   <p className="text-[9px] text-[#555555] font-mono font-bold">fee</p>
                 </div>
               </div>
@@ -592,7 +592,7 @@ export const Checkout: React.FC<CheckoutProps> = ({
                   </p>
                 </div>
                 <div className="text-right flex-shrink-0 pl-2">
-                  <span className="text-sm font-mono font-black text-[#0A0A0A]">৳120</span>
+                  <span className="text-sm font-mono font-black text-[#0A0A0A]">120</span>
                   <p className="text-[9px] text-[#555555] font-mono font-bold">fee</p>
                 </div>
               </div>
@@ -611,7 +611,7 @@ export const Checkout: React.FC<CheckoutProps> = ({
                   {requiresFullBkashForNameset && (
                     <p className="text-[11px] font-mono text-[#0A0A0A] bg-[#F8F8F7] border border-[#E5E5E5] rounded-lg px-3 py-2">
                       Custom font selected — <strong>full bKash payment</strong> required.
-                      Per-jersey advance (৳{partialPerJerseyBdt} × qty) is not available for this order.
+                      Per-jersey advance ({partialPerJerseyBdt} × qty) is not available for this order.
                     </p>
                   )}
 
@@ -683,7 +683,7 @@ export const Checkout: React.FC<CheckoutProps> = ({
                             )}
                           </div>
                           <p className="text-[11px] text-[#555555] font-medium pl-6">
-                            Pay <span className="font-mono font-black text-[#0A0A0A]">৳{partialAdvanceBdt}</span> now
+                            Pay <span className="font-mono font-black text-[#0A0A0A]">{partialAdvanceBdt}</span> now
                             <span className="text-[#555555]"> ({partialAdvanceBreakdown})</span>
                             {' — '}rest{' '}
                             <span className="font-mono font-black text-[#0A0A0A]">{formatPrice(bkashDueOnDelivery)}</span> on delivery
@@ -724,7 +724,7 @@ export const Checkout: React.FC<CheckoutProps> = ({
             {isPlacingOrder
               ? 'Placing order…'
               : isPartialBkash
-                ? `Place bKash Order (Advance ৳${bkashSendAmountBdt})`
+                ? `Place bKash Order (Advance ${bkashSendAmountBdt})`
                 : `Place bKash Order (${formatPrice(grandTotal)})`}
           </button>
 
@@ -749,7 +749,7 @@ export const Checkout: React.FC<CheckoutProps> = ({
                 <div key={idx} className="bg-[#F8F8F7] border-2 border-[#E5E5E5] rounded-xl p-3 space-y-3 shadow-xs relative group">
                   <div className="flex gap-3 text-xs">
                     {/* Image */}
-                    <div className="w-12 h-12 bg-white border border-[#E5E5E5] rounded overflow-hidden flex items-center justify-center flex-shrink-0">
+                    <div className="w-12 h-12 bg-white border-2 border-[#0A0A0A] ring-2 ring-[#0A0A0A]/10 rounded-lg overflow-hidden flex items-center justify-center flex-shrink-0 relative shadow-sm">
                       <JerseyRenderer
                         productId={item.product.id}
                         uploadedImage={
@@ -762,6 +762,13 @@ export const Checkout: React.FC<CheckoutProps> = ({
                         }
                         imageKey={item.product.image}
                       />
+                      <span
+                        className="absolute -top-1 -right-1 z-10 flex h-4 w-4 items-center justify-center rounded-full bg-[#0A0A0A] text-white border border-white"
+                        aria-label="Selected for checkout"
+                        title="Selected"
+                      >
+                        <Check size={10} strokeWidth={3} />
+                      </span>
                     </div>
                     
                     {/* Info */}
@@ -865,7 +872,7 @@ export const Checkout: React.FC<CheckoutProps> = ({
             
             <div className="flex justify-between items-center">
               <span>Delivery Charge ({deliveryRegion === 'inside' ? 'Inside Feni' : 'Outside Feni'}):</span>
-              <span className="text-[#0A0A0A] font-extrabold font-mono">৳{deliveryChargeBDT}</span>
+              <span className="text-[#0A0A0A] font-extrabold font-mono">{deliveryChargeBDT}</span>
             </div>
 
             <div className="border-t-2 border-[#E5E5E5] pt-3 flex justify-between items-baseline">
@@ -926,7 +933,7 @@ export const Checkout: React.FC<CheckoutProps> = ({
 
                 <p className="text-[10px] text-[#555555] font-medium leading-snug pt-1 border-t border-[#E5E5E5]">
                   {isPartialBkash
-                    ? `Send ৳${Math.round(bkashSendAmountBdt).toLocaleString('en-BD')} now (${partialAdvanceBreakdown}) — remaining ৳${Math.round(bkashDueOnDelivery).toLocaleString('en-BD')} collected when your order arrives.`
+                    ? `Send ${Math.round(bkashSendAmountBdt).toLocaleString('en-BD')} now (${partialAdvanceBreakdown}) — remaining ${Math.round(bkashDueOnDelivery).toLocaleString('en-BD')} collected when your order arrives.`
                     : `Send the full ${formatPrice(grandTotal)} via ${walletPaymentLabel} Send Money to complete this order.`}
                 </p>
               </div>

@@ -328,7 +328,7 @@ model Product {
   shortDescription String?
   longDescription  String?          @db.Text
   features         String[]         @default([])
-  /// Search / display keywords (max 8 in app)
+  /// Search / display keywords (max 20 in app)
   tags             String[]         @default([])
 
   // Pricing (store BDT integers / minor units as preferred; app uses exchangeRate)
@@ -772,6 +772,8 @@ model StoreSettings {
   categoryItems      Json?
   /// Global tournament patches for all jerseys: [{ id, label, priceBdt, image? }]
   tournamentPatches  Json?
+  /// Homepage football club logo showcase: ClubCatalogItem[]
+  clubShowcase       Json?
   /// Custom size / measurement charts: SizeChartDef[]
   customSizeCharts   Json?
   /// Shared storefront nav (Main / Mega / Footer) — updates apply for all visitors

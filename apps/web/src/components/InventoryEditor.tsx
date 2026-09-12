@@ -14,7 +14,7 @@ import {
   type DiscountMode,
 } from '../lib/productPricing';
 import { confirmAsync, toast } from './UiFeedback';
-import { generateEan13, normalizeBarcode } from '../lib/retailCodes';
+import { ensureUniqueBarcode, nextSerialEan13, normalizeBarcode } from '../lib/retailCodes';
 import { BarcodeLabelPrint } from './admin/BarcodeLabelPrint';
 import { TournamentPatchesPanel } from './TournamentPatchesPanel';
 import { SizeChartsPanel } from './SizeChartsPanel';
@@ -72,7 +72,7 @@ export const InventoryEditor: React.FC<InventoryEditorProps> = ({
   const [formSizes, setFormSizes] = useState<string[]>([...DEFAULT_FALLBACK_SIZES]);
   const [formSku, setFormSku] = useState('');
   const [formBarcode, setFormBarcode] = useState('');
-  const [formBarcodeMode, setFormBarcodeMode] = useState<'none' | 'auto' | 'manual'>('none');
+  const [formBarcodeMode, setFormBarcodeMode] = useState<'auto' | 'manual'>('auto');
   const [labelPrint, setLabelPrint] = useState<{
     barcode: string;
     sellPrice: number;
@@ -103,8 +103,8 @@ export const InventoryEditor: React.FC<InventoryEditorProps> = ({
     setFormColor('Green/Red');
     setFormSizes([...DEFAULT_FALLBACK_SIZES]);
     setFormSku('');
-    setFormBarcode('');
-    setFormBarcodeMode('none');
+    setFormBarcode(nextSerialEan13(products.map((p) => p.barcode)));
+    setFormBarcodeMode('auto');
     setFormDescription('');
     setFormMaterial('100% Curated Polyester Mesh');
     setFormMadeIn('Bangladesh');
@@ -140,8 +140,19 @@ export const InventoryEditor: React.FC<InventoryEditorProps> = ({
     setFormColor(product.color || 'Green/Red');
     setFormSizes(product.sizes || [...DEFAULT_FALLBACK_SIZES]);
     setFormSku(product.sku);
-    setFormBarcode(product.barcode || '');
-    setFormBarcodeMode(product.barcode ? 'manual' : 'none');
+    const existingBarcode = normalizeBarcode(product.barcode || '');
+    if (existingBarcode) {
+      setFormBarcode(existingBarcode);
+      setFormBarcodeMode('auto');
+    } else {
+      setFormBarcode(
+        nextSerialEan13(
+          products.map((p) => p.barcode),
+          product.barcode,
+        ),
+      );
+      setFormBarcodeMode('auto');
+    }
     setFormDescription(product.description || '');
     setFormMaterial(product.specification?.material || '100% Curated Polyester Mesh');
     setFormMadeIn(product.specification?.madeIn || 'Bangladesh');
@@ -170,18 +181,16 @@ export const InventoryEditor: React.FC<InventoryEditorProps> = ({
       ? calcDiscountAmount(formOriginalPrice, salePrice)
       : 0;
 
-    const resolvedBarcode =
-      formBarcodeMode === 'none'
-        ? undefined
-        : formBarcodeMode === 'manual'
-          ? normalizeBarcode(formBarcode) || undefined
-          : normalizeBarcode(formBarcode) || generateEan13(formSku || Date.now());
+    const resolvedBarcode = ensureUniqueBarcode(
+      formBarcode,
+      products.map((p) => p.barcode),
+    );
 
     const payload = {
       name: formName,
       slug: formName.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, '') || `product-${Date.now()}`,
       sku: formSku || `BD-SKU-${Math.floor(100000 + Math.random() * 900000)}`,
-      barcode: resolvedBarcode || null,
+      barcode: resolvedBarcode,
       price: salePrice,
       originalPrice: formHasDiscount ? formOriginalPrice : null,
       discount: formHasDiscount ? discountAmount : null,
@@ -245,12 +254,11 @@ export const InventoryEditor: React.FC<InventoryEditorProps> = ({
       ? calcDiscountAmount(formOriginalPrice, salePrice)
       : 0;
 
-    const resolvedBarcode =
-      formBarcodeMode === 'none'
-        ? null
-        : formBarcodeMode === 'manual'
-          ? normalizeBarcode(formBarcode) || null
-          : normalizeBarcode(formBarcode) || generateEan13(formSku || editingProduct.sku);
+    const resolvedBarcode = ensureUniqueBarcode(
+      formBarcode,
+      products.map((p) => p.barcode),
+      editingProduct.barcode,
+    );
 
     const payload = {
       name: formName,
@@ -829,17 +837,23 @@ export const InventoryEditor: React.FC<InventoryEditorProps> = ({
                   <div className="space-y-2 rounded-xl border border-zinc-300 p-3 bg-zinc-50">
                     <div className="flex items-center justify-between gap-2 flex-wrap">
                       <label className="text-[10px] font-mono text-zinc-700 uppercase font-bold">
-                        Barcode <span className="text-zinc-600 normal-case">(optional)</span>
+                        Barcode
                       </label>
                       <div className="flex rounded-lg overflow-hidden border border-zinc-300">
-                        {(['none', 'auto', 'manual'] as const).map((mode) => (
+                        {(['auto', 'manual'] as const).map((mode) => (
                           <button
                             key={mode}
                             type="button"
                             onClick={() => {
                               setFormBarcodeMode(mode);
-                              if (mode === 'none') setFormBarcode('');
-                              if (mode === 'auto') setFormBarcode(generateEan13(formSku || Date.now()));
+                              if (mode === 'auto') {
+                                setFormBarcode(
+                                  nextSerialEan13(
+                                    products.map((p) => p.barcode),
+                                    editingProduct?.barcode,
+                                  ),
+                                );
+                              }
                             }}
                             className={`px-2.5 py-1 text-[9px] font-bold uppercase cursor-pointer ${
                               formBarcodeMode === mode ? 'bg-white text-black' : 'bg-transparent text-zinc-700'
@@ -852,16 +866,18 @@ export const InventoryEditor: React.FC<InventoryEditorProps> = ({
                     </div>
                     <input
                       type="text"
-                      placeholder={formBarcodeMode === 'none' ? 'No barcode' : 'EAN-13 or CODE128'}
+                      placeholder="Auto serial EAN-13"
                       value={formBarcode}
-                      disabled={formBarcodeMode === 'none'}
                       readOnly={formBarcodeMode === 'auto'}
                       onChange={(e) => {
                         setFormBarcodeMode('manual');
                         setFormBarcode(e.target.value);
                       }}
-                      className="w-full bg-zinc-50 border border-zinc-300 rounded-xl py-2.5 px-3.5 text-xs text-zinc-950 focus:outline-none focus:border-amber-400 font-mono placeholder-zinc-500 disabled:opacity-40"
+                      className="w-full bg-zinc-50 border border-zinc-300 rounded-xl py-2.5 px-3.5 text-xs text-zinc-950 focus:outline-none focus:border-amber-400 font-mono placeholder-zinc-500"
                     />
+                    <p className="text-[9px] font-mono text-zinc-600">
+                      Auto assigns a unique serial barcode (never reused).
+                    </p>
                   </div>
 
                   <div className="space-y-1">
@@ -1243,17 +1259,23 @@ export const InventoryEditor: React.FC<InventoryEditorProps> = ({
                   <div className="space-y-2 rounded-xl border border-zinc-300 p-3 bg-zinc-50">
                     <div className="flex items-center justify-between gap-2 flex-wrap">
                       <label className="text-[10px] font-mono text-zinc-700 uppercase font-bold">
-                        Barcode <span className="text-zinc-600 normal-case">(optional)</span>
+                        Barcode
                       </label>
                       <div className="flex rounded-lg overflow-hidden border border-zinc-300">
-                        {(['none', 'auto', 'manual'] as const).map((mode) => (
+                        {(['auto', 'manual'] as const).map((mode) => (
                           <button
                             key={mode}
                             type="button"
                             onClick={() => {
                               setFormBarcodeMode(mode);
-                              if (mode === 'none') setFormBarcode('');
-                              if (mode === 'auto') setFormBarcode(generateEan13(formSku || Date.now()));
+                              if (mode === 'auto') {
+                                setFormBarcode(
+                                  nextSerialEan13(
+                                    products.map((p) => p.barcode),
+                                    editingProduct?.barcode,
+                                  ),
+                                );
+                              }
                             }}
                             className={`px-2.5 py-1 text-[9px] font-bold uppercase cursor-pointer ${
                               formBarcodeMode === mode ? 'bg-white text-black' : 'bg-transparent text-zinc-700'
@@ -1266,16 +1288,18 @@ export const InventoryEditor: React.FC<InventoryEditorProps> = ({
                     </div>
                     <input
                       type="text"
-                      placeholder={formBarcodeMode === 'none' ? 'No barcode' : 'EAN-13 or CODE128'}
+                      placeholder="Auto serial EAN-13"
                       value={formBarcode}
-                      disabled={formBarcodeMode === 'none'}
                       readOnly={formBarcodeMode === 'auto'}
                       onChange={(e) => {
                         setFormBarcodeMode('manual');
                         setFormBarcode(e.target.value);
                       }}
-                      className="w-full bg-zinc-50 border border-zinc-300 rounded-xl py-2.5 px-3.5 text-xs text-zinc-950 focus:outline-none focus:border-amber-400 font-mono placeholder-zinc-500 disabled:opacity-40"
+                      className="w-full bg-zinc-50 border border-zinc-300 rounded-xl py-2.5 px-3.5 text-xs text-zinc-950 focus:outline-none focus:border-amber-400 font-mono placeholder-zinc-500"
                     />
+                    <p className="text-[9px] font-mono text-zinc-600">
+                      Auto assigns a unique serial barcode (never reused).
+                    </p>
                   </div>
 
                   <div className="space-y-1">

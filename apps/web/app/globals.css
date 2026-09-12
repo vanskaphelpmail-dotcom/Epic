@@ -121,32 +121,40 @@ h1, h2, h3, h4, h5, h6, .font-sans.font-black, .font-display {
   }
 }
 
-/* Brand lockup — red mark + black wordmark on light surfaces */
+/* Brand lockup — EPIC (red) + VANSKAP (black), bold uppercase */
 .brand-logo-lockup {
-  letter-spacing: -0.03em;
-  gap: 0.4rem;
+  letter-spacing: -0.02em;
+  gap: 0.35rem;
   padding: 0.15rem 0.2rem 0.15rem 0;
 }
 
 .brand-word {
-  font-weight: 900;
+  font-family: "Inter", "DM Sans", ui-sans-serif, system-ui, sans-serif;
+  font-weight: 800;
   text-transform: uppercase;
   line-height: 1;
   display: inline-block;
-  color: var(--color-primary-black);
+  letter-spacing: -0.01em;
 }
 
+/* Official wordmark colors (matches logo artwork) */
+.brand-word-epic,
 .brand-word-jersey {
-  color: var(--color-primary-black);
+  color: #E30613;
   background: none;
   -webkit-background-clip: unset;
   background-clip: unset;
   animation: none;
 }
 
+.brand-word-vanskap,
 .brand-word-addicts {
-  color: var(--color-primary-black);
+  color: #0A0A0A;
   position: relative;
+}
+
+.brand-word-on-dark {
+  color: #ffffff !important;
 }
 
 .brand-badge-bd {
@@ -826,5 +834,48 @@ select:focus {
   body.print-barcode-labels .print\:hidden {
     display: none !important;
     visibility: hidden !important;
+  }
+}
+
+/* Football club logo showcase — delay start, then infinite scroll (never pauses) */
+.club-logo-marquee {
+  -webkit-mask-image: linear-gradient(to right, transparent, #000 3%, #000 97%, transparent);
+  mask-image: linear-gradient(to right, transparent, #000 3%, #000 97%, transparent);
+}
+
+.club-logo-marquee-track {
+  transform: translate3d(0, 0, 0);
+  will-change: transform;
+  backface-visibility: hidden;
+  animation: none;
+}
+
+.club-logo-marquee-track.is-waiting {
+  animation: none;
+  transform: translate3d(0, 0, 0);
+}
+
+.club-logo-marquee-track.is-running {
+  animation-name: club-logo-scroll;
+  animation-timing-function: linear;
+  animation-iteration-count: infinite;
+  animation-fill-mode: none;
+  animation-play-state: running !important;
+  /* duration set inline; keep a safe fallback */
+  animation-duration: 40s;
+}
+
+/* Never pause on hover / focus / reduced-motion — always keep moving once started */
+.club-logo-marquee:hover .club-logo-marquee-track.is-running,
+.club-logo-marquee:focus-within .club-logo-marquee-track.is-running {
+  animation-play-state: running !important;
+}
+
+@keyframes club-logo-scroll {
+  from {
+    transform: translate3d(0, 0, 0);
+  }
+  to {
+    transform: translate3d(-50%, 0, 0);
   }
 }

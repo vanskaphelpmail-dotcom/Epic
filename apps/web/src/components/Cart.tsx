@@ -1,5 +1,5 @@
 import React from 'react';
-import { Trash2, Plus, Minus, ArrowRight, ShoppingCart, CreditCard } from 'lucide-react';
+import { Trash2, Plus, Minus, ArrowRight, ShoppingCart, CreditCard, Check } from 'lucide-react';
 import { CartItem } from '../types';
 import { getSelectedBadgeLabels } from '../lib/productAddons';
 import { JerseyRenderer } from './JerseyRenderer';
@@ -35,9 +35,6 @@ export const Cart: React.FC<CartProps> = ({ cart, setCart, onCheckout, onBackToC
   const shippingCost = subtotal >= 150 || subtotal === 0 ? 0 : 15;
   const grandTotal = subtotal + shippingCost;
 
-  const isEligibleForFreeShipping = subtotal >= 150;
-  const progressToFreeShipping = Math.min(100, Math.round((subtotal / 150) * 100));
-
   if (cart.length === 0) {
     return (
       <section className="max-w-4xl mx-auto px-6 py-16 text-center text-[#0A0A0A] space-y-6">
@@ -67,9 +64,6 @@ export const Cart: React.FC<CartProps> = ({ cart, setCart, onCheckout, onBackToC
       <div className="flex justify-between items-end border-b border-[#E5E5E5] pb-4 mb-8">
         <div>
           <h1 className="text-3xl font-black uppercase tracking-tight text-[#0A0A0A]">Shopping Bag</h1>
-          <p className="text-xs text-[#555555] font-mono">
-            {cart.length} unique item{cart.length > 1 ? 's' : ''} • Checked & sanitized
-          </p>
         </div>
         <button
           onClick={onBackToCatalog}
@@ -84,24 +78,6 @@ export const Cart: React.FC<CartProps> = ({ cart, setCart, onCheckout, onBackToC
         
         {/* Left Col: Cart Items list */}
         <div className="lg:col-span-8 space-y-4">
-          {/* Free Shipping Tracker */}
-          <div className="bg-[#F8F8F7] border border-[#E5E5E5] p-4 rounded-2xl space-y-2 text-xs">
-            <div className="flex justify-between items-center font-semibold">
-              <span className="text-[#0A0A0A]">
-                {isEligibleForFreeShipping
-                  ? '✓ Congratulations! You qualify for Free Premium Sourced Shipping.'
-                  : `Add ${formatPrice(150 - subtotal)} more to unlock Free Premium Sourced Shipping`}
-              </span>
-              <span className="text-[#555555] font-mono">{progressToFreeShipping}%</span>
-            </div>
-            <div className="w-full bg-[#F8F8F7] h-2 rounded-full overflow-hidden">
-              <div
-                className="bg-gradient-to-r from-red-600 to-red-700 h-full transition-all duration-500"
-                style={{ width: `${progressToFreeShipping}%` }}
-              />
-            </div>
-          </div>
-
           {/* List of items */}
           <div className="space-y-4">
             {cart.map((item, index) => (
@@ -111,7 +87,7 @@ export const Cart: React.FC<CartProps> = ({ cart, setCart, onCheckout, onBackToC
               >
                 {/* Product Detail Thumbnail and Info */}
                 <div className="flex gap-4 items-center">
-                  <div className="w-20 h-20 bg-[#F8F8F7] rounded-xl p-1.5 flex items-center justify-center border border-[#E5E5E5] relative flex-shrink-0 overflow-hidden">
+                  <div className="w-20 h-20 bg-white rounded-xl p-1.5 flex items-center justify-center border-2 border-[#0A0A0A] ring-2 ring-[#0A0A0A]/10 relative flex-shrink-0 overflow-hidden shadow-sm">
                     <JerseyRenderer
                       productId={item.product.id}
                       uploadedImage={
@@ -124,6 +100,13 @@ export const Cart: React.FC<CartProps> = ({ cart, setCart, onCheckout, onBackToC
                       }
                       imageKey={item.product.image}
                     />
+                    <span
+                      className="absolute top-1 right-1 z-10 flex h-5 w-5 items-center justify-center rounded-full bg-[#0A0A0A] text-white shadow-sm"
+                      aria-label="Selected for checkout"
+                      title="Selected"
+                    >
+                      <Check size={12} strokeWidth={3} />
+                    </span>
                   </div>
                   <div>
                     <span className="text-[9px] font-mono uppercase text-[#555555] font-black">

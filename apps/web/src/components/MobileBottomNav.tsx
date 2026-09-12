@@ -5,7 +5,6 @@ export type MobileTab = 'home' | 'categories' | 'cart' | 'whatsapp' | 'search';
 
 const WHATSAPP_NUMBER = '8801865962232';
 const WHATSAPP_URL = `https://wa.me/${WHATSAPP_NUMBER}`;
-const WHATSAPP_DISPLAY = '01865-962232';
 const WHATSAPP_GREEN = 'text-[#25D366]';
 
 function WhatsAppIcon({ className }: { className?: string }) {
@@ -115,11 +114,11 @@ export const MobileBottomNav: React.FC<MobileBottomNavProps> = ({
           rel="noopener noreferrer"
           className={`flex flex-1 flex-col items-center justify-center gap-0.5 py-1.5 min-w-0 transition-colors cursor-pointer ${WHATSAPP_GREEN}`}
           onClick={() => setForcedTab('whatsapp')}
-          aria-label={`Chat on WhatsApp ${WHATSAPP_DISPLAY}`}
+          aria-label="Chat on WhatsApp"
         >
           <WhatsAppIcon className={`w-[22px] h-[22px] ${WHATSAPP_GREEN}`} />
-          <span className={`text-[8px] sm:text-[9px] leading-none tracking-tight ${WHATSAPP_GREEN} ${active === 'whatsapp' ? 'font-bold' : 'font-semibold'}`}>
-            {WHATSAPP_DISPLAY}
+          <span className={`text-[9px] leading-none ${WHATSAPP_GREEN} ${active === 'whatsapp' ? 'font-bold' : 'font-medium'}`}>
+            WhatsApp
           </span>
         </a>
 

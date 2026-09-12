@@ -6,12 +6,14 @@ import { InventoryEditor } from './InventoryEditor';
 import { ProductManager } from './ProductManager';
 import { TEAMS_LIST, RIVALRY_PRESETS, TeamItem } from '../data/teamsData';
 import { DEFAULT_LEAGUES } from '../data/leaguesData';
+import { DEFAULT_CLUBS, normalizeClubShowcase } from '../data/clubsData';
 import { LeagueLogo } from './LeagueLogo';
-import { LeagueConfigItem } from '../types';
+import { LeagueConfigItem, ClubConfigItem } from '../types';
 import { api, getToken, isApiEnabled } from '../lib/apiClient';
 import { uploadStoreImage } from '../lib/cloudinaryUpload';
 import { confirmAsync, toast } from './UiFeedback';
 import { BrandMark } from './BrandMark';
+import { BrandWordmark } from './BrandWordmark';
 import { isBannerLive } from '../lib/bannerVisibility';
 import { persistOrders } from '../lib/orderStorage';
 import { DEFAULT_HOMEPAGE_SECTIONS } from './DynamicPageRenderer';
@@ -198,16 +200,6 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({
   // New Custom Page Form State
   const [newPageName, setNewPageName] = useState('');
   const [newPageSlug, setNewPageSlug] = useState('');
-
-  // Sourced entities list mock states
-  const [clubsList, setClubsList] = useState([
-    { id: 'c-1', name: 'Real Madrid', badge: '⚪', status: 'Active' },
-    { id: 'c-2', name: 'FC Barcelona', badge: '🔵', status: 'Active' },
-    { id: 'c-3', name: 'Manchester United', badge: '🔴', status: 'Active' },
-    { id: 'c-4', name: 'Liverpool', badge: '🔴', status: 'Active' },
-    { id: 'c-5', name: 'Arsenal', badge: '🔴', status: 'Active' },
-    { id: 'c-6', name: 'Bayern Munich', badge: '🔴', status: 'Active' },
-  ]);
 
   // Coupons disabled store-wide — no generator state
 
@@ -1586,9 +1578,9 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({
       >
         <div className="px-4 pt-4 pb-3 border-b border-zinc-100 flex items-center justify-between gap-2 shrink-0">
           <div className="flex items-center gap-2.5 min-w-0">
-            <BrandMark imgClassName="w-8 h-8" />
+            <BrandMark tone="red" imgClassName="w-8 h-8" />
             <div className="min-w-0">
-              <p className="text-[15px] font-extrabold text-zinc-950 leading-tight truncate">Epic Vanskap</p>
+              <BrandWordmark text="Epic Vanskap" wordClassName="text-[15px]" />
               <p className="text-[13px] text-zinc-700 truncate font-bold">Management</p>
             </div>
           </div>
@@ -6040,16 +6032,9 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({
                 </div>
                 <div className="pt-2 border-t border-emerald-100">
                   <p className="text-[10px] text-emerald-700 font-mono mb-2">Live premium logo preview:</p>
-                  <div className="brand-logo-lockup inline-flex items-center gap-2">
-                    <img
-                      src="/epic-vanskap-logo.png?v=1"
-                      alt=""
-                      className="w-7 h-7 rounded-lg object-contain bg-black"
-                      width={28}
-                      height={28}
-                    />
-                    <span className="brand-word brand-word-jersey">Epic</span>
-                    <span className="brand-word brand-word-addicts">Vanskap</span>
+                  <div className="inline-flex items-center gap-2">
+                    <BrandMark tone="red" imgClassName="w-7 h-7" />
+                    <BrandWordmark text={draftLogoText || 'Epic Vanskap'} wordClassName="text-sm" />
                   </div>
                 </div>
               </div>
@@ -7115,21 +7100,226 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({
                 </div>
               )}
 
-              {activeSidebarTab !== 'leagues' && (
+              {activeSidebarTab === 'clubs' && (
+                <div className="space-y-4">
+                  <div className="bg-emerald-50/30 p-5 rounded-2xl border border-emerald-100 space-y-4">
+                    <div className="flex flex-wrap items-center justify-between gap-2">
+                      <div>
+                        <h4 className="text-xs font-bold text-emerald-950 uppercase">
+                          Football Club Logo Showcase
+                        </h4>
+                        <p className="text-[10px] font-mono text-emerald-700 mt-0.5">
+                          Shown under the homepage banner · auto-scrolling carousel
+                        </p>
+                      </div>
+                      <button
+                        type="button"
+                        onClick={() => {
+                          const list = normalizeClubShowcase(
+                            appConfig.clubs?.length ? appConfig.clubs : DEFAULT_CLUBS,
+                          );
+                          const n = list.length + 1;
+                          const next: ClubConfigItem = {
+                            id: `club-custom-${Date.now()}`,
+                            name: `New Club ${n}`,
+                            categoryId: `New Club ${n}`,
+                            searchQuery: `New Club ${n}`,
+                            count: 0,
+                            logoUrl: '',
+                            status: 'Active',
+                          };
+                          onUpdateConfig({ ...appConfig, clubs: [...list, next] });
+                        }}
+                        className="inline-flex items-center gap-1.5 text-[10px] font-black uppercase bg-emerald-900 text-white px-3 py-2 rounded-xl cursor-pointer hover:bg-emerald-800"
+                      >
+                        <Plus size={14} /> Add club logo
+                      </button>
+                    </div>
+
+                    <div className="space-y-3">
+                      {normalizeClubShowcase(
+                        appConfig.clubs?.length ? appConfig.clubs : DEFAULT_CLUBS,
+                      ).map((club) => (
+                        <div
+                          key={club.id}
+                          className="bg-white p-4 rounded-xl border border-emerald-100 space-y-3"
+                        >
+                          <div className="flex items-start gap-3">
+                            <div className="h-14 w-14 shrink-0 rounded-xl border border-emerald-100 bg-white overflow-hidden flex items-center justify-center">
+                              {club.logoUrl ? (
+                                <img
+                                  src={club.logoUrl}
+                                  alt=""
+                                  className="h-full w-full object-contain p-1"
+                                  referrerPolicy="no-referrer"
+                                />
+                              ) : (
+                                <span className="text-[9px] font-mono text-emerald-600">No logo</span>
+                              )}
+                            </div>
+                            <div className="flex-1 space-y-2 min-w-0">
+                              <input
+                                type="text"
+                                value={club.name}
+                                onChange={(e) => {
+                                  const list = normalizeClubShowcase(
+                                    appConfig.clubs?.length ? appConfig.clubs : DEFAULT_CLUBS,
+                                  );
+                                  onUpdateConfig({
+                                    ...appConfig,
+                                    clubs: list.map((c) =>
+                                      c.id === club.id
+                                        ? {
+                                            ...c,
+                                            name: e.target.value,
+                                            categoryId: e.target.value,
+                                            searchQuery: e.target.value,
+                                          }
+                                        : c,
+                                    ),
+                                  });
+                                }}
+                                className="w-full bg-emerald-50/40 border border-emerald-100 rounded-lg px-2.5 py-1.5 text-xs font-bold text-emerald-950"
+                                placeholder="Club name"
+                              />
+                              <input
+                                type="text"
+                                placeholder="/logos/club.png or https://… logo URL"
+                                value={club.logoUrl || ''}
+                                onChange={(e) => {
+                                  const list = normalizeClubShowcase(
+                                    appConfig.clubs?.length ? appConfig.clubs : DEFAULT_CLUBS,
+                                  );
+                                  onUpdateConfig({
+                                    ...appConfig,
+                                    clubs: list.map((c) =>
+                                      c.id === club.id
+                                        ? { ...c, logoUrl: e.target.value.trim() }
+                                        : c,
+                                    ),
+                                  });
+                                }}
+                                className="w-full bg-emerald-50/40 border border-emerald-100 rounded-lg px-2.5 py-1.5 text-[10px] font-mono text-emerald-800"
+                              />
+                              <input
+                                type="text"
+                                placeholder="Search query (e.g. Real Madrid)"
+                                value={club.searchQuery || ''}
+                                onChange={(e) => {
+                                  const list = normalizeClubShowcase(
+                                    appConfig.clubs?.length ? appConfig.clubs : DEFAULT_CLUBS,
+                                  );
+                                  onUpdateConfig({
+                                    ...appConfig,
+                                    clubs: list.map((c) =>
+                                      c.id === club.id
+                                        ? {
+                                            ...c,
+                                            searchQuery: e.target.value,
+                                            categoryId: e.target.value || c.categoryId,
+                                          }
+                                        : c,
+                                    ),
+                                  });
+                                }}
+                                className="w-full bg-emerald-50/40 border border-emerald-100 rounded-lg px-2.5 py-1.5 text-[10px] font-mono text-emerald-800"
+                              />
+                            </div>
+                            <div className="flex flex-col gap-2 items-end shrink-0">
+                              <input
+                                type="number"
+                                min={0}
+                                value={club.count}
+                                onChange={(e) => {
+                                  const list = normalizeClubShowcase(
+                                    appConfig.clubs?.length ? appConfig.clubs : DEFAULT_CLUBS,
+                                  );
+                                  onUpdateConfig({
+                                    ...appConfig,
+                                    clubs: list.map((c) =>
+                                      c.id === club.id
+                                        ? { ...c, count: Number(e.target.value) || 0 }
+                                        : c,
+                                    ),
+                                  });
+                                }}
+                                className="w-16 bg-emerald-50/40 border border-emerald-100 rounded-lg px-2 py-1 text-[10px] font-mono text-right"
+                                title="Verified jersey count fallback"
+                              />
+                              <button
+                                type="button"
+                                onClick={() => {
+                                  const list = normalizeClubShowcase(
+                                    appConfig.clubs?.length ? appConfig.clubs : DEFAULT_CLUBS,
+                                  );
+                                  onUpdateConfig({
+                                    ...appConfig,
+                                    clubs: list.map((c) =>
+                                      c.id === club.id
+                                        ? {
+                                            ...c,
+                                            status:
+                                              c.status === 'Active' ? 'Inactive' : 'Active',
+                                          }
+                                        : c,
+                                    ),
+                                  });
+                                }}
+                                className={`text-[9px] font-black uppercase px-2 py-1 rounded-full cursor-pointer ${
+                                  club.status === 'Active'
+                                    ? 'bg-emerald-800 text-white'
+                                    : 'bg-slate-200 text-slate-600'
+                                }`}
+                              >
+                                {club.status}
+                              </button>
+                              <button
+                                type="button"
+                                onClick={() => {
+                                  const list = normalizeClubShowcase(
+                                    appConfig.clubs?.length ? appConfig.clubs : DEFAULT_CLUBS,
+                                  );
+                                  onUpdateConfig({
+                                    ...appConfig,
+                                    clubs: list.filter((c) => c.id !== club.id),
+                                  });
+                                }}
+                                className="text-[9px] font-black uppercase px-2 py-1 rounded-full bg-rose-50 text-rose-700 border border-rose-100 cursor-pointer"
+                                title="Remove club"
+                              >
+                                Remove
+                              </button>
+                            </div>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+
+                    <div className="flex flex-wrap gap-3">
+                      <button
+                        type="button"
+                        onClick={() =>
+                          onUpdateConfig({
+                            ...appConfig,
+                            clubs: DEFAULT_CLUBS.map((c) => ({ ...c })),
+                          })
+                        }
+                        className="text-[10px] font-mono font-bold text-emerald-800 underline cursor-pointer"
+                      >
+                        Reset club logos to defaults
+                      </button>
+                    </div>
+                  </div>
+                </div>
+              )}
+
+              {activeSidebarTab === 'national-teams' && (
               <div className="bg-emerald-50/30 p-5 rounded-2xl border border-emerald-100 space-y-4">
                 <h4 className="text-xs font-bold text-emerald-950 uppercase">Registered Football Entities</h4>
                 <div className="space-y-2">
-                  {activeSidebarTab === 'clubs' && clubsList.map((item) => (
-                    <div key={item.id} className="bg-white p-3 rounded-xl border border-emerald-100 flex justify-between items-center text-xs">
-                      <span className="font-bold">{item.badge} {item.name}</span>
-                      <span className="font-mono text-emerald-700 text-[10px]">Status: {item.status}</span>
-                    </div>
-                  ))}
-                  {activeSidebarTab === 'national-teams' && (
-                    <p className="text-[10px] text-emerald-700 font-mono py-4 text-center">
-                      Manage homepage banners, products, and league logos from Banner Management / Product Management / Leagues tabs.
-                    </p>
-                  )}
+                  <p className="text-[10px] text-emerald-700 font-mono py-4 text-center">
+                    Manage homepage banners, products, and league logos from Banner Management / Product Management / Leagues tabs.
+                  </p>
                 </div>
               </div>
               )}
@@ -8118,7 +8308,10 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({
             {/* Printable Invoice Header */}
             <div className="flex justify-between items-start border-b-2 border-emerald-900 pb-6 gap-3">
               <div className="min-w-0">
-                <h2 className="text-xl font-black uppercase text-emerald-950 tracking-tight">Epic Vanskap</h2>
+                <div className="flex items-center gap-2.5 mb-1">
+                  <BrandMark tone="red" imgClassName="w-10 h-10" />
+                  <BrandWordmark text="Epic Vanskap" wordClassName="text-xl" />
+                </div>
                 <p className="text-xs text-zinc-600">Authentic Retro & Match-Issue Football Kits</p>
                 <p className="text-[11px] text-zinc-500 font-mono mt-1">Shop no: B: 67-68, 1st Floor, Feni Garden City Market, Feni, 3900</p>
                 <p className="text-[11px] text-zinc-500 font-mono">Hotline: +880 1840-990700</p>

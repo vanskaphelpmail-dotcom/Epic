@@ -3,6 +3,7 @@ import { JerseyRenderer } from './JerseyRenderer';
 import { ArrowRight, Trophy, Sparkles, X, CheckCircle, Clock, ShoppingCart } from 'lucide-react';
 import { Product } from '../types';
 import { STANDARD_PRODUCT_SIZES } from '../lib/productSizes';
+import { BrandWordmark } from './BrandWordmark';
 
 interface AuctionItem {
   id: string;
@@ -195,7 +196,7 @@ export const BiddingSection: React.FC<BiddingSectionProps> = ({ onAddToCart, set
     if (formatPrice) {
       return formatPrice(val);
     }
-    return '৳' + val.toLocaleString();
+    return val.toLocaleString();
   };
 
   const pad = (num: number) => String(num).padStart(2, '0');
@@ -214,8 +215,14 @@ export const BiddingSection: React.FC<BiddingSectionProps> = ({ onAddToCart, set
           
           {/* Banner Details (Left) */}
           <div className="space-y-3.5 max-w-2xl text-left">
-            <span className="inline-block bg-zinc-700/60 backdrop-blur-sm border border-zinc-8000/20 text-white font-mono font-black text-[9px] md:text-[10px] tracking-widest uppercase px-3 py-1 rounded-full">
-              Epic Vanskap BD
+            <span className="inline-flex items-center bg-zinc-700/60 backdrop-blur-sm border border-zinc-8000/20 px-3 py-1 rounded-full">
+              <BrandWordmark
+                text="Epic Vanskap BD"
+                onDark
+                showBadge={false}
+                wordClassName="!text-[9px] md:!text-[10px]"
+                className="!gap-1 !p-0"
+              />
             </span>
             <h1 className="text-3xl sm:text-4xl md:text-5xl font-extrabold tracking-tight leading-tight uppercase font-sans text-white">
               Club Jersey Heritage, Live from Fanatics Fest

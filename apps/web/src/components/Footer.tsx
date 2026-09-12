@@ -3,6 +3,7 @@ import { ShieldCheck, HelpCircle, Phone, Globe, Instagram, Twitter, Facebook, Sh
 import { STORE_LOCATIONS } from '../data/storeData';
 import { AppConfig } from '../types';
 import { BrandMark } from './BrandMark';
+import { BrandWordmark } from './BrandWordmark';
 
 interface FooterProps {
   currentPage: string;
@@ -126,15 +127,8 @@ export const Footer: React.FC<FooterProps> = ({ currentPage, setCurrentPage, app
         {/* Brand Information Column */}
         <div className="space-y-4">
           <div className="flex items-center gap-3">
-            <BrandMark className="p-1 rounded-lg" imgClassName="w-7 h-7" />
-            <div className="flex items-center gap-1.5">
-              <span className="text-[#E30613] font-sans font-black text-sm uppercase">
-                Epic
-              </span>
-              <span className="text-[#0A0A0A] font-sans font-black text-sm uppercase">
-                Vanskap
-              </span>
-            </div>
+            <BrandMark tone="red" imgClassName="w-7 h-7" />
+            <BrandWordmark text={appConfig.logoText || 'Epic Vanskap'} wordClassName="text-sm" />
           </div>
           <p className="text-[#0A0A0A]/70 leading-relaxed">
             {appConfig.footerAbout}

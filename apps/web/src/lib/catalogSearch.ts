@@ -129,6 +129,22 @@ export function productMatchesSearchQuery(product: Product, query: string): bool
   const q = String(query || '').toLowerCase().trim();
   if (!q) return true;
 
+  const tags = Array.isArray(product.tags) ? product.tags : [];
+  // Exact / partial tag match first (Nike, NY10, Brazil, etc.)
+  if (
+    tags.some((tag) => {
+      const t = String(tag || '').toLowerCase().trim();
+      if (!t) return false;
+      if (t === q || t.startsWith(q)) return true;
+      if (q.length >= 2 && t.includes(q)) return true;
+      // Allow "brazil jersey" to hit tag "Brazil"
+      if (t.length >= 3 && q.includes(t)) return true;
+      return false;
+    })
+  ) {
+    return true;
+  }
+
   // International team names: match country/team/name only (not Bangladesh Classic page id "England")
   const nationalTeams = new Set([
     'argentina',
@@ -191,9 +207,9 @@ export function buildCatalogSearchKeywords(
 ): string[] {
   const counts = new Map<string, number>();
 
-  const bump = (raw?: string | null, weight = 1) => {
+  const bump = (raw?: string | null, weight = 1, minLen = 3) => {
     const v = String(raw || '').trim();
-    if (v.length < 3) return;
+    if (v.length < minLen) return;
     const key = v.replace(/\s+/g, ' ');
     const lower = key.toLowerCase();
     if (STOP.has(lower)) return;
@@ -208,6 +224,10 @@ export function buildCatalogSearchKeywords(
     bump(p.league, 2);
     bump(p.brand, 1);
     bump(p.player?.name, 2);
+    // Product tags rank highest for popular / typeahead suggestions
+    for (const tag of Array.isArray(p.tags) ? p.tags : []) {
+      bump(tag, 6, 2);
+    }
     // Short product-name phrases only (avoid full jersey titles in popular chips)
     const name = String(p.name || '').trim();
     if (name) {
@@ -252,6 +272,62 @@ export function buildCatalogSearchKeywords(
   return out;
 }
 
+/** Higher score = better match. Tags outrank name/brand so keyword search surfaces tagged kits first. */
+export function scoreProductForSearch(product: Product, query: string): number {
+  const q = String(query || '').toLowerCase().trim();
+  if (!q) return 0;
+
+  let score = 0;
+  const tags = Array.isArray(product.tags) ? product.tags : [];
+  for (const tag of tags) {
+    const t = String(tag || '').toLowerCase().trim();
+    if (!t) continue;
+    if (t === q) score += 120;
+    else if (t.startsWith(q)) score += 90;
+    else if (t.includes(q) || q.includes(t)) score += 70;
+  }
+
+  const name = String(product.name || '').toLowerCase();
+  const brand = String(product.brand || '').toLowerCase();
+  const club = String(product.club || '').toLowerCase();
+  const sku = String(product.sku || '').toLowerCase();
+
+  if (name === q) score += 40;
+  else if (name.startsWith(q)) score += 28;
+  else if (name.includes(q)) score += 18;
+
+  if (brand === q || brand.includes(q)) score += 12;
+  if (club === q || club.includes(q)) score += 14;
+  if (sku.includes(q)) score += 10;
+
+  if (productMatchesSearchQuery(product, q) && score === 0) score += 1;
+  return score;
+}
+
+/** Tag chips that match the typed query (for search suggestions). */
+export function suggestTagsForQuery(products: Product[], query: string, limit = 20): string[] {
+  const q = String(query || '').toLowerCase().trim();
+  if (q.length < 1) return [];
+
+  const counts = new Map<string, number>();
+  for (const p of products) {
+    if (p.status && p.status !== 'Active') continue;
+    if (p.isTrashed || p.isArchived) continue;
+    for (const tag of Array.isArray(p.tags) ? p.tags : []) {
+      const raw = String(tag || '').trim();
+      if (!raw) continue;
+      const lower = raw.toLowerCase();
+      if (!(lower === q || lower.startsWith(q) || lower.includes(q))) continue;
+      counts.set(raw, (counts.get(raw) || 0) + (lower === q ? 5 : lower.startsWith(q) ? 3 : 1));
+    }
+  }
+
+  return [...counts.entries()]
+    .sort((a, b) => b[1] - a[1] || a[0].localeCompare(b[0]))
+    .map(([tag]) => tag)
+    .slice(0, limit);
+}
+
 /** Live typeahead matches from catalog while typing. */
 export function suggestProductsForQuery(
   products: Product[],
@@ -268,5 +344,6 @@ export function suggestProductsForQuery(
         !p.isArchived &&
         productMatchesSearchQuery(p, q),
     )
+    .sort((a, b) => scoreProductForSearch(b, q) - scoreProductForSearch(a, q))
     .slice(0, limit);
 }

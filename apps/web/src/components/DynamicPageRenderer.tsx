@@ -4,8 +4,9 @@ import { ProductCard } from './ProductCard';
 import { JerseyRenderer } from './JerseyRenderer';
 import { isProductWishlisted } from '../lib/cartWishlistStorage';
 import { LeagueLogo } from './LeagueLogo';
+import { ClubLogoShowcase } from './ClubLogoShowcase';
 import { DEFAULT_LEAGUES } from '../data/leaguesData';
-import { DEFAULT_CLUBS } from '../data/clubsData';
+import { DEFAULT_CLUBS, normalizeClubShowcase } from '../data/clubsData';
 import { DEFAULT_INTERNATIONAL_TEAMS } from '../data/internationalTeamsData';
 import { navigateFromCmsUrl } from '../lib/navigateFromCmsUrl';
 import { isBannerLive, isHeroBannerType } from '../lib/bannerVisibility';
@@ -206,6 +207,10 @@ export const DynamicPageRenderer: React.FC<DynamicPageRendererProps> = ({
 
   // Curated storefront leagues (logos in /public/logos) — ignore stale CMS World Cup / BD entries
   const leagueItems = DEFAULT_LEAGUES.filter((l) => l.status === 'Active');
+  const clubShowcaseItems = useMemo(
+    () => normalizeClubShowcase(appConfig.clubs?.length ? appConfig.clubs : DEFAULT_CLUBS),
+    [appConfig.clubs],
+  );
 
   const dailyDealEnabled = appConfig.dailyDealEnabled === true;
   const flashDeals = useMemo(() => {
@@ -349,7 +354,7 @@ export const DynamicPageRenderer: React.FC<DynamicPageRendererProps> = ({
         if (productRowItems && productRowItems.length === 0) return null;
 
         // Same for non–product-row sections that would only show a padded empty shell
-        if (section.id === 'hero-slider' && activeHeroBanners.length === 0) return null;
+        // Hero may be empty; club logo showcase still renders under the banner slot.
         if (section.id === 'shop-by-league' && leagueItems.length === 0) return null;
         if (section.id === 'daily-deals' && (!dailyDealEnabled || flashDeals.length === 0)) return null;
         if (section.id === 'community-gallery') {
@@ -385,7 +390,7 @@ export const DynamicPageRenderer: React.FC<DynamicPageRendererProps> = ({
             : section.bgColor;
         const containerStyle =
           section.id === 'hero-slider'
-            ? `bg-transparent pt-2 pb-0 sm:pt-3 sm:pb-0 lg:pt-4 lg:pb-0 my-0 ${getAnimationClass(section.animation)} transition-all duration-300 relative`
+            ? `bg-transparent pt-2 pb-0 sm:pt-3 sm:pb-0 lg:pt-4 lg:pb-0 my-0 ${getAnimationClass(section.animation)} transition-all duration-300 relative w-full`
             : section.id === 'trending-searches'
               ? `hidden lg:block ${safeBg} ${section.padding} ${section.margin} ${getAnimationClass(section.animation)} transition-all duration-300 relative`
               : compactShopIds.has(section.id)
@@ -400,7 +405,9 @@ export const DynamicPageRenderer: React.FC<DynamicPageRendererProps> = ({
             {/* SECTION RENDER DISTRIBUTOR */}
 
             {/* 1. HERO SLIDER DYNAMIC DISPLAY */}
-            {section.id === 'hero-slider' && activeHeroBanners.length > 0 && (
+            {section.id === 'hero-slider' && (
+              <>
+            {activeHeroBanners.length > 0 && (
               <div className="w-full max-w-[1440px] mx-auto px-3 sm:px-4 md:px-5 lg:px-6">
                 <div
                   className={`relative w-full overflow-hidden rounded-xl sm:rounded-2xl lg:rounded-3xl border border-[#E5E5E5] shadow-md sm:shadow-lg bg-[#0A0A0A] ${HERO_BANNER_FRAME}`}
@@ -506,6 +513,17 @@ export const DynamicPageRenderer: React.FC<DynamicPageRendererProps> = ({
                   })()}
                 </div>
               </div>
+            )}
+                <ClubLogoShowcase
+                  clubs={clubShowcaseItems}
+                  products={catalogProducts}
+                  onSelectClub={(club) => {
+                    setSelectedCategory('All');
+                    if (onSearch) onSearch(club.searchQuery || club.name);
+                    else setCurrentPage('listing');
+                  }}
+                />
+              </>
             )}
 
             {/* 2. TRENDING SEARCHES BAR — desktop only (outer wrapper also hidden) */}

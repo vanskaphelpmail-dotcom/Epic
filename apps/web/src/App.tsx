@@ -5,6 +5,7 @@ import jsPDF from 'jspdf';
 import html2canvas from 'html2canvas';
 import { PRODUCTS, CUSTOMER_REVIEWS, SELLER_REQUESTS } from './data/storeData';
 import { DEFAULT_LEAGUES } from './data/leaguesData';
+import { DEFAULT_CLUBS, normalizeClubShowcase } from './data/clubsData';
 import { Product, CartItem, SellerRequest, Order, CarouselSlide, User, AppConfig } from './types';
 import {
   api,
@@ -49,11 +50,12 @@ import {
   productMatchesBrand,
   productMatchesCondition,
   resolveStorefrontPage,
-  storefrontLabelsMatch,
 } from './lib/storefrontPages';
-import { productMatchesSearchQuery } from './lib/catalogSearch';
+import { productMatchesSearchQuery, scoreProductForSearch } from './lib/catalogSearch';
+import { ListingFiltersBar } from './components/ListingFiltersBar';
 import { Header } from './components/Header';
 import { BrandMark } from './components/BrandMark';
+import { BrandWordmark } from './components/BrandWordmark';
 import { MobileBottomNav } from './components/MobileBottomNav';
 import { Hero } from './components/Hero';
 import { ProductCard } from './components/ProductCard';
@@ -69,7 +71,7 @@ import { AuthScreen } from './components/AuthScreen';
 import { CustomerAuth } from './components/CustomerAuth';
 import { DynamicPageRenderer } from './components/DynamicPageRenderer';
 import { UiFeedbackHost, toast } from './components/UiFeedback';
-import { SlidersHorizontal, ArrowRight, CheckCircle, ShieldCheck, Heart, Sparkles, MessageSquare, BookOpen, Star, RotateCcw, Printer, Receipt, ShoppingBag, Download } from 'lucide-react';
+import { ArrowRight, CheckCircle, ShieldCheck, Heart, Sparkles, MessageSquare, BookOpen, Star, Printer, Receipt, ShoppingBag, Download } from 'lucide-react';
 
 const INITIAL_SLIDES: CarouselSlide[] = [
   {
@@ -258,6 +260,7 @@ const DEFAULT_APP_CONFIG: AppConfig = {
   bkashPaymentMode: 'both',
   bkashPartialAmountBdt: 300,
   leagues: DEFAULT_LEAGUES,
+  clubs: DEFAULT_CLUBS.map((c) => ({ ...c })),
   tournamentPatches: [
     { id: 'patch-wc26', label: 'WC 26', priceBdt: 100 },
     { id: 'patch-ucl', label: 'UCL', priceBdt: 100 },
@@ -739,7 +742,14 @@ export default function App() {
           });
         }
         // Always use curated league list (Premier…MLS) with official logos
-        parsed.leagues = DEFAULT_LEAGUES;
+        if (parsed.leagues) {
+          parsed.leagues = DEFAULT_LEAGUES;
+        }
+        if (Array.isArray(parsed.clubs)) {
+          parsed.clubs = normalizeClubShowcase(parsed.clubs);
+        } else {
+          parsed.clubs = DEFAULT_CLUBS.map((c) => ({ ...c }));
+        }
         if (parsed.dailyDealEnabled === undefined) {
           parsed.dailyDealEnabled = false;
         }
@@ -897,6 +907,8 @@ export default function App() {
               footerLocations: cfg.footerLocations,
               categoryItems: cfg.categoryItems,
               tournamentPatches: cfg.tournamentPatches || [],
+              clubShowcase: normalizeClubShowcase(cfg.clubs),
+              customSizeCharts: cfg.customSizeCharts || [],
             })
             .catch((err) => {
               console.error('Failed to persist CMS settings', err);
@@ -1141,6 +1153,14 @@ export default function App() {
                       };
                     })
                     .filter(Boolean) as AppConfig['tournamentPatches'];
+                }
+                if (Array.isArray((settings as { clubShowcase?: unknown }).clubShowcase)) {
+                  next.clubs = normalizeClubShowcase(
+                    (settings as { clubShowcase: Parameters<typeof normalizeClubShowcase>[0] })
+                      .clubShowcase,
+                  );
+                } else if (!next.clubs?.length) {
+                  next.clubs = DEFAULT_CLUBS.map((c) => ({ ...c }));
                 }
                 if (Array.isArray((settings as { customSizeCharts?: unknown }).customSizeCharts)) {
                   next.customSizeCharts = (settings as { customSizeCharts: AppConfig['customSizeCharts'] })
@@ -1549,8 +1569,9 @@ export default function App() {
     () => bootRoute.category || loadNavState()?.category || 'All',
   );
   const [selectedCondition, setSelectedCondition] = useState<string>(() => bootRoute.condition || 'All');
+  const [selectedSeason, setSelectedSeason] = useState<string>('All');
+  const [selectedClub, setSelectedClub] = useState<string>('All');
   const [sortBy, setSortBy] = useState<string>(() => bootRoute.sortBy || 'featured');
-  const [mobileFiltersOpen, setMobileFiltersOpen] = useState(false);
 
   const buildSpaRoute = (page: string, overrides: Partial<SpaRoute> = {}): SpaRoute => ({
     page,
@@ -1681,7 +1702,7 @@ export default function App() {
     if (skipNextUrlPush.current) return;
     navigateSpa(buildSpaRoute('listing'), { replace: true, preserveScroll: true });
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [selectedBrand, selectedCondition, sortBy, searchQuery, selectedCategory]);
+  }, [selectedBrand, selectedCondition, sortBy, searchQuery, selectedCategory, selectedSeason, selectedClub]);
 
   // Persist cart locally always; debounce sync to API when logged in
   useEffect(() => {
@@ -2196,6 +2217,31 @@ export default function App() {
       result = result.filter((p) => productMatchesCondition(p, selectedCondition));
     }
 
+    if (selectedSeason !== 'All') {
+      const want = selectedSeason.toLowerCase().trim();
+      result = result.filter((p) => {
+        const season = String(p.season || '').toLowerCase().trim();
+        if (!season) return false;
+        return season === want || season.includes(want) || want.includes(season);
+      });
+    }
+
+    if (selectedClub !== 'All') {
+      const want = selectedClub.toLowerCase().trim();
+      result = result.filter((p) => {
+        const fields = [
+          p.club,
+          p.nationalTeam,
+          p.country,
+          p.name,
+          ...(Array.isArray(p.tags) ? p.tags : []),
+        ]
+          .map((v) => String(v || '').toLowerCase().trim())
+          .filter(Boolean);
+        return fields.some((f) => f === want || f.includes(want) || want.includes(f));
+      });
+    }
+
     if (sortBy === 'price-low') {
       result.sort((a, b) => a.price - b.price);
     } else if (sortBy === 'price-high') {
@@ -2206,32 +2252,59 @@ export default function App() {
       result.sort((a, b) => a.year - b.year);
     } else if (sortBy === 'rating') {
       result.sort((a, b) => b.rating - a.rating);
+    } else if (searchQuery.trim()) {
+      // Tag hits rank above loose name/brand matches while searching
+      result.sort(
+        (a, b) =>
+          scoreProductForSearch(b, searchQuery) - scoreProductForSearch(a, searchQuery),
+      );
     }
 
     return result;
-  }, [products, searchQuery, selectedBrand, selectedCategory, selectedCondition, sortBy]);
+  }, [
+    products,
+    searchQuery,
+    selectedBrand,
+    selectedCategory,
+    selectedCondition,
+    selectedSeason,
+    selectedClub,
+    sortBy,
+  ]);
 
   const listingFilterOptions = useMemo(() => {
     const brands = new Set<string>();
     const categories = new Set<string>();
     const conditions = new Set<string>();
+    const seasons = new Set<string>();
+    const clubs = new Set<string>();
     for (const p of products) {
       if (p.isTrashed || p.isArchived) continue;
       if (p.status && p.status !== 'Active') continue;
       const b = String(p.brand || '').trim();
       const c = String(p.category || '').trim();
       const cond = String(p.condition || '').trim();
+      const season = String(p.season || '').trim();
+      const club = String(p.club || p.nationalTeam || '').trim();
       if (b) brands.add(b);
       if (c && !/mystery/i.test(c)) categories.add(c);
       if (cond) conditions.add(cond);
+      if (season) seasons.add(season);
+      if (club && !/mystery/i.test(club)) clubs.add(club);
+    }
+    for (const club of normalizeClubShowcase(appConfig.clubs?.length ? appConfig.clubs : undefined)) {
+      if (club.name) clubs.add(club.name);
     }
     const sortAlpha = (a: string, b: string) => a.localeCompare(b, undefined, { sensitivity: 'base' });
+    const sortSeason = (a: string, b: string) => b.localeCompare(a, undefined, { numeric: true });
     return {
       brands: ['All', ...[...brands].sort(sortAlpha)],
       categories: ['All', ...[...categories].sort(sortAlpha)],
       conditions: ['All', ...[...conditions].sort(sortAlpha)],
+      seasons: ['All', ...[...seasons].sort(sortSeason)],
+      clubs: ['All', ...[...clubs].sort(sortAlpha)],
     };
-  }, [products]);
+  }, [products, appConfig.clubs]);
 
   // Compute related items for Details screen
   const relatedJerseys = useMemo(() => {
@@ -2249,6 +2322,8 @@ export default function App() {
     setSelectedBrand('All');
     setSelectedCategory('All');
     setSelectedCondition('All');
+    setSelectedSeason('All');
+    setSelectedClub('All');
     setSortBy('featured');
   };
 
@@ -2263,9 +2338,9 @@ export default function App() {
   };
 
   const formatPrice = (amount: number): string => {
-    // Catalog/order amounts are already in store currency (BDT). Do not re-apply FX.
+    // Catalog/order amounts are already in store currency (BDT). No ৳ symbol.
     const value = Math.round(Number(amount) || 0);
-    return `${appConfig.currencySymbol || '৳'}${value.toLocaleString()}`;
+    return value.toLocaleString();
   };
 
   const isAdminShell = currentPage === 'admin' || currentPage === 'auth';
@@ -2312,9 +2387,9 @@ export default function App() {
               <>
                 <div className="px-4 py-4 border-b border-zinc-200 flex items-center justify-between bg-white">
                   <div className="flex items-center gap-2.5">
-                    <BrandMark imgClassName="w-7 h-7" />
+                    <BrandMark tone="red" imgClassName="w-7 h-7" />
                     <div>
-                      <p className="text-[13px] font-bold text-zinc-950 leading-tight">Epic Vanskap</p>
+                      <BrandWordmark text="Epic Vanskap" wordClassName="text-[13px]" />
                       <p className="text-[11px] text-zinc-500">Staff sign-in</p>
                     </div>
                   </div>
@@ -2420,7 +2495,7 @@ export default function App() {
           <section className="max-w-7xl mx-auto px-4 md:px-12 py-6 sm:py-10 min-h-screen w-full min-w-0 overflow-x-hidden">
             
             {/* Catalog Banner */}
-            <div className="border-b border-[#E5E5E5] pb-6 mb-6 sm:mb-8 flex flex-col md:flex-row justify-between items-start md:items-end gap-4">
+            <div className="border-b border-[#E5E5E5] pb-5 mb-5 sm:mb-6 space-y-4">
               <div className="min-w-0">
                 <h1 className="text-xl sm:text-2xl md:text-3xl font-black uppercase tracking-tight text-[#0A0A0A] font-display break-words">
                   {selectedCategory && selectedCategory !== 'All'
@@ -2431,184 +2506,69 @@ export default function App() {
                 </h1>
                 <p className="text-xs text-[#555555] font-mono mt-1">
                   Showing {filteredProducts.length} verified original jerseys
-                  {(!selectedCategory || selectedCategory === 'All') && selectedBrand === 'All' && selectedCondition === 'All' && !searchQuery
+                  {(!selectedCategory || selectedCategory === 'All') &&
+                  selectedBrand === 'All' &&
+                  selectedCondition === 'All' &&
+                  selectedSeason === 'All' &&
+                  selectedClub === 'All' &&
+                  !searchQuery
                     ? ' · full stock'
                     : ''}
-                  {selectedBrand !== 'All' ? ` · ${selectedBrand}` : ''}
-                  {selectedCondition !== 'All' ? ` · ${selectedCondition}` : ''}
                 </p>
               </div>
 
-              {/* Reset filter tag */}
-              {(selectedBrand !== 'All' || selectedCategory !== 'All' || selectedCondition !== 'All' || searchQuery !== '') && (
-                <button
-                  onClick={resetFilters}
-                  className="bg-red-50 border border-red-200 text-[#E30613] text-[11px] font-mono px-3.5 py-1.5 rounded-full flex items-center gap-1.5 cursor-pointer hover:bg-red-100"
-                >
-                  <RotateCcw size={11} /> Clear All Filter Parameters
-                </button>
-              )}
+              <ListingFiltersBar
+                searchQuery={searchQuery}
+                onSearchChange={setSearchQuery}
+                selectedBrand={selectedBrand}
+                onBrandChange={setSelectedBrand}
+                selectedCategory={selectedCategory}
+                onCategoryChange={setSelectedCategory}
+                selectedSeason={selectedSeason}
+                onSeasonChange={setSelectedSeason}
+                selectedClub={selectedClub}
+                onClubChange={setSelectedClub}
+                selectedCondition={selectedCondition}
+                onConditionChange={setSelectedCondition}
+                sortBy={sortBy}
+                onSortChange={setSortBy}
+                options={listingFilterOptions}
+                onReset={resetFilters}
+              />
             </div>
 
-            {/* Catalog Layout Grid */}
-            <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 lg:gap-8 items-start w-full min-w-0">
-
-              {/* Mobile filter toggle */}
-              <div className="lg:hidden col-span-1">
-                <button
-                  type="button"
-                  onClick={() => setMobileFiltersOpen((open) => !open)}
-                  className="w-full flex items-center justify-center gap-2 bg-white border border-[#E5E5E5] text-[#0A0A0A] text-xs font-bold uppercase tracking-wider py-3 rounded-xl cursor-pointer"
-                >
-                  <SlidersHorizontal size={14} />
-                  {mobileFiltersOpen ? 'Hide Filters' : 'Show Filters'}
-                  {(selectedBrand !== 'All' || selectedCategory !== 'All' || selectedCondition !== 'All' || searchQuery !== '') && (
-                    <span className="bg-[#E30613] text-white text-[9px] font-black px-2 py-0.5 rounded-full">Active</span>
-                  )}
-                </button>
-              </div>
-              
-              {/* Left Column: Filter Sidebar */}
-              <div className={`lg:col-span-3 bg-white border border-[#E5E5E5] rounded-2xl p-4 sm:p-6 space-y-6 shadow-sm w-full min-w-0 ${mobileFiltersOpen ? 'block' : 'hidden lg:block'}`}>
-                
-                <div className="flex justify-between items-center border-b border-[#E5E5E5] pb-2">
-                  <h3 className="text-xs font-mono font-black text-[#555555] uppercase tracking-widest flex items-center gap-1.5">
-                    <SlidersHorizontal size={13} /> Filter Engine
-                  </h3>
-                  <button onClick={resetFilters} className="text-[10px] text-[#555555] hover:text-[#0A0A0A] font-mono uppercase">
-                    Reset
+            <div className="w-full min-w-0">
+              {filteredProducts.length === 0 ? (
+                <div className="bg-white border border-[#E5E5E5] rounded-2xl p-12 text-center space-y-4">
+                  <p className="text-[#555555] text-sm max-w-sm mx-auto">
+                    No jerseys match these filters. Try clearing a filter or searching another club.
+                  </p>
+                  <button
+                    onClick={resetFilters}
+                    className="bg-[#0A0A0A] hover:bg-black text-white font-extrabold text-xs uppercase tracking-widest px-6 py-2.5 rounded-full cursor-pointer transition-all"
+                  >
+                    Clear Active Filters
                   </button>
                 </div>
-
-                {/* Search */}
-                <div className="space-y-2">
-                  <span className="text-[10px] text-[#555555] font-mono font-bold uppercase tracking-wider block">Keyword Search:</span>
-                  <input
-                    type="text"
-                    placeholder="Search player, club, SKU..."
-                    value={searchQuery}
-                    onChange={(e) => setSearchQuery(e.target.value)}
-                    className="w-full bg-[#F8F8F7] border border-[#E5E5E5] rounded-xl py-2 px-3 text-[#0A0A0A] placeholder:text-[#555555] text-xs focus:outline-none focus:border-[#E30613] focus:ring-1 focus:ring-[#E30613]/10 font-mono"
-                  />
+              ) : (
+                <div className="grid grid-cols-2 md:grid-cols-3 xl:grid-cols-4 gap-2 sm:gap-3 lg:gap-6">
+                  {filteredProducts.map((prod) => (
+                    <ProductCard
+                      key={prod.id}
+                      product={prod}
+                      onSelect={(p) => {
+                        goToPage('details', { product: p });
+                      }}
+                      onToggleWishlist={handleToggleWishlist}
+                      isWishlisted={isProductWishlisted(wishlist, prod.id)}
+                      onQuickAdd={handleQuickAdd}
+                      onUpdateImage={handleUpdateProductImage}
+                      formatPrice={formatPrice}
+                      onCheckout={handleCheckoutDirectly}
+                    />
+                  ))}
                 </div>
-
-                {/* Brands */}
-                <div className="space-y-2">
-                  <span className="text-[10px] text-[#555555] font-mono font-bold uppercase tracking-wider block">Brands:</span>
-                  <div className="space-y-1.5 max-h-48 overflow-y-auto pr-1">
-                    {listingFilterOptions.brands.map((b) => (
-                      <button
-                        type="button"
-                        key={b}
-                        onClick={() => setSelectedBrand(b)}
-                        className={`w-full text-left text-xs px-2.5 py-1.5 rounded-lg cursor-pointer transition-colors ${
-                          selectedBrand === b ? 'bg-[#0A0A0A] text-white font-extrabold shadow-sm' : 'hover:bg-[#F8F8F7] text-[#0A0A0A]'
-                        }`}
-                      >
-                        {b}
-                      </button>
-                    ))}
-                  </div>
-                </div>
-
-                {/* Categories — live values from catalog */}
-                <div className="space-y-2">
-                  <span className="text-[10px] text-[#555555] font-mono font-bold uppercase tracking-wider block">Category:</span>
-                  <div className="space-y-1.5 max-h-56 overflow-y-auto pr-1">
-                    {listingFilterOptions.categories.map((cat) => {
-                      const label = canonicalTargetPageName(cat) || cat;
-                      const selected =
-                        selectedCategory === cat ||
-                        storefrontLabelsMatch(selectedCategory, cat);
-                      return (
-                        <button
-                          type="button"
-                          key={cat}
-                          onClick={() => setSelectedCategory(cat)}
-                          className={`w-full text-left text-xs px-2.5 py-1.5 rounded-lg cursor-pointer transition-colors ${
-                            selected ? 'bg-[#0A0A0A] text-white font-extrabold shadow-sm' : 'hover:bg-[#F8F8F7] text-[#0A0A0A]'
-                          }`}
-                        >
-                          {label}
-                        </button>
-                      );
-                    })}
-                  </div>
-                </div>
-
-                {/* Conditions */}
-                <div className="space-y-2">
-                  <span className="text-[10px] text-[#555555] font-mono font-bold uppercase tracking-wider block">Condition Matrix:</span>
-                  <div className="space-y-1.5">
-                    {listingFilterOptions.conditions.map((cond) => (
-                      <button
-                        type="button"
-                        key={cond}
-                        onClick={() => setSelectedCondition(cond)}
-                        className={`w-full text-left text-xs px-2.5 py-1.5 rounded-lg cursor-pointer transition-colors ${
-                          selectedCondition === cond ? 'bg-[#0A0A0A] text-white font-extrabold shadow-sm' : 'hover:bg-[#F8F8F7] text-[#0A0A0A]'
-                        }`}
-                      >
-                        {cond}
-                      </button>
-                    ))}
-                  </div>
-                </div>
-
-                {/* Sorting Select */}
-                <div className="space-y-2">
-                  <span className="text-[10px] text-[#555555] font-mono font-bold uppercase tracking-wider block">Sort Catalogue:</span>
-                  <select
-                    value={sortBy}
-                    onChange={(e) => setSortBy(e.target.value)}
-                    className="w-full bg-[#F8F8F7] border border-[#E5E5E5] rounded-xl py-2 px-3 text-[#0A0A0A] text-xs focus:outline-none focus:border-[#E30613]"
-                  >
-                    <option value="featured">Sourced Featured</option>
-                    <option value="price-low">Price: Low-to-High</option>
-                    <option value="price-high">Price: High-to-Low</option>
-                    <option value="year-new">Year: Modern-to-Old</option>
-                    <option value="year-old">Year: Old-to-Modern</option>
-                    <option value="rating">User Rating Score</option>
-                  </select>
-                </div>
-
-              </div>
-
-              {/* Right Column: Active catalog items matching filters */}
-              <div className="lg:col-span-9 w-full min-w-0">
-                {filteredProducts.length === 0 ? (
-                  <div className="bg-white border border-[#E5E5E5] rounded-2xl p-12 text-center space-y-4 shadow-sm">
-                    <p className="text-[#555555] text-sm max-w-sm mx-auto">
-                      No vintage jerseys found matching the selected search query or category parameters inside the database.
-                    </p>
-                    <button
-                      onClick={resetFilters}
-                      className="bg-[#0A0A0A] hover:bg-black text-white font-extrabold text-xs uppercase tracking-widest px-6 py-2.5 rounded-full cursor-pointer transition-all shadow-md shadow-black/10"
-                    >
-                      Clear Active Filters
-                    </button>
-                  </div>
-                ) : (
-                  <div className="grid grid-cols-2 md:grid-cols-3 xl:grid-cols-3 gap-2 sm:gap-3 lg:gap-6">
-                    {filteredProducts.map((prod) => (
-                      <ProductCard
-                        key={prod.id}
-                        product={prod}
-                        onSelect={(p) => {
-                          goToPage('details', { product: p });
-                        }}
-                        onToggleWishlist={handleToggleWishlist}
-                        isWishlisted={isProductWishlisted(wishlist, prod.id)}
-                        onQuickAdd={handleQuickAdd}
-                        onUpdateImage={handleUpdateProductImage}
-                        formatPrice={formatPrice}
-                        onCheckout={handleCheckoutDirectly}
-                      />
-                    ))}
-                  </div>
-                )}
-              </div>
-
+              )}
             </div>
           </section>
         )}
@@ -2735,17 +2695,12 @@ export default function App() {
               <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 border-b-2 border-zinc-800 pb-6">
                 <div>
                   <div className="flex items-center gap-2">
-                    <BrandMark className="p-1 rounded-xl" imgClassName="w-8 h-8" />
-                    <div className="flex flex-col">
-                      <div className="flex items-center gap-1.5">
-                        <span className="text-red-600 font-sans font-black text-sm md:text-base tracking-tight leading-none uppercase">
-                          Epic
-                        </span>
-                        <span className="text-white font-sans font-black text-sm md:text-base tracking-tight leading-none uppercase">
-                          Vanskap
-                        </span>
-                      </div>
-                    </div>
+                    <BrandMark tone="red" imgClassName="w-8 h-8" />
+                    <BrandWordmark
+                      text="Epic Vanskap"
+                      onDark
+                      wordClassName="text-sm md:text-base"
+                    />
                   </div>
                   <p className="text-[10px] text-zinc-600 mt-2.5 uppercase font-bold leading-relaxed">
                     Premium Authenticated Football Kits<br />
@@ -2820,7 +2775,7 @@ export default function App() {
                   </div>
                   <div className="flex justify-between border-b border-zinc-800 pb-2">
                     <span className="font-bold">Delivery Charge:</span>
-                    <span className="font-black text-white">৳{lastPlacedOrder.deliveryCharge || (lastPlacedOrder.deliveryRegion === 'inside' ? 70 : 130)}</span>
+                    <span className="font-black text-white">{lastPlacedOrder.deliveryCharge || (lastPlacedOrder.deliveryRegion === 'inside' ? 70 : 130)}</span>
                   </div>
                   <div className="flex justify-between border-b border-zinc-800 pb-2">
                     <span className="font-bold">Order Total:</span>
@@ -2831,7 +2786,7 @@ export default function App() {
                       <div className="flex justify-between border-b border-zinc-800 pb-2 text-[10px] text-zinc-600">
                         <span className="font-bold">Advance rate:</span>
                         <span className="font-mono font-black">
-                          ৳{(appConfig.bkashPartialAmountBdt ?? 300).toLocaleString('en-BD')} ×{' '}
+                          {(appConfig.bkashPartialAmountBdt ?? 300).toLocaleString('en-BD')} ×{' '}
                           {lastPlacedOrder.items.reduce((s, i) => s + (i.quantity || 0), 0)}{' '}
                           jersey
                           {lastPlacedOrder.items.reduce((s, i) => s + (i.quantity || 0), 0) === 1

@@ -121,7 +121,7 @@ export function PosInvoice({ open, order, formatPrice, shop, onClose }: Props) {
           <div className="px-5 py-6 text-zinc-950" id="pos-invoice-print">
             <div className="text-center space-y-1.5 mb-5">
               <div className="flex justify-center">
-                <BrandMark bare imgClassName="w-12 h-12" />
+                <BrandMark bare tone="red" imgClassName="w-12 h-12" />
               </div>
               <p className="text-lg font-bold tracking-tight">{shop.name}</p>
               {shop.address ? <p className="text-[11px] text-zinc-600 leading-snug">{shop.address}</p> : null}

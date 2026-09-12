@@ -47,8 +47,28 @@ import {
   STANDARD_PRODUCT_SIZES,
 } from '../lib/productSizes';
 import { confirmAsync, toast } from './UiFeedback';
-import { generateEan13, nextSkuSequence, normalizeBarcode } from '../lib/retailCodes';
+import { ensureUniqueBarcode, nextSerialEan13, nextSkuSequence, normalizeBarcode } from '../lib/retailCodes';
 import { BarcodeLabelPrint } from './admin/BarcodeLabelPrint';
+
+/** Search keywords under product photos — admin can add up to this many. */
+const MAX_PRODUCT_TAGS = 20;
+
+function parseTagDraft(raw: string): string[] {
+  return raw
+    .split(/[;,\n]+/)
+    .map((t) => t.trim().replace(/^#/, ''))
+    .filter(Boolean);
+}
+
+function mergeTags(prev: string[], parts: string[], max = MAX_PRODUCT_TAGS): string[] {
+  const next = [...prev];
+  for (const part of parts) {
+    if (next.length >= max) break;
+    if (next.some((t) => t.toLowerCase() === part.toLowerCase())) continue;
+    next.push(part);
+  }
+  return next.slice(0, max);
+}
 
 interface ProductManagerProps {
   products: Product[];
@@ -406,7 +426,7 @@ export const ProductManager: React.FC<ProductManagerProps> = ({
   const [pSku, setPSku] = useState('');
   const [pBarcode, setPBarcode] = useState('');
   const [pSkuMode, setPSkuMode] = useState<'auto' | 'manual'>('auto');
-  const [pBarcodeMode, setPBarcodeMode] = useState<'none' | 'auto' | 'manual'>('none');
+  const [pBarcodeMode, setPBarcodeMode] = useState<'auto' | 'manual'>('auto');
   const [labelPrint, setLabelPrint] = useState<{ barcode: string; sellPrice: number; name: string } | null>(null);
   const [pCostPrice, setPCostPrice] = useState<MoneyValue>('');
   const [pOriginalPrice, setPOriginalPrice] = useState<MoneyValue>('');
@@ -552,9 +572,9 @@ export const ProductManager: React.FC<ProductManagerProps> = ({
     setPCustomSize('');
     setPColor('Red/White');
     setPSku(nextSkuSequence(products.map((p) => p.sku), 'EV'));
-    setPBarcode('');
+    setPBarcode(nextSerialEan13(products.map((p) => p.barcode)));
     setPSkuMode('auto');
-    setPBarcodeMode('none');
+    setPBarcodeMode('auto');
     setPCostPrice('');
     setPOriginalPrice('');
     setPDiscountMode('percent');
@@ -633,7 +653,7 @@ export const ProductManager: React.FC<ProductManagerProps> = ({
     setPShortDesc(product.shortDescription || '');
     setPLongDesc(product.longDescription || product.description || '');
     setPFeatures(Array.isArray(product.features) ? product.features.join(', ') : (product.features || ''));
-    setPTags(Array.isArray(product.tags) ? product.tags.slice(0, 8) : []);
+    setPTags(Array.isArray(product.tags) ? product.tags.slice(0, MAX_PRODUCT_TAGS) : []);
     setPTagDraft('');
     setPMaterial(product.material || product.specification?.material || '100% Polyester');
     setPSeason(product.season || '');
@@ -677,9 +697,20 @@ export const ProductManager: React.FC<ProductManagerProps> = ({
     setPCustomSize('');
     setPColor(product.color || '');
     setPSku(product.sku || '');
-    setPBarcode(product.barcode || '');
+    const existingBarcode = normalizeBarcode(product.barcode || '');
+    if (existingBarcode) {
+      setPBarcode(existingBarcode);
+      setPBarcodeMode('auto');
+    } else {
+      setPBarcode(
+        nextSerialEan13(
+          products.map((p) => p.barcode),
+          product.barcode,
+        ),
+      );
+      setPBarcodeMode('auto');
+    }
     setPSkuMode('manual');
-    setPBarcodeMode(product.barcode ? 'manual' : 'none');
     setPCostPrice(product.costPrice != null ? Math.floor(Number(product.costPrice)) : '');
     const sale = Math.floor(Number(product.sellingPrice || product.price) || 0);
     const original =
@@ -866,15 +897,14 @@ export const ProductManager: React.FC<ProductManagerProps> = ({
       pSkuMode === 'manual' && pSku.trim()
         ? pSku.trim()
         : editingProduct?.sku || nextSkuSequence(products.map((p) => p.sku), 'EV');
-    const resolvedBarcode =
-      pBarcodeMode === 'none'
-        ? undefined
-        : pBarcodeMode === 'manual'
-          ? normalizeBarcode(pBarcode) || undefined
-          : normalizeBarcode(pBarcode) || generateEan13(resolvedSku);
+    const resolvedBarcode = ensureUniqueBarcode(
+      pBarcodeMode === 'manual' ? pBarcode : pBarcode || undefined,
+      products.map((p) => p.barcode),
+      editingProduct?.barcode,
+    );
     const featuresArr = pFeatures ? pFeatures.split(',').map(f => f.trim()).filter(Boolean) : [];
-    const tagsArr = pTags.map((t) => t.trim()).filter(Boolean).slice(0, 8);
-    const longDesc = pLongDesc.slice(0, 1000);
+    const tagsArr = pTags.map((t) => t.trim()).filter(Boolean).slice(0, MAX_PRODUCT_TAGS);
+    const longDesc = pLongDesc.trim();
     const selectedPageObj = storefrontPages.find(
       (p) => p.id === pTargetPage || p.name === pTargetPage,
     );
@@ -2526,23 +2556,22 @@ export const ProductManager: React.FC<ProductManagerProps> = ({
                 </div>
 
                 <div className="grid grid-cols-1 gap-4 text-xs">
-                  <div>
+                  <div className="rounded-xl border border-emerald-200 bg-white/80 p-3">
                     <div className="flex items-center justify-between mb-1">
                       <label className="font-bold text-emerald-950 block">Long Description</label>
-                      <span className={`font-mono text-[10px] ${pLongDesc.length >= 1000 ? 'text-rose-600 font-bold' : 'text-emerald-700'}`}>
-                        {pLongDesc.length}/1000
+                      <span className="font-mono text-[10px] text-emerald-700">
+                        {pLongDesc.length.toLocaleString()} chars · shown on product page
                       </span>
                     </div>
                     <textarea
-                      rows={4}
-                      maxLength={1000}
-                      placeholder="Full product story, authenticity notes, fit details…"
+                      rows={10}
+                      placeholder="Full product story, authenticity notes, fit details — this text is shown in full on the product details page…"
                       value={pLongDesc}
-                      onChange={(e) => setPLongDesc(e.target.value.slice(0, 1000))}
-                      className="w-full bg-emerald-50/40 border border-emerald-200 rounded-xl px-3 py-2 resize-y min-h-[96px]"
+                      onChange={(e) => setPLongDesc(e.target.value)}
+                      className="w-full bg-emerald-50/40 border border-emerald-200 rounded-xl px-3 py-2.5 resize-y min-h-[180px] text-sm leading-relaxed text-emerald-950"
                     />
                     <p className="text-[10px] text-emerald-700 font-mono mt-1">
-                      Shown on the product page. Maximum 1000 characters.
+                      No character limit. Customers see the complete description next to the buy panel.
                     </p>
                   </div>
                   <div>
@@ -2697,51 +2726,46 @@ export const ProductManager: React.FC<ProductManagerProps> = ({
                     />
                   </div>
 
-                  <div className="md:col-span-3">
+                  <div className="md:col-span-3 rounded-xl border border-emerald-200 bg-white/80 p-3">
                     <div className="flex items-center justify-between mb-1">
                       <label className="font-bold text-emerald-950 block">
-                        Tags <span className="font-mono text-emerald-700 font-medium">(max 8 · search keywords)</span>
+                        Tags (max {MAX_PRODUCT_TAGS} · search keywords)
                       </label>
-                      <span className={`font-mono text-[10px] ${pTags.length >= 8 ? 'text-rose-600 font-bold' : 'text-emerald-700'}`}>
-                        {pTags.length}/8
+                      <span
+                        className={`font-mono text-[10px] ${
+                          pTags.length >= MAX_PRODUCT_TAGS ? 'text-rose-600 font-bold' : 'text-emerald-700'
+                        }`}
+                      >
+                        {pTags.length}/{MAX_PRODUCT_TAGS}
                       </span>
                     </div>
-                    <div className="flex gap-2">
-                      <input
-                        type="text"
+                    <div className="flex gap-2 items-stretch">
+                      <textarea
+                        rows={3}
                         value={pTagDraft}
-                        maxLength={48}
-                        placeholder="Type a tag (e.g. AC Milan, Yamal, 2026) then Add"
-                        disabled={pTags.length >= 8}
+                        placeholder={`Type or paste up to ${MAX_PRODUCT_TAGS} tags — separate with comma or semicolon\ne.g. AC Milan; Kaka; Ronaldo; Neymar; Puma`}
+                        disabled={pTags.length >= MAX_PRODUCT_TAGS}
                         onChange={(e) => setPTagDraft(e.target.value)}
                         onKeyDown={(e) => {
-                          if (e.key !== 'Enter') return;
+                          if (e.key !== 'Enter' || e.shiftKey) return;
                           e.preventDefault();
-                          const next = pTagDraft.trim().replace(/^#/, '');
-                          if (!next || pTags.length >= 8) return;
-                          if (pTags.some((t) => t.toLowerCase() === next.toLowerCase())) {
-                            setPTagDraft('');
-                            return;
-                          }
-                          setPTags((prev) => [...prev, next].slice(0, 8));
+                          const parts = parseTagDraft(pTagDraft);
+                          if (!parts.length || pTags.length >= MAX_PRODUCT_TAGS) return;
+                          setPTags((prev) => mergeTags(prev, parts));
                           setPTagDraft('');
                         }}
-                        className="flex-1 bg-emerald-50/40 border border-emerald-200 rounded-xl px-3 py-2 disabled:opacity-50"
+                        className="flex-1 bg-emerald-50/40 border border-emerald-200 rounded-xl px-3 py-2 disabled:opacity-50 text-sm resize-y min-h-[4.5rem]"
                       />
                       <button
                         type="button"
-                        disabled={pTags.length >= 8 || !pTagDraft.trim()}
+                        disabled={pTags.length >= MAX_PRODUCT_TAGS || !pTagDraft.trim()}
                         onClick={() => {
-                          const next = pTagDraft.trim().replace(/^#/, '');
-                          if (!next || pTags.length >= 8) return;
-                          if (pTags.some((t) => t.toLowerCase() === next.toLowerCase())) {
-                            setPTagDraft('');
-                            return;
-                          }
-                          setPTags((prev) => [...prev, next].slice(0, 8));
+                          const parts = parseTagDraft(pTagDraft);
+                          if (!parts.length || pTags.length >= MAX_PRODUCT_TAGS) return;
+                          setPTags((prev) => mergeTags(prev, parts));
                           setPTagDraft('');
                         }}
-                        className="shrink-0 px-3 py-2 rounded-xl bg-emerald-900 text-white font-bold text-[10px] uppercase disabled:opacity-40 cursor-pointer"
+                        className="shrink-0 self-stretch px-3 py-2 rounded-xl bg-emerald-900 text-white font-bold text-[10px] uppercase disabled:opacity-40 cursor-pointer"
                       >
                         Add Tag
                       </button>
@@ -2763,7 +2787,7 @@ export const ProductManager: React.FC<ProductManagerProps> = ({
                       </div>
                     )}
                     <p className="text-[10px] text-emerald-700 font-mono mt-1">
-                      Tags appear below product photos and help customers find this jersey by name in search.
+                      Write up to {MAX_PRODUCT_TAGS} tags. They appear below product photos and help customers find this jersey by name in search. Press Enter or Add Tag (Shift+Enter for new line).
                     </p>
                   </div>
                 </div>
@@ -2864,32 +2888,27 @@ export const ProductManager: React.FC<ProductManagerProps> = ({
                   </div>
                   <div className="space-y-2 border border-emerald-100 rounded-xl p-3 bg-white">
                     <div className="flex items-center justify-between gap-2 flex-wrap">
-                      <label className="font-bold text-emerald-950">Barcode <span className="font-normal text-zinc-500">(optional)</span></label>
+                      <label className="font-bold text-emerald-950">Barcode</label>
                       <div className="flex rounded-lg border border-emerald-200 overflow-hidden">
                         <button
                           type="button"
                           onClick={() => {
-                            setPBarcodeMode('none');
-                            setPBarcode('');
-                          }}
-                          className={`px-2.5 py-1 text-[10px] font-bold uppercase ${pBarcodeMode === 'none' ? 'bg-zinc-950 text-white' : 'bg-white text-zinc-700'}`}
-                        >
-                          None
-                        </button>
-                        <button
-                          type="button"
-                          onClick={() => {
                             setPBarcodeMode('auto');
-                            setPBarcode(generateEan13(pSku || Date.now()));
+                            setPBarcode(
+                              nextSerialEan13(
+                                products.map((p) => p.barcode),
+                                editingProduct?.barcode,
+                              ),
+                            );
                           }}
-                          className={`px-2.5 py-1 text-[10px] font-bold uppercase ${pBarcodeMode === 'auto' ? 'bg-zinc-950 text-white' : 'bg-white text-zinc-700'}`}
+                          className={`px-2.5 py-1 text-[10px] font-bold uppercase cursor-pointer ${pBarcodeMode === 'auto' ? 'bg-zinc-950 text-white' : 'bg-white text-zinc-700'}`}
                         >
                           Auto
                         </button>
                         <button
                           type="button"
                           onClick={() => setPBarcodeMode('manual')}
-                          className={`px-2.5 py-1 text-[10px] font-bold uppercase ${pBarcodeMode === 'manual' ? 'bg-zinc-950 text-white' : 'bg-white text-zinc-700'}`}
+                          className={`px-2.5 py-1 text-[10px] font-bold uppercase cursor-pointer ${pBarcodeMode === 'manual' ? 'bg-zinc-950 text-white' : 'bg-white text-zinc-700'}`}
                         >
                           Manual
                         </button>
@@ -2901,11 +2920,13 @@ export const ProductManager: React.FC<ProductManagerProps> = ({
                         setPBarcodeMode('manual');
                         setPBarcode(e.target.value);
                       }}
-                      disabled={pBarcodeMode === 'none'}
                       readOnly={pBarcodeMode === 'auto'}
-                      className="w-full bg-emerald-50/40 border border-emerald-200 rounded-xl px-3 py-2 font-mono font-bold disabled:opacity-50"
-                      placeholder={pBarcodeMode === 'none' ? 'No barcode' : 'EAN-13 or CODE128'}
+                      className="w-full bg-emerald-50/40 border border-emerald-200 rounded-xl px-3 py-2 font-mono font-bold"
+                      placeholder="Auto serial EAN-13"
                     />
+                    <p className="text-[10px] text-emerald-700 font-mono">
+                      Auto assigns a unique serial barcode for every product (never reused).
+                    </p>
                   </div>
                 </div>
                 <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-xs font-mono">

@@ -12,10 +12,12 @@ import { POPULAR_SEARCHES } from '../data/storeData';
 import {
   buildCatalogSearchKeywords,
   suggestProductsForQuery,
+  suggestTagsForQuery,
 } from '../lib/catalogSearch';
 import { isCatalogAssignedProduct } from '../lib/homepageSections';
 import { isStorefrontNavActive } from '../lib/storefrontPages';
 import { BrandMark } from './BrandMark';
+import { BrandWordmark } from './BrandWordmark';
 
 interface HeaderProps {
   currentPage: string;
@@ -142,6 +144,10 @@ export const Header: React.FC<HeaderProps> = ({
   const popularSearchTerms = (catalogKeywords.length ? catalogKeywords : POPULAR_SEARCHES).slice(0, 5);
   const liveSuggestions = useMemo(
     () => suggestProductsForQuery(products, searchQuery, 5),
+    [products, searchQuery],
+  );
+  const liveTagSuggestions = useMemo(
+    () => suggestTagsForQuery(products, searchQuery, 20),
     [products, searchQuery],
   );
 
@@ -335,34 +341,13 @@ export const Header: React.FC<HeaderProps> = ({
           className="flex items-center gap-2 sm:gap-3 cursor-pointer group min-w-0 flex-1 overflow-visible py-0.5 pr-1 lg:max-w-none"
           id="brand-logo"
         >
-          <BrandMark className="group-hover:border-[#E30613] transition-all" />
+          <BrandMark interactive imgClassName="w-8 h-8 sm:w-9 sm:h-9" />
           
           <div className="flex flex-col min-w-0 overflow-visible">
-            <div className="brand-logo-lockup flex items-center flex-nowrap gap-1.5 sm:gap-2 md:gap-2.5 min-w-0">
-              {(() => {
-                const brand = (appConfig.logoText || 'Epic Vanskap').trim();
-                const parts = brand.split(/\s+/);
-                const badge = parts.length > 1 && parts[parts.length - 1].length <= 3 ? parts[parts.length - 1] : null;
-                const words = badge ? parts.slice(0, -1) : parts;
-                return (
-                  <>
-                    {words.map((word, i) => (
-                      <span
-                        key={`${word}-${i}`}
-                        className={`brand-word text-xs sm:text-sm md:text-lg shrink-0 ${i === 0 ? 'brand-word-jersey' : 'brand-word-addicts'}`}
-                      >
-                        {word}
-                      </span>
-                    ))}
-                    {badge ? (
-                      <span className="brand-badge-bd shrink-0" aria-label={badge}>
-                        <span>{badge}</span>
-                      </span>
-                    ) : null}
-                  </>
-                );
-              })()}
-            </div>
+            <BrandWordmark
+              text={appConfig.logoText || 'Epic Vanskap'}
+              wordClassName="text-xs sm:text-sm md:text-lg"
+            />
             {appConfig.logoSubtext ? (
               <span className="hidden sm:block text-[9px] font-mono text-[#0A0A0A]/50 tracking-wider uppercase mt-0.5 truncate">{appConfig.logoSubtext}</span>
             ) : null}
@@ -406,6 +391,25 @@ export const Header: React.FC<HeaderProps> = ({
                   Close
                 </button>
               </div>
+              {searchQuery.trim().length >= 1 && liveTagSuggestions.length > 0 && (
+                <div className="mb-4">
+                  <p className="text-[10px] font-bold text-[#0A0A0A]/50 tracking-wider uppercase mb-2">
+                    Matching tags
+                  </p>
+                  <div className="flex flex-wrap gap-2">
+                    {liveTagSuggestions.map((term) => (
+                      <button
+                        key={`tag-${term}`}
+                        type="button"
+                        onClick={() => handlePopularSearchClick(term)}
+                        className="bg-[#F8F8F7] hover:bg-[#E5E5E5] border border-[#E5E5E5] text-xs px-3 py-1.5 rounded-lg text-[#0A0A0A] font-mono font-bold transition-all cursor-pointer"
+                      >
+                        {term}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+              )}
               {searchQuery.trim().length >= 2 && liveSuggestions.length > 0 && (
                 <div className="space-y-1 mb-4 max-h-56 overflow-y-auto">
                   {liveSuggestions.map((p) => (
@@ -427,7 +431,7 @@ export const Header: React.FC<HeaderProps> = ({
                 </div>
               )}
               <div className="flex flex-wrap gap-2 mb-4">
-                {popularSearchTerms.slice(0, 5).map((term) => (
+                {(searchQuery.trim().length >= 1 ? [] : popularSearchTerms.slice(0, 5)).map((term) => (
                   <button
                     key={term}
                     type="button"
@@ -684,6 +688,25 @@ export const Header: React.FC<HeaderProps> = ({
                 Close
               </button>
             </div>
+            {searchQuery.trim().length >= 1 && liveTagSuggestions.length > 0 && (
+              <div className="mb-3">
+                <p className="text-[10px] font-bold text-[#0A0A0A]/50 tracking-wider uppercase mb-1.5">
+                  Matching tags
+                </p>
+                <div className="flex flex-wrap gap-1.5">
+                  {liveTagSuggestions.map((term) => (
+                    <button
+                      key={`m-tag-${term}`}
+                      type="button"
+                      onClick={() => handlePopularSearchClick(term)}
+                      className="bg-[#F8F8F7] hover:bg-[#E5E5E5] border border-[#E5E5E5] text-[11px] px-2.5 py-1 rounded-lg text-[#0A0A0A] font-mono font-bold cursor-pointer"
+                    >
+                      {term}
+                    </button>
+                  ))}
+                </div>
+              </div>
+            )}
             {searchQuery.trim().length >= 2 && liveSuggestions.length > 0 && (
               <div className="space-y-1 mb-3 max-h-48 overflow-y-auto">
                 {liveSuggestions.map((p) => (
@@ -702,7 +725,7 @@ export const Header: React.FC<HeaderProps> = ({
               </div>
             )}
             <div className="flex flex-wrap gap-1.5">
-              {popularSearchTerms.slice(0, 5).map((term) => (
+              {(searchQuery.trim().length >= 1 ? [] : popularSearchTerms.slice(0, 5)).map((term) => (
                 <button
                   key={term}
                   type="button"
