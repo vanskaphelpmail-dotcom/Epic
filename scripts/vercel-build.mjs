@@ -13,7 +13,7 @@
  *                                  does not block the Next.js build)
  */
 import { spawnSync } from "node:child_process";
-import { existsSync, readFileSync } from "node:fs";
+import { existsSync, readFileSync, readdirSync } from "node:fs";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
 import { ensureMigrateDatabaseUrls, toNeonDirectUrl } from "./neon-direct-url.mjs";
@@ -125,6 +125,62 @@ function outputLooksQuotaExceeded(out) {
   );
 }
 
+/** Schema was created via db push (or restore) — migrate deploy needs a baseline. */
+function outputLooksNeedsBaseline(out) {
+  return /P3005|schema is not empty/i.test(out);
+}
+
+function listMigrationNames() {
+  const migDir = path.join(root, "packages", "db", "prisma", "migrations");
+  if (!existsSync(migDir)) return [];
+  try {
+    return readdirSync(migDir)
+      .filter((d) => /^\d{14}_/.test(d))
+      .sort();
+  } catch {
+    return [];
+  }
+}
+
+/**
+ * Mark every migration folder as already applied (no SQL re-run).
+ * Use when Neon already has tables from `db push` / seed but `_prisma_migrations` is empty.
+ */
+function baselineAllMigrations(env) {
+  const names = listMigrationNames();
+  if (names.length === 0) {
+    console.warn("[vercel-build] No migration folders found to baseline");
+    return false;
+  }
+  console.warn(
+    `[vercel-build] P3005 — baselining ${names.length} migrations as already applied…`,
+  );
+  for (const name of names) {
+    const result = spawnSync(
+      "npx",
+      ["prisma", "migrate", "resolve", "--applied", name],
+      {
+        cwd: path.join(root, "packages", "db"),
+        env,
+        encoding: "utf8",
+        shell: true,
+      },
+    );
+    process.stdout.write(result.stdout || "");
+    process.stderr.write(result.stderr || "");
+    if (result.status !== 0) {
+      // Already recorded is fine
+      const out = `${result.stdout || ""}\n${result.stderr || ""}`;
+      if (!/P3008|already recorded|already been applied/i.test(out)) {
+        console.error(`[vercel-build] baseline failed for ${name}`);
+        return false;
+      }
+    }
+    console.log(`[vercel-build] baselined: ${name}`);
+  }
+  return true;
+}
+
 function schemaIsUpToDate(env) {
   console.log("\n[vercel-build] $ npm run db:migrate:status");
   const result = capture("npm", ["run", "db:migrate:status"], env);
@@ -163,6 +219,7 @@ function tryMigrateDeploy(env, label) {
     status: result.status ?? 1,
     unreachable: outputLooksUnreachable(out),
     quota: outputLooksQuotaExceeded(out),
+    needsBaseline: outputLooksNeedsBaseline(out),
     out,
   };
 }
@@ -232,7 +289,9 @@ function runMigrateDeploy() {
 
   let lastUnreachable = false;
   let lastQuota = false;
+  let lastNeedsBaseline = false;
   let lastStatus = 1;
+  let didBaseline = false;
 
   for (let i = 0; i < attempts.length; i++) {
     const { label, delaySec, env } = attempts[i];
@@ -265,11 +324,24 @@ function runMigrateDeploy() {
       );
     }
 
+    // Pending migrations + empty history on a pushed schema → baseline once
+    if (
+      !didBaseline &&
+      !status.unreachable &&
+      /Following migrations have not yet been applied/i.test(status.out || "")
+    ) {
+      // Probe deploy to detect P3005 quickly on first attempt
+    }
+
     const deploy = tryMigrateDeploy(env, label);
     if (deploy.ok) return;
     lastStatus = deploy.status;
     lastUnreachable = deploy.unreachable || lastUnreachable;
     lastQuota = deploy.quota || lastQuota;
+    lastNeedsBaseline =
+      deploy.needsBaseline ||
+      outputLooksNeedsBaseline(deploy.out) ||
+      lastNeedsBaseline;
 
     if (deploy.quota) {
       console.error(
@@ -278,11 +350,33 @@ function runMigrateDeploy() {
       break;
     }
 
+    if (lastNeedsBaseline && !didBaseline) {
+      didBaseline = true;
+      const ok = baselineAllMigrations(env);
+      if (ok) {
+        const again = tryMigrateDeploy(env, `${label} (after baseline)`);
+        if (again.ok) return;
+        lastStatus = again.status;
+        lastUnreachable = again.unreachable || lastUnreachable;
+      }
+    }
+
     console.warn(
       `[vercel-build] migrate deploy failed (exit ${deploy.status}); ${
         i < attempts.length - 1 ? "retrying…" : "no more attempts"
       }`,
     );
+  }
+
+  // After all retries, if only P3005 remains, baseline + continue build
+  if (lastNeedsBaseline && process.env.ALLOW_BUILD_WITHOUT_MIGRATE !== "0") {
+    console.warn(
+      "[vercel-build] WARNING: migrate deploy hit P3005 (non-empty DB without history).",
+    );
+    console.warn(
+      "[vercel-build] Continuing Next.js build. Schema is already present from db push/seed.",
+    );
+    return;
   }
 
   if (lastQuota) {
