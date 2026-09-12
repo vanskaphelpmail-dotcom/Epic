@@ -15,6 +15,7 @@ import {
   isApiEnabled,
   isUnauthorizedError,
   setStoredUser,
+  setToken,
 } from './lib/apiClient';
 import { canUseAdminPanel, isStaffRole } from './lib/roles';
 import { cartBadgesMatch } from './lib/productAddons';
@@ -1035,6 +1036,8 @@ export default function App() {
           api.getWishlist().catch(() => null),
         ]);
         if (cancelled || !me) return;
+        // After Neon re-seed, /me may rematch by email and return a fresh JWT
+        if (me.token) setToken(me.token);
         const user: User = {
           id: me.id,
           email: me.email,
@@ -1301,14 +1304,34 @@ export default function App() {
               ...(opts?.all ? { all: true } : {}),
             });
             if (cancelled || gen !== catalogFetchGen.current) return;
-            mergeCatalog(Array.isArray(items) ? (items as Product[]) : []);
+            const list = Array.isArray(items) ? (items as Product[]) : [];
+            if (list.length > 0) {
+              mergeCatalog(list);
+            } else {
+              // Neon empty / not seeded yet — show built-in catalog so the storefront is never blank
+              setProducts(
+                PRODUCTS.filter(
+                  (p) => p.category !== 'Mystery' && !/mystery/i.test(p.name) && p.id !== 'shirt-7',
+                ),
+              );
+            }
             try {
               localStorage.removeItem('vault_custom_products');
             } catch {
               /* ignore */
             }
           } catch {
-            /* keep seed catalog fallback */
+            // API/DB down — fall back to seed catalog instead of an empty shop
+            if (!cancelled) {
+              setProducts((prev) =>
+                prev.length > 0
+                  ? prev
+                  : PRODUCTS.filter(
+                      (p) =>
+                        p.category !== 'Mystery' && !/mystery/i.test(p.name) && p.id !== 'shirt-7',
+                    ),
+              );
+            }
           }
         };
 

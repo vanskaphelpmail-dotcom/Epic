@@ -1,7 +1,6 @@
 import { Router } from "express";
 import { z } from "zod";
 import { requireStaff, type AuthedRequest } from "../middleware/auth";
-import { requireAnyPermission } from "../lib/permissions";
 import {
   destroyCloudinaryImage,
   isCloudinaryConfigured,
@@ -29,7 +28,7 @@ const uploadSchema = z.object({
 
 uploadsRouter.post(
   "/image",
-  requireAnyPermission("can_manage_products", "can_manage_content"),
+  requireStaff,
   async (req: AuthedRequest, res) => {
   try {
     if (!isCloudinaryConfigured()) {
@@ -80,7 +79,7 @@ uploadsRouter.post(
 
 uploadsRouter.delete(
   "/image",
-  requireAnyPermission("can_manage_products", "can_manage_content"),
+  requireStaff,
   async (req: AuthedRequest, res) => {
   try {
     const publicId = String(req.body?.publicId || req.query?.publicId || "").trim();

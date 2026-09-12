@@ -159,6 +159,9 @@ export const api = {
       body: JSON.stringify({ token, password }),
     }),
   me: () => request<any>("/api/auth/me"),
+  /** Re-bind JWT to current Neon user by email (after DB switch / re-seed). */
+  rebindSession: () =>
+    request<{ token: string; user: any }>("/api/auth/rebind", { method: "POST", body: "{}" }),
   updateProfile: (body: { fullName?: string; phone?: string }) =>
     request<any>("/api/auth/me", { method: "PATCH", body: JSON.stringify(body) }),
 

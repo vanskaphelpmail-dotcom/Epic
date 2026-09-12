@@ -491,6 +491,7 @@ export const ProductManager: React.FC<ProductManagerProps> = ({
   const pendingSaveStatusRef = useRef<'Active' | 'Draft' | null>(null);
   /** Up to 6 product images: slot 1 is main card image */
   const [pImageSlots, setPImageSlots] = useState<string[]>(['', '', '', '', '', '']);
+  const [uploadingSlot, setUploadingSlot] = useState<number | null>(null);
   const [galleryViewer, setGalleryViewer] = useState<{ product: Product; index: number } | null>(null);
 
   const updateConfig = (newConfig: AppConfig) => {
@@ -804,22 +805,43 @@ export const ProductManager: React.FC<ProductManagerProps> = ({
     if (!file) return;
     if (slotIndex < 0 || slotIndex > 5) return;
     if (!file.type.startsWith('image/')) {
-      alert('Please upload an image file (JPG, PNG, WEBP).');
+      toast('Please upload an image file (JPG, PNG, WEBP).', 'error');
       return;
     }
     const limit = imageUploadLimitForCategory(pCategory);
     if (file.size > limit) {
-      alert(
+      toast(
         `Image is too large for ${pCategory || 'this category'} (max ${(limit / (1024 * 1024)).toFixed(0)}MB). Try a smaller file.`,
+        'error',
       );
       return;
     }
+    if (isApiEnabled() && !getToken()) {
+      if (onRequireStaffLogin) onRequireStaffLogin();
+      else toast('Staff sign-in required to upload images.', 'error');
+      return;
+    }
+    setUploadingSlot(slotIndex);
     try {
+      if (isApiEnabled()) {
+        try {
+          const status = await api.uploadStatus();
+          if (!status?.configured) {
+            throw new Error('Cloudinary is not configured on the server. Check CLOUDINARY_* env vars.');
+          }
+        } catch (statusErr) {
+          if (statusErr instanceof Error && /not configured/i.test(statusErr.message)) throw statusErr;
+          // Status probe failed — still try upload (route may work)
+        }
+      }
       const url = await uploadStoreImage(file, 'products', {
-        maxEdge: 1400,
-        quality: 0.78,
-        maxBytes: 850_000,
+        maxEdge: 1600,
+        quality: 0.82,
+        maxBytes: 1_200_000,
       });
+      if (!url || typeof url !== 'string') {
+        throw new Error('Upload returned an empty URL.');
+      }
       setPImageSlots((prev) => {
         const next = [...prev];
         while (next.length < 6) next.push('');
@@ -827,8 +849,15 @@ export const ProductManager: React.FC<ProductManagerProps> = ({
         return next.slice(0, 6);
       });
       if (slotIndex === 0) setPMainImage(url);
+      toast(`Image ${slotIndex + 1} uploaded`, 'success');
     } catch (err) {
-      alert(err instanceof Error ? err.message : 'Could not upload image to Cloudinary.');
+      const msg =
+        err instanceof Error
+          ? err.message
+          : 'Could not upload image to Cloudinary.';
+      toast(msg, 'error');
+    } finally {
+      setUploadingSlot(null);
     }
   };
 
@@ -983,7 +1012,7 @@ export const ProductManager: React.FC<ProductManagerProps> = ({
       image: primaryImage,
       images: galleryImages,
       gallery: galleryImages,
-      uploadedImage: primaryImage.startsWith('data:') ? primaryImage : (editingProduct?.uploadedImage && primaryImage === editingProduct.uploadedImage ? editingProduct.uploadedImage : undefined),
+      uploadedImage: isRenderableImageSrc(primaryImage) ? primaryImage : undefined,
       rating: editingProduct?.rating || 4.9,
       reviewsCount: editingProduct?.reviewsCount || 12,
       badgeAvailable: pBadgeAvailable,
@@ -2555,6 +2584,69 @@ export const ProductManager: React.FC<ProductManagerProps> = ({
                   </div>
                 </div>
 
+              {/* PRODUCT IMAGES — near top so uploads are easy to find */}
+              <div id="product-images-section" className="space-y-4 scroll-mt-4">
+                <h5 className="text-xs font-mono font-bold uppercase text-emerald-800 border-b border-emerald-100 pb-1">
+                  2. Product Images — Upload up to 6 Pictures
+                </h5>
+                <p className="text-[10px] text-emerald-700 font-mono">
+                  Slot 1 is the main storefront image (Cloudinary). JPG / PNG / WEBP. Staff login required.
+                </p>
+                <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-3 gap-2.5 sm:gap-3">
+                  {[0, 1, 2, 3, 4, 5].map((slot) => (
+                    <div key={slot} className="bg-emerald-50/40 border border-emerald-200 rounded-xl sm:rounded-2xl p-2 sm:p-3 space-y-1.5 sm:space-y-2 min-w-0">
+                      <div className="flex items-center justify-between gap-1">
+                        <span className="text-[9px] sm:text-[10px] font-black uppercase text-emerald-900 font-mono truncate">
+                          {slot === 0 ? 'Image 1 · Main' : `Image ${slot + 1}`}
+                        </span>
+                        {pImageSlots[slot] && uploadingSlot !== slot && (
+                          <button
+                            type="button"
+                            onClick={() => clearImageSlot(slot)}
+                            className="text-[9px] font-bold text-rose-700 hover:underline cursor-pointer shrink-0"
+                          >
+                            Clear
+                          </button>
+                        )}
+                      </div>
+                      <label className={`relative block aspect-square rounded-lg sm:rounded-xl overflow-hidden border-2 border-dashed border-emerald-300 bg-white cursor-pointer hover:border-emerald-500 transition-colors group ${uploadingSlot === slot ? 'pointer-events-none opacity-80' : ''}`}>
+                        {pImageSlots[slot] ? (
+                          <img src={pImageSlots[slot]} alt={`Slot ${slot + 1}`} className="w-full h-full object-cover" />
+                        ) : (
+                          <div className="absolute inset-0 flex flex-col items-center justify-center gap-1 sm:gap-2 text-emerald-700 px-2 text-center">
+                            <Upload size={18} className="text-emerald-600 sm:w-[22px] sm:h-[22px]" />
+                            <span className="text-[9px] sm:text-[10px] font-bold uppercase tracking-wide">Tap to upload</span>
+                            <span className="text-[8px] sm:text-[9px] font-mono opacity-70 hidden xs:inline">JPG / PNG / WEBP</span>
+                          </div>
+                        )}
+                        <input
+                          type="file"
+                          accept="image/jpeg,image/png,image/webp,image/gif"
+                          className="absolute inset-0 opacity-0 cursor-pointer"
+                          disabled={uploadingSlot !== null}
+                          onChange={(e) => {
+                            const f = e.target.files?.[0] || null;
+                            e.target.value = '';
+                            void handleImageSlotUpload(slot, f);
+                          }}
+                        />
+                        {uploadingSlot === slot && (
+                          <div className="absolute inset-0 bg-emerald-950/60 flex flex-col items-center justify-center gap-2 z-10">
+                            <RefreshCw size={20} className="text-white animate-spin" />
+                            <span className="text-white text-[9px] font-black uppercase">Uploading…</span>
+                          </div>
+                        )}
+                        {pImageSlots[slot] && uploadingSlot !== slot && (
+                          <div className="absolute inset-0 bg-emerald-950/50 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
+                            <span className="text-white text-[9px] sm:text-[10px] font-black uppercase">Replace</span>
+                          </div>
+                        )}
+                      </label>
+                    </div>
+                  ))}
+                </div>
+              </div>
+
                 <div className="grid grid-cols-1 gap-4 text-xs">
                   <div className="rounded-xl border border-emerald-200 bg-white/80 p-3">
                     <div className="flex items-center justify-between mb-1">
@@ -2590,7 +2682,7 @@ export const ProductManager: React.FC<ProductManagerProps> = ({
               {/* SECTION 2: PAGE ASSIGNMENT, CATEGORY & ROW POSITION */}
               <div className="space-y-4">
                 <h5 className="text-xs font-mono font-bold uppercase text-emerald-800 border-b border-emerald-100 pb-1">
-                  2. Page Assignment, Category & Row Position
+                  3. Page Assignment, Category & Row Position
                 </h5>
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-4 text-xs">
                   <div>
@@ -2793,60 +2885,7 @@ export const ProductManager: React.FC<ProductManagerProps> = ({
                 </div>
               </div>
 
-              {/* SECTION 3: PRODUCT IMAGES (6 uploads) */}
-              <div className="space-y-4">
-                <h5 className="text-xs font-mono font-bold uppercase text-emerald-800 border-b border-emerald-100 pb-1">
-                  3. Product Images — Upload 6 Pictures (Mobile or PC)
-                </h5>
-                <p className="text-[10px] text-emerald-700 font-mono">
-                  Upload from phone camera/gallery or desktop files. Slot 1 is the main card image. You can add up to 6 photos; click any product thumbnail later to view them all.
-                </p>
-                <div className="grid grid-cols-2 sm:grid-cols-3 gap-3 sm:gap-4">
-                  {[0, 1, 2, 3, 4, 5].map((slot) => (
-                    <div key={slot} className="bg-emerald-50/40 border border-emerald-200 rounded-2xl p-3 space-y-2">
-                      <div className="flex items-center justify-between">
-                        <span className="text-[10px] font-black uppercase text-emerald-900 font-mono">
-                          {slot === 0 ? 'Image 1 · Main' : `Image ${slot + 1}`}
-                        </span>
-                        {pImageSlots[slot] && (
-                          <button
-                            type="button"
-                            onClick={() => clearImageSlot(slot)}
-                            className="text-[9px] font-bold text-rose-700 hover:underline cursor-pointer"
-                          >
-                            Clear
-                          </button>
-                        )}
-                      </div>
-                      <label className="relative block aspect-square rounded-xl overflow-hidden border-2 border-dashed border-emerald-300 bg-white cursor-pointer hover:border-emerald-500 transition-colors group">
-                        {pImageSlots[slot] ? (
-                          <img src={pImageSlots[slot]} alt={`Slot ${slot + 1}`} className="w-full h-full object-cover" />
-                        ) : (
-                          <div className="absolute inset-0 flex flex-col items-center justify-center gap-2 text-emerald-700 px-3 text-center">
-                            <Upload size={22} className="text-emerald-600" />
-                            <span className="text-[10px] font-bold uppercase tracking-wide">Tap to upload</span>
-                            <span className="text-[9px] font-mono opacity-70">JPG / PNG / WEBP</span>
-                          </div>
-                        )}
-                        <input
-                          type="file"
-                          accept="image/*"
-                          capture={undefined}
-                          className="absolute inset-0 opacity-0 cursor-pointer"
-                          onChange={(e) => handleImageSlotUpload(slot, e.target.files?.[0] || null)}
-                        />
-                        {pImageSlots[slot] && (
-                          <div className="absolute inset-0 bg-emerald-950/50 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
-                            <span className="text-white text-[10px] font-black uppercase">Replace</span>
-                          </div>
-                        )}
-                      </label>
-                    </div>
-                  ))}
-                </div>
-              </div>
-
-              {/* SECTION 4: INVENTORY, PRICING & STOCK ALERTS */}
+              {/* SECTION: INVENTORY, PRICING & STOCK ALERTS */}
               <div className="space-y-4">
                 <h5 className="text-xs font-mono font-bold uppercase text-emerald-800 border-b border-emerald-100 pb-1">
                   4. Inventory, Pricing & Stock Alerts

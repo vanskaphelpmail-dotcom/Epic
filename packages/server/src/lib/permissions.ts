@@ -237,11 +237,11 @@ export type AuthedRequestWithFlags = AuthedRequest & {
 };
 
 /** Load fresh flags from DB (permission changes apply immediately). */
-export async function loadUserAccessFlags(userId: string): Promise<{
+export async function loadUserAccessFlags(userId: string, email?: string): Promise<{
   user: AuthUser & { status: string };
   flags: AccessFlags;
 } | null> {
-  const row = await prisma.user.findUnique({
+  let row = await prisma.user.findUnique({
     where: { id: userId },
     select: {
       id: true,
@@ -253,6 +253,21 @@ export async function loadUserAccessFlags(userId: string): Promise<{
       status: true,
     },
   });
+  // After DB switch / re-seed, JWT may still hold an old user id — recover by email.
+  if (!row && email?.trim()) {
+    row = await prisma.user.findFirst({
+      where: { email: { equals: email.trim(), mode: "insensitive" } },
+      select: {
+        id: true,
+        email: true,
+        fullName: true,
+        role: true,
+        permissions: true,
+        accessFlags: true,
+        status: true,
+      },
+    });
+  }
   if (!row) return null;
   const flags = resolveAccessFlags(
     row.role,
@@ -281,11 +296,14 @@ export function requirePermission(...needed: PermissionFlag[]) {
     requireStaff(req, res, () => {
       void (async () => {
         try {
-          const loaded = await loadUserAccessFlags(req.user!.id);
+          const loaded = await loadUserAccessFlags(req.user!.id, req.user!.email);
           if (!loaded || loaded.user.status !== "ACTIVE") {
             return res.status(403).json({
               success: false,
-              error: { message: "Account inactive or not found" },
+              error: {
+                message:
+                  "Account inactive or session outdated. Sign out and sign in again as staff.",
+              },
             });
           }
           // Refresh role from DB (JWT may be stale)
@@ -329,11 +347,14 @@ export function requireAnyPermission(...needed: PermissionFlag[]) {
     requireStaff(req, res, () => {
       void (async () => {
         try {
-          const loaded = await loadUserAccessFlags(req.user!.id);
+          const loaded = await loadUserAccessFlags(req.user!.id, req.user!.email);
           if (!loaded || loaded.user.status !== "ACTIVE") {
             return res.status(403).json({
               success: false,
-              error: { message: "Account inactive or not found" },
+              error: {
+                message:
+                  "Account inactive or session outdated. Sign out and sign in again as staff.",
+              },
             });
           }
           req.user = {

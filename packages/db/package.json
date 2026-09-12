@@ -13,7 +13,7 @@
     "migrate:deploy": "node ./scripts/run-prisma.mjs migrate deploy",
     "migrate:status": "node ./scripts/run-prisma.mjs migrate status",
     "push": "node ./scripts/run-prisma.mjs db push",
-    "seed": "tsx prisma/seed.ts",
+    "seed": "tsx --env-file=../../.env prisma/seed.ts",
     "studio": "node ./scripts/run-prisma.mjs studio",
     "validate": "node ./scripts/run-prisma.mjs validate"
   },

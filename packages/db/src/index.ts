@@ -14,12 +14,18 @@ function resolveDatabaseUrl(): string {
   }
   try {
     const parsed = new URL(url);
+    // channel_binding=require hangs Node/pg on Vercel serverless — strip always
+    parsed.searchParams.delete("channel_binding");
     // Keep Neon + node-pg SSL semantics compatible (avoids verify-full warning/noise).
-    if (!parsed.searchParams.has("uselibpqcompat")) {
-      parsed.searchParams.set("uselibpqcompat", "true");
-    }
+    parsed.searchParams.set("uselibpqcompat", "true");
     if (!parsed.searchParams.has("sslmode")) {
       parsed.searchParams.set("sslmode", "require");
+    }
+    if (!parsed.searchParams.has("connect_timeout")) {
+      parsed.searchParams.set("connect_timeout", "15");
+    }
+    if (parsed.hostname.includes("-pooler.") && !parsed.searchParams.has("pgbouncer")) {
+      parsed.searchParams.set("pgbouncer", "true");
     }
     return parsed.toString();
   } catch {

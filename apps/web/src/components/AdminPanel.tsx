@@ -6681,7 +6681,7 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({
                                   {formatBannerPx(spec)}
                                 </p>
                                 <p className={`text-[10px] mt-0.5 ${bannerImageTab === key ? 'text-zinc-300' : 'text-zinc-500'}`}>
-                                  Height {spec.height}px · Width {spec.width}px
+                                  Auto-fit · H {spec.height}px · W {spec.width}px
                                 </p>
                               </button>
                             ))}
@@ -6721,6 +6721,67 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({
                             </button>
                           );
                         })}
+                      </div>
+
+                      <div className="rounded-xl border border-zinc-200 bg-white p-3 sm:p-4 space-y-3">
+                        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
+                          <div className="min-w-0">
+                            <p className="text-xs font-bold text-zinc-900">Responsive auto upload</p>
+                            <p className="text-[11px] text-zinc-500 mt-0.5">
+                              One image → applied to Desktop, Tablet &amp; Mobile automatically (storefront picks by screen size).
+                            </p>
+                          </div>
+                          <label className="inline-flex items-center justify-center gap-1.5 bg-zinc-950 hover:bg-zinc-800 text-white font-bold text-xs px-4 py-2.5 rounded-lg cursor-pointer shrink-0 w-full sm:w-auto">
+                            <Upload size={14} />
+                            {bannerUploading ? 'Uploading…' : 'Upload for all devices'}
+                            <input
+                              type="file"
+                              accept="image/jpeg,image/png,image/webp,image/gif"
+                              className="hidden"
+                              disabled={bannerUploading}
+                              onChange={async (e) => {
+                                const file = e.target.files?.[0];
+                                e.target.value = '';
+                                if (!file) return;
+                                if (!file.type.startsWith('image/')) {
+                                  toast('Please upload an image file.', 'error');
+                                  return;
+                                }
+                                if (file.size > 6 * 1024 * 1024) {
+                                  toast('Image must be under 6MB.', 'error');
+                                  return;
+                                }
+                                setBannerUploading(true);
+                                try {
+                                  const specs = getBannerPixelSpecs(editingBanner.type);
+                                  const maxEdge = Math.max(
+                                    specs.desktop.width,
+                                    specs.desktop.height,
+                                    specs.tablet.width,
+                                    specs.mobile.width,
+                                  );
+                                  const url = await uploadStoreImage(file, 'banners', {
+                                    maxEdge,
+                                    quality: 0.82,
+                                    maxBytes: 1_200_000,
+                                  });
+                                  setEditingBanner({
+                                    ...editingBanner,
+                                    desktopImage: url,
+                                    tabletImage: url,
+                                    mobileImage: url,
+                                    image: url,
+                                  });
+                                  toast('Banner set for Desktop · Tablet · Mobile', 'success');
+                                } catch (err) {
+                                  toast(err instanceof Error ? err.message : 'Upload failed', 'error');
+                                } finally {
+                                  setBannerUploading(false);
+                                }
+                              }}
+                            />
+                          </label>
+                        </div>
                       </div>
 
                       {(() => {
@@ -6899,7 +6960,7 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({
                                       : 'border-zinc-200 hover:border-zinc-300'
                                   }`}
                                 >
-                                  <div className={`bg-zinc-100 relative ${spec.aspectClass} max-h-16`}>
+                                  <div className={`bg-zinc-100 relative ${spec.aspectClass} max-h-20 sm:max-h-16`}>
                                     {src && (src.startsWith('http') || src.startsWith('/')) ? (
                                       <img src={src} alt="" className="absolute inset-0 w-full h-full object-cover" />
                                     ) : (

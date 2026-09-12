@@ -212,12 +212,12 @@ export const ProductDetails: React.FC<ProductDetailsProps> = ({
 
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-12 items-start w-full min-w-0">
         
-        {/* Left Column: product image gallery */}
-        <div className="lg:col-span-6 space-y-4">
+        {/* Left Column: edge-to-edge product image gallery */}
+        <div className="lg:col-span-6 space-y-3 min-w-0">
           <div
             ref={galleryRef}
             data-product-fly-image
-            className="relative group bg-transparent m-0 p-0 flex items-center justify-center aspect-[4/5] sm:aspect-[3/4] max-h-[min(82vh,720px)] w-full overflow-hidden"
+            className="relative group m-0 p-0 bg-transparent border-0 shadow-none rounded-none flex items-center justify-center w-full min-h-[min(70vw,420px)] sm:min-h-[520px] max-h-[min(85vh,760px)] aspect-[4/5] sm:aspect-[3/4] overflow-hidden"
             onMouseEnter={() => setGalleryPaused(true)}
             onMouseLeave={() => setGalleryPaused(false)}
             onTouchStart={(e) => {
@@ -239,26 +239,28 @@ export const ProductDetails: React.FC<ProductDetailsProps> = ({
               );
             }}
           >
-            <div className="relative w-full h-full flex items-center justify-center m-0 p-0">
+            <div className="absolute inset-0 m-0 p-0 flex items-center justify-center bg-transparent">
               {showPhoto ? (
                 <img
                   key={`${product.id}-${safeGalleryIndex}`}
                   src={mainImageSrc}
                   alt={product.name}
-                  className="h-full w-full max-h-full max-w-full object-contain object-center select-none transition-opacity duration-300"
+                  className="h-full w-full object-contain object-center select-none transition-opacity duration-300 ease-out"
                   referrerPolicy="no-referrer"
                   draggable={false}
                 />
               ) : (
-                <JerseyRenderer
-                  productId={product.id}
-                  isBackView={isBackView}
-                  customName={enableNameset ? customName : ''}
-                  customNumber={enableNameset && customNumber !== '' ? Number(customNumber) : undefined}
-                  showBadge={activeBadgeIds.length > 0}
-                  uploadedImage={product.uploadedImage}
-                  imageKey={product.image}
-                />
+                <div className="h-full w-full flex items-center justify-center m-0 p-0 bg-transparent [&_img]:!object-contain [&_img]:!max-h-full [&_img]:!max-w-full">
+                  <JerseyRenderer
+                    productId={product.id}
+                    isBackView={isBackView}
+                    customName={enableNameset ? customName : ''}
+                    customNumber={enableNameset && customNumber !== '' ? Number(customNumber) : undefined}
+                    showBadge={activeBadgeIds.length > 0}
+                    uploadedImage={product.uploadedImage}
+                    imageKey={product.image}
+                  />
+                </div>
               )}
             </div>
 
@@ -271,9 +273,9 @@ export const ProductDetails: React.FC<ProductDetailsProps> = ({
                     e.stopPropagation();
                     setGalleryIndex((i) => (i - 1 + galleryImages.length) % galleryImages.length);
                   }}
-                  className="absolute left-2 top-1/2 -translate-y-1/2 z-20 flex h-10 w-10 items-center justify-center rounded-full bg-black/45 text-white border border-white/10 opacity-0 group-hover:opacity-100 focus:opacity-100 transition-opacity duration-200 cursor-pointer hover:bg-black/65"
+                  className="absolute left-1 sm:left-2 top-1/2 -translate-y-1/2 z-20 flex h-9 w-9 sm:h-10 sm:w-10 items-center justify-center rounded-full bg-black/35 text-white/90 border-0 opacity-0 pointer-events-none group-hover:opacity-100 group-hover:pointer-events-auto focus-visible:opacity-100 focus-visible:pointer-events-auto transition-opacity duration-200 cursor-pointer hover:bg-black/55"
                 >
-                  <ChevronLeft size={20} strokeWidth={2} />
+                  <ChevronLeft size={20} strokeWidth={1.75} />
                 </button>
                 <button
                   type="button"
@@ -282,11 +284,11 @@ export const ProductDetails: React.FC<ProductDetailsProps> = ({
                     e.stopPropagation();
                     setGalleryIndex((i) => (i + 1) % galleryImages.length);
                   }}
-                  className="absolute right-2 top-1/2 -translate-y-1/2 z-20 flex h-10 w-10 items-center justify-center rounded-full bg-black/45 text-white border border-white/10 opacity-0 group-hover:opacity-100 focus:opacity-100 transition-opacity duration-200 cursor-pointer hover:bg-black/65"
+                  className="absolute right-1 sm:right-2 top-1/2 -translate-y-1/2 z-20 flex h-9 w-9 sm:h-10 sm:w-10 items-center justify-center rounded-full bg-black/35 text-white/90 border-0 opacity-0 pointer-events-none group-hover:opacity-100 group-hover:pointer-events-auto focus-visible:opacity-100 focus-visible:pointer-events-auto transition-opacity duration-200 cursor-pointer hover:bg-black/55"
                 >
-                  <ChevronRight size={20} strokeWidth={2} />
+                  <ChevronRight size={20} strokeWidth={1.75} />
                 </button>
-                <div className="absolute bottom-3 left-0 right-0 z-20 flex justify-center items-center gap-1.5">
+                <div className="absolute bottom-2 left-0 right-0 z-20 flex justify-center items-center gap-1.5 pointer-events-none">
                   {galleryImages.map((_, i) => (
                     <button
                       key={`pd-dot-${i}`}
@@ -294,8 +296,8 @@ export const ProductDetails: React.FC<ProductDetailsProps> = ({
                       aria-label={`Show image ${i + 1}`}
                       aria-current={i === safeGalleryIndex}
                       onClick={() => setGalleryIndex(i)}
-                      className={`h-2 rounded-full transition-all cursor-pointer ${
-                        i === safeGalleryIndex ? 'w-5 bg-[#E30613]' : 'w-2 bg-white/40 hover:bg-white/70'
+                      className={`pointer-events-auto h-1.5 rounded-full transition-all cursor-pointer ${
+                        i === safeGalleryIndex ? 'w-5 bg-[#E30613]' : 'w-1.5 bg-[#0A0A0A]/25 hover:bg-[#0A0A0A]/45'
                       }`}
                     />
                   ))}
@@ -305,14 +307,14 @@ export const ProductDetails: React.FC<ProductDetailsProps> = ({
           </div>
 
           {galleryImages.length > 0 && (
-            <div className="flex gap-2 justify-center flex-wrap">
+            <div className="flex gap-2 justify-center flex-wrap m-0 px-0">
               {galleryImages.map((src, i) => (
                 <button
                   key={i}
                   type="button"
                   onClick={() => setGalleryIndex(i)}
-                  className={`h-16 w-16 rounded-xl overflow-hidden border-2 cursor-pointer transition-colors ${
-                    safeGalleryIndex === i ? 'border-[#E30613]' : 'border-[#E5E5E5] hover:border-[#E5E5E5]'
+                  className={`h-14 w-14 sm:h-16 sm:w-16 overflow-hidden border m-0 p-0 rounded-md cursor-pointer transition-colors bg-transparent ${
+                    safeGalleryIndex === i ? 'border-[#E30613]' : 'border-[#E5E5E5] hover:border-[#0A0A0A]/40'
                   }`}
                 >
                   {isRenderableImageSrc(src) ? (
@@ -320,11 +322,11 @@ export const ProductDetails: React.FC<ProductDetailsProps> = ({
                       src={src}
                       alt=""
                       loading="lazy"
-                      className="w-full h-full object-contain bg-white"
+                      className="w-full h-full object-contain bg-transparent"
                       referrerPolicy="no-referrer"
                     />
                   ) : (
-                    <div className="w-full h-full bg-[#F8F8F7] flex items-center justify-center text-[10px] font-bold text-[#555555]">
+                    <div className="w-full h-full bg-transparent flex items-center justify-center text-[10px] font-bold text-[#555555]">
                       View {i + 1}
                     </div>
                   )}

@@ -21,6 +21,24 @@ const STAFF: UserRole[] = [
   "CONTENT_MANAGER",
 ];
 
+/** Normalize JWT role (Prisma enum or legacy UI labels). */
+function normalizeRole(role: unknown): UserRole | null {
+  const raw = String(role || "").trim();
+  if (!raw) return null;
+  const upper = raw.toUpperCase().replace(/\s+/g, "_");
+  if ((STAFF as string[]).includes(upper) || upper === "CUSTOMER") return upper as UserRole;
+  const ui: Record<string, UserRole> = {
+    Admin: "ADMIN",
+    "Super Admin": "SUPER_ADMIN",
+    "Inventory Manager": "INVENTORY_MANAGER",
+    "Order Manager": "ORDER_MANAGER",
+    "Customer Support": "CUSTOMER_SUPPORT",
+    "Content Manager": "CONTENT_MANAGER",
+    Customer: "CUSTOMER",
+  };
+  return ui[raw] || null;
+}
+
 function secret() {
   const s = (process.env.AUTH_SECRET || process.env.JWT_SECRET || "").trim();
   if (!s) throw new Error("AUTH_SECRET is required");
@@ -49,11 +67,12 @@ export function requireAuth(req: AuthedRequest, res: Response, next: NextFunctio
     if (!raw) return res.status(401).json({ success: false, error: { message: "Unauthorized" } });
 
     const payload = jwt.verify(raw, secret()) as jwt.JwtPayload;
+    const role = normalizeRole(payload.role) || (payload.role as UserRole);
     req.user = {
       id: String(payload.sub),
-      email: String(payload.email),
-      fullName: String(payload.fullName),
-      role: payload.role as UserRole,
+      email: String(payload.email || ""),
+      fullName: String(payload.fullName || ""),
+      role,
       permissions: (payload.permissions as string[]) || [],
     };
     next();
@@ -65,7 +84,13 @@ export function requireAuth(req: AuthedRequest, res: Response, next: NextFunctio
 export function requireStaff(req: AuthedRequest, res: Response, next: NextFunction) {
   requireAuth(req, res, () => {
     if (!req.user || !STAFF.includes(req.user.role)) {
-      return res.status(403).json({ success: false, error: { message: "Staff access required" } });
+      return res.status(403).json({
+        success: false,
+        error: {
+          message:
+            "Staff access required. Sign out and sign in again as admin@epicvanskap.com.",
+        },
+      });
     }
     next();
   });
@@ -79,11 +104,12 @@ export function optionalAuth(req: AuthedRequest, _res: Response, next: NextFunct
     const raw = header?.startsWith("Bearer ") ? header.slice(7) : cookieToken;
     if (!raw) return next();
     const payload = jwt.verify(raw, secret()) as jwt.JwtPayload;
+    const role = normalizeRole(payload.role) || (payload.role as UserRole);
     req.user = {
       id: String(payload.sub),
-      email: String(payload.email),
-      fullName: String(payload.fullName),
-      role: payload.role as UserRole,
+      email: String(payload.email || ""),
+      fullName: String(payload.fullName || ""),
+      role,
       permissions: (payload.permissions as string[]) || [],
     };
   } catch {

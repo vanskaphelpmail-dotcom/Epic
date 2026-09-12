@@ -178,11 +178,34 @@ authRouter.post("/login", async (req, res) => {
 });
 
 authRouter.get("/me", requireAuth, async (req: AuthedRequest, res) => {
-  const user = await prisma.user.findUnique({ where: { id: req.user!.id } });
-  if (!user) return res.status(404).json({ success: false, error: { message: "User not found" } });
+  let user = await prisma.user.findUnique({ where: { id: req.user!.id } });
+  // Stale JWT after DB re-seed / Neon switch — recover by email and re-issue token
+  let remapped = false;
+  if (!user && req.user?.email) {
+    user = await prisma.user.findFirst({
+      where: { email: { equals: req.user.email.trim(), mode: "insensitive" } },
+    });
+    remapped = !!user;
+  }
+  if (!user) {
+    return res.status(404).json({
+      success: false,
+      error: { message: "User not found. Sign out and sign in again." },
+    });
+  }
   if (user.status !== "ACTIVE") {
     return res.status(403).json({ success: false, error: { message: "Account inactive" } });
   }
+
+  const authUser = {
+    id: user.id,
+    email: user.email,
+    fullName: user.fullName,
+    role: user.role,
+    permissions: user.permissions,
+  };
+  const token = remapped || user.id !== req.user!.id ? signToken(authUser) : undefined;
+
   return res.json({
     success: true,
     data: {
@@ -197,8 +220,57 @@ authRouter.get("/me", requireAuth, async (req: AuthedRequest, res) => {
         (user.accessFlags as Record<string, boolean> | null) || null,
         user.permissions || [],
       ),
+      ...(token ? { token } : {}),
     },
   });
+});
+
+/** Force-refresh JWT against current Neon users (email bind). */
+authRouter.post("/rebind", requireAuth, async (req: AuthedRequest, res) => {
+  try {
+    let user = await prisma.user.findUnique({ where: { id: req.user!.id } });
+    if (!user && req.user?.email) {
+      user = await prisma.user.findFirst({
+        where: { email: { equals: req.user.email.trim(), mode: "insensitive" } },
+      });
+    }
+    if (!user || user.status !== "ACTIVE") {
+      return res.status(403).json({
+        success: false,
+        error: { message: "Account inactive or not found. Sign out and sign in again." },
+      });
+    }
+    const authUser = {
+      id: user.id,
+      email: user.email,
+      fullName: user.fullName,
+      role: user.role,
+      permissions: user.permissions,
+    };
+    const token = signToken(authUser);
+    return res.json({
+      success: true,
+      data: {
+        token,
+        user: {
+          id: user.id,
+          email: user.email,
+          fullName: user.fullName,
+          role: mapRoleToUi(user.role),
+          phone: user.phone ?? undefined,
+          permissions: user.permissions,
+          accessFlags: resolveAccessFlags(
+            user.role,
+            (user.accessFlags as Record<string, boolean> | null) || null,
+            user.permissions || [],
+          ),
+        },
+      },
+    });
+  } catch (error) {
+    console.error("[auth/rebind]", error);
+    return res.status(500).json({ success: false, error: { message: "Session refresh failed" } });
+  }
 });
 
 authRouter.patch("/me", requireAuth, async (req: AuthedRequest, res) => {

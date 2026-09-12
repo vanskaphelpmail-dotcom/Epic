@@ -12,9 +12,9 @@ interface ClubLogoShowcaseProps {
   onSelectClub: (club: ClubCatalogItem) => void;
 }
 
-const CLUB_CARD_PX = 160;
-/** Start scrolling after layout/images settle — then never stop */
-const ANIM_START_DELAY_MS = 900;
+/** Fixed logo card size (px) — matches storefront request */
+const CLUB_CARD_PX = 120;
+const ANIM_START_DELAY_MS = 700;
 
 function ClubCard({
   club,
@@ -32,9 +32,9 @@ function ClubCard({
       type="button"
       onClick={onSelect}
       style={{ width: CLUB_CARD_PX, height: CLUB_CARD_PX, minWidth: CLUB_CARD_PX, minHeight: CLUB_CARD_PX }}
-      className="club-logo-card group box-border flex shrink-0 flex-col items-center justify-center gap-2 rounded-2xl border border-[#B8D9C8] bg-white px-2.5 py-3 text-center transition-colors hover:bg-[#F8FBF9] cursor-pointer"
+      className="club-logo-card group box-border flex shrink-0 flex-col items-center justify-center gap-1 rounded-xl border border-[#D8E8DF] bg-white px-1.5 py-2 text-center transition-colors hover:bg-[#F8FBF9] cursor-pointer"
     >
-      <div className="flex h-14 w-14 shrink-0 items-center justify-center overflow-hidden">
+      <div className="flex h-11 w-11 shrink-0 items-center justify-center overflow-hidden">
         {club.logoUrl && !imgFailed ? (
           <img
             src={club.logoUrl}
@@ -46,15 +46,15 @@ function ClubCard({
             onError={() => setImgFailed(true)}
           />
         ) : (
-          <span className="text-[10px] font-black uppercase text-[#0A0A0A]/40">Logo</span>
+          <span className="text-[9px] font-black uppercase text-[#0A0A0A]/35">Logo</span>
         )}
       </div>
-      <div className="min-w-0 w-full space-y-0.5 px-0.5">
-        <h4 className="text-[11px] font-black uppercase leading-tight tracking-tight text-[#0A0A0A] line-clamp-2">
+      <div className="min-w-0 w-full space-y-0 px-0.5">
+        <h4 className="text-[9px] font-black uppercase leading-tight tracking-tight text-[#0A0A0A] line-clamp-2">
           {club.name}
         </h4>
-        <p className="text-[10px] font-medium text-[#5FA88A] leading-tight">
-          {displayCount} verified jerseys
+        <p className="text-[8px] font-medium text-[#5FA88A] leading-tight truncate">
+          {displayCount} jerseys
         </p>
       </div>
     </button>
@@ -64,7 +64,7 @@ function ClubCard({
 /** Build one marquee half wide enough for a seamless -50% loop */
 function buildMarqueeHalf(clubs: ClubCatalogItem[]): ClubCatalogItem[] {
   if (clubs.length === 0) return [];
-  const minCards = 8;
+  const minCards = 10;
   const half: ClubCatalogItem[] = [];
   while (half.length < minCards) {
     half.push(...clubs);
@@ -84,11 +84,11 @@ export const ClubLogoShowcase: React.FC<ClubLogoShowcaseProps> = ({
     [products, clubs],
   );
 
-  // Exactly two identical halves → translateX(-50%) loops seamlessly forever
   const halfClubs = useMemo(() => buildMarqueeHalf(predictedClubs), [predictedClubs]);
   const loopClubs = useMemo(() => [...halfClubs, ...halfClubs], [halfClubs]);
 
-  const durationSec = Math.max(32, Math.round(halfClubs.length * 4.5));
+  // Smooth continuous speed (~38–55px/sec feel)
+  const durationSec = Math.max(36, Math.round(halfClubs.length * 3.8));
 
   useEffect(() => {
     setAnimReady(false);
@@ -101,12 +101,12 @@ export const ClubLogoShowcase: React.FC<ClubLogoShowcaseProps> = ({
 
   return (
     <section
-      className="w-full max-w-[1440px] mx-auto px-3 sm:px-4 md:px-5 lg:px-6 pt-4 sm:pt-5 pb-2 sm:pb-3"
+      className="w-full max-w-[1440px] mx-auto px-3 sm:px-4 md:px-5 lg:px-6 pt-3 sm:pt-4 pb-2"
       aria-label="Football club logo showcase"
     >
       <div className="club-logo-marquee relative w-full overflow-hidden">
         <div
-          className={`club-logo-marquee-track flex w-max items-stretch gap-3 ${
+          className={`club-logo-marquee-track flex w-max items-stretch gap-2.5 ${
             animReady ? 'is-running' : 'is-waiting'
           }`}
           style={{ animationDuration: `${durationSec}s` }}

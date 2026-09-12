@@ -861,8 +861,7 @@ select:focus {
   animation-iteration-count: infinite;
   animation-fill-mode: none;
   animation-play-state: running !important;
-  /* duration set inline; keep a safe fallback */
-  animation-duration: 40s;
+  animation-duration: 42s;
 }
 
 /* Never pause on hover / focus / reduced-motion — always keep moving once started */

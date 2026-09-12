@@ -1,5 +1,5 @@
 import { compressImageToDataUrl, type CompressOptions } from './imageCompress';
-import { api, getToken, isApiEnabled } from './apiClient';
+import { api, getToken, isApiEnabled, setToken } from './apiClient';
 
 export type UploadFolder = 'products' | 'banners' | 'media' | 'avatars' | 'categories' | 'patches';
 
@@ -29,9 +29,29 @@ export async function uploadStoreImage(
   }
 
   if (!getToken()) {
-    throw new Error('Staff sign-in required to upload images to Cloudinary.');
+    throw new Error('Staff sign-in required to upload images. Sign out and sign in again.');
   }
 
-  const result = await api.uploadImage({ dataUrl, folder, fileName: file.name });
-  return result.url;
+  const tryUpload = async () => {
+    const result = await api.uploadImage({ dataUrl, folder, fileName: file.name });
+    return result.url;
+  };
+
+  try {
+    return await tryUpload();
+  } catch (err) {
+    const msg = err instanceof Error ? err.message : String(err);
+    if (/403|404|outdated|inactive|not found|Missing permission|Unauthorized|User not found/i.test(msg)) {
+      try {
+        const rebound = await api.rebindSession();
+        if (rebound?.token) setToken(rebound.token);
+        return await tryUpload();
+      } catch {
+        throw new Error(
+          'Upload blocked — session outdated after database change. Sign out of admin, sign in again, then retry.',
+        );
+      }
+    }
+    throw err;
+  }
 }
