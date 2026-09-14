@@ -51,7 +51,7 @@ import { ensureUniqueBarcode, nextSerialEan13, nextSkuSequence, normalizeBarcode
 import { BarcodeLabelPrint } from './admin/BarcodeLabelPrint';
 
 /** Search keywords under product photos — admin can add up to this many. */
-const MAX_PRODUCT_TAGS = 20;
+const MAX_PRODUCT_TAGS = 8;
 
 function parseTagDraft(raw: string): string[] {
   return raw
@@ -425,8 +425,6 @@ export const ProductManager: React.FC<ProductManagerProps> = ({
   const [pColor, setPColor] = useState('Red/White');
   const [pSku, setPSku] = useState('');
   const [pBarcode, setPBarcode] = useState('');
-  const [pSkuMode, setPSkuMode] = useState<'auto' | 'manual'>('auto');
-  const [pBarcodeMode, setPBarcodeMode] = useState<'auto' | 'manual'>('auto');
   const [labelPrint, setLabelPrint] = useState<{ barcode: string; sellPrice: number; name: string } | null>(null);
   const [pCostPrice, setPCostPrice] = useState<MoneyValue>('');
   const [pOriginalPrice, setPOriginalPrice] = useState<MoneyValue>('');
@@ -574,8 +572,6 @@ export const ProductManager: React.FC<ProductManagerProps> = ({
     setPColor('Red/White');
     setPSku(nextSkuSequence(products.map((p) => p.sku), 'EV'));
     setPBarcode(nextSerialEan13(products.map((p) => p.barcode)));
-    setPSkuMode('auto');
-    setPBarcodeMode('auto');
     setPCostPrice('');
     setPOriginalPrice('');
     setPDiscountMode('percent');
@@ -701,7 +697,6 @@ export const ProductManager: React.FC<ProductManagerProps> = ({
     const existingBarcode = normalizeBarcode(product.barcode || '');
     if (existingBarcode) {
       setPBarcode(existingBarcode);
-      setPBarcodeMode('auto');
     } else {
       setPBarcode(
         nextSerialEan13(
@@ -709,9 +704,7 @@ export const ProductManager: React.FC<ProductManagerProps> = ({
           product.barcode,
         ),
       );
-      setPBarcodeMode('auto');
     }
-    setPSkuMode('manual');
     setPCostPrice(product.costPrice != null ? Math.floor(Number(product.costPrice)) : '');
     const sale = Math.floor(Number(product.sellingPrice || product.price) || 0);
     const original =
@@ -923,11 +916,9 @@ export const ProductManager: React.FC<ProductManagerProps> = ({
     const baseSlug = pName.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '') || 'jersey';
     const finalSlug = editingProduct?.slug || `${baseSlug}-${uniqueSuffix}`;
     const resolvedSku =
-      pSkuMode === 'manual' && pSku.trim()
-        ? pSku.trim()
-        : editingProduct?.sku || nextSkuSequence(products.map((p) => p.sku), 'EV');
+      editingProduct?.sku || pSku.trim() || nextSkuSequence(products.map((p) => p.sku), 'EV');
     const resolvedBarcode = ensureUniqueBarcode(
-      pBarcodeMode === 'manual' ? pBarcode : pBarcode || undefined,
+      pBarcode || undefined,
       products.map((p) => p.barcode),
       editingProduct?.barcode,
     );
@@ -2956,79 +2947,27 @@ export const ProductManager: React.FC<ProductManagerProps> = ({
                 </h5>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-xs">
                   <div className="space-y-2 border border-emerald-100 rounded-xl p-3 bg-white">
-                    <div className="flex items-center justify-between gap-2">
-                      <label className="font-bold text-emerald-950">SKU</label>
-                      <div className="flex rounded-lg border border-emerald-200 overflow-hidden">
-                        <button
-                          type="button"
-                          onClick={() => {
-                            setPSkuMode('auto');
-                            setPSku(nextSkuSequence(products.map((p) => p.sku), 'EV'));
-                          }}
-                          className={`px-2.5 py-1 text-[10px] font-bold uppercase ${pSkuMode === 'auto' ? 'bg-zinc-950 text-white' : 'bg-white text-zinc-700'}`}
-                        >
-                          Auto
-                        </button>
-                        <button
-                          type="button"
-                          onClick={() => setPSkuMode('manual')}
-                          className={`px-2.5 py-1 text-[10px] font-bold uppercase ${pSkuMode === 'manual' ? 'bg-zinc-950 text-white' : 'bg-white text-zinc-700'}`}
-                        >
-                          Manual
-                        </button>
-                      </div>
-                    </div>
+                    <label className="font-bold text-emerald-950 block">SKU</label>
                     <input
                       value={pSku}
-                      onChange={(e) => {
-                        setPSkuMode('manual');
-                        setPSku(e.target.value);
-                      }}
-                      readOnly={pSkuMode === 'auto'}
-                      className="w-full bg-emerald-50/40 border border-emerald-200 rounded-xl px-3 py-2 font-mono font-bold"
+                      readOnly
+                      className="w-full bg-emerald-50/40 border border-emerald-200 rounded-xl px-3 py-2 font-mono font-bold text-emerald-950 cursor-default"
                       placeholder="EV-000001"
                     />
+                    <p className="text-[10px] text-emerald-700 font-mono">
+                      Auto-assigned unique SKU (always).
+                    </p>
                   </div>
                   <div className="space-y-2 border border-emerald-100 rounded-xl p-3 bg-white">
-                    <div className="flex items-center justify-between gap-2 flex-wrap">
-                      <label className="font-bold text-emerald-950">Barcode</label>
-                      <div className="flex rounded-lg border border-emerald-200 overflow-hidden">
-                        <button
-                          type="button"
-                          onClick={() => {
-                            setPBarcodeMode('auto');
-                            setPBarcode(
-                              nextSerialEan13(
-                                products.map((p) => p.barcode),
-                                editingProduct?.barcode,
-                              ),
-                            );
-                          }}
-                          className={`px-2.5 py-1 text-[10px] font-bold uppercase cursor-pointer ${pBarcodeMode === 'auto' ? 'bg-zinc-950 text-white' : 'bg-white text-zinc-700'}`}
-                        >
-                          Auto
-                        </button>
-                        <button
-                          type="button"
-                          onClick={() => setPBarcodeMode('manual')}
-                          className={`px-2.5 py-1 text-[10px] font-bold uppercase cursor-pointer ${pBarcodeMode === 'manual' ? 'bg-zinc-950 text-white' : 'bg-white text-zinc-700'}`}
-                        >
-                          Manual
-                        </button>
-                      </div>
-                    </div>
+                    <label className="font-bold text-emerald-950 block">Barcode</label>
                     <input
                       value={pBarcode}
-                      onChange={(e) => {
-                        setPBarcodeMode('manual');
-                        setPBarcode(e.target.value);
-                      }}
-                      readOnly={pBarcodeMode === 'auto'}
-                      className="w-full bg-emerald-50/40 border border-emerald-200 rounded-xl px-3 py-2 font-mono font-bold"
+                      readOnly
+                      className="w-full bg-emerald-50/40 border border-emerald-200 rounded-xl px-3 py-2 font-mono font-bold text-emerald-950 cursor-default"
                       placeholder="Auto serial EAN-13"
                     />
                     <p className="text-[10px] text-emerald-700 font-mono">
-                      Auto assigns a unique serial barcode for every product (never reused).
+                      Always auto — unique serial barcode for every product (never reused).
                     </p>
                   </div>
                 </div>

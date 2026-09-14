@@ -1004,21 +1004,25 @@ export default function App() {
   const [catalogHydrated, setCatalogHydrated] = useState(() => !isApiEnabled());
   const catalogFetchGen = useRef(0);
 
+  /** Replace storefront catalog with the server snapshot (never keep deleted/local orphans). */
+  const replaceCatalog = (incoming: Product[]) => {
+    setProducts(Array.isArray(incoming) ? incoming : []);
+  };
+
+  /** Merge helper for rare offline/local edits — API mode always replaces. */
   const mergeCatalog = (incoming: Product[]) => {
+    if (isApiEnabled()) {
+      replaceCatalog(incoming);
+      return;
+    }
     setProducts((prev) => {
       const byId = new Map(prev.map((p) => [p.id, p]));
       for (const item of incoming) {
         byId.set(item.id, { ...(byId.get(item.id) || {}), ...item });
       }
-      // Prefer server list order (updatedAt desc) when we have a full snapshot
       const serverIds = new Set(incoming.map((p) => p.id));
       const ordered = incoming.map((p) => byId.get(p.id)!);
-      // Keep any local-only rows that are not yet on server (should be rare)
       for (const p of prev) {
-        if (!serverIds.has(p.id) && String(p.id).startsWith('shirt-')) {
-          // drop ephemeral local-only ids when API is live
-          continue;
-        }
         if (!serverIds.has(p.id)) ordered.push(p);
       }
       return ordered;
@@ -1324,33 +1328,15 @@ export default function App() {
             });
             if (cancelled || gen !== catalogFetchGen.current) return;
             const list = Array.isArray(items) ? (items as Product[]) : [];
-            if (list.length > 0) {
-              mergeCatalog(list);
-            } else {
-              // Neon empty / not seeded yet — show built-in catalog so the storefront is never blank
-              setProducts(
-                PRODUCTS.filter(
-                  (p) => p.category !== 'Mystery' && !/mystery/i.test(p.name) && p.id !== 'shirt-7',
-                ),
-              );
-            }
+            // Empty Neon catalog is valid (admin deleted everything) — never reinject demo PRODUCTS
+            replaceCatalog(list);
             try {
               localStorage.removeItem('vault_custom_products');
             } catch {
               /* ignore */
             }
           } catch {
-            // API/DB down — fall back to seed catalog instead of an empty shop
-            if (!cancelled) {
-              setProducts((prev) =>
-                prev.length > 0
-                  ? prev
-                  : PRODUCTS.filter(
-                      (p) =>
-                        p.category !== 'Mystery' && !/mystery/i.test(p.name) && p.id !== 'shirt-7',
-                    ),
-              );
-            }
+            // API/DB down — keep current catalog; do not seed demo kits over a cleared shop
           }
         };
 
