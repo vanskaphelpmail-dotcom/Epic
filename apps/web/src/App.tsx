@@ -704,13 +704,25 @@ export default function App() {
   // App customization configuration state
   const [appConfig, setAppConfig] = useState<AppConfig>(() => {
     // Live API: homepage rows & CMS come from Neon — not per-browser localStorage.
-    // Never boot with Active demo heroes or Turn OFF looks broken until CMS loads.
+    // Seed last-known banners from cache so refresh doesn't flash a different hero image.
     if (isApiEnabled()) {
+      let cachedBanners: AppConfig['banners'] | undefined;
+      try {
+        const raw = localStorage.getItem('vault_cms_banners_cache');
+        if (raw) {
+          const parsed = JSON.parse(raw);
+          if (Array.isArray(parsed) && parsed.length > 0) cachedBanners = parsed;
+        }
+      } catch {
+        /* ignore corrupt cache */
+      }
       return {
         ...DEFAULT_APP_CONFIG,
-        banners: (DEFAULT_APP_CONFIG.banners || []).map((b) =>
-          b.type === 'Hero Slider' ? { ...b, status: 'Inactive' as const } : b,
-        ),
+        banners: cachedBanners
+          ? cachedBanners
+          : (DEFAULT_APP_CONFIG.banners || []).map((b) =>
+              b.type === 'Hero Slider' ? { ...b, status: 'Inactive' as const } : b,
+            ),
       };
     }
     const stored = localStorage.getItem('vault_app_config');
@@ -1221,6 +1233,12 @@ export default function App() {
                     image: desktop,
                   };
                 });
+                // Persist so next refresh shows the same hero immediately (no swap flash)
+                try {
+                  localStorage.setItem('vault_cms_banners_cache', JSON.stringify(next.banners));
+                } catch {
+                  /* quota / private mode */
+                }
                 // API mode: never reinject Active demo heroes. Empty hero list = hidden carousel.
               }
               if (Array.isArray(cms.pages) && cms.pages.length) {

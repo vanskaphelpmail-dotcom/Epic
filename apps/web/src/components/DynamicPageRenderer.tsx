@@ -30,10 +30,6 @@ import {
 } from 'lucide-react';
 import type { BannerConfig } from '../types';
 
-/** Hero frame: responsive cinematic ratios; image always covers (no letterbox / white gap). */
-const HERO_BANNER_FRAME =
-  'aspect-[5/4] min-[480px]:aspect-[16/10] sm:aspect-[16/9] lg:aspect-[21/9] xl:aspect-[2.4/1]';
-
 /** Always-available local cover (never depends on Unsplash / CDN / base64) */
 const HERO_FALLBACK_COVER = '/hero-cover.svg';
 
@@ -48,52 +44,59 @@ function isUsableHeroImageSrc(src?: string | null): boolean {
   return false;
 }
 
-function heroBannerFallbackImage(
-  banner: BannerConfig,
-  viewport: 'mobile' | 'tablet' | 'desktop' | boolean = 'desktop',
-) {
-  const mode = typeof viewport === 'boolean' ? (viewport ? 'mobile' : 'desktop') : viewport;
-  const ordered =
-    mode === 'mobile'
-      ? [banner.mobileImage, banner.tabletImage, banner.desktopImage, banner.image]
-      : mode === 'tablet'
-        ? [banner.tabletImage, banner.desktopImage, banner.mobileImage, banner.image]
-        : [banner.desktopImage, banner.tabletImage, banner.mobileImage, banner.image];
-  for (const src of ordered) {
+function pickHeroSrc(...candidates: Array<string | null | undefined>): string {
+  for (const src of candidates) {
     if (isUsableHeroImageSrc(src)) return String(src).trim();
   }
   return HERO_FALLBACK_COVER;
 }
 
-/** Cover fills the frame on every breakpoint — no empty margin under the artwork. */
-const HeroCoverImage: React.FC<{ src: string; slideKey: string }> = ({ src, slideKey }) => {
-  const [activeSrc, setActiveSrc] = useState(src || HERO_FALLBACK_COVER);
+/**
+ * Native <picture> picks mobile/tablet/desktop before paint.
+ * Natural width/height so the full photo shows (no crop) inside the rounded frame.
+ */
+const HeroCoverImage: React.FC<{ banner: BannerConfig; slideKey: string }> = ({ banner, slideKey }) => {
+  const desktop = pickHeroSrc(banner.desktopImage, banner.image, banner.tabletImage, banner.mobileImage);
+  const tablet = pickHeroSrc(banner.tabletImage, banner.desktopImage, banner.mobileImage, banner.image);
+  const mobile = pickHeroSrc(banner.mobileImage, banner.tabletImage, banner.desktopImage, banner.image);
   const [failed, setFailed] = useState(false);
+  const [fallbackSrc, setFallbackSrc] = useState<string | null>(null);
 
   useEffect(() => {
-    setActiveSrc(src || HERO_FALLBACK_COVER);
     setFailed(false);
-  }, [src, slideKey]);
+    setFallbackSrc(null);
+  }, [slideKey, desktop, tablet, mobile]);
 
   if (failed) return null;
 
+  const imgSrc = fallbackSrc || desktop;
+
   return (
-    <img
-      src={activeSrc}
-      alt=""
-      aria-hidden="true"
-      className="absolute inset-0 z-0 m-0 block h-full w-full max-w-none object-cover object-center"
-      loading="eager"
-      decoding="async"
-      referrerPolicy="no-referrer"
-      onError={() => {
-        if (activeSrc !== HERO_FALLBACK_COVER) {
-          setActiveSrc(HERO_FALLBACK_COVER);
-          return;
-        }
-        setFailed(true);
-      }}
-    />
+    <picture key={slideKey} className="relative z-0 block w-full">
+      {!fallbackSrc && mobile !== desktop && (
+        <source media="(max-width: 639px)" srcSet={mobile} />
+      )}
+      {!fallbackSrc && tablet !== desktop && (
+        <source media="(min-width: 640px) and (max-width: 1023px)" srcSet={tablet} />
+      )}
+      <img
+        src={imgSrc}
+        alt=""
+        aria-hidden="true"
+        className="pointer-events-none m-0 block h-auto w-full max-w-none"
+        loading="eager"
+        decoding="async"
+        fetchPriority="high"
+        referrerPolicy="no-referrer"
+        onError={() => {
+          if (imgSrc !== HERO_FALLBACK_COVER) {
+            setFallbackSrc(HERO_FALLBACK_COVER);
+            return;
+          }
+          setFailed(true);
+        }}
+      />
+    </picture>
   );
 };
 
@@ -171,25 +174,6 @@ export const DynamicPageRenderer: React.FC<DynamicPageRendererProps> = ({
   const [showPopupBanner, setShowPopupBanner] = useState(false);
   const [dealSize, setDealSize] = useState('M');
   const [activeDealProductId, setActiveDealProductId] = useState<string | null>(null);
-  const [heroViewport, setHeroViewport] = useState<'mobile' | 'tablet' | 'desktop'>('desktop');
-
-  useEffect(() => {
-    if (typeof window === 'undefined' || !window.matchMedia) return;
-    const mobileMq = window.matchMedia('(max-width: 639px)');
-    const tabletMq = window.matchMedia('(min-width: 640px) and (max-width: 1023px)');
-    const apply = () => {
-      if (mobileMq.matches) setHeroViewport('mobile');
-      else if (tabletMq.matches) setHeroViewport('tablet');
-      else setHeroViewport('desktop');
-    };
-    apply();
-    mobileMq.addEventListener('change', apply);
-    tabletMq.addEventListener('change', apply);
-    return () => {
-      mobileMq.removeEventListener('change', apply);
-      tabletMq.removeEventListener('change', apply);
-    };
-  }, []);
 
   const catalogProducts = products.filter(
     (p) => p.category !== 'Mystery' && !/mystery/i.test(p.name) && p.id !== 'shirt-7' && p.id !== 'mystery-box-item'
@@ -409,9 +393,7 @@ export const DynamicPageRenderer: React.FC<DynamicPageRendererProps> = ({
               <>
             {activeHeroBanners.length > 0 && (
               <div className="w-full max-w-[1440px] mx-auto px-3 sm:px-4 md:px-5 lg:px-6">
-                <div
-                  className={`relative w-full overflow-hidden rounded-xl sm:rounded-2xl lg:rounded-3xl border border-[#E5E5E5] shadow-md sm:shadow-lg bg-[#0A0A0A] ${HERO_BANNER_FRAME}`}
-                >
+                <div className="relative w-full overflow-hidden rounded-xl sm:rounded-2xl lg:rounded-3xl border border-[#E5E5E5] shadow-md sm:shadow-lg bg-zinc-900">
                 {(() => {
                     const currentSlide = activeHeroBanners[heroSlideIndex % activeHeroBanners.length];
                     if (!currentSlide) return null;
@@ -423,11 +405,10 @@ export const DynamicPageRenderer: React.FC<DynamicPageRendererProps> = ({
                     const hasCta =
                       !!ctaLabel && !!(currentSlide.productId || (currentSlide.buttonUrl || '').trim());
                     const hasOverlay = !!(subtitleText || titleText || descriptionText || hasCta);
-                    const coverSrc = heroBannerFallbackImage(currentSlide, heroViewport);
 
                     return (
                       <>
-                        <HeroCoverImage src={coverSrc} slideKey={currentSlide.id} />
+                        <HeroCoverImage banner={currentSlide} slideKey={currentSlide.id} />
 
                         {hasOverlay && (
                           <div className="absolute inset-0 z-10 bg-gradient-to-t from-zinc-950/75 via-zinc-900/40 to-zinc-950/10 pointer-events-none" />
