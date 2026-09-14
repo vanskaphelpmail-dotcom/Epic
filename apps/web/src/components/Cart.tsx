@@ -3,7 +3,7 @@ import { Trash2, Plus, Minus, ArrowRight, ShoppingCart, CreditCard, Check } from
 import { CartItem } from '../types';
 import { getSelectedBadgeLabels } from '../lib/productAddons';
 import { JerseyRenderer } from './JerseyRenderer';
-import { isRenderableImageSrc } from '../lib/productImage';
+import { getProductImageSrc } from '../lib/productImage';
 
 interface CartProps {
   cart: CartItem[];
@@ -90,14 +90,7 @@ export const Cart: React.FC<CartProps> = ({ cart, setCart, onCheckout, onBackToC
                   <div className="w-20 h-20 bg-white rounded-xl p-1.5 flex items-center justify-center border-2 border-[#0A0A0A] ring-2 ring-[#0A0A0A]/10 relative flex-shrink-0 overflow-hidden shadow-sm">
                     <JerseyRenderer
                       productId={item.product.id}
-                      uploadedImage={
-                        [
-                          item.product.uploadedImage,
-                          ...(item.product.gallery || []),
-                          ...(item.product.images || []),
-                          item.product.image,
-                        ].find(isRenderableImageSrc)
-                      }
+                      uploadedImage={getProductImageSrc(item.product)}
                       imageKey={item.product.image}
                     />
                     <span

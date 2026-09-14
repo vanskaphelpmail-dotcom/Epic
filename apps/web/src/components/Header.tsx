@@ -18,6 +18,8 @@ import { isCatalogAssignedProduct } from '../lib/homepageSections';
 import { isStorefrontNavActive } from '../lib/storefrontPages';
 import { BrandMark } from './BrandMark';
 import { BrandWordmark } from './BrandWordmark';
+import { JerseyRenderer } from './JerseyRenderer';
+import { getProductImageSrc } from '../lib/productImage';
 
 interface HeaderProps {
   currentPage: string;
@@ -569,15 +571,36 @@ export const Header: React.FC<HeaderProps> = ({
                   </button>
                 </div>
                 <div className="space-y-3 max-h-60 overflow-y-auto pr-1">
-                  {cart.map((item, index) => (
-                    <div key={index} className="flex gap-3 text-[#0A0A0A] border-b border-[#E5E5E5] pb-2">
-                      <div className="w-12 h-12 bg-[#F3F3F2] rounded p-1 flex items-center justify-center border border-[#E5E5E5]">
-                        {/* Tiny Preview */}
-                        <svg viewBox="0 0 200 240" className="w-full h-full">
-                          <rect width="200" height="240" rx="10" fill="#f0fdf4" />
-                          <circle cx="100" cy="120" r="60" fill="#0a0a0a" opacity="0.3" />
-                        </svg>
-                      </div>
+                  {cart.map((item, index) => {
+                    const thumbSrc = getProductImageSrc(item.product);
+                    return (
+                    <div key={`${item.product.id}-${item.selectedSize}-${index}`} className="flex gap-3 text-[#0A0A0A] border-b border-[#E5E5E5] pb-2">
+                      <button
+                        type="button"
+                        onClick={() => {
+                          onSelectProduct(item.product);
+                          setCurrentPage('details');
+                          setShowCartDropdown(false);
+                        }}
+                        className="w-12 h-12 bg-[#F3F3F2] rounded p-0.5 flex items-center justify-center border border-[#E5E5E5] overflow-hidden shrink-0 cursor-pointer"
+                        aria-label={`View ${item.product.name}`}
+                      >
+                        {thumbSrc ? (
+                          <img
+                            src={thumbSrc}
+                            alt=""
+                            className="w-full h-full object-cover rounded-sm"
+                            loading="lazy"
+                            decoding="async"
+                            referrerPolicy="no-referrer"
+                          />
+                        ) : (
+                          <JerseyRenderer
+                            productId={item.product.id}
+                            imageKey={item.product.image}
+                          />
+                        )}
+                      </button>
                       <div className="flex-1 min-w-0">
                         <p className="text-xs font-bold truncate hover:text-[#E30613] cursor-pointer" onClick={() => { onSelectProduct(item.product); setCurrentPage('details'); }}>
                           {item.product.name}
@@ -596,7 +619,8 @@ export const Header: React.FC<HeaderProps> = ({
                         <Trash2 size={14} />
                       </button>
                     </div>
-                  ))}
+                    );
+                  })}
                 </div>
                 <div className="border-t border-[#E5E5E5] pt-3 mt-3">
                   <div className="flex justify-between items-center text-sm font-semibold mb-3">

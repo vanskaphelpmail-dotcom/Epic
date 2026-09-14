@@ -6,7 +6,7 @@ import {
   Shirt, Tag, Trophy, Star, Sparkles, Image as ImageIcon, CheckCircle, 
   ChevronRight, ArrowUp, ArrowDown, FolderPlus, Eye, ShieldCheck, DollarSign,
   AlertCircle, History, Package, Flame, Flag, Zap, Shield, Activity, Award,
-  Box, CornerDownRight, CheckSquare, RefreshCw, BadgeCheck
+  Box, CornerDownRight, CheckSquare, RefreshCw, BadgeCheck, Globe
 } from 'lucide-react';
 import { Product, AppConfig, CategoryItem, StockLog, ProductBadgeOption } from '../types';
 import {
@@ -128,6 +128,8 @@ const CATEGORY_ICONS = [
   { id: 'Shield', label: 'Shield', icon: Shield },
   { id: 'Activity', label: 'Activity', icon: Activity },
   { id: 'Award', label: 'Award', icon: Award },
+  { id: 'Sparkles', label: 'Sparkles', icon: Sparkles },
+  { id: 'Globe', label: 'Globe', icon: Globe },
 ];
 
 /** Empty-string friendly money field so users can clear and type freely (integers only). */
@@ -431,23 +433,37 @@ export const ProductManager: React.FC<ProductManagerProps> = ({
   const [pCondition, setPCondition] = useState<string>('Mint');
   const [pConditionDetail, setPConditionDetail] = useState('');
   const [pSizeChartIds, setPSizeChartIds] = useState<string[]>([]);
-  const availableSizeCharts = useMemo(
-    () => getAllSizeCharts(appConfig?.customSizeCharts),
-    [appConfig?.customSizeCharts],
-  );
-  const STANDARD_SIZES = useMemo(() => {
-    const primaryId = pSizeChartIds[0];
-    const chart = getSizeChartById(primaryId, appConfig?.customSizeCharts);
-    if (chart?.sizeOptions?.length) return chart.sizeOptions;
-    if (primaryId === 'kids') return [...KIDS_PRODUCT_SIZES];
-    // Merge size options from all selected charts
-    const merged = new Set<string>();
-    for (const id of pSizeChartIds) {
-      const c = getSizeChartById(id, appConfig?.customSizeCharts);
-      c?.sizeOptions?.forEach((s) => merged.add(s));
+  const availableSizeCharts = useMemo(() => {
+    try {
+      return getAllSizeCharts(appConfig?.customSizeCharts).filter(
+        (c) => c && c.id && c.label,
+      );
+    } catch {
+      return getAllSizeCharts(null);
     }
-    if (merged.size) return Array.from(merged);
-    return [...STANDARD_PRODUCT_SIZES];
+  }, [appConfig?.customSizeCharts]);
+  const STANDARD_SIZES = useMemo(() => {
+    try {
+      const primaryId = pSizeChartIds[0];
+      const chart = getSizeChartById(primaryId, appConfig?.customSizeCharts);
+      if (chart?.sizeOptions?.length) {
+        return chart.sizeOptions.map(String).filter(Boolean);
+      }
+      if (primaryId === 'kids') return [...KIDS_PRODUCT_SIZES];
+      const merged = new Set<string>();
+      for (const id of pSizeChartIds) {
+        if (!id) continue;
+        const c = getSizeChartById(id, appConfig?.customSizeCharts);
+        c?.sizeOptions?.forEach((s) => {
+          const key = String(s || '').trim();
+          if (key) merged.add(key);
+        });
+      }
+      if (merged.size) return Array.from(merged);
+      return [...STANDARD_PRODUCT_SIZES];
+    } catch {
+      return [...STANDARD_PRODUCT_SIZES];
+    }
   }, [pSizeChartIds, appConfig?.customSizeCharts]);
   /** Size qty drafts — empty until typed (integers only). */
   type SizeQty = number | '';
@@ -493,26 +509,30 @@ export const ProductManager: React.FC<ProductManagerProps> = ({
   const pSizeChartId = pSizeChartIds[0] || '';
 
   const toggleCategory = (name: string) => {
+    const label = String(name || '').trim();
+    if (!label) return;
     setPCategories((prev) => {
-      const has = prev.includes(name);
-      const next = has ? prev.filter((c) => c !== name) : [...prev, name];
-      setPSizeChartIds((charts) => {
-        const chartIds = new Set(charts);
-        if (!has) {
-          const inferred = inferSizeChartId(name);
-          if (inferred) chartIds.add(inferred);
-          const catItem = categoryItems.find((c) => c.name === name);
-          if (catItem?.sizeChartId) chartIds.add(catItem.sizeChartId);
-        }
-        return Array.from(chartIds);
-      });
-      return next;
+      const has = prev.includes(label);
+      return has ? prev.filter((c) => c !== label) : [...prev, label];
+    });
+    // Infer size charts outside the categories updater (avoids nested setState crashes)
+    setPSizeChartIds((charts) => {
+      const has = pCategories.includes(label);
+      if (has) return charts;
+      const chartIds = new Set(charts.filter(Boolean));
+      const inferred = inferSizeChartId(label);
+      if (inferred) chartIds.add(inferred);
+      const catItem = categoryItems.find((c) => c.name === label);
+      if (catItem?.sizeChartId) chartIds.add(String(catItem.sizeChartId));
+      return Array.from(chartIds);
     });
   };
 
   const toggleSizeChart = (id: string) => {
+    const chartId = String(id || '').trim();
+    if (!chartId) return;
     setPSizeChartIds((prev) =>
-      prev.includes(id) ? prev.filter((x) => x !== id) : [...prev, id],
+      prev.includes(chartId) ? prev.filter((x) => x !== chartId) : [...prev, chartId],
     );
   };
   const [pMainImage, setPMainImage] = useState<string>('');
@@ -1940,7 +1960,7 @@ export const ProductManager: React.FC<ProductManagerProps> = ({
                               {prod.barcode}
                             </span>
                           ) : (
-                            <span className="text-[10px] text-zinc-400">—</span>
+                            <span className="text-[10px] text-amber-800 font-semibold">Auto on edit/save</span>
                           )}
                         </td>
 

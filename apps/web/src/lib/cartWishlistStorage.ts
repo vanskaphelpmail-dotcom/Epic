@@ -158,10 +158,23 @@ export function mapApiCartToItems(
   return items;
 }
 
-/** Drop bag lines whose product was deleted from the catalog. */
+/** Drop bag lines whose product was deleted; refresh each line from the live catalog. */
 export function pruneCartToCatalog(cart: CartItem[], catalog: Product[]): CartItem[] {
-  const ids = new Set(catalog.map((p) => String(p.id)));
-  return cart.filter((item) => item?.product?.id && ids.has(String(item.product.id)));
+  const byId = new Map(catalog.map((p) => [String(p.id), p]));
+  const out: CartItem[] = [];
+  for (const item of cart) {
+    const id = String(item?.product?.id || '');
+    if (!id) continue;
+    const live = byId.get(id);
+    if (!live) continue;
+    out.push({
+      ...item,
+      product: live,
+      selectedSize: item.selectedSize || live.sizes?.[0] || 'M',
+      quantity: Math.max(1, Number(item.quantity) || 1),
+    });
+  }
+  return out;
 }
 
 /** Drop wishlist hearts for deleted products. */

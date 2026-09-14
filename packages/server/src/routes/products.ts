@@ -9,8 +9,25 @@ import {
   mapStatusToPrisma,
   toSpaProduct,
 } from "../mappers/product";
+import { ensureUniqueBarcode } from "../lib/retailCodes";
 
 export const productsRouter = Router();
+
+/** Always allocate a unique barcode — never leave products without one. */
+async function allocateProductBarcode(
+  preferred?: string | null,
+  excludeProductId?: string,
+): Promise<string> {
+  const rows = await prisma.product.findMany({
+    where: excludeProductId ? { id: { not: excludeProductId } } : undefined,
+    select: { barcode: true },
+    take: 5000,
+  });
+  return ensureUniqueBarcode(
+    preferred,
+    rows.map((r) => r.barcode),
+  );
+}
 
 async function persistCatalogArrays(
   productId: string,
@@ -407,13 +424,17 @@ async function resolveCategoryId(categoryName?: string | null) {
   }
 }
 
-function productCreateData(body: z.infer<typeof upsertSchema>, categoryId?: string) {
+function productCreateData(
+  body: z.infer<typeof upsertSchema>,
+  categoryId?: string,
+  barcode?: string,
+) {
   return {
     id: body.id,
     name: body.name,
     slug: body.slug,
     sku: body.sku,
-    barcode: body.barcode?.trim() || null,
+    barcode: barcode || body.barcode?.trim() || null,
     price: body.price,
     originalPrice:
       body.originalPrice == null || body.originalPrice <= 0 ? null : body.originalPrice,
@@ -474,8 +495,9 @@ productsRouter.post("/", requirePermission("can_manage_products"), async (req: A
   try {
     const body = upsertSchema.parse(req.body);
     const categoryId = await resolveCategoryId(body.category);
+    const barcode = await allocateProductBarcode(body.barcode);
     const created = await prisma.product.create({
-      data: productCreateData(body, categoryId),
+      data: productCreateData(body, categoryId, barcode),
       include: { category: true, club: true, league: true },
     });
     await persistCatalogArrays(created.id, {
@@ -567,7 +589,12 @@ productsRouter.put("/:id", requirePermission("can_manage_products"), async (req:
         ...(body.slug != null ? { slug: body.slug } : {}),
         ...(body.sku != null ? { sku: body.sku } : {}),
         ...(body.barcode !== undefined
-          ? { barcode: body.barcode?.trim() ? body.barcode.trim() : null }
+          ? {
+              barcode: await allocateProductBarcode(
+                body.barcode?.trim() || null,
+                req.params.id,
+              ),
+            }
           : {}),
         ...(body.price != null ? { price: body.price } : {}),
         ...(body.originalPrice !== undefined

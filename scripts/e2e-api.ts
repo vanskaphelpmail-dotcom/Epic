@@ -55,7 +55,10 @@ async function main() {
 
   const adminLogin = await req("/api/auth/login", {
     method: "POST",
-    body: JSON.stringify({ email: "admin@epicvanskap.com", password: "ChangeMeNow!" }),
+    body: JSON.stringify({
+      email: process.env.INITIAL_ADMIN_EMAIL || "admin@epicvanskap.com",
+      password: process.env.INITIAL_ADMIN_PASSWORD || process.env.SEED_ADMIN_PASSWORD || "EpicVanskap@2026",
+    }),
   });
   const adminToken = adminLogin.json?.data?.token as string | undefined;
   if (adminToken) ok.push("admin login");

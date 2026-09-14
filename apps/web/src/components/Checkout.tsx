@@ -13,7 +13,7 @@ import {
 import { api, isApiEnabled } from '../lib/apiClient';
 import { mapApiOrderToSpa } from '../lib/mapOrder';
 import { getProductSizes, getSizeStock, isSizeAvailable } from '../lib/productSizes';
-import { isRenderableImageSrc } from '../lib/productImage';
+import { getProductImageSrc } from '../lib/productImage';
 import { JerseyRenderer } from './JerseyRenderer';
 
 const isInsideFeniDistrict = (district: string) =>
@@ -752,14 +752,7 @@ export const Checkout: React.FC<CheckoutProps> = ({
                     <div className="w-12 h-12 bg-white border-2 border-[#0A0A0A] ring-2 ring-[#0A0A0A]/10 rounded-lg overflow-hidden flex items-center justify-center flex-shrink-0 relative shadow-sm">
                       <JerseyRenderer
                         productId={item.product.id}
-                        uploadedImage={
-                          [
-                            item.product.uploadedImage,
-                            ...(item.product.gallery || []),
-                            ...(item.product.images || []),
-                            item.product.image,
-                          ].find(isRenderableImageSrc)
-                        }
+                        uploadedImage={getProductImageSrc(item.product)}
                         imageKey={item.product.image}
                       />
                       <span

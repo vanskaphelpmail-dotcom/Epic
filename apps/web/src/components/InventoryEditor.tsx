@@ -72,7 +72,6 @@ export const InventoryEditor: React.FC<InventoryEditorProps> = ({
   const [formSizes, setFormSizes] = useState<string[]>([...DEFAULT_FALLBACK_SIZES]);
   const [formSku, setFormSku] = useState('');
   const [formBarcode, setFormBarcode] = useState('');
-  const [formBarcodeMode, setFormBarcodeMode] = useState<'auto' | 'manual'>('auto');
   const [labelPrint, setLabelPrint] = useState<{
     barcode: string;
     sellPrice: number;
@@ -104,7 +103,6 @@ export const InventoryEditor: React.FC<InventoryEditorProps> = ({
     setFormSizes([...DEFAULT_FALLBACK_SIZES]);
     setFormSku('');
     setFormBarcode(nextSerialEan13(products.map((p) => p.barcode)));
-    setFormBarcodeMode('auto');
     setFormDescription('');
     setFormMaterial('100% Curated Polyester Mesh');
     setFormMadeIn('Bangladesh');
@@ -143,7 +141,6 @@ export const InventoryEditor: React.FC<InventoryEditorProps> = ({
     const existingBarcode = normalizeBarcode(product.barcode || '');
     if (existingBarcode) {
       setFormBarcode(existingBarcode);
-      setFormBarcodeMode('auto');
     } else {
       setFormBarcode(
         nextSerialEan13(
@@ -151,7 +148,6 @@ export const InventoryEditor: React.FC<InventoryEditorProps> = ({
           product.barcode,
         ),
       );
-      setFormBarcodeMode('auto');
     }
     setFormDescription(product.description || '');
     setFormMaterial(product.specification?.material || '100% Curated Polyester Mesh');
@@ -546,7 +542,7 @@ export const InventoryEditor: React.FC<InventoryEditorProps> = ({
                           {p.barcode}
                         </span>
                       ) : (
-                        <span className="text-[12px] text-zinc-700 font-semibold">Optional — none</span>
+                        <span className="text-[12px] text-amber-800 font-semibold">Auto on save</span>
                       )}
                     </td>
 
@@ -845,48 +841,18 @@ export const InventoryEditor: React.FC<InventoryEditorProps> = ({
                   </div>
 
                   <div className="space-y-2 rounded-xl border border-zinc-300 p-3 bg-zinc-50">
-                    <div className="flex items-center justify-between gap-2 flex-wrap">
-                      <label className="text-[10px] font-mono text-zinc-700 uppercase font-bold">
-                        Barcode
-                      </label>
-                      <div className="flex rounded-lg overflow-hidden border border-zinc-300">
-                        {(['auto', 'manual'] as const).map((mode) => (
-                          <button
-                            key={mode}
-                            type="button"
-                            onClick={() => {
-                              setFormBarcodeMode(mode);
-                              if (mode === 'auto') {
-                                setFormBarcode(
-                                  nextSerialEan13(
-                                    products.map((p) => p.barcode),
-                                    editingProduct?.barcode,
-                                  ),
-                                );
-                              }
-                            }}
-                            className={`px-2.5 py-1 text-[9px] font-bold uppercase cursor-pointer ${
-                              formBarcodeMode === mode ? 'bg-white text-black' : 'bg-transparent text-zinc-700'
-                            }`}
-                          >
-                            {mode}
-                          </button>
-                        ))}
-                      </div>
-                    </div>
+                    <label className="text-[10px] font-mono text-zinc-700 uppercase font-bold">
+                      Barcode
+                    </label>
                     <input
                       type="text"
                       placeholder="Auto serial EAN-13"
                       value={formBarcode}
-                      readOnly={formBarcodeMode === 'auto'}
-                      onChange={(e) => {
-                        setFormBarcodeMode('manual');
-                        setFormBarcode(e.target.value);
-                      }}
-                      className="w-full bg-zinc-50 border border-zinc-300 rounded-xl py-2.5 px-3.5 text-xs text-zinc-950 focus:outline-none focus:border-amber-400 font-mono placeholder-zinc-500"
+                      readOnly
+                      className="w-full bg-zinc-100 border border-zinc-300 rounded-xl py-2.5 px-3.5 text-xs text-zinc-950 focus:outline-none font-mono placeholder-zinc-500 cursor-default"
                     />
                     <p className="text-[9px] font-mono text-zinc-600">
-                      Auto assigns a unique serial barcode (never reused).
+                      Always auto — unique serial barcode (never reused, never empty).
                     </p>
                   </div>
 
@@ -1267,48 +1233,18 @@ export const InventoryEditor: React.FC<InventoryEditorProps> = ({
                   </div>
 
                   <div className="space-y-2 rounded-xl border border-zinc-300 p-3 bg-zinc-50">
-                    <div className="flex items-center justify-between gap-2 flex-wrap">
-                      <label className="text-[10px] font-mono text-zinc-700 uppercase font-bold">
-                        Barcode
-                      </label>
-                      <div className="flex rounded-lg overflow-hidden border border-zinc-300">
-                        {(['auto', 'manual'] as const).map((mode) => (
-                          <button
-                            key={mode}
-                            type="button"
-                            onClick={() => {
-                              setFormBarcodeMode(mode);
-                              if (mode === 'auto') {
-                                setFormBarcode(
-                                  nextSerialEan13(
-                                    products.map((p) => p.barcode),
-                                    editingProduct?.barcode,
-                                  ),
-                                );
-                              }
-                            }}
-                            className={`px-2.5 py-1 text-[9px] font-bold uppercase cursor-pointer ${
-                              formBarcodeMode === mode ? 'bg-white text-black' : 'bg-transparent text-zinc-700'
-                            }`}
-                          >
-                            {mode}
-                          </button>
-                        ))}
-                      </div>
-                    </div>
+                    <label className="text-[10px] font-mono text-zinc-700 uppercase font-bold">
+                      Barcode
+                    </label>
                     <input
                       type="text"
                       placeholder="Auto serial EAN-13"
                       value={formBarcode}
-                      readOnly={formBarcodeMode === 'auto'}
-                      onChange={(e) => {
-                        setFormBarcodeMode('manual');
-                        setFormBarcode(e.target.value);
-                      }}
-                      className="w-full bg-zinc-50 border border-zinc-300 rounded-xl py-2.5 px-3.5 text-xs text-zinc-950 focus:outline-none focus:border-amber-400 font-mono placeholder-zinc-500"
+                      readOnly
+                      className="w-full bg-zinc-100 border border-zinc-300 rounded-xl py-2.5 px-3.5 text-xs text-zinc-950 focus:outline-none font-mono placeholder-zinc-500 cursor-default"
                     />
                     <p className="text-[9px] font-mono text-zinc-600">
-                      Auto assigns a unique serial barcode (never reused).
+                      Always auto — unique serial barcode (never reused, never empty).
                     </p>
                   </div>
 

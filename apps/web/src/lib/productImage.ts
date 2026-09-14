@@ -10,6 +10,22 @@ export function isRenderableImageSrc(src?: string | null): boolean {
   return false;
 }
 
+/** First usable photo from a product snapshot (cart / bag / wishlist). */
+export function getProductImageSrc(product?: {
+  uploadedImage?: string | null;
+  image?: string | null;
+  gallery?: string[] | null;
+  images?: string[] | null;
+} | null): string | undefined {
+  if (!product) return undefined;
+  return [
+    product.uploadedImage,
+    ...(product.gallery || []),
+    ...(product.images || []),
+    product.image,
+  ].find(isRenderableImageSrc);
+}
+
 /** Map seed catalog image keys → JerseyRenderer style ids. */
 const IMAGE_KEY_STYLE: Record<string, string> = {
   spain_home_2026: "shirt-1",
