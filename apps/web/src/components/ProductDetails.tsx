@@ -13,7 +13,7 @@ import {
   sumSelectedBadgePrices,
 } from '../lib/productAddons';
 import { toast } from './UiFeedback';
-import { flyImageToCart } from '../lib/flyToCart';
+import { flyProductToCart } from '../lib/flyToCart';
 
 interface ProductDetailsProps {
   product: Product;
@@ -185,7 +185,7 @@ export const ProductDetails: React.FC<ProductDetailsProps> = ({
       toast(`Size ${selectedSize} is currently out of stock.`, 'error');
       return;
     }
-    flyImageToCart(galleryRef.current, mainImageSrc);
+    flyProductToCart(product, galleryRef.current);
     onAddToCart(buildCartItem());
     setAddedConfirm(true);
     setTimeout(() => setAddedConfirm(false), 2500);

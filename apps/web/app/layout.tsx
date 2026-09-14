@@ -17,8 +17,9 @@ export const viewport: Viewport = {
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
-    <html lang="en">
-      <body className="min-h-screen antialiased overflow-x-hidden w-full">
+    // suppressHydrationWarning: browser extensions (Grammarly, etc.) inject attributes on <html>/<body>
+    <html lang="en" suppressHydrationWarning>
+      <body className="min-h-screen antialiased overflow-x-hidden w-full" suppressHydrationWarning>
         <GoogleAnalytics />
         {children}
       </body>

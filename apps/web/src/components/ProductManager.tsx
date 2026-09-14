@@ -53,6 +53,39 @@ import { BarcodeLabelPrint } from './admin/BarcodeLabelPrint';
 /** Search keywords under product photos — admin can add up to this many. */
 const MAX_PRODUCT_TAGS = 8;
 
+/** Catch render crashes inside the Add/Edit product portal so we never show a blank white shell. */
+class ProductEditorErrorBoundary extends React.Component<
+  { children: React.ReactNode; onClose: () => void },
+  { error: Error | null }
+> {
+  state: { error: Error | null } = { error: null };
+
+  static getDerivedStateFromError(error: Error) {
+    return { error };
+  }
+
+  render() {
+    if (this.state.error) {
+      return (
+        <div className="bg-white sm:rounded-2xl w-full max-w-lg shadow-2xl border border-rose-200 p-6 space-y-4 text-zinc-950">
+          <h4 className="text-sm font-extrabold uppercase text-rose-800">Product form failed to load</h4>
+          <p className="text-xs font-mono text-zinc-700 whitespace-pre-wrap break-words">
+            {this.state.error.message}
+          </p>
+          <button
+            type="button"
+            onClick={this.props.onClose}
+            className="px-4 py-2 rounded-xl bg-zinc-950 text-white text-xs font-bold cursor-pointer"
+          >
+            Close
+          </button>
+        </div>
+      );
+    }
+    return this.props.children;
+  }
+}
+
 function parseTagDraft(raw: string): string[] {
   return raw
     .split(/[;,\n]+/)
@@ -2511,13 +2544,19 @@ export const ProductManager: React.FC<ProductManagerProps> = ({
         typeof document !== 'undefined' &&
         createPortal(
           <div
-            className="fixed inset-0 z-[200] flex items-end sm:items-center justify-center bg-emerald-950/70 backdrop-blur-sm p-0 sm:p-6"
+            className="product-editor-portal fixed inset-0 z-[200] flex items-end sm:items-center justify-center bg-emerald-950/70 backdrop-blur-sm p-0 sm:p-6"
             role="dialog"
             aria-modal="true"
             aria-label={editingProduct ? 'Edit product' : 'Add product'}
           >
+            <ProductEditorErrorBoundary
+              onClose={() => {
+                setIsProductModalOpen(false);
+                resetProductForm();
+              }}
+            >
             <div
-              className="bg-white sm:rounded-2xl w-full max-w-5xl max-h-[96vh] sm:max-h-[92vh] shadow-2xl flex flex-col overflow-hidden border border-emerald-100 animate-fadeIn"
+              className="bg-white text-emerald-950 sm:rounded-2xl w-full max-w-5xl min-h-[50vh] max-h-[96vh] sm:max-h-[92vh] shadow-2xl flex flex-col overflow-hidden border border-emerald-100 opacity-100"
               onMouseDown={(e) => e.stopPropagation()}
               onClick={(e) => e.stopPropagation()}
             >
@@ -3382,6 +3421,7 @@ export const ProductManager: React.FC<ProductManagerProps> = ({
                 </div>
               </div>
             </div>
+            </ProductEditorErrorBoundary>
           </div>,
           document.body,
         )}

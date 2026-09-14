@@ -4,7 +4,7 @@ import { Product } from '../types';
 import { JerseyRenderer } from './JerseyRenderer';
 import { isRenderableImageSrc } from '../lib/productImage';
 import { hasProductDiscount } from '../lib/productPricing';
-import { flyImageToCart } from '../lib/flyToCart';
+import { flyProductToCart } from '../lib/flyToCart';
 
 interface ProductCardProps {
   product: Product;
@@ -74,7 +74,7 @@ export const ProductCard: React.FC<ProductCardProps> = ({
 
   const handleAddToCart = (e: React.MouseEvent) => {
     e.stopPropagation();
-    flyImageToCart(imageAreaRef.current, activeImageSrc);
+    flyProductToCart(product, imageAreaRef.current);
     if (onQuickAdd) {
       onQuickAdd(product);
       return;

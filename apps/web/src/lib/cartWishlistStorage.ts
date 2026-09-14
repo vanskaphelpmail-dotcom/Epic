@@ -99,7 +99,7 @@ export function isProductWishlisted(wishlist: Product[], productId: string): boo
   return wishlist.some((p) => String(p.id) === id);
 }
 
-/** Prefer catalog product objects so card images/prices stay in sync. */
+/** Prefer catalog product objects — drop hearts for deleted products. */
 export function mergeWishlistWithCatalog(remoteOrLocal: Product[], catalog: Product[]): Product[] {
   const byId = new Map(catalog.map((p) => [String(p.id), p]));
   const seen = new Set<string>();
@@ -107,13 +107,15 @@ export function mergeWishlistWithCatalog(remoteOrLocal: Product[], catalog: Prod
   for (const item of remoteOrLocal) {
     const id = String(item?.id || '');
     if (!id || seen.has(id)) continue;
+    const live = byId.get(id);
+    if (!live) continue;
     seen.add(id);
-    out.push(byId.get(id) || { ...item, id });
+    out.push(live);
   }
   return out;
 }
 
-/** Map API cart rows into CartItem[] using catalog products when available. */
+/** Map API cart rows — only products still in the live catalog (no deleted snapshots). */
 export function mapApiCartToItems(
   apiItems: Array<{
     productId: string;
@@ -127,26 +129,10 @@ export function mapApiCartToItems(
   }>,
   catalog: Product[],
 ): CartItem[] {
-  const byId = new Map(catalog.map((p) => [p.id, p]));
+  const byId = new Map(catalog.map((p) => [String(p.id), p]));
   const items: CartItem[] = [];
   for (const row of apiItems) {
-    const fromCatalog = byId.get(row.productId);
-    const fallback = row.product;
-    const product: Product | null = fromCatalog
-      ? fromCatalog
-      : fallback && fallback.id
-        ? ({
-            ...(fallback as Product),
-            id: String(fallback.id),
-            name: String(fallback.name || 'Item'),
-            slug: String(fallback.slug || fallback.id),
-            price: Number(fallback.price) || 0,
-            image: String(fallback.image || ''),
-            images: fallback.images || [],
-            sizes: Array.isArray(fallback.sizes) ? fallback.sizes : ['M'],
-            stock: Number(fallback.stock) || 0,
-          } as Product)
-        : null;
+    const product = byId.get(String(row.productId));
     if (!product) continue;
     const badges = row.selectedBadgeIds
       ? String(row.selectedBadgeIds)
@@ -170,6 +156,18 @@ export function mapApiCartToItems(
     });
   }
   return items;
+}
+
+/** Drop bag lines whose product was deleted from the catalog. */
+export function pruneCartToCatalog(cart: CartItem[], catalog: Product[]): CartItem[] {
+  const ids = new Set(catalog.map((p) => String(p.id)));
+  return cart.filter((item) => item?.product?.id && ids.has(String(item.product.id)));
+}
+
+/** Drop wishlist hearts for deleted products. */
+export function pruneWishlistToCatalog(list: Product[], catalog: Product[]): Product[] {
+  const ids = new Set(catalog.map((p) => String(p.id)));
+  return list.filter((p) => p?.id && ids.has(String(p.id)));
 }
 
 export function cartToSyncPayload(cart: CartItem[]) {

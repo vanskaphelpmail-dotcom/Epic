@@ -41,6 +41,8 @@ import {
   loadLocalWishlist,
   mapApiCartToItems,
   mergeWishlistWithCatalog,
+  pruneCartToCatalog,
+  pruneWishlistToCatalog,
   saveLocalCart,
   saveLocalWishlist,
 } from './lib/cartWishlistStorage';
@@ -58,7 +60,6 @@ import { ListingFiltersBar } from './components/ListingFiltersBar';
 import { Header } from './components/Header';
 import { BrandMark } from './components/BrandMark';
 import { BrandWordmark } from './components/BrandWordmark';
-import { MobileBottomNav } from './components/MobileBottomNav';
 import { Hero } from './components/Hero';
 import { ProductCard } from './components/ProductCard';
 import { ProductDetails } from './components/ProductDetails';
@@ -72,6 +73,7 @@ import { Footer } from './components/Footer';
 import { AuthScreen } from './components/AuthScreen';
 import { CustomerAuth } from './components/CustomerAuth';
 import { DynamicPageRenderer } from './components/DynamicPageRenderer';
+import { MobileBottomNav } from './components/MobileBottomNav';
 import { UiFeedbackHost, toast } from './components/UiFeedback';
 import { ArrowRight, CheckCircle, ShieldCheck, Heart, Sparkles, MessageSquare, BookOpen, Star, Printer, Receipt, ShoppingBag, Download } from 'lucide-react';
 
@@ -1758,18 +1760,42 @@ export default function App() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [selectedBrand, selectedCondition, sortBy, searchQuery, selectedCategory, selectedSeason, selectedClub]);
 
+  // After catalog loads/changes: drop bag + wishlist lines for deleted products
+  const catalogIdKey = useMemo(
+    () => (Array.isArray(products) ? products.map((p) => p.id).join('|') : ''),
+    [products],
+  );
+  useEffect(() => {
+    if (!catalogHydrated) return;
+    const catalog = Array.isArray(products) ? products : [];
+    setCart((prev) => {
+      const next = pruneCartToCatalog(prev, catalog);
+      if (next.length === prev.length) return prev;
+      saveLocalCart(next);
+      return next;
+    });
+    setWishlist((prev) => {
+      const next = pruneWishlistToCatalog(prev, catalog);
+      if (next.length === prev.length) return prev;
+      saveLocalWishlist(next, currentUser?.id);
+      return next;
+    });
+  }, [catalogHydrated, catalogIdKey, currentUser?.id, products]);
+
   // Persist cart locally always; debounce sync to API when logged in
   useEffect(() => {
     saveLocalCart(cart);
     if (!isApiEnabled() || !getToken()) return;
     if (cartSyncTimer.current) clearTimeout(cartSyncTimer.current);
     cartSyncTimer.current = setTimeout(() => {
-      void api.syncCart(cartToSyncPayload(cart)).catch(() => undefined);
+      // Only sync lines that still exist in catalog (never re-push deleted kits)
+      const live = pruneCartToCatalog(cart, products);
+      void api.syncCart(cartToSyncPayload(live)).catch(() => undefined);
     }, 500);
     return () => {
       if (cartSyncTimer.current) clearTimeout(cartSyncTimer.current);
     };
-  }, [cart]);
+  }, [cart, products, catalogHydrated]);
 
   // Persist wishlist locally (guest + account cache)
   useEffect(() => {
@@ -1785,14 +1811,33 @@ export default function App() {
         const remoteCart = await api.getCart();
         const items = mapApiCartToItems(remoteCart?.items || [], products);
         if (cancelled) return;
+        const localLive = pruneCartToCatalog(cart, products);
         if (items.length > 0) {
           setCart(items);
           saveLocalCart(items);
-        } else if (cart.length > 0) {
-          await api.syncCart(cartToSyncPayload(cart));
+        } else if (localLive.length > 0) {
+          // Push only live catalog items — never resurrect deleted products
+          await api.syncCart(cartToSyncPayload(localLive));
+          setCart(localLive);
+          saveLocalCart(localLive);
+        } else {
+          setCart([]);
+          clearLocalCart();
+          try {
+            await api.syncCart([]);
+          } catch {
+            /* ignore */
+          }
         }
       } catch {
-        /* keep local cart */
+        // API cart failed — still strip deleted products from local bag
+        if (!cancelled) {
+          setCart((prev) => {
+            const next = pruneCartToCatalog(prev, products);
+            saveLocalCart(next);
+            return next;
+          });
+        }
       }
       try {
         const remoteWish = await api.getWishlist();
@@ -1902,6 +1947,7 @@ export default function App() {
 
   // Quick Add helper (adds standard first size with no custom nameset)
   const handleQuickAdd = (product: Product, size?: string, qty?: number) => {
+    // Fly animation is triggered by ProductCard / ProductDetails; deal tiles call fly themselves
     const standardSize = size || product.sizes[0] || 'M';
     const item: CartItem = {
       product,

@@ -10,6 +10,7 @@ import { DEFAULT_CLUBS, normalizeClubShowcase } from '../data/clubsData';
 import { DEFAULT_INTERNATIONAL_TEAMS } from '../data/internationalTeamsData';
 import { navigateFromCmsUrl } from '../lib/navigateFromCmsUrl';
 import { isBannerLive, isHeroBannerType } from '../lib/bannerVisibility';
+import { flyProductToCart } from '../lib/flyToCart';
 import { getProductsForHomepageSection, isCatalogAssignedProduct, isProductRowSection, normalizeHomepageSections, resolveSectionCategory } from '../lib/homepageSections';
 import { buildCatalogSearchKeywords, productMatchesSearchQuery, productMatchesNationalTeam } from '../lib/catalogSearch';
 import { DEFAULT_FALLBACK_SIZES } from '../lib/productSizes';
@@ -803,7 +804,10 @@ export const DynamicPageRenderer: React.FC<DynamicPageRendererProps> = ({
                               </div>
                               <button
                                 type="button"
-                                onClick={() => handleQuickAdd?.(pricedProduct)}
+                                onClick={() => {
+                                  flyProductToCart(pricedProduct);
+                                  handleQuickAdd?.(pricedProduct);
+                                }}
                                 className="bg-[#0A0A0A] hover:bg-black text-white font-extrabold text-xs uppercase tracking-widest px-4 py-2.5 rounded-xl cursor-pointer w-full transition-all flex items-center justify-center gap-1.5"
                               >
                                 Add to Cart

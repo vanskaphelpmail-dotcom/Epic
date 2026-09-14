@@ -7391,10 +7391,15 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({
             </div>
           )}
 
-          {/* MODULE: product-management — keep mounted (hidden) so the add/edit form is not lost */}
+          {/* MODULE: product-management — keep mounted (hidden) so the add/edit form is not lost.
+              Never aria-hide while the product editor portal is open (portals stay in this React tree). */}
           <div
-            className={activeSidebarTab === 'product-management' ? 'block' : 'hidden'}
-            aria-hidden={activeSidebarTab !== 'product-management'}
+            className={
+              activeSidebarTab === 'product-management' || productEditorOpen ? 'block' : 'hidden'
+            }
+            aria-hidden={
+              activeSidebarTab !== 'product-management' && !productEditorOpen
+            }
           >
             <ProductManager
               products={products}

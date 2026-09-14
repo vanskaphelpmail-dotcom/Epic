@@ -66,5 +66,6 @@ export const prisma = globalForPrisma.prisma ?? createClient();
 // Reuse across warm serverless invocations (Next / Vercel)
 globalForPrisma.prisma = prisma;
 
+export { Prisma, PrismaClient } from "../generated/prisma/client";
 export * from "../generated/prisma/client";
 export default prisma;

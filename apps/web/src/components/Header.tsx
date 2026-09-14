@@ -618,11 +618,29 @@ export const Header: React.FC<HeaderProps> = ({
           </div>
         </div>
 
-        {/* Mobile: menu only — search lives in the bar below + bottom nav */}
+        {/* Mobile: bag + menu — bag is the fly-to-cart target under lg */}
         <div
           className="flex lg:hidden items-center gap-1.5 shrink-0 ml-auto"
           id="mobile-right-controls"
         >
+          <button
+            type="button"
+            onClick={() => setCurrentPage('cart')}
+            className="relative shrink-0 w-10 h-10 rounded-xl text-[#0A0A0A] border border-[#E5E5E5] bg-white shadow-sm inline-flex items-center justify-center cursor-pointer"
+            id="shopping-bag-btn-mobile"
+            data-cart-target="header-mobile"
+            aria-label="Shopping cart"
+          >
+            <ShoppingBag size={18} />
+            {cartCount > 0 && (
+              <span
+                data-cart-count
+                className="absolute -top-1 -right-1 bg-[#E30613] text-white font-black text-[10px] w-5 h-5 flex items-center justify-center rounded-full"
+              >
+                {cartCount > 9 ? '9+' : cartCount}
+              </span>
+            )}
+          </button>
           <button
             type="button"
             onClick={() => setIsMobileMenuOpen((open) => !open)}
