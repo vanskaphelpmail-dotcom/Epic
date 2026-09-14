@@ -384,5 +384,61 @@ authRouter.post("/reset-password", async (req, res) => {
   }
 });
 
+/** Logged-in admin/staff/customer: change password with current password confirmation. */
+authRouter.post("/change-password", requireAuth, async (req: AuthedRequest, res) => {
+  try {
+    const body = z
+      .object({
+        currentPassword: z.string().min(1),
+        newPassword: z.string().min(8).max(128),
+      })
+      .parse(req.body);
+
+    if (body.currentPassword === body.newPassword) {
+      return res.status(400).json({
+        success: false,
+        error: { message: "New password must be different from the current password." },
+      });
+    }
+
+    const user = await prisma.user.findUnique({ where: { id: req.user!.id } });
+    if (!user || !user.passwordHash) {
+      return res.status(404).json({ success: false, error: { message: "Account not found" } });
+    }
+
+    const ok = await compare(body.currentPassword, user.passwordHash);
+    if (!ok) {
+      return res.status(401).json({
+        success: false,
+        error: { message: "Current password is incorrect" },
+      });
+    }
+
+    const passwordHash = await hash(body.newPassword, 12);
+    await prisma.user.update({
+      where: { id: user.id },
+      data: {
+        passwordHash,
+        resetToken: null,
+        resetTokenExpires: null,
+      },
+    });
+
+    return res.json({
+      success: true,
+      data: { message: "Password changed successfully." },
+    });
+  } catch (error) {
+    if (error instanceof z.ZodError) {
+      return res.status(400).json({
+        success: false,
+        error: { message: error.issues[0]?.message || "Invalid password input" },
+      });
+    }
+    console.error("[auth/change-password]", error);
+    return res.status(500).json({ success: false, error: { message: "Password change failed" } });
+  }
+});
+
 // silence unused import warning in some tooling
 void mapUiRoleToPrisma;

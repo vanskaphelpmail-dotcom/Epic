@@ -158,6 +158,12 @@ export const api = {
       method: "POST",
       body: JSON.stringify({ token, password }),
     }),
+  /** Logged-in user: change password (requires current password). */
+  changePassword: (currentPassword: string, newPassword: string) =>
+    request<{ message: string }>("/api/auth/change-password", {
+      method: "POST",
+      body: JSON.stringify({ currentPassword, newPassword }),
+    }),
   me: () => request<any>("/api/auth/me"),
   /** Re-bind JWT to current Neon user by email (after DB switch / re-seed). */
   rebindSession: () =>

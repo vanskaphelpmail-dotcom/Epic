@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useMemo, useRef } from 'react';
-import { AreaChart, Users, Shirt, ShoppingBag, Check, X, ShieldAlert, BadgeCheck, FileText, Plus, Save, Sparkles, Download, Upload, AlertTriangle, Image, Trash2, Edit, Search, Smartphone, Monitor, ChevronLeft, ChevronRight, ChevronUp, ChevronDown, SlidersHorizontal, TrendingUp, ArrowUpRight, ArrowDownRight, RefreshCw, BarChart3, Clock, CheckCircle, AlertOctagon, HelpCircle, UserCheck, PlusCircle, Activity, Trophy, Star, Flame, Globe, Tag, Box, Compass, Heart, Phone, MapPin, Mail, Layers, Grid, ArrowUp, ArrowDown, ShieldCheck, Award, Printer, Truck, RotateCcw, DollarSign, CheckCircle2, PackageCheck, Send, Copy, ExternalLink, XCircle, Eye, Bell, CreditCard, LayoutGrid, type LucideIcon } from 'lucide-react';
+import { AreaChart, Users, Shirt, ShoppingBag, Check, X, ShieldAlert, BadgeCheck, FileText, Plus, Save, Sparkles, Download, Upload, AlertTriangle, Image, Trash2, Edit, Search, Smartphone, Monitor, ChevronLeft, ChevronRight, ChevronUp, ChevronDown, SlidersHorizontal, TrendingUp, ArrowUpRight, ArrowDownRight, RefreshCw, BarChart3, Clock, CheckCircle, AlertOctagon, HelpCircle, UserCheck, PlusCircle, Activity, Trophy, Star, Flame, Globe, Tag, Box, Compass, Heart, Phone, MapPin, Mail, Layers, Grid, ArrowUp, ArrowDown, ShieldCheck, Award, Printer, Truck, RotateCcw, DollarSign, CheckCircle2, PackageCheck, Send, Copy, ExternalLink, XCircle, Eye, Bell, CreditCard, LayoutGrid, KeyRound, type LucideIcon } from 'lucide-react';
 import { Product, SellerRequest, Order, CarouselSlide, AppConfig, BannerConfig, BannerType, MenuItem, MenuPlacement, PageSection, DailyDealItem } from '../types';
 import { JerseyRenderer } from './JerseyRenderer';
 import { InventoryEditor } from './InventoryEditor';
@@ -149,6 +149,11 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({
   const [activeSidebarTab, setActiveSidebarTab] = useState<string>(() => initialAdminTab || 'dashboard');
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [productEditorOpen, setProductEditorOpen] = useState(false);
+  const [showChangePassword, setShowChangePassword] = useState(false);
+  const [pwCurrent, setPwCurrent] = useState('');
+  const [pwNext, setPwNext] = useState('');
+  const [pwConfirm, setPwConfirm] = useState('');
+  const [pwSaving, setPwSaving] = useState(false);
 
   // Sync when browser Back/Forward changes admin tab in the URL
   useEffect(() => {
@@ -1703,7 +1708,7 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({
               </div>
             </div>
 
-            <div className="flex items-center gap-3 sm:gap-5 ml-auto">
+              <div className="flex items-center gap-2 sm:gap-3 ml-auto">
               <div className="hidden md:flex items-center gap-4 text-[12px]">
                 <div>
                   <p className="text-zinc-700 uppercase tracking-wide text-[11px] font-bold">Employee ID</p>
@@ -1720,6 +1725,20 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({
                   <p className="font-semibold text-zinc-950">{staffRole}</p>
                 </div>
               </div>
+              <button
+                type="button"
+                onClick={() => {
+                  setPwCurrent('');
+                  setPwNext('');
+                  setPwConfirm('');
+                  setShowChangePassword(true);
+                }}
+                className="text-[12px] font-semibold px-3 py-2 rounded-lg border border-zinc-300 bg-white text-zinc-900 hover:bg-zinc-100 cursor-pointer inline-flex items-center gap-1.5"
+                title="Change password"
+              >
+                <KeyRound size={14} />
+                <span className="hidden sm:inline">Password</span>
+              </button>
               {onSignOut && (
                 <button
                   type="button"
@@ -1732,6 +1751,131 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({
             </div>
           </div>
         </header>
+
+        {showChangePassword && (
+          <div
+            className="fixed inset-0 z-[90] bg-zinc-950/60 backdrop-blur-sm flex items-center justify-center p-4"
+            role="dialog"
+            aria-modal="true"
+            aria-label="Change password"
+            onClick={() => !pwSaving && setShowChangePassword(false)}
+          >
+            <div
+              className="bg-white rounded-2xl border border-zinc-200 shadow-2xl w-full max-w-md p-5 sm:p-6 space-y-4 text-zinc-950"
+              onClick={(e) => e.stopPropagation()}
+            >
+              <div className="flex items-start justify-between gap-3">
+                <div>
+                  <h3 className="text-sm font-extrabold uppercase tracking-tight flex items-center gap-2">
+                    <KeyRound size={16} /> Change password
+                  </h3>
+                  <p className="text-[12px] text-zinc-600 mt-1 font-medium">
+                    Signed in as {staffUser?.email || staffName}. Enter your current password, then choose a new one.
+                  </p>
+                </div>
+                <button
+                  type="button"
+                  disabled={pwSaving}
+                  onClick={() => setShowChangePassword(false)}
+                  className="p-1.5 rounded-lg hover:bg-zinc-100 cursor-pointer disabled:opacity-50"
+                  aria-label="Close"
+                >
+                  <X size={16} />
+                </button>
+              </div>
+              <form
+                className="space-y-3"
+                onSubmit={async (e) => {
+                  e.preventDefault();
+                  if (pwSaving) return;
+                  if (pwNext.length < 8) {
+                    toast('New password must be at least 8 characters.', 'error');
+                    return;
+                  }
+                  if (pwNext !== pwConfirm) {
+                    toast('New password and confirmation do not match.', 'error');
+                    return;
+                  }
+                  if (!isApiEnabled() || !getToken()) {
+                    toast('Staff login required to change password.', 'error');
+                    return;
+                  }
+                  setPwSaving(true);
+                  try {
+                    const res = await api.changePassword(pwCurrent, pwNext);
+                    toast(res?.message || 'Password changed successfully.', 'success');
+                    setShowChangePassword(false);
+                    setPwCurrent('');
+                    setPwNext('');
+                    setPwConfirm('');
+                  } catch (err: unknown) {
+                    const msg =
+                      err && typeof err === 'object' && 'message' in err
+                        ? String((err as { message?: string }).message)
+                        : 'Password change failed';
+                    toast(msg, 'error');
+                  } finally {
+                    setPwSaving(false);
+                  }
+                }}
+              >
+                <div>
+                  <label className="text-[11px] font-bold uppercase text-zinc-700 block mb-1">Current password</label>
+                  <input
+                    type="password"
+                    autoComplete="current-password"
+                    required
+                    value={pwCurrent}
+                    onChange={(e) => setPwCurrent(e.target.value)}
+                    className="w-full border border-zinc-300 rounded-xl px-3 py-2.5 text-sm font-medium bg-zinc-50"
+                  />
+                </div>
+                <div>
+                  <label className="text-[11px] font-bold uppercase text-zinc-700 block mb-1">New password</label>
+                  <input
+                    type="password"
+                    autoComplete="new-password"
+                    required
+                    minLength={8}
+                    value={pwNext}
+                    onChange={(e) => setPwNext(e.target.value)}
+                    className="w-full border border-zinc-300 rounded-xl px-3 py-2.5 text-sm font-medium bg-zinc-50"
+                    placeholder="At least 8 characters"
+                  />
+                </div>
+                <div>
+                  <label className="text-[11px] font-bold uppercase text-zinc-700 block mb-1">Confirm new password</label>
+                  <input
+                    type="password"
+                    autoComplete="new-password"
+                    required
+                    minLength={8}
+                    value={pwConfirm}
+                    onChange={(e) => setPwConfirm(e.target.value)}
+                    className="w-full border border-zinc-300 rounded-xl px-3 py-2.5 text-sm font-medium bg-zinc-50"
+                  />
+                </div>
+                <div className="flex justify-end gap-2 pt-2">
+                  <button
+                    type="button"
+                    disabled={pwSaving}
+                    onClick={() => setShowChangePassword(false)}
+                    className="px-4 py-2.5 rounded-xl text-xs font-bold border border-zinc-300 hover:bg-zinc-50 cursor-pointer disabled:opacity-50"
+                  >
+                    Cancel
+                  </button>
+                  <button
+                    type="submit"
+                    disabled={pwSaving}
+                    className="px-5 py-2.5 rounded-xl text-xs font-bold text-white bg-zinc-950 hover:bg-zinc-800 cursor-pointer disabled:opacity-60"
+                  >
+                    {pwSaving ? 'Saving…' : 'Update password'}
+                  </button>
+                </div>
+              </form>
+            </div>
+          </div>
+        )}
 
         <div className="flex-1 w-full min-w-0 max-w-full overflow-x-hidden px-3 sm:px-6 lg:px-8 py-5 md:py-6">
 
