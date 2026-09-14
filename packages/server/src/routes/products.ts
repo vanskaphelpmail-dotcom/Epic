@@ -13,18 +13,21 @@ import { ensureUniqueBarcode } from "../lib/retailCodes";
 
 export const productsRouter = Router();
 
-/** Always allocate a unique barcode — never leave products without one. */
-async function allocateProductBarcode(
-  preferred?: string | null,
+/** Allocate barcode when provided; empty/null = Off (no barcode). */
+async function resolveProductBarcode(
+  preferred: string | null | undefined,
   excludeProductId?: string,
-): Promise<string> {
+): Promise<string | null> {
+  if (preferred === null || preferred === undefined) return null;
+  const trimmed = String(preferred).trim();
+  if (!trimmed) return null;
   const rows = await prisma.product.findMany({
     where: excludeProductId ? { id: { not: excludeProductId } } : undefined,
     select: { barcode: true },
     take: 5000,
   });
   return ensureUniqueBarcode(
-    preferred,
+    trimmed,
     rows.map((r) => r.barcode),
   );
 }
@@ -317,7 +320,9 @@ const upsertSchema = z.object({
   name: z.string().min(2),
   slug: z.string().min(2),
   sku: z.string().min(2),
-  barcode: z.string().min(4).max(32).optional().nullable(),
+  barcode: z
+    .union([z.string().min(4).max(32), z.literal(""), z.null()])
+    .optional(),
   price: z.number().positive(),
   originalPrice: z.number().nonnegative().nullable().optional(),
   costPrice: z.number().optional(),
@@ -427,14 +432,14 @@ async function resolveCategoryId(categoryName?: string | null) {
 function productCreateData(
   body: z.infer<typeof upsertSchema>,
   categoryId?: string,
-  barcode?: string,
+  barcode?: string | null,
 ) {
   return {
     id: body.id,
     name: body.name,
     slug: body.slug,
     sku: body.sku,
-    barcode: barcode || body.barcode?.trim() || null,
+    barcode: barcode === undefined ? body.barcode?.trim() || null : barcode,
     price: body.price,
     originalPrice:
       body.originalPrice == null || body.originalPrice <= 0 ? null : body.originalPrice,
@@ -495,7 +500,7 @@ productsRouter.post("/", requirePermission("can_manage_products"), async (req: A
   try {
     const body = upsertSchema.parse(req.body);
     const categoryId = await resolveCategoryId(body.category);
-    const barcode = await allocateProductBarcode(body.barcode);
+    const barcode = await resolveProductBarcode(body.barcode ?? null);
     const created = await prisma.product.create({
       data: productCreateData(body, categoryId, barcode),
       include: { category: true, club: true, league: true },
@@ -582,20 +587,21 @@ productsRouter.put("/:id", requirePermission("can_manage_products"), async (req:
     const categoryId =
       body.category !== undefined ? await resolveCategoryId(body.category) : undefined;
 
+    const resolvedBarcode =
+      body.barcode !== undefined
+        ? await resolveProductBarcode(
+            body.barcode === null || body.barcode === "" ? null : body.barcode,
+            req.params.id,
+          )
+        : undefined;
+
     const updated = await prisma.product.update({
       where: { id: req.params.id },
       data: {
         ...(body.name != null ? { name: body.name } : {}),
         ...(body.slug != null ? { slug: body.slug } : {}),
         ...(body.sku != null ? { sku: body.sku } : {}),
-        ...(body.barcode !== undefined
-          ? {
-              barcode: await allocateProductBarcode(
-                body.barcode?.trim() || null,
-                req.params.id,
-              ),
-            }
-          : {}),
+        ...(resolvedBarcode !== undefined ? { barcode: resolvedBarcode } : {}),
         ...(body.price != null ? { price: body.price } : {}),
         ...(body.originalPrice !== undefined
           ? { originalPrice: body.originalPrice == null || body.originalPrice <= 0 ? null : body.originalPrice }

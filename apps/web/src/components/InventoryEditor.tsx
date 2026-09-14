@@ -72,6 +72,7 @@ export const InventoryEditor: React.FC<InventoryEditorProps> = ({
   const [formSizes, setFormSizes] = useState<string[]>([...DEFAULT_FALLBACK_SIZES]);
   const [formSku, setFormSku] = useState('');
   const [formBarcode, setFormBarcode] = useState('');
+  const [formBarcodeMode, setFormBarcodeMode] = useState<'off' | 'auto' | 'manual'>('off');
   const [labelPrint, setLabelPrint] = useState<{
     barcode: string;
     sellPrice: number;
@@ -102,7 +103,8 @@ export const InventoryEditor: React.FC<InventoryEditorProps> = ({
     setFormColor('Green/Red');
     setFormSizes([...DEFAULT_FALLBACK_SIZES]);
     setFormSku('');
-    setFormBarcode(nextSerialEan13(products.map((p) => p.barcode)));
+    setFormBarcodeMode('off');
+    setFormBarcode('');
     setFormDescription('');
     setFormMaterial('100% Curated Polyester Mesh');
     setFormMadeIn('Bangladesh');
@@ -140,14 +142,11 @@ export const InventoryEditor: React.FC<InventoryEditorProps> = ({
     setFormSku(product.sku);
     const existingBarcode = normalizeBarcode(product.barcode || '');
     if (existingBarcode) {
+      setFormBarcodeMode('manual');
       setFormBarcode(existingBarcode);
     } else {
-      setFormBarcode(
-        nextSerialEan13(
-          products.map((p) => p.barcode),
-          product.barcode,
-        ),
-      );
+      setFormBarcodeMode('off');
+      setFormBarcode('');
     }
     setFormDescription(product.description || '');
     setFormMaterial(product.specification?.material || '100% Curated Polyester Mesh');
@@ -177,10 +176,13 @@ export const InventoryEditor: React.FC<InventoryEditorProps> = ({
       ? calcDiscountAmount(formOriginalPrice, salePrice)
       : 0;
 
-    const resolvedBarcode = ensureUniqueBarcode(
-      formBarcode,
-      products.map((p) => p.barcode),
-    );
+    const resolvedBarcode =
+      formBarcodeMode === 'off'
+        ? null
+        : ensureUniqueBarcode(
+            formBarcode,
+            products.map((p) => p.barcode),
+          );
 
     const imageSrc =
       formUploadedImage ||
@@ -255,11 +257,14 @@ export const InventoryEditor: React.FC<InventoryEditorProps> = ({
       ? calcDiscountAmount(formOriginalPrice, salePrice)
       : 0;
 
-    const resolvedBarcode = ensureUniqueBarcode(
-      formBarcode,
-      products.map((p) => p.barcode),
-      editingProduct.barcode,
-    );
+    const resolvedBarcode =
+      formBarcodeMode === 'off'
+        ? null
+        : ensureUniqueBarcode(
+            formBarcode,
+            products.map((p) => p.barcode),
+            editingProduct.barcode,
+          );
 
     const editImage =
       formUploadedImage || editingProduct.uploadedImage || editingProduct.image;
@@ -542,7 +547,7 @@ export const InventoryEditor: React.FC<InventoryEditorProps> = ({
                           {p.barcode}
                         </span>
                       ) : (
-                        <span className="text-[12px] text-amber-800 font-semibold">Auto on save</span>
+                        <span className="text-[12px] text-zinc-500 font-semibold">Off</span>
                       )}
                     </td>
 
@@ -841,18 +846,74 @@ export const InventoryEditor: React.FC<InventoryEditorProps> = ({
                   </div>
 
                   <div className="space-y-2 rounded-xl border border-zinc-300 p-3 bg-zinc-50">
-                    <label className="text-[10px] font-mono text-zinc-700 uppercase font-bold">
-                      Barcode
-                    </label>
+                    <div className="flex items-center justify-between gap-2 flex-wrap">
+                      <label className="text-[10px] font-mono text-zinc-700 uppercase font-bold">
+                        Barcode
+                      </label>
+                      <div className="flex rounded-lg overflow-hidden border border-zinc-300">
+                        {([
+                          { id: 'off' as const, label: 'Off' },
+                          { id: 'auto' as const, label: 'Auto' },
+                          { id: 'manual' as const, label: 'Manual' },
+                        ]).map((mode) => (
+                          <button
+                            key={mode.id}
+                            type="button"
+                            onClick={() => {
+                              setFormBarcodeMode(mode.id);
+                              if (mode.id === 'off') {
+                                setFormBarcode('');
+                              } else if (mode.id === 'auto') {
+                                setFormBarcode(
+                                  nextSerialEan13(
+                                    products.map((p) => p.barcode),
+                                    editingProduct?.barcode,
+                                  ),
+                                );
+                              } else if (!formBarcode) {
+                                setFormBarcode(
+                                  nextSerialEan13(
+                                    products.map((p) => p.barcode),
+                                    editingProduct?.barcode,
+                                  ),
+                                );
+                              }
+                            }}
+                            className={`px-2.5 py-1 text-[9px] font-bold uppercase cursor-pointer ${
+                              formBarcodeMode === mode.id
+                                ? 'bg-white text-black'
+                                : 'bg-transparent text-zinc-700'
+                            }`}
+                          >
+                            {mode.label}
+                          </button>
+                        ))}
+                      </div>
+                    </div>
                     <input
                       type="text"
-                      placeholder="Auto serial EAN-13"
-                      value={formBarcode}
-                      readOnly
-                      className="w-full bg-zinc-100 border border-zinc-300 rounded-xl py-2.5 px-3.5 text-xs text-zinc-950 focus:outline-none font-mono placeholder-zinc-500 cursor-default"
+                      placeholder={
+                        formBarcodeMode === 'off'
+                          ? 'No barcode'
+                          : formBarcodeMode === 'auto'
+                            ? 'Auto serial EAN-13'
+                            : 'Type barcode'
+                      }
+                      value={formBarcodeMode === 'off' ? '' : formBarcode}
+                      readOnly={formBarcodeMode !== 'manual'}
+                      disabled={formBarcodeMode === 'off'}
+                      onChange={(e) => {
+                        setFormBarcodeMode('manual');
+                        setFormBarcode(e.target.value.replace(/\s+/g, ''));
+                      }}
+                      className="w-full bg-zinc-100 border border-zinc-300 rounded-xl py-2.5 px-3.5 text-xs text-zinc-950 focus:outline-none font-mono placeholder-zinc-500 disabled:opacity-50 read-only:cursor-default"
                     />
                     <p className="text-[9px] font-mono text-zinc-600">
-                      Always auto — unique serial barcode (never reused, never empty).
+                      {formBarcodeMode === 'off'
+                        ? 'Off by default — use Auto or Manual if needed.'
+                        : formBarcodeMode === 'auto'
+                          ? 'Auto — unique serial barcode (never reused).'
+                          : 'Manual — type or edit, then save.'}
                     </p>
                   </div>
 
@@ -1233,18 +1294,74 @@ export const InventoryEditor: React.FC<InventoryEditorProps> = ({
                   </div>
 
                   <div className="space-y-2 rounded-xl border border-zinc-300 p-3 bg-zinc-50">
-                    <label className="text-[10px] font-mono text-zinc-700 uppercase font-bold">
-                      Barcode
-                    </label>
+                    <div className="flex items-center justify-between gap-2 flex-wrap">
+                      <label className="text-[10px] font-mono text-zinc-700 uppercase font-bold">
+                        Barcode
+                      </label>
+                      <div className="flex rounded-lg overflow-hidden border border-zinc-300">
+                        {([
+                          { id: 'off' as const, label: 'Off' },
+                          { id: 'auto' as const, label: 'Auto' },
+                          { id: 'manual' as const, label: 'Manual' },
+                        ]).map((mode) => (
+                          <button
+                            key={mode.id}
+                            type="button"
+                            onClick={() => {
+                              setFormBarcodeMode(mode.id);
+                              if (mode.id === 'off') {
+                                setFormBarcode('');
+                              } else if (mode.id === 'auto') {
+                                setFormBarcode(
+                                  nextSerialEan13(
+                                    products.map((p) => p.barcode),
+                                    editingProduct?.barcode,
+                                  ),
+                                );
+                              } else if (!formBarcode) {
+                                setFormBarcode(
+                                  nextSerialEan13(
+                                    products.map((p) => p.barcode),
+                                    editingProduct?.barcode,
+                                  ),
+                                );
+                              }
+                            }}
+                            className={`px-2.5 py-1 text-[9px] font-bold uppercase cursor-pointer ${
+                              formBarcodeMode === mode.id
+                                ? 'bg-white text-black'
+                                : 'bg-transparent text-zinc-700'
+                            }`}
+                          >
+                            {mode.label}
+                          </button>
+                        ))}
+                      </div>
+                    </div>
                     <input
                       type="text"
-                      placeholder="Auto serial EAN-13"
-                      value={formBarcode}
-                      readOnly
-                      className="w-full bg-zinc-100 border border-zinc-300 rounded-xl py-2.5 px-3.5 text-xs text-zinc-950 focus:outline-none font-mono placeholder-zinc-500 cursor-default"
+                      placeholder={
+                        formBarcodeMode === 'off'
+                          ? 'No barcode'
+                          : formBarcodeMode === 'auto'
+                            ? 'Auto serial EAN-13'
+                            : 'Type barcode'
+                      }
+                      value={formBarcodeMode === 'off' ? '' : formBarcode}
+                      readOnly={formBarcodeMode !== 'manual'}
+                      disabled={formBarcodeMode === 'off'}
+                      onChange={(e) => {
+                        setFormBarcodeMode('manual');
+                        setFormBarcode(e.target.value.replace(/\s+/g, ''));
+                      }}
+                      className="w-full bg-zinc-100 border border-zinc-300 rounded-xl py-2.5 px-3.5 text-xs text-zinc-950 focus:outline-none font-mono placeholder-zinc-500 disabled:opacity-50 read-only:cursor-default"
                     />
                     <p className="text-[9px] font-mono text-zinc-600">
-                      Always auto — unique serial barcode (never reused, never empty).
+                      {formBarcodeMode === 'off'
+                        ? 'Off by default — use Auto or Manual if needed.'
+                        : formBarcodeMode === 'auto'
+                          ? 'Auto — unique serial barcode (never reused).'
+                          : 'Manual — type or edit, then save.'}
                     </p>
                   </div>
 

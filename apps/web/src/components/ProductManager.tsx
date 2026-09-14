@@ -474,6 +474,8 @@ export const ProductManager: React.FC<ProductManagerProps> = ({
   const [pColor, setPColor] = useState('Red/White');
   const [pSku, setPSku] = useState('');
   const [pBarcode, setPBarcode] = useState('');
+  /** New products start Off; user can switch to Auto or Manual. */
+  const [pBarcodeMode, setPBarcodeMode] = useState<'off' | 'auto' | 'manual'>('off');
   const [labelPrint, setLabelPrint] = useState<{ barcode: string; sellPrice: number; name: string } | null>(null);
   const [pCostPrice, setPCostPrice] = useState<MoneyValue>('');
   const [pOriginalPrice, setPOriginalPrice] = useState<MoneyValue>('');
@@ -624,7 +626,8 @@ export const ProductManager: React.FC<ProductManagerProps> = ({
     setPCustomSize('');
     setPColor('Red/White');
     setPSku(nextSkuSequence(products.map((p) => p.sku), 'EV'));
-    setPBarcode(nextSerialEan13(products.map((p) => p.barcode)));
+    setPBarcodeMode('off');
+    setPBarcode('');
     setPCostPrice('');
     setPOriginalPrice('');
     setPDiscountMode('percent');
@@ -749,14 +752,11 @@ export const ProductManager: React.FC<ProductManagerProps> = ({
     setPSku(product.sku || '');
     const existingBarcode = normalizeBarcode(product.barcode || '');
     if (existingBarcode) {
+      setPBarcodeMode('manual');
       setPBarcode(existingBarcode);
     } else {
-      setPBarcode(
-        nextSerialEan13(
-          products.map((p) => p.barcode),
-          product.barcode,
-        ),
-      );
+      setPBarcodeMode('off');
+      setPBarcode('');
     }
     setPCostPrice(product.costPrice != null ? Math.floor(Number(product.costPrice)) : '');
     const sale = Math.floor(Number(product.sellingPrice || product.price) || 0);
@@ -970,11 +970,14 @@ export const ProductManager: React.FC<ProductManagerProps> = ({
     const finalSlug = editingProduct?.slug || `${baseSlug}-${uniqueSuffix}`;
     const resolvedSku =
       editingProduct?.sku || pSku.trim() || nextSkuSequence(products.map((p) => p.sku), 'EV');
-    const resolvedBarcode = ensureUniqueBarcode(
-      pBarcode || undefined,
-      products.map((p) => p.barcode),
-      editingProduct?.barcode,
-    );
+    const resolvedBarcode =
+      pBarcodeMode === 'off'
+        ? null
+        : ensureUniqueBarcode(
+            pBarcode || undefined,
+            products.map((p) => p.barcode),
+            editingProduct?.barcode,
+          );
     const featuresArr = pFeatures ? pFeatures.split(',').map(f => f.trim()).filter(Boolean) : [];
     const tagsArr = pTags.map((t) => t.trim()).filter(Boolean).slice(0, MAX_PRODUCT_TAGS);
     const longDesc = pLongDesc.trim();
@@ -1960,7 +1963,7 @@ export const ProductManager: React.FC<ProductManagerProps> = ({
                               {prod.barcode}
                             </span>
                           ) : (
-                            <span className="text-[10px] text-amber-800 font-semibold">Auto on edit/save</span>
+                            <span className="text-[10px] text-zinc-500 font-semibold">Off</span>
                           )}
                         </td>
 
@@ -3018,15 +3021,71 @@ export const ProductManager: React.FC<ProductManagerProps> = ({
                     </p>
                   </div>
                   <div className="space-y-2 border border-emerald-100 rounded-xl p-3 bg-white">
-                    <label className="font-bold text-emerald-950 block">Barcode</label>
+                    <div className="flex items-center justify-between gap-2 flex-wrap">
+                      <label className="font-bold text-emerald-950 block">Barcode</label>
+                      <div className="flex rounded-lg overflow-hidden border border-emerald-200">
+                        {([
+                          { id: 'off' as const, label: 'Off' },
+                          { id: 'auto' as const, label: 'Auto' },
+                          { id: 'manual' as const, label: 'Manual' },
+                        ]).map((mode) => (
+                          <button
+                            key={mode.id}
+                            type="button"
+                            onClick={() => {
+                              setPBarcodeMode(mode.id);
+                              if (mode.id === 'off') {
+                                setPBarcode('');
+                              } else if (mode.id === 'auto') {
+                                setPBarcode(
+                                  nextSerialEan13(
+                                    products.map((p) => p.barcode),
+                                    editingProduct?.barcode,
+                                  ),
+                                );
+                              } else if (!pBarcode) {
+                                setPBarcode(
+                                  nextSerialEan13(
+                                    products.map((p) => p.barcode),
+                                    editingProduct?.barcode,
+                                  ),
+                                );
+                              }
+                            }}
+                            className={`px-2.5 py-1 text-[9px] font-bold uppercase cursor-pointer ${
+                              pBarcodeMode === mode.id
+                                ? 'bg-emerald-800 text-white'
+                                : 'bg-white text-emerald-800'
+                            }`}
+                          >
+                            {mode.label}
+                          </button>
+                        ))}
+                      </div>
+                    </div>
                     <input
-                      value={pBarcode}
-                      readOnly
-                      className="w-full bg-emerald-50/40 border border-emerald-200 rounded-xl px-3 py-2 font-mono font-bold text-emerald-950 cursor-default"
-                      placeholder="Auto serial EAN-13"
+                      value={pBarcodeMode === 'off' ? '' : pBarcode}
+                      readOnly={pBarcodeMode !== 'manual'}
+                      disabled={pBarcodeMode === 'off'}
+                      onChange={(e) => {
+                        setPBarcodeMode('manual');
+                        setPBarcode(e.target.value.replace(/\s+/g, ''));
+                      }}
+                      className="w-full bg-emerald-50/40 border border-emerald-200 rounded-xl px-3 py-2 font-mono font-bold text-emerald-950 disabled:opacity-50 disabled:bg-zinc-100 read-only:cursor-default"
+                      placeholder={
+                        pBarcodeMode === 'off'
+                          ? 'No barcode'
+                          : pBarcodeMode === 'auto'
+                            ? 'Auto serial EAN-13'
+                            : 'Type barcode'
+                      }
                     />
                     <p className="text-[10px] text-emerald-700 font-mono">
-                      Always auto — unique serial barcode for every product (never reused).
+                      {pBarcodeMode === 'off'
+                        ? 'Off by default — turn Auto or Manual if you need a barcode.'
+                        : pBarcodeMode === 'auto'
+                          ? 'Auto — unique serial barcode (never reused).'
+                          : 'Manual — type or edit the barcode, then save.'}
                     </p>
                   </div>
                 </div>

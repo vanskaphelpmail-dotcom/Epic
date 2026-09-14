@@ -37,7 +37,7 @@ export interface Product {
   /** Per-size stock counts, e.g. { S: 2, M: 5, XL: 0 } */
   sizeStocks?: Record<string, number>;
   sku: string;
-  /** Retail barcode (EAN-13). Always auto-assigned — never optional/empty. */
+  /** Retail barcode (EAN-13). Optional — Off by default; Auto or Manual when needed. */
   barcode?: string;
   badgeAvailable: boolean;
   printAvailable: boolean;
