@@ -14,14 +14,12 @@ interface ClubLogoShowcaseProps {
 
 const ANIM_START_DELAY_MS = 700;
 
-/** Logo beside name — Sevora-style horizontal brand chip */
+/** Logo + name together inside one white box (no jersey-count line) */
 function ClubCard({
   club,
-  displayCount,
   onSelect,
 }: {
   club: ClubCatalogItem;
-  displayCount: number;
   onSelect: () => void;
 }) {
   const [imgFailed, setImgFailed] = React.useState(false);
@@ -30,15 +28,16 @@ function ClubCard({
     <button
       type="button"
       onClick={onSelect}
-      className="club-logo-card group flex shrink-0 items-center gap-2.5 rounded-full border border-[#E5E5E5] bg-white px-3.5 py-2 shadow-sm transition-colors hover:border-[#C8C8C8] hover:bg-[#FAFAFA] cursor-pointer"
+      title={club.name}
+      className="club-logo-card group box-border flex shrink-0 items-center gap-2.5 overflow-hidden rounded-2xl border border-[#E5E5E5] bg-white px-3 py-2.5 shadow-sm transition-colors hover:border-[#C8C8C8] hover:bg-[#FAFAFA] cursor-pointer"
     >
-      <span className="flex h-8 w-8 shrink-0 items-center justify-center overflow-hidden sm:h-9 sm:w-9">
+      <span className="relative flex h-9 w-9 shrink-0 items-center justify-center overflow-hidden rounded-lg border border-[#EEEEEE] bg-white sm:h-10 sm:w-10">
         {club.logoUrl && !imgFailed ? (
           <img
             src={club.logoUrl}
             alt=""
             aria-hidden="true"
-            className="h-full w-full object-contain transition-transform duration-300 group-hover:scale-105"
+            className="h-[80%] w-[80%] object-contain"
             loading="eager"
             decoding="async"
             referrerPolicy="no-referrer"
@@ -48,13 +47,8 @@ function ClubCard({
           <span className="text-[8px] font-black uppercase text-[#0A0A0A]/35">Logo</span>
         )}
       </span>
-      <span className="flex min-w-0 flex-col items-start text-left">
-        <span className="whitespace-nowrap text-[11px] font-black uppercase tracking-tight text-[#0A0A0A] sm:text-xs">
-          {club.name}
-        </span>
-        <span className="whitespace-nowrap text-[9px] font-medium text-[#5FA88A] sm:text-[10px]">
-          {displayCount} jerseys
-        </span>
+      <span className="max-w-[10.5rem] truncate text-left text-[11px] font-black uppercase tracking-tight text-[#0A0A0A] sm:max-w-[12rem] sm:text-xs">
+        {club.name}
       </span>
     </button>
   );
@@ -102,9 +96,9 @@ export const ClubLogoShowcase: React.FC<ClubLogoShowcaseProps> = ({
       className="w-full max-w-[1440px] mx-auto px-3 sm:px-4 md:px-5 lg:px-6 pt-3 sm:pt-4 pb-2"
       aria-label="Football club logo showcase"
     >
-      <div className="club-logo-marquee relative w-full overflow-hidden py-1">
+      <div className="club-logo-marquee relative w-full overflow-hidden py-1.5">
         <div
-          className={`club-logo-marquee-track flex w-max items-center gap-3 sm:gap-4 ${
+          className={`club-logo-marquee-track flex w-max items-center gap-3 sm:gap-3.5 ${
             animReady ? 'is-running' : 'is-waiting'
           }`}
           style={{ animationDuration: `${durationSec}s` }}
@@ -113,7 +107,6 @@ export const ClubLogoShowcase: React.FC<ClubLogoShowcaseProps> = ({
             <ClubCard
               key={`${club.id}-${idx}`}
               club={club}
-              displayCount={club.count}
               onSelect={() => onSelectClub(club)}
             />
           ))}

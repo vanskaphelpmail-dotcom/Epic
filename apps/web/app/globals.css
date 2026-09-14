@@ -839,8 +839,9 @@ select:focus {
 
 /* Football club logo showcase — delay start, then infinite scroll (never pauses) */
 .club-logo-marquee {
-  -webkit-mask-image: linear-gradient(to right, transparent, #000 3%, #000 97%, transparent);
-  mask-image: linear-gradient(to right, transparent, #000 3%, #000 97%, transparent);
+  /* Soft edge fade only — wide enough that full cards stay readable */
+  -webkit-mask-image: linear-gradient(to right, transparent, #000 6%, #000 94%, transparent);
+  mask-image: linear-gradient(to right, transparent, #000 6%, #000 94%, transparent);
 }
 
 .club-logo-marquee-track {
