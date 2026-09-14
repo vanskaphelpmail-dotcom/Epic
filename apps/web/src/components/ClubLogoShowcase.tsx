@@ -14,7 +14,7 @@ interface ClubLogoShowcaseProps {
 
 const ANIM_START_DELAY_MS = 700;
 
-/** Logo + name together inside one white box (no jersey-count line) */
+/** Logo beside name — no white card box (Sevora-style) */
 function ClubCard({
   club,
   onSelect,
@@ -29,15 +29,15 @@ function ClubCard({
       type="button"
       onClick={onSelect}
       title={club.name}
-      className="club-logo-card group box-border flex shrink-0 items-center gap-2.5 overflow-hidden rounded-2xl border border-[#E5E5E5] bg-white px-3 py-2.5 shadow-sm transition-colors hover:border-[#C8C8C8] hover:bg-[#FAFAFA] cursor-pointer"
+      className="club-logo-card group flex shrink-0 items-center gap-2 bg-transparent px-1 py-1.5 cursor-pointer"
     >
-      <span className="relative flex h-9 w-9 shrink-0 items-center justify-center overflow-hidden rounded-lg border border-[#EEEEEE] bg-white sm:h-10 sm:w-10">
+      <span className="relative flex h-8 w-8 shrink-0 items-center justify-center overflow-hidden sm:h-9 sm:w-9">
         {club.logoUrl && !imgFailed ? (
           <img
             src={club.logoUrl}
             alt=""
             aria-hidden="true"
-            className="h-[80%] w-[80%] object-contain"
+            className="h-full w-full object-contain transition-transform duration-300 group-hover:scale-105"
             loading="eager"
             decoding="async"
             referrerPolicy="no-referrer"
@@ -47,7 +47,7 @@ function ClubCard({
           <span className="text-[8px] font-black uppercase text-[#0A0A0A]/35">Logo</span>
         )}
       </span>
-      <span className="max-w-[10.5rem] truncate text-left text-[11px] font-black uppercase tracking-tight text-[#0A0A0A] sm:max-w-[12rem] sm:text-xs">
+      <span className="max-w-[10.5rem] truncate text-left text-[11px] font-black uppercase tracking-tight text-[#0A0A0A] transition-colors group-hover:text-[#E30613] sm:max-w-[12rem] sm:text-xs">
         {club.name}
       </span>
     </button>
@@ -98,7 +98,7 @@ export const ClubLogoShowcase: React.FC<ClubLogoShowcaseProps> = ({
     >
       <div className="club-logo-marquee relative w-full overflow-hidden py-1.5">
         <div
-          className={`club-logo-marquee-track flex w-max items-center gap-3 sm:gap-3.5 ${
+          className={`club-logo-marquee-track flex w-max items-center gap-6 sm:gap-8 ${
             animReady ? 'is-running' : 'is-waiting'
           }`}
           style={{ animationDuration: `${durationSec}s` }}
