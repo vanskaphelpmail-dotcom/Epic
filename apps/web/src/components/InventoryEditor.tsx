@@ -186,6 +186,10 @@ export const InventoryEditor: React.FC<InventoryEditorProps> = ({
       products.map((p) => p.barcode),
     );
 
+    const imageSrc =
+      formUploadedImage ||
+      'https://images.unsplash.com/photo-1508098682722-e99c43a406b2?auto=format&fit=crop&q=80&w=800';
+
     const payload = {
       name: formName,
       slug: formName.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, '') || `product-${Date.now()}`,
@@ -196,8 +200,8 @@ export const InventoryEditor: React.FC<InventoryEditorProps> = ({
       discount: formHasDiscount ? discountAmount : null,
       sellingPrice: salePrice,
       description: formDescription || 'Special customized vintage retro kit added to Epic Vanskap BD inventory.',
-      image: formUploadedImage || 'shirt-custom',
-      images: [] as string[],
+      image: imageSrc,
+      images: [imageSrc] as string[],
       brand: formBrand,
       season: formSeason,
       year: formYear,
@@ -213,6 +217,7 @@ export const InventoryEditor: React.FC<InventoryEditorProps> = ({
       isFeatured: true,
       warehouse: 'Dhaka Central',
       binCode: formSku ? `BIN-${formSku.slice(-4)}` : undefined,
+      category: formCategory || 'General',
     };
 
     try {
@@ -230,7 +235,7 @@ export const InventoryEditor: React.FC<InventoryEditorProps> = ({
           reviewsCount: 1,
           specification: { material: formMaterial, madeIn: formMadeIn, fit: formFit },
           category: formCategory,
-          uploadedImage: formUploadedImage || undefined,
+          uploadedImage: imageSrc,
         };
         setProducts((prev) => [newProd, ...prev]);
       }
@@ -260,6 +265,9 @@ export const InventoryEditor: React.FC<InventoryEditorProps> = ({
       editingProduct.barcode,
     );
 
+    const editImage =
+      formUploadedImage || editingProduct.uploadedImage || editingProduct.image;
+
     const payload = {
       name: formName,
       slug: formName.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, '') || editingProduct.slug,
@@ -270,7 +278,8 @@ export const InventoryEditor: React.FC<InventoryEditorProps> = ({
       discount: formHasDiscount ? discountAmount : null,
       sellingPrice: salePrice,
       description: formDescription,
-      image: formUploadedImage || editingProduct.uploadedImage || editingProduct.image,
+      image: editImage,
+      images: editImage ? [editImage] : undefined,
       brand: formBrand,
       season: formSeason,
       year: formYear,
@@ -285,6 +294,7 @@ export const InventoryEditor: React.FC<InventoryEditorProps> = ({
       status: editingProduct.status || 'Active',
       warehouse: editingProduct.warehouse || 'Dhaka Central',
       binCode: editingProduct.binCode,
+      category: formCategory || editingProduct.category || 'General',
     };
 
     try {
@@ -300,7 +310,7 @@ export const InventoryEditor: React.FC<InventoryEditorProps> = ({
                   ...payload,
                   specification: { ...p.specification, material: formMaterial, madeIn: formMadeIn, fit: formFit },
                   category: formCategory,
-                  uploadedImage: formUploadedImage || undefined,
+                  uploadedImage: formUploadedImage || editImage || undefined,
                 }
               : p,
           ),

@@ -53,6 +53,7 @@ import {
   resolveStorefrontPage,
 } from './lib/storefrontPages';
 import { productMatchesSearchQuery, scoreProductForSearch } from './lib/catalogSearch';
+import { isRenderableImageSrc } from './lib/productImage';
 import { ListingFiltersBar } from './components/ListingFiltersBar';
 import { Header } from './components/Header';
 import { BrandMark } from './components/BrandMark';
@@ -1565,9 +1566,19 @@ export default function App() {
     goToPage('home', { replace: true });
   };
 
-  const handleUpdateProductImage = (productId: string, base64: string) => {
+  const handleUpdateProductImage = (productId: string, imageSrc: string) => {
+    const persistable = isRenderableImageSrc(imageSrc) ? imageSrc : null;
     setProducts((prev) => {
-      const next = prev.map((p) => (p.id === productId ? { ...p, uploadedImage: base64 } : p));
+      const next = prev.map((p) =>
+        p.id === productId
+          ? {
+              ...p,
+              ...(persistable
+                ? { uploadedImage: persistable, image: persistable, images: [persistable] }
+                : { uploadedImage: imageSrc }),
+            }
+          : p,
+      );
       if (!isApiEnabled()) {
         try {
           localStorage.setItem('vault_custom_products', JSON.stringify(next));
@@ -1575,11 +1586,27 @@ export default function App() {
           /* ignore */
         }
       }
-      // Persist image to Neon when staff is logged in
-      if (isApiEnabled() && getToken()) {
+      // Persist only real HTTP/data URLs — never catalog keys like "shirt-custom"
+      if (isApiEnabled() && getToken() && persistable && !persistable.startsWith('data:')) {
         void api
-          .updateProduct(productId, { image: base64, images: [base64] })
+          .updateProduct(productId, { image: persistable, images: [persistable] })
           .catch((err) => console.error('Failed to persist product image', err));
+      } else if (isApiEnabled() && getToken() && persistable?.startsWith('data:')) {
+        // Convert data URL via Cloudinary upload endpoint before saving
+        void api
+          .uploadImage({ dataUrl: persistable, folder: 'products' })
+          .then((uploaded) =>
+            api.updateProduct(productId, { image: uploaded.url, images: [uploaded.url] }).then(() => {
+              setProducts((cur) =>
+                cur.map((p) =>
+                  p.id === productId
+                    ? { ...p, uploadedImage: uploaded.url, image: uploaded.url, images: [uploaded.url] }
+                    : p,
+                ),
+              );
+            }),
+          )
+          .catch((err) => console.error('Failed to upload/persist product image', err));
       }
       return next;
     });

@@ -5022,6 +5022,9 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({
                     const newId = `shirt-custom-${Date.now()}`;
                     const bdtPrice = Number(priceInput.value);
                     const usdPrice = Math.round(bdtPrice / appConfig.exchangeRate);
+                    const imageSrc =
+                      quickAddImage ||
+                      'https://images.unsplash.com/photo-1508098682722-e99c43a406b2?auto=format&fit=crop&q=80&w=800';
 
                     const newProd: Product = {
                       id: newId,
@@ -5029,8 +5032,8 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({
                       slug: nameInput.value.toLowerCase().replace(/[^a-z0-9]+/g, '-'),
                       price: usdPrice,
                       originalPrice: usdPrice + 30,
-                      image: 'shirt-custom',
-                      images: [],
+                      image: imageSrc,
+                      images: [imageSrc],
                       brand: brandInput.value,
                       season: '2025/2026',
                       year: 2026,
@@ -5052,7 +5055,7 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({
                       category: categoryInput.value as any,
                       stock: Number(stockInput.value) || 10,
                       isFeatured: true,
-                      uploadedImage: quickAddImage || undefined,
+                      uploadedImage: imageSrc,
                     };
 
                     setProducts((prev) => {
@@ -5067,7 +5070,8 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({
                             sku: newProd.sku,
                             price: newProd.price,
                             description: newProd.description,
-                            image: newProd.image,
+                            image: imageSrc,
+                            images: [imageSrc],
                             brand: newProd.brand,
                             season: newProd.season,
                             year: newProd.year,

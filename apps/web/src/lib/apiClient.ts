@@ -198,9 +198,14 @@ export const api = {
   createProduct: (body: unknown) =>
     request<any>("/api/products", { method: "POST", body: JSON.stringify(body) }),
   updateProduct: (id: string, body: unknown) =>
-    request<any>(`/api/products/${id}`, { method: "PUT", body: JSON.stringify(body) }),
+    request<any>(`/api/products/${encodeURIComponent(id)}`, {
+      method: "PUT",
+      body: JSON.stringify(body),
+    }),
   deleteProduct: (id: string) =>
-    request<{ id: string }>(`/api/products/${id}`, { method: "DELETE" }),
+    request<{ id: string }>(`/api/products/${encodeURIComponent(id)}`, {
+      method: "DELETE",
+    }),
 
   listOrders: (opts?: { limit?: number }) => {
     const q =
@@ -361,7 +366,7 @@ export const api = {
     request<{ configured: boolean; provider: string }>("/api/uploads/status"),
   uploadImage: (body: {
     dataUrl: string;
-    folder?: "products" | "banners" | "media" | "avatars" | "categories";
+    folder?: "products" | "banners" | "media" | "avatars" | "categories" | "patches";
     fileName?: string;
   }) =>
     request<{

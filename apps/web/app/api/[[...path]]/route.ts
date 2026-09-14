@@ -59,7 +59,7 @@ async function handle(request: NextRequest): Promise<Response> {
           { status: 504 },
         ),
       );
-    }, 25_000);
+    }, url.pathname.includes("/uploads/") ? 55_000 : 45_000);
 
     const finish = () => {
       const status = res._getStatusCode();

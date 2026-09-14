@@ -499,7 +499,20 @@ productsRouter.post("/", requirePermission("can_manage_products"), async (req: A
       return res.status(400).json({ success: false, error: { message: "SKU or slug already exists" } });
     }
     console.error("[POST /products]", error);
-    return res.status(400).json({ success: false, error: { message: "Failed to create product" } });
+    const detail = error instanceof Error ? error.message : "";
+    if (/column.*(categories|sizeChartIds).*does not exist/i.test(detail)) {
+      return res.status(500).json({
+        success: false,
+        error: {
+          message:
+            "Database schema is missing product category columns. Run migrations (prisma migrate deploy).",
+        },
+      });
+    }
+    return res.status(400).json({
+      success: false,
+      error: { message: detail.includes("Invalid") ? detail : "Failed to create product" },
+    });
   }
 });
 
@@ -517,34 +530,23 @@ productsRouter.put("/:id", requirePermission("can_manage_products"), async (req:
     const isRoot =
       req.user!.role === "SUPER_ADMIN" || (req.user!.permissions || []).includes("*");
 
-    if (
-      !isRoot &&
-      flags &&
-      !flags.can_edit_prices &&
-      (body.price != null ||
-        body.originalPrice !== undefined ||
-        body.costPrice != null ||
-        body.sellingPrice != null ||
-        body.discount !== undefined ||
-        body.namesetPriceBdt != null ||
-        body.badgePriceBdt != null)
-    ) {
-      return res.status(403).json({
-        success: false,
-        error: { message: "Missing permission: can_edit_prices" },
-      });
+    // Product forms always send full payloads. Strip forbidden fields instead of
+    // rejecting the whole update — otherwise Inventory Managers cannot edit images/stock.
+    if (!isRoot && flags && !flags.can_edit_prices) {
+      delete body.price;
+      delete body.originalPrice;
+      delete body.costPrice;
+      delete body.sellingPrice;
+      delete body.discount;
+      delete body.namesetPriceBdt;
+      delete body.badgePriceBdt;
+      delete body.badgeOptions;
     }
 
-    if (
-      !isRoot &&
-      flags &&
-      !flags.can_edit_stock &&
-      (body.stock != null || body.sizeStocks != null || body.lowStockThreshold != null)
-    ) {
-      return res.status(403).json({
-        success: false,
-        error: { message: "Missing permission: can_edit_stock" },
-      });
+    if (!isRoot && flags && !flags.can_edit_stock) {
+      delete body.stock;
+      delete body.sizeStocks;
+      delete body.lowStockThreshold;
     }
 
     const existing = await prisma.product.findUnique({ where: { id: req.params.id } });
@@ -676,7 +678,20 @@ productsRouter.put("/:id", requirePermission("can_manage_products"), async (req:
       return res.status(400).json({ success: false, error: { message: error.issues[0]?.message || "Invalid product" } });
     }
     console.error("[PUT /products/:id]", error);
-    return res.status(400).json({ success: false, error: { message: "Failed to update product" } });
+    const detail = error instanceof Error ? error.message : "";
+    if (/column.*(categories|sizeChartIds).*does not exist/i.test(detail)) {
+      return res.status(500).json({
+        success: false,
+        error: {
+          message:
+            "Database schema is missing product category columns. Run migrations (prisma migrate deploy).",
+        },
+      });
+    }
+    return res.status(400).json({
+      success: false,
+      error: { message: detail.includes("Invalid") ? detail : "Failed to update product" },
+    });
   }
 });
 

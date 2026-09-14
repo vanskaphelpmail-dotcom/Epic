@@ -1180,20 +1180,84 @@ export const ProductManager: React.FC<ProductManagerProps> = ({
     }
   };
 
-  // Duplicate Product
-  const handleDuplicateProduct = (product: Product) => {
+  // Duplicate Product — persist to Neon when API session is active
+  const handleDuplicateProduct = async (product: Product) => {
+    const cloneBase = {
+      name: `${product.name} (Copy)`,
+      slug: `${product.slug}-copy-${Date.now()}`,
+      sku: `${product.sku}-COPY-${Date.now().toString(36).slice(-4).toUpperCase()}`,
+      barcode: null as string | null,
+      price: product.price,
+      originalPrice: product.originalPrice ?? null,
+      costPrice: product.costPrice,
+      sellingPrice: product.sellingPrice ?? product.price,
+      discount: product.discount ?? null,
+      description: product.description,
+      shortDescription: product.shortDescription,
+      longDescription: product.longDescription,
+      features: product.features,
+      tags: product.tags || [],
+      image:
+        product.uploadedImage ||
+        (isRenderableImageSrc(product.image) ? product.image : null) ||
+        'https://images.unsplash.com/photo-1508098682722-e99c43a406b2?auto=format&fit=crop&q=80&w=800',
+      images: (product.gallery || product.images || []).filter(isRenderableImageSrc),
+      brand: product.brand,
+      season: product.season,
+      year: product.year,
+      condition: String(product.condition),
+      conditionDetail: product.conditionDetail || '',
+      color: product.color || 'Multi',
+      sizes: product.sizes,
+      sizeStocks: product.sizeStocks,
+      stock: product.stock,
+      gender: product.gender,
+      country: product.country,
+      nationalTeam: product.nationalTeam,
+      player: product.player,
+      status: 'Active' as const,
+      material: product.material || product.specification?.material,
+      category: product.category,
+      categories: product.categories,
+      targetPage: product.targetPage,
+      pageName: product.pageName,
+      pageNumber: product.pageNumber,
+      categoryRow: product.categoryRow,
+      sizeChartId: product.sizeChartId,
+      sizeChartIds: product.sizeChartIds,
+      badgeAvailable: product.badgeAvailable,
+      printAvailable: product.printAvailable,
+      namesetPriceBdt: product.namesetPriceBdt,
+      badgePriceBdt: product.badgePriceBdt,
+      namesetLabel: product.namesetLabel,
+      badgeLabel: product.badgeLabel,
+      badgeOptions: product.badgeOptions,
+    };
+    if (!cloneBase.images.length) cloneBase.images = [cloneBase.image];
+
+    if (isApiEnabled() && getToken()) {
+      try {
+        const saved = await api.createProduct(cloneBase);
+        setProducts((prev) => [saved as Product, ...prev]);
+        toast(`Duplicated "${product.name}"`, 'success');
+      } catch (err) {
+        toast(err instanceof Error ? err.message : 'Failed to duplicate product', 'error');
+      }
+      return;
+    }
+
     const clone: Product = {
       ...product,
       id: `${product.id}-copy-${Date.now()}`,
-      name: `${product.name} (Copy)`,
-      sku: `${product.sku}-COPY`,
-      slug: `${product.slug}-copy`,
+      name: cloneBase.name,
+      sku: cloneBase.sku,
+      slug: cloneBase.slug,
       status: 'Active',
       isArchived: false,
       isTrashed: false,
     };
-    setProducts(prev => [clone, ...prev]);
-    alert(`Duplicated "${product.name}" successfully!`);
+    setProducts((prev) => [clone, ...prev]);
+    toast(`Duplicated "${product.name}" successfully!`, 'success');
   };
 
   // Move to Draft / Publish (Active)

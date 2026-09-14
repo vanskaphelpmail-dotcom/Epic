@@ -133,11 +133,25 @@ export function toPublicUser(user: AuthUser & { phone?: string | null }) {
   };
 }
 
-export function mapRoleToUi(role: UserRole): "Admin" | "Customer" {
-  return STAFF.includes(role) ? "Admin" : "Customer";
+/** SPA Title Case roles — must match apps/web RolesPermissionsManager / types.UserRole */
+export function mapRoleToUi(role: UserRole): string {
+  const map: Record<UserRole, string> = {
+    SUPER_ADMIN: "Super Admin",
+    ADMIN: "Admin",
+    INVENTORY_MANAGER: "Inventory Manager",
+    ORDER_MANAGER: "Order Manager",
+    CUSTOMER_SUPPORT: "Customer Support",
+    CONTENT_MANAGER: "Content Manager",
+    SELLER: "Seller",
+    CUSTOMER: "Customer",
+  };
+  return map[role] || (STAFF.includes(role) ? "Admin" : "Customer");
 }
 
 export function mapUiRoleToPrisma(role: string): UserRole {
-  if (role === "Admin") return "ADMIN";
+  const normalized = normalizeRole(role);
+  if (normalized) return normalized;
+  if (role === "Admin" || role === "ADMIN") return "ADMIN";
+  if (role === "Seller" || role === "SELLER") return "SELLER";
   return "CUSTOMER";
 }
