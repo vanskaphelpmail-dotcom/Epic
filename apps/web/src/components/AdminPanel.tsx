@@ -5305,8 +5305,8 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({
                   {/* Mobile-optimized touch image upload trigger */}
                   <div className="space-y-1.5">
                     <label className="text-[10px] font-mono text-emerald-700 block uppercase font-bold">Jersey Photo (Optional):</label>
-                    <label className="flex items-center gap-3.5 bg-white hover:bg-emerald-50/50 border border-emerald-100 hover:border-emerald-200 p-3 rounded-xl cursor-pointer transition-all group">
-                      <div className="w-11 h-11 rounded-lg bg-emerald-50 border border-emerald-100 flex items-center justify-center overflow-hidden flex-shrink-0 group-hover:scale-105 transition-transform">
+                    <label className="relative flex items-center gap-3.5 bg-white hover:bg-emerald-50/50 border border-emerald-100 hover:border-emerald-200 p-3 rounded-xl cursor-pointer transition-all group touch-manipulation overflow-hidden">
+                      <div className="w-11 h-11 rounded-lg bg-emerald-50 border border-emerald-100 flex items-center justify-center overflow-hidden flex-shrink-0 group-hover:scale-105 transition-transform pointer-events-none">
                         {quickAddImage ? (
                           <img
                             src={quickAddImage}
@@ -5317,15 +5317,15 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({
                           <Image size={15} className="text-emerald-700 group-hover:text-emerald-600 transition-colors" />
                         )}
                       </div>
-                      <div className="flex-1 min-w-0">
+                      <div className="flex-1 min-w-0 pointer-events-none">
                         <div className="bg-emerald-800 text-white group-hover:bg-emerald-700 border border-emerald-600 text-[9px] font-extrabold uppercase px-3 py-1.5 rounded-lg transition-all inline-flex items-center gap-1">
                           <Upload size={9} />
-                          Browse Photo
+                          Tap to upload photo
                         </div>
                         {quickAddImage ? (
                           <span className="text-[9px] text-emerald-800 font-mono block mt-0.5 truncate">✓ Photo loaded</span>
                         ) : (
-                          <span className="text-[9px] text-emerald-700 font-mono block mt-0.5">JPEG/PNG → Cloudinary (max 5MB)</span>
+                          <span className="text-[9px] text-emerald-700 font-mono block mt-0.5">Gallery / camera → Cloudinary</span>
                         )}
                       </div>
                       <input
@@ -5333,9 +5333,10 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({
                         accept="image/*"
                         onChange={async (e) => {
                           const file = e.target.files?.[0];
+                          e.target.value = '';
                           if (!file) return;
-                          if (file.size > 5 * 1024 * 1024) {
-                            alert('File is too large! Maximum limit is 5MB.');
+                          if (file.size > 12 * 1024 * 1024) {
+                            alert('File is too large! Maximum limit is 12MB.');
                             return;
                           }
                           try {
@@ -5345,7 +5346,7 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({
                             alert(err instanceof Error ? err.message : 'Failed to upload image to Cloudinary');
                           }
                         }}
-                        className="hidden"
+                        className="absolute inset-0 z-[1] h-full w-full cursor-pointer opacity-0"
                       />
                     </label>
                     {quickAddImage && (

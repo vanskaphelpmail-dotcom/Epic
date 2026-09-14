@@ -28,7 +28,7 @@ import {
   getProductBadgeOptions,
   normalizeBadgeOptionsList,
 } from '../lib/productAddons';
-import { uploadStoreImage } from '../lib/cloudinaryUpload';
+import { uploadStoreImage, isLikelyImageFile } from '../lib/cloudinaryUpload';
 import {
   getAllSizeCharts,
   getSizeChartById,
@@ -850,7 +850,7 @@ export const ProductManager: React.FC<ProductManagerProps> = ({
   const handleImageSlotUpload = async (slotIndex: number, file: File | null) => {
     if (!file) return;
     if (slotIndex < 0 || slotIndex > 5) return;
-    if (!file.type.startsWith('image/')) {
+    if (!isLikelyImageFile(file)) {
       toast('Please upload an image file (JPG, PNG, WEBP).', 'error');
       return;
     }
@@ -1711,14 +1711,14 @@ export const ProductManager: React.FC<ProductManagerProps> = ({
         </div>
 
         {/* Action Controls */}
-        <div className="flex flex-wrap items-center gap-2">
+        <div className="flex flex-wrap items-center gap-2 w-full md:w-auto">
           <button
             type="button"
             onClick={() => {
               resetProductForm();
               setIsProductModalOpen(true);
             }}
-            className="bg-emerald-800 hover:bg-emerald-900 text-white text-xs font-bold px-3.5 py-2 rounded-xl transition-all shadow-sm flex items-center gap-1.5 cursor-pointer"
+            className="bg-emerald-800 hover:bg-emerald-900 text-white text-xs font-bold px-3.5 py-3 sm:py-2 rounded-xl transition-all shadow-sm flex items-center justify-center gap-1.5 cursor-pointer touch-manipulation flex-1 md:flex-none min-h-[44px]"
           >
             <Plus size={15} />
             <span>Add Product</span>
@@ -2579,7 +2579,7 @@ export const ProductManager: React.FC<ProductManagerProps> = ({
               }}
             >
             <div
-              className="bg-white text-emerald-950 sm:rounded-2xl w-full max-w-5xl min-h-[50vh] max-h-[96vh] sm:max-h-[92vh] shadow-2xl flex flex-col overflow-hidden border border-emerald-100 opacity-100"
+              className="bg-white text-emerald-950 rounded-t-2xl sm:rounded-2xl w-full max-w-5xl h-[100dvh] sm:h-auto min-h-0 max-h-[100dvh] sm:max-h-[92vh] shadow-2xl flex flex-col overflow-hidden border border-emerald-100 opacity-100 pb-[env(safe-area-inset-bottom)]"
               onMouseDown={(e) => e.stopPropagation()}
               onClick={(e) => e.stopPropagation()}
             >
@@ -2726,20 +2726,20 @@ export const ProductManager: React.FC<ProductManagerProps> = ({
                           </button>
                         )}
                       </div>
-                      <label className={`relative block aspect-square rounded-lg sm:rounded-xl overflow-hidden border-2 border-dashed border-emerald-300 bg-white cursor-pointer hover:border-emerald-500 transition-colors group ${uploadingSlot === slot ? 'pointer-events-none opacity-80' : ''}`}>
+                      <label className={`relative block aspect-square rounded-lg sm:rounded-xl overflow-hidden border-2 border-dashed border-emerald-300 bg-white cursor-pointer hover:border-emerald-500 transition-colors group touch-manipulation ${uploadingSlot === slot ? 'pointer-events-none opacity-80' : ''}`}>
                         {pImageSlots[slot] ? (
                           <img src={pImageSlots[slot]} alt={`Slot ${slot + 1}`} className="w-full h-full object-cover" />
                         ) : (
-                          <div className="absolute inset-0 flex flex-col items-center justify-center gap-1 sm:gap-2 text-emerald-700 px-2 text-center">
+                          <div className="absolute inset-0 flex flex-col items-center justify-center gap-1 sm:gap-2 text-emerald-700 px-2 text-center pointer-events-none">
                             <Upload size={18} className="text-emerald-600 sm:w-[22px] sm:h-[22px]" />
                             <span className="text-[9px] sm:text-[10px] font-bold uppercase tracking-wide">Tap to upload</span>
-                            <span className="text-[8px] sm:text-[9px] font-mono opacity-70 hidden xs:inline">JPG / PNG / WEBP</span>
+                            <span className="text-[8px] sm:text-[9px] font-mono opacity-70">Photo / Gallery</span>
                           </div>
                         )}
                         <input
                           type="file"
-                          accept="image/jpeg,image/png,image/webp,image/gif"
-                          className="absolute inset-0 opacity-0 cursor-pointer"
+                          accept="image/*"
+                          className="absolute inset-0 z-[1] h-full w-full cursor-pointer opacity-0"
                           disabled={uploadingSlot !== null}
                           onChange={(e) => {
                             const f = e.target.files?.[0] || null;
@@ -2754,7 +2754,7 @@ export const ProductManager: React.FC<ProductManagerProps> = ({
                           </div>
                         )}
                         {pImageSlots[slot] && uploadingSlot !== slot && (
-                          <div className="absolute inset-0 bg-emerald-950/50 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
+                          <div className="absolute inset-0 z-[2] bg-emerald-950/50 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center pointer-events-none">
                             <span className="text-white text-[9px] sm:text-[10px] font-black uppercase">Replace</span>
                           </div>
                         )}
@@ -3453,11 +3453,11 @@ export const ProductManager: React.FC<ProductManagerProps> = ({
               </div>
 
               {/* Sticky footer — outside scroll so Save/Cancel always visible */}
-              <div className="flex items-center justify-between gap-3 px-5 sm:px-7 py-4 border-t border-emerald-100 bg-white shrink-0">
+              <div className="flex flex-col-reverse sm:flex-row sm:items-center sm:justify-between gap-2 sm:gap-3 px-4 sm:px-7 py-3 sm:py-4 border-t border-emerald-100 bg-white shrink-0">
                 <p className="text-[11px] text-emerald-600 font-mono hidden sm:block">
                   Required fields marked with *
                 </p>
-                <div className="flex gap-2 ml-auto">
+                <div className="grid grid-cols-2 sm:flex sm:flex-wrap gap-2 w-full sm:w-auto sm:ml-auto">
                   <button
                     type="button"
                     onClick={(e) => {
@@ -3466,7 +3466,7 @@ export const ProductManager: React.FC<ProductManagerProps> = ({
                       void closeProductModal();
                     }}
                     disabled={isSavingProduct}
-                    className="px-5 py-2.5 text-xs font-bold text-emerald-800 bg-emerald-50 hover:bg-emerald-100 rounded-xl cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
+                    className="col-span-1 px-4 sm:px-5 py-3 sm:py-2.5 text-xs font-bold text-emerald-800 bg-emerald-50 hover:bg-emerald-100 rounded-xl cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed touch-manipulation"
                   >
                     Cancel
                   </button>
@@ -3479,9 +3479,9 @@ export const ProductManager: React.FC<ProductManagerProps> = ({
                       const form = document.getElementById('product-manager-form') as HTMLFormElement | null;
                       form?.requestSubmit();
                     }}
-                    className="px-5 py-2.5 text-xs font-bold text-zinc-950 bg-white border border-zinc-300 hover:bg-zinc-50 rounded-xl cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
+                    className="col-span-1 px-4 sm:px-5 py-3 sm:py-2.5 text-xs font-bold text-zinc-950 bg-white border border-zinc-300 hover:bg-zinc-50 rounded-xl cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed touch-manipulation"
                   >
-                    Save as Draft
+                    Save Draft
                   </button>
                   <button
                     type="submit"
@@ -3491,7 +3491,7 @@ export const ProductManager: React.FC<ProductManagerProps> = ({
                       pendingSaveStatusRef.current = 'Active';
                       setPStatus('Active');
                     }}
-                    className="px-6 py-2.5 text-xs font-bold text-white bg-emerald-800 hover:bg-emerald-900 rounded-xl shadow-md cursor-pointer disabled:opacity-70 disabled:cursor-wait min-w-[8.5rem]"
+                    className="col-span-2 sm:col-span-1 px-6 py-3 sm:py-2.5 text-xs font-bold text-white bg-emerald-800 hover:bg-emerald-900 rounded-xl shadow-md cursor-pointer disabled:opacity-70 disabled:cursor-wait min-w-[8.5rem] touch-manipulation"
                   >
                     {isSavingProduct
                       ? 'Saving…'

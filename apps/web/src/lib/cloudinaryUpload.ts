@@ -9,6 +9,13 @@ const DEFAULT_COMPRESS: CompressOptions = {
   maxBytes: 850_000,
 };
 
+/** Mobile cameras / gallery often omit MIME type — still allow common image extensions. */
+export function isLikelyImageFile(file: File): boolean {
+  if (file.type && file.type.startsWith('image/')) return true;
+  if (file.type && file.type !== 'application/octet-stream') return false;
+  return /\.(jpe?g|png|gif|webp|heic|heif|avif|bmp|tiff?)$/i.test(file.name || '');
+}
+
 /**
  * Compress a local image file, upload to Cloudinary via the API, and return the HTTPS URL.
  * Requires a staff session. Falls back to a compressed data URL only when API is disabled.
@@ -18,7 +25,7 @@ export async function uploadStoreImage(
   folder: UploadFolder = 'products',
   compress: CompressOptions = DEFAULT_COMPRESS,
 ): Promise<string> {
-  if (!file.type.startsWith('image/')) {
+  if (!isLikelyImageFile(file)) {
     throw new Error('Please upload an image file (JPG, PNG, WEBP).');
   }
 

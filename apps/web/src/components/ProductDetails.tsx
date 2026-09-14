@@ -199,25 +199,47 @@ export const ProductDetails: React.FC<ProductDetailsProps> = ({
     onOrderNow(buildCartItem());
   };
 
+  const goPrevImage = () => {
+    if (galleryImages.length < 2) return;
+    setGalleryPaused(true);
+    setGalleryIndex((i) => (i - 1 + galleryImages.length) % galleryImages.length);
+  };
+
+  const goNextImage = () => {
+    if (galleryImages.length < 2) return;
+    setGalleryPaused(true);
+    setGalleryIndex((i) => (i + 1) % galleryImages.length);
+  };
+
+  const chevronClass =
+    'absolute top-1/2 z-20 -translate-y-1/2 flex h-10 w-10 items-center justify-center ' +
+    'rounded-full border-0 bg-black/25 text-white/95 shadow-none backdrop-blur-[2px] ' +
+    'opacity-0 pointer-events-none transition-opacity duration-200 cursor-pointer ' +
+    'hover:bg-black/40 ' +
+    'group-hover:opacity-100 group-hover:pointer-events-auto ' +
+    'group-focus-within:opacity-100 group-focus-within:pointer-events-auto ' +
+    'focus-visible:opacity-100 focus-visible:pointer-events-auto ' +
+    '[@media(hover:none)]:opacity-70 [@media(hover:none)]:pointer-events-auto';
+
   return (
-    <section className="bg-transparent text-[#0A0A0A] py-10 px-4 md:px-12 max-w-7xl mx-auto min-h-screen">
+    <section className="bg-transparent text-[#0A0A0A] py-6 sm:py-10 px-3 sm:px-4 md:px-12 max-w-7xl mx-auto min-h-screen">
       
       <button
         onClick={onBackToCatalog}
         type="button"
-        className="inline-flex items-center gap-2 mb-8 px-4 py-2.5 rounded-xl bg-[#F8F8F7] border border-[#E5E5E5] text-[#0A0A0A] hover:border-[#E30613] hover:bg-[#F8F8F7] text-sm font-black uppercase tracking-wide cursor-pointer transition-colors shadow-sm"
+        className="inline-flex items-center gap-2 mb-5 sm:mb-8 px-4 py-2.5 rounded-xl bg-[#F8F8F7] border border-[#E5E5E5] text-[#0A0A0A] hover:border-[#E30613] hover:bg-[#F8F8F7] text-sm font-black uppercase tracking-wide cursor-pointer transition-colors shadow-sm"
       >
         <ArrowLeft size={16} className="text-[#E30613] shrink-0" /> Go to Home
       </button>
 
-      <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-12 items-start w-full min-w-0">
+      <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 sm:gap-8 lg:gap-12 items-start w-full min-w-0">
         
-        {/* Left Column: edge-to-edge product image gallery */}
-        <div className="lg:col-span-6 space-y-3 min-w-0">
+        {/* Left Column: full-bleed product gallery (no white card) */}
+        <div className="lg:col-span-6 min-w-0">
           <div
             ref={galleryRef}
             data-product-fly-image
-            className="relative group m-0 p-0 bg-transparent border-0 shadow-none rounded-none flex items-center justify-center w-full min-h-[min(70vw,420px)] sm:min-h-[520px] max-h-[min(85vh,760px)] aspect-[4/5] sm:aspect-[3/4] overflow-hidden"
+            className="relative group m-0 p-0 w-full overflow-hidden bg-transparent border-0 shadow-none rounded-none outline-none"
             onMouseEnter={() => setGalleryPaused(true)}
             onMouseLeave={() => setGalleryPaused(false)}
             onTouchStart={(e) => {
@@ -225,32 +247,39 @@ export const ProductDetails: React.FC<ProductDetailsProps> = ({
               (e.currentTarget as HTMLElement).dataset.touchX = String(e.touches[0]?.clientX ?? '');
             }}
             onTouchEnd={(e) => {
-              setGalleryPaused(false);
-              if (galleryImages.length < 2) return;
+              if (galleryImages.length < 2) {
+                setGalleryPaused(false);
+                return;
+              }
               const start = Number((e.currentTarget as HTMLElement).dataset.touchX || '');
               const end = e.changedTouches[0]?.clientX;
-              if (!Number.isFinite(start) || end == null) return;
+              if (!Number.isFinite(start) || end == null) {
+                setGalleryPaused(false);
+                return;
+              }
               const delta = end - start;
-              if (Math.abs(delta) < 40) return;
-              setGalleryIndex((i) =>
-                delta < 0
-                  ? (i + 1) % galleryImages.length
-                  : (i - 1 + galleryImages.length) % galleryImages.length,
-              );
+              if (Math.abs(delta) >= 40) {
+                setGalleryIndex((i) =>
+                  delta < 0
+                    ? (i + 1) % galleryImages.length
+                    : (i - 1 + galleryImages.length) % galleryImages.length,
+                );
+              }
+              window.setTimeout(() => setGalleryPaused(false), 2200);
             }}
           >
-            <div className="absolute inset-0 m-0 p-0 flex items-center justify-center bg-transparent">
+            <div className="relative m-0 p-0 w-full bg-transparent">
               {showPhoto ? (
                 <img
                   key={`${product.id}-${safeGalleryIndex}`}
                   src={mainImageSrc}
                   alt={product.name}
-                  className="h-full w-full object-contain object-center select-none transition-opacity duration-300 ease-out"
+                  className="block m-0 p-0 w-full h-auto max-h-[min(78vh,760px)] object-contain object-center select-none animate-fadeIn"
                   referrerPolicy="no-referrer"
                   draggable={false}
                 />
               ) : (
-                <div className="h-full w-full flex items-center justify-center m-0 p-0 bg-transparent [&_img]:!object-contain [&_img]:!max-h-full [&_img]:!max-w-full">
+                <div className="m-0 p-0 w-full min-h-[min(62vw,380px)] sm:min-h-[480px] flex items-center justify-center bg-transparent [&_img]:!object-contain [&_img]:!max-h-[min(78vh,760px)] [&_img]:!max-w-full [&_img]:!w-auto [&_img]:!h-auto">
                   <JerseyRenderer
                     productId={product.id}
                     isBackView={isBackView}
@@ -262,81 +291,78 @@ export const ProductDetails: React.FC<ProductDetailsProps> = ({
                   />
                 </div>
               )}
-            </div>
 
-            {galleryImages.length > 1 && (
-              <>
-                <button
-                  type="button"
-                  aria-label="Previous image"
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    setGalleryIndex((i) => (i - 1 + galleryImages.length) % galleryImages.length);
-                  }}
-                  className="absolute left-1 sm:left-2 top-1/2 -translate-y-1/2 z-20 flex h-9 w-9 sm:h-10 sm:w-10 items-center justify-center rounded-full bg-black/35 text-white/90 border-0 opacity-0 pointer-events-none group-hover:opacity-100 group-hover:pointer-events-auto focus-visible:opacity-100 focus-visible:pointer-events-auto transition-opacity duration-200 cursor-pointer hover:bg-black/55"
-                >
-                  <ChevronLeft size={20} strokeWidth={1.75} />
-                </button>
-                <button
-                  type="button"
-                  aria-label="Next image"
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    setGalleryIndex((i) => (i + 1) % galleryImages.length);
-                  }}
-                  className="absolute right-1 sm:right-2 top-1/2 -translate-y-1/2 z-20 flex h-9 w-9 sm:h-10 sm:w-10 items-center justify-center rounded-full bg-black/35 text-white/90 border-0 opacity-0 pointer-events-none group-hover:opacity-100 group-hover:pointer-events-auto focus-visible:opacity-100 focus-visible:pointer-events-auto transition-opacity duration-200 cursor-pointer hover:bg-black/55"
-                >
-                  <ChevronRight size={20} strokeWidth={1.75} />
-                </button>
-                <div className="absolute bottom-2 left-0 right-0 z-20 flex justify-center items-center gap-1.5 pointer-events-none">
-                  {galleryImages.map((_, i) => (
-                    <button
-                      key={`pd-dot-${i}`}
-                      type="button"
-                      aria-label={`Show image ${i + 1}`}
-                      aria-current={i === safeGalleryIndex}
-                      onClick={() => setGalleryIndex(i)}
-                      className={`pointer-events-auto h-1.5 rounded-full transition-all cursor-pointer ${
-                        i === safeGalleryIndex ? 'w-5 bg-[#E30613]' : 'w-1.5 bg-[#0A0A0A]/25 hover:bg-[#0A0A0A]/45'
-                      }`}
-                    />
-                  ))}
-                </div>
-              </>
-            )}
+              {galleryImages.length > 1 && (
+                <>
+                  <button
+                    type="button"
+                    aria-label="Previous image"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      goPrevImage();
+                    }}
+                    className={`${chevronClass} left-1.5 sm:left-2`}
+                  >
+                    <ChevronLeft size={22} strokeWidth={1.6} />
+                  </button>
+                  <button
+                    type="button"
+                    aria-label="Next image"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      goNextImage();
+                    }}
+                    className={`${chevronClass} right-1.5 sm:right-2`}
+                  >
+                    <ChevronRight size={22} strokeWidth={1.6} />
+                  </button>
+                </>
+              )}
+            </div>
           </div>
 
+          {/* Thumbnails — breathing space like reference (gap + inset + soft frames) */}
           {galleryImages.length > 0 && (
-            <div className="flex gap-2 justify-center flex-wrap m-0 px-0">
-              {galleryImages.map((src, i) => (
-                <button
-                  key={i}
-                  type="button"
-                  onClick={() => setGalleryIndex(i)}
-                  className={`h-14 w-14 sm:h-16 sm:w-16 overflow-hidden border m-0 p-0 rounded-md cursor-pointer transition-colors bg-transparent ${
-                    safeGalleryIndex === i ? 'border-[#E30613]' : 'border-[#E5E5E5] hover:border-[#0A0A0A]/40'
-                  }`}
-                >
-                  {isRenderableImageSrc(src) ? (
-                    <img
-                      src={src}
-                      alt=""
-                      loading="lazy"
-                      className="w-full h-full object-contain bg-transparent"
-                      referrerPolicy="no-referrer"
-                    />
-                  ) : (
-                    <div className="w-full h-full bg-transparent flex items-center justify-center text-[10px] font-bold text-[#555555]">
-                      View {i + 1}
-                    </div>
-                  )}
-                </button>
-              ))}
+            <div className="mt-5 sm:mt-6 mb-2 sm:mb-3 px-2 sm:px-1">
+              <div className="flex gap-3 sm:gap-3.5 justify-center flex-wrap">
+                {galleryImages.map((src, i) => (
+                  <button
+                    key={i}
+                    type="button"
+                    aria-label={`View image ${i + 1}`}
+                    aria-current={i === safeGalleryIndex}
+                    onClick={() => {
+                      setGalleryPaused(true);
+                      setGalleryIndex(i);
+                    }}
+                    className={`h-[4.25rem] w-[4.25rem] sm:h-[4.75rem] sm:w-[4.75rem] overflow-hidden m-0 rounded-2xl cursor-pointer transition-all bg-white ${
+                      safeGalleryIndex === i
+                        ? 'ring-[2.5px] ring-[#0A0A0A] shadow-sm'
+                        : 'ring-1 ring-[#E5E5E5] shadow-[0_1px_4px_rgba(0,0,0,0.06)] hover:ring-[#0A0A0A]/35'
+                    }`}
+                  >
+                    {isRenderableImageSrc(src) ? (
+                      <img
+                        src={src}
+                        alt=""
+                        loading="lazy"
+                        className="w-full h-full object-contain bg-transparent p-1.5"
+                        referrerPolicy="no-referrer"
+                      />
+                    ) : (
+                      <div className="w-full h-full bg-transparent flex items-center justify-center text-[10px] font-bold text-[#555555]">
+                        View {i + 1}
+                      </div>
+                    )}
+                  </button>
+                ))}
+              </div>
             </div>
           )}
 
-          {Array.isArray(product.tags) && product.tags.length > 0 && (
-            <div className="w-full space-y-2 pt-2">
+          {/* Search tags — desktop / web only (never on mobile) */}
+          {Array.isArray(product.tags) && product.tags.length > 0 ? (
+            <div className="max-md:hidden mt-5 w-full space-y-2.5">
               <p className="text-[10px] font-mono font-bold uppercase tracking-widest text-[#555555] text-center">
                 Search tags
               </p>
@@ -351,7 +377,7 @@ export const ProductDetails: React.FC<ProductDetailsProps> = ({
                 ))}
               </div>
             </div>
-          )}
+          ) : null}
         </div>
 
         {/* Right Column: Customization Panel & Buying controls */}
