@@ -3,7 +3,7 @@ import { Plus, Edit, Trash2, Image as ImageIcon, X, AlertTriangle, Search, Filte
 import { AppConfig, Product } from '../types';
 import { JerseyRenderer } from './JerseyRenderer';
 import { api, getToken, isApiEnabled } from '../lib/apiClient';
-import { uploadStoreImage, isLikelyImageFile } from '../lib/cloudinaryUpload';
+import { uploadStoreImage, isLikelyImageFile, formatUploadError } from '../lib/cloudinaryUpload';
 import { DEFAULT_FALLBACK_SIZES, STANDARD_PRODUCT_SIZES } from '../lib/productSizes';
 import {
   calcDiscountAmount,
@@ -367,7 +367,7 @@ export const InventoryEditor: React.FC<InventoryEditorProps> = ({
       const url = await uploadStoreImage(file, 'products');
       setFormUploadedImage(url);
     } catch (err) {
-      alert(err instanceof Error ? err.message : 'Failed to upload image to Cloudinary');
+      alert(formatUploadError(err));
     }
   };
 

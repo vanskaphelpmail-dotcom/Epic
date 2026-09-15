@@ -28,7 +28,7 @@ import {
   getProductBadgeOptions,
   normalizeBadgeOptionsList,
 } from '../lib/productAddons';
-import { uploadStoreImage, isLikelyImageFile } from '../lib/cloudinaryUpload';
+import { uploadStoreImage, isLikelyImageFile, formatUploadError } from '../lib/cloudinaryUpload';
 import {
   getAllSizeCharts,
   getSizeChartById,
@@ -881,9 +881,9 @@ export const ProductManager: React.FC<ProductManagerProps> = ({
         }
       }
       const url = await uploadStoreImage(file, 'products', {
-        maxEdge: 1280,
-        quality: 0.74,
-        maxBytes: 720_000,
+        maxEdge: 1080,
+        quality: 0.7,
+        maxBytes: 520_000,
       });
       if (!url || typeof url !== 'string') {
         throw new Error('Upload returned an empty URL.');
@@ -897,11 +897,7 @@ export const ProductManager: React.FC<ProductManagerProps> = ({
       if (slotIndex === 0) setPMainImage(url);
       toast(`Image ${slotIndex + 1} uploaded`, 'success');
     } catch (err) {
-      const msg =
-        err instanceof Error
-          ? err.message
-          : 'Could not upload image to Cloudinary.';
-      toast(msg, 'error');
+      toast(formatUploadError(err), 'error');
     } finally {
       setUploadingSlot(null);
     }
@@ -2707,7 +2703,7 @@ export const ProductManager: React.FC<ProductManagerProps> = ({
                   2. Product Images — Upload up to 6 Pictures
                 </h5>
                 <p className="text-[10px] text-emerald-700 font-mono">
-                  Slot 1 is the main storefront image (Cloudinary). JPG / PNG / WEBP. Staff login required.
+                  Slot 1 is the main storefront image (Cloudinary). Use Photo Library / Gallery — JPG or PNG preferred. Staff login required.
                 </p>
                 <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-3 gap-2.5 sm:gap-3">
                   {[0, 1, 2, 3, 4, 5].map((slot) => (
@@ -2733,13 +2729,13 @@ export const ProductManager: React.FC<ProductManagerProps> = ({
                           <div className="absolute inset-0 flex flex-col items-center justify-center gap-1 sm:gap-2 text-emerald-700 px-2 text-center pointer-events-none">
                             <Upload size={18} className="text-emerald-600 sm:w-[22px] sm:h-[22px]" />
                             <span className="text-[9px] sm:text-[10px] font-bold uppercase tracking-wide">Tap to upload</span>
-                            <span className="text-[8px] sm:text-[9px] font-mono opacity-70">JPG · PNG · Gallery</span>
+                            <span className="text-[8px] sm:text-[9px] font-mono opacity-70">Photo / Gallery</span>
                           </div>
                         )}
                         <input
                           type="file"
                           accept="image/*,image/jpeg,image/png,image/webp,.jpg,.jpeg,.png,.webp,.heic,.heif"
-                          // Helps Android/iOS show gallery + camera options without forcing camera-only
+                          // No capture= attribute — keeps both Camera and Photo Library on iOS/Android
                           className="absolute inset-0 z-[1] h-full w-full cursor-pointer opacity-0"
                           disabled={uploadingSlot !== null}
                           onChange={(e) => {

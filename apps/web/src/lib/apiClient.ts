@@ -121,10 +121,15 @@ async function request<T>(path: string, init: RequestInit = {}): Promise<T> {
   }
 
   if (!res.ok || !json?.success) {
-    throw new ApiError(
-      (json && "error" in json && json.error?.message) || `Request failed (${res.status})`,
-      res.status,
-    );
+    const rawMsg: unknown = json && "error" in json ? json.error?.message : undefined;
+    let message = `Request failed (${res.status})`;
+    if (typeof rawMsg === "string" && rawMsg && rawMsg !== "[object Object]") {
+      message = rawMsg;
+    } else if (rawMsg !== null && rawMsg !== undefined && typeof rawMsg === "object") {
+      const nested = (rawMsg as { message?: unknown }).message;
+      if (typeof nested === "string" && nested) message = nested;
+    }
+    throw new ApiError(message === "[object Object]" ? `Request failed (${res.status})` : message, res.status);
   }
   return json.data;
 }
@@ -384,6 +389,65 @@ export const api = {
       bytes?: number;
       folder: string;
     }>("/api/uploads/image", { method: "POST", body: JSON.stringify(body) }),
+  /** Multipart JPEG upload — preferred on iOS/Android (smaller + more reliable than JSON base64). */
+  uploadImageFile: async (opts: {
+    file: Blob;
+    fileName?: string;
+    folder?: "products" | "banners" | "media" | "avatars" | "categories" | "patches";
+  }) => {
+    const form = new FormData();
+    form.append("file", opts.file, opts.fileName || "photo.jpg");
+    form.append("folder", opts.folder || "products");
+    if (opts.fileName) form.append("fileName", opts.fileName);
+
+    const headers = new Headers();
+    const token = getToken();
+    if (token) headers.set("Authorization", `Bearer ${token}`);
+    // Do NOT set Content-Type — browser sets multipart boundary.
+
+    let res: Response;
+    try {
+      res = await fetch(`${apiRoot()}/api/uploads/image`, {
+        method: "POST",
+        headers,
+        body: form,
+      });
+    } catch {
+      throw new ApiError("Failed to fetch. Check your connection and try again.", 0);
+    }
+
+    const raw = await res.text();
+    let json: ApiResult<{
+      url: string;
+      publicId: string;
+      width?: number;
+      height?: number;
+      format?: string;
+      bytes?: number;
+      folder: string;
+    }> | null = null;
+    try {
+      json = raw ? (JSON.parse(raw) as typeof json) : null;
+    } catch {
+      if (res.status === 413) {
+        throw new ApiError(
+          "Image too large for upload. Compress the photo and try again.",
+          res.status,
+        );
+      }
+      throw new ApiError(raw?.slice(0, 120) || `Request failed (${res.status})`, res.status);
+    }
+
+    if (!res.ok || !json?.success) {
+      const rawMsg = json && "error" in json ? json.error?.message : undefined;
+      const message =
+        typeof rawMsg === "string" && rawMsg && rawMsg !== "[object Object]"
+          ? rawMsg
+          : `Request failed (${res.status})`;
+      throw new ApiError(message, res.status);
+    }
+    return json.data;
+  },
   deleteUploadedImage: (publicId: string) =>
     request<{ deleted: string }>("/api/uploads/image", {
       method: "DELETE",

@@ -5,7 +5,7 @@ import {
   DEFAULT_BADGE_PRICE_BDT,
   createDefaultBadgeOptions,
 } from '../lib/productAddons';
-import { uploadStoreImage, isLikelyImageFile } from '../lib/cloudinaryUpload';
+import { uploadStoreImage, isLikelyImageFile, formatUploadError } from '../lib/cloudinaryUpload';
 import { confirmAsync, toast } from './UiFeedback';
 import { api, isApiEnabled, getToken } from '../lib/apiClient';
 
@@ -149,7 +149,7 @@ export const TournamentPatchesPanel: React.FC<TournamentPatchesPanelProps> = ({
       updateRow(index, { image: url });
       toast('Patch image ready — click Update Patches to publish', 'success');
     } catch (err) {
-      toast(err instanceof Error ? err.message : 'Failed to upload patch image', 'error');
+      toast(formatUploadError(err), 'error');
     } finally {
       setUploadingId(null);
     }

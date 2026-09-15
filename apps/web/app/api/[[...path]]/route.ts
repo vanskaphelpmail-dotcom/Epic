@@ -9,21 +9,78 @@ export const maxDuration = 60;
 
 const expressApp = createApp();
 
+const UPLOAD_FOLDERS = new Set([
+  "products",
+  "banners",
+  "media",
+  "avatars",
+  "categories",
+  "patches",
+]);
+
+async function bodyFromMultipart(request: NextRequest): Promise<Record<string, unknown> | null> {
+  try {
+    const form = await request.formData();
+    const file = form.get("file");
+    if (!file || typeof file === "string") return null;
+    const blob = file as Blob;
+    const buf = Buffer.from(await blob.arrayBuffer());
+    if (buf.length < 32) {
+      return { __uploadError: "Empty or invalid image file from device." };
+    }
+    const mime =
+      (typeof blob.type === "string" && blob.type.startsWith("image/") && blob.type) ||
+      "image/jpeg";
+    const dataUrl = `data:${mime};base64,${buf.toString("base64")}`;
+    const folderRaw = String(form.get("folder") || "products").trim();
+    const folder = UPLOAD_FOLDERS.has(folderRaw) ? folderRaw : "products";
+    const fileName =
+      ("name" in file && typeof (file as { name?: unknown }).name === "string"
+        ? (file as { name: string }).name
+        : "") || String(form.get("fileName") || "photo.jpg");
+    return { dataUrl, folder, fileName };
+  } catch (err) {
+    const message = err instanceof Error ? err.message : "Failed to parse upload form";
+    return { __uploadError: message };
+  }
+}
+
 async function handle(request: NextRequest): Promise<Response> {
   const url = new URL(request.url);
-  const raw = Buffer.from(await request.arrayBuffer());
+  const contentType = request.headers.get("content-type") || "";
+  const isUploadPath = url.pathname.includes("/uploads/");
+  const isMultipart = contentType.includes("multipart/form-data");
+
   let body: unknown = undefined;
-  if (raw.length > 0) {
-    const text = raw.toString("utf8");
-    try {
-      body = JSON.parse(text);
-    } catch {
-      body = text;
+
+  if (isUploadPath && isMultipart && (request.method === "POST" || request.method === "PUT")) {
+    const parsed = await bodyFromMultipart(request);
+    if (parsed && typeof parsed.__uploadError === "string") {
+      return Response.json(
+        { success: false, error: { message: parsed.__uploadError } },
+        { status: 400 },
+      );
+    }
+    body = parsed || undefined;
+  } else {
+    const raw = Buffer.from(await request.arrayBuffer());
+    if (raw.length > 0) {
+      const text = raw.toString("utf8");
+      try {
+        body = JSON.parse(text);
+      } catch {
+        body = text;
+      }
     }
   }
 
   const headers: Record<string, string> = {};
   request.headers.forEach((value, key) => {
+    // Multipart already consumed — Express should see JSON-shaped body
+    if (isMultipart && key.toLowerCase() === "content-type") {
+      headers[key] = "application/json";
+      return;
+    }
     headers[key] = value;
   });
 
@@ -59,7 +116,7 @@ async function handle(request: NextRequest): Promise<Response> {
           { status: 504 },
         ),
       );
-    }, url.pathname.includes("/uploads/") ? 55_000 : 45_000);
+    }, isUploadPath ? 55_000 : 45_000);
 
     const finish = () => {
       const status = res._getStatusCode();
