@@ -881,9 +881,9 @@ export const ProductManager: React.FC<ProductManagerProps> = ({
         }
       }
       const url = await uploadStoreImage(file, 'products', {
-        maxEdge: 1600,
-        quality: 0.82,
-        maxBytes: 1_200_000,
+        maxEdge: 1280,
+        quality: 0.74,
+        maxBytes: 720_000,
       });
       if (!url || typeof url !== 'string') {
         throw new Error('Upload returned an empty URL.');
@@ -2733,12 +2733,13 @@ export const ProductManager: React.FC<ProductManagerProps> = ({
                           <div className="absolute inset-0 flex flex-col items-center justify-center gap-1 sm:gap-2 text-emerald-700 px-2 text-center pointer-events-none">
                             <Upload size={18} className="text-emerald-600 sm:w-[22px] sm:h-[22px]" />
                             <span className="text-[9px] sm:text-[10px] font-bold uppercase tracking-wide">Tap to upload</span>
-                            <span className="text-[8px] sm:text-[9px] font-mono opacity-70">Photo / Gallery</span>
+                            <span className="text-[8px] sm:text-[9px] font-mono opacity-70">JPG · PNG · Gallery</span>
                           </div>
                         )}
                         <input
                           type="file"
-                          accept="image/*"
+                          accept="image/*,image/jpeg,image/png,image/webp,.jpg,.jpeg,.png,.webp,.heic,.heif"
+                          // Helps Android/iOS show gallery + camera options without forcing camera-only
                           className="absolute inset-0 z-[1] h-full w-full cursor-pointer opacity-0"
                           disabled={uploadingSlot !== null}
                           onChange={(e) => {

@@ -3,17 +3,54 @@ import { api, getToken, isApiEnabled, setToken } from './apiClient';
 
 export type UploadFolder = 'products' | 'banners' | 'media' | 'avatars' | 'categories' | 'patches';
 
+/** Mobile-safe defaults — keep payload under typical Vercel / phone memory limits. */
 const DEFAULT_COMPRESS: CompressOptions = {
-  maxEdge: 1400,
-  quality: 0.78,
-  maxBytes: 850_000,
+  maxEdge: 1280,
+  quality: 0.74,
+  maxBytes: 720_000,
 };
 
 /** Mobile cameras / gallery often omit MIME type — still allow common image extensions. */
 export function isLikelyImageFile(file: File): boolean {
   if (file.type && file.type.startsWith('image/')) return true;
-  if (file.type && file.type !== 'application/octet-stream') return false;
-  return /\.(jpe?g|png|gif|webp|heic|heif|avif|bmp|tiff?)$/i.test(file.name || '');
+  // Empty / octet-stream is common on iOS & Android gallery picks
+  if (!file.type || file.type === 'application/octet-stream') {
+    if (!file.name || !file.name.includes('.')) return true;
+    return /\.(jpe?g|png|gif|webp|heic|heif|avif|bmp|tiff?)$/i.test(file.name);
+  }
+  return false;
+}
+
+function friendlyUploadError(err: unknown): Error {
+  const msg = err instanceof Error ? err.message : String(err || '');
+  if (/Failed to fetch|NetworkError|network/i.test(msg)) {
+    return new Error('Upload failed — check mobile data/Wi‑Fi and try again.');
+  }
+  if (/413|too large|Entity Too Large|Request Entity/i.test(msg)) {
+    return new Error('Image too large for the server. Try a smaller photo.');
+  }
+  if (/timeout|504|ETIMEDOUT/i.test(msg)) {
+    return new Error('Upload timed out. Use a smaller photo or stronger connection.');
+  }
+  if (/401|Unauthorized|Invalid or expired token/i.test(msg)) {
+    return new Error('Session expired. Sign out of admin, sign in again, then retry upload.');
+  }
+  if (/403|permission|Staff/i.test(msg)) {
+    return new Error('Staff permission required to upload. Sign in with an admin account.');
+  }
+  if (/Cloudinary is not configured/i.test(msg)) {
+    return new Error('Cloudinary is not configured on the server. Add CLOUDINARY_* env on Vercel.');
+  }
+  if (/HEIC|could not process|Could not read/i.test(msg)) {
+    return new Error(msg);
+  }
+  // Avoid opaque default — keep server detail when useful
+  if (msg && msg !== 'Failed to upload image to Cloudinary') {
+    return new Error(msg);
+  }
+  return new Error(
+    'Upload failed. On iPhone: use “Most Compatible” / JPG. On Android: try Gallery JPG. Then retry.',
+  );
 }
 
 /**
@@ -26,10 +63,15 @@ export async function uploadStoreImage(
   compress: CompressOptions = DEFAULT_COMPRESS,
 ): Promise<string> {
   if (!isLikelyImageFile(file)) {
-    throw new Error('Please upload an image file (JPG, PNG, WEBP).');
+    throw new Error('Please upload an image file (JPG, PNG, or WEBP).');
   }
 
-  const dataUrl = await compressImageToDataUrl(file, compress);
+  let dataUrl: string;
+  try {
+    dataUrl = await compressImageToDataUrl(file, compress);
+  } catch (err) {
+    throw friendlyUploadError(err);
+  }
 
   if (!isApiEnabled()) {
     return dataUrl;
@@ -40,7 +82,11 @@ export async function uploadStoreImage(
   }
 
   const tryUpload = async () => {
-    const result = await api.uploadImage({ dataUrl, folder, fileName: file.name });
+    const result = await api.uploadImage({
+      dataUrl,
+      folder,
+      fileName: (file.name || 'photo.jpg').replace(/\.[^.]+$/, '.jpg'),
+    });
     return result.url;
   };
 
@@ -55,10 +101,10 @@ export async function uploadStoreImage(
         return await tryUpload();
       } catch {
         throw new Error(
-          'Upload blocked — session outdated after database change. Sign out of admin, sign in again, then retry.',
+          'Upload blocked — session outdated. Sign out of admin, sign in again, then retry.',
         );
       }
     }
-    throw err;
+    throw friendlyUploadError(err);
   }
 }
