@@ -3,7 +3,13 @@ import { Plus, Edit, Trash2, Image as ImageIcon, X, AlertTriangle, Search, Filte
 import { AppConfig, Product } from '../types';
 import { JerseyRenderer } from './JerseyRenderer';
 import { api, getToken, isApiEnabled } from '../lib/apiClient';
-import { uploadStoreImage, isLikelyImageFile, formatUploadError } from '../lib/cloudinaryUpload';
+import {
+  uploadStoreImage,
+  isLikelyImageFile,
+  formatUploadError,
+  IMAGE_FILE_ACCEPT,
+  MOBILE_UPLOAD_COMPRESS,
+} from '../lib/cloudinaryUpload';
 import { DEFAULT_FALLBACK_SIZES, STANDARD_PRODUCT_SIZES } from '../lib/productSizes';
 import {
   calcDiscountAmount,
@@ -364,7 +370,7 @@ export const InventoryEditor: React.FC<InventoryEditorProps> = ({
       return;
     }
     try {
-      const url = await uploadStoreImage(file, 'products');
+      const url = await uploadStoreImage(file, 'products', MOBILE_UPLOAD_COMPRESS);
       setFormUploadedImage(url);
     } catch (err) {
       alert(formatUploadError(err));
@@ -1021,12 +1027,12 @@ export const InventoryEditor: React.FC<InventoryEditorProps> = ({
                         {formUploadedImage ? (
                           <p className="text-[9px] text-emerald-500 font-mono mt-1">✓ Image loaded successfully</p>
                         ) : (
-                          <p className="text-[9px] text-zinc-600 font-mono leading-tight mt-1">Phone gallery or camera · JPG/PNG/WEBP</p>
+                          <p className="text-[9px] text-zinc-600 font-mono leading-tight mt-1">Photo / Gallery · JPG PNG HEIC</p>
                         )}
                       </div>
                       <input
                         type="file"
-                        accept="image/*"
+                        accept={IMAGE_FILE_ACCEPT}
                         onChange={handleImageChange}
                         className="absolute inset-0 z-[1] h-full w-full cursor-pointer opacity-0"
                       />
@@ -1469,12 +1475,12 @@ export const InventoryEditor: React.FC<InventoryEditorProps> = ({
                         {formUploadedImage ? (
                           <p className="text-[9px] text-emerald-500 font-mono mt-1">✓ Image loaded successfully</p>
                         ) : (
-                          <p className="text-[9px] text-zinc-600 font-mono leading-tight mt-1">Phone gallery or camera · JPG/PNG/WEBP</p>
+                          <p className="text-[9px] text-zinc-600 font-mono leading-tight mt-1">Photo / Gallery · JPG PNG HEIC</p>
                         )}
                       </div>
                       <input
                         type="file"
-                        accept="image/*"
+                        accept={IMAGE_FILE_ACCEPT}
                         onChange={handleImageChange}
                         className="absolute inset-0 z-[1] h-full w-full cursor-pointer opacity-0"
                       />

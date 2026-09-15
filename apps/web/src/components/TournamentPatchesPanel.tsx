@@ -5,7 +5,13 @@ import {
   DEFAULT_BADGE_PRICE_BDT,
   createDefaultBadgeOptions,
 } from '../lib/productAddons';
-import { uploadStoreImage, isLikelyImageFile, formatUploadError } from '../lib/cloudinaryUpload';
+import {
+  uploadStoreImage,
+  isLikelyImageFile,
+  formatUploadError,
+  IMAGE_FILE_ACCEPT,
+  MOBILE_UPLOAD_COMPRESS,
+} from '../lib/cloudinaryUpload';
 import { confirmAsync, toast } from './UiFeedback';
 import { api, isApiEnabled, getToken } from '../lib/apiClient';
 
@@ -322,7 +328,7 @@ export const TournamentPatchesPanel: React.FC<TournamentPatchesPanelProps> = ({
                     {uploadingId === patch.id ? 'Uploading…' : patch.image ? 'Change image' : 'Upload image'}
                     <input
                       type="file"
-                      accept="image/*,.jpg,.jpeg,.png,.webp,.heic,.heif"
+                      accept={IMAGE_FILE_ACCEPT}
                       className="absolute inset-0 z-[1] h-full w-full cursor-pointer opacity-0"
                       disabled={uploadingId === patch.id}
                       onChange={(e) => {

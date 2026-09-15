@@ -28,7 +28,13 @@ import {
   getProductBadgeOptions,
   normalizeBadgeOptionsList,
 } from '../lib/productAddons';
-import { uploadStoreImage, isLikelyImageFile, formatUploadError } from '../lib/cloudinaryUpload';
+import {
+  uploadStoreImage,
+  isLikelyImageFile,
+  formatUploadError,
+  IMAGE_FILE_ACCEPT,
+  MOBILE_UPLOAD_COMPRESS,
+} from '../lib/cloudinaryUpload';
 import {
   getAllSizeCharts,
   getSizeChartById,
@@ -880,11 +886,7 @@ export const ProductManager: React.FC<ProductManagerProps> = ({
           // Status probe failed — still try upload (route may work)
         }
       }
-      const url = await uploadStoreImage(file, 'products', {
-        maxEdge: 1080,
-        quality: 0.7,
-        maxBytes: 520_000,
-      });
+      const url = await uploadStoreImage(file, 'products', MOBILE_UPLOAD_COMPRESS);
       if (!url || typeof url !== 'string') {
         throw new Error('Upload returned an empty URL.');
       }
@@ -2734,7 +2736,7 @@ export const ProductManager: React.FC<ProductManagerProps> = ({
                         )}
                         <input
                           type="file"
-                          accept="image/*,image/jpeg,image/png,image/webp,.jpg,.jpeg,.png,.webp,.heic,.heif"
+                          accept={IMAGE_FILE_ACCEPT}
                           // No capture= attribute — keeps both Camera and Photo Library on iOS/Android
                           className="absolute inset-0 z-[1] h-full w-full cursor-pointer opacity-0"
                           disabled={uploadingSlot !== null}
@@ -3605,24 +3607,25 @@ export const ProductManager: React.FC<ProductManagerProps> = ({
                     onChange={(e) => setCatBannerImage(e.target.value)}
                     className="flex-1 bg-emerald-50/40 border border-emerald-200 rounded-xl px-3 py-2 font-mono text-[11px]"
                   />
-                  <label className="bg-emerald-800 text-white font-extrabold text-[10px] px-3 py-2 rounded-xl cursor-pointer hover:bg-emerald-900 flex items-center">
+                  <label className="bg-emerald-800 text-white font-extrabold text-[10px] px-3 py-2 rounded-xl cursor-pointer hover:bg-emerald-900 flex items-center touch-manipulation relative overflow-hidden min-h-[40px]">
                     Upload
                     <input
                       type="file"
-                      accept="image/*"
-                      className="hidden"
+                      accept={IMAGE_FILE_ACCEPT}
+                      className="absolute inset-0 z-[1] h-full w-full cursor-pointer opacity-0"
                       onChange={async (e) => {
                         const file = e.target.files?.[0];
+                        e.target.value = '';
                         if (!file) return;
+                        if (!isLikelyImageFile(file)) {
+                          alert('Please upload an image file (JPG, PNG, WEBP).');
+                          return;
+                        }
                         try {
-                          const url = await uploadStoreImage(file, 'categories', {
-                            maxEdge: 1600,
-                            quality: 0.8,
-                            maxBytes: 900_000,
-                          });
+                          const url = await uploadStoreImage(file, 'categories', MOBILE_UPLOAD_COMPRESS);
                           setCatBannerImage(url);
                         } catch (err) {
-                          alert(err instanceof Error ? err.message : 'Failed to upload category banner');
+                          alert(formatUploadError(err));
                         }
                       }}
                     />

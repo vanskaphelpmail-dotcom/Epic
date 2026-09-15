@@ -3,12 +3,22 @@ import { api, getToken, isApiEnabled, setToken } from './apiClient';
 
 export type UploadFolder = 'products' | 'banners' | 'media' | 'avatars' | 'categories' | 'patches';
 
+/**
+ * Use on every admin `<input type="file">` so iOS/Android show Photo Library + Camera
+ * and accept HEIC (converted client-side to JPEG before Cloudinary).
+ * Do NOT set `capture` — that forces camera-only on many phones.
+ */
+export const IMAGE_FILE_ACCEPT =
+  'image/*,image/jpeg,image/png,image/webp,.jpg,.jpeg,.png,.webp,.heic,.heif';
+
 /** Mobile-safe defaults — keep payload under typical Vercel / phone memory limits. */
-const DEFAULT_COMPRESS: CompressOptions = {
+export const MOBILE_UPLOAD_COMPRESS: CompressOptions = {
   maxEdge: 1080,
   quality: 0.7,
   maxBytes: 520_000,
 };
+
+const DEFAULT_COMPRESS: CompressOptions = MOBILE_UPLOAD_COMPRESS;
 
 /** Mobile cameras / gallery often omit MIME type — still allow common image extensions. */
 export function isLikelyImageFile(file: File): boolean {
