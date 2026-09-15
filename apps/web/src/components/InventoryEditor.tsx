@@ -428,6 +428,8 @@ export const InventoryEditor: React.FC<InventoryEditorProps> = ({
             onUpdateConfig={onUpdateConfig}
             onRequireStaffLogin={onRequireStaffLogin}
             formatPrice={formatPrice}
+            products={products}
+            setProducts={setProducts}
           />
           <SizeChartsPanel
             appConfig={appConfig}
