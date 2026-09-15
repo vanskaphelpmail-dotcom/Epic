@@ -1,10 +1,11 @@
 import React, { useState, useEffect, useMemo, useRef } from 'react';
-import { AreaChart, Users, Shirt, ShoppingBag, Check, X, ShieldAlert, BadgeCheck, FileText, Plus, Save, Sparkles, Download, Upload, AlertTriangle, Image, Trash2, Edit, Search, Smartphone, Monitor, ChevronLeft, ChevronRight, ChevronUp, ChevronDown, SlidersHorizontal, TrendingUp, ArrowUpRight, ArrowDownRight, RefreshCw, BarChart3, Clock, CheckCircle, AlertOctagon, HelpCircle, UserCheck, PlusCircle, Activity, Trophy, Star, Flame, Globe, Tag, Box, Compass, Heart, Phone, MapPin, Mail, Layers, Grid, ArrowUp, ArrowDown, ShieldCheck, Award, Printer, Truck, RotateCcw, DollarSign, CheckCircle2, PackageCheck, Send, Copy, ExternalLink, XCircle, Eye, Bell, CreditCard, LayoutGrid, KeyRound, type LucideIcon } from 'lucide-react';
+import { AreaChart, Users, Shirt, ShoppingBag, Check, X, ShieldAlert, BadgeCheck, FileText, Plus, Save, Sparkles, Download, Upload, AlertTriangle, Image, Trash2, Edit, Search, Smartphone, Monitor, ChevronLeft, ChevronRight, ChevronUp, ChevronDown, SlidersHorizontal, TrendingUp, ArrowUpRight, ArrowDownRight, RefreshCw, BarChart3, Clock, CheckCircle, AlertOctagon, HelpCircle, UserCheck, PlusCircle, Activity, Trophy, Star, Flame, Globe, Tag, Box, Compass, Heart, Phone, MapPin, Mail, Layers, Grid, ArrowUp, ArrowDown, ShieldCheck, Award, Printer, Truck, RotateCcw, DollarSign, CheckCircle2, PackageCheck, Send, Copy, ExternalLink, XCircle, Eye, Bell, CreditCard, LayoutGrid, KeyRound, Ruler, type LucideIcon } from 'lucide-react';
 import { Product, SellerRequest, Order, CarouselSlide, AppConfig, BannerConfig, BannerType, MenuItem, MenuPlacement, PageSection, DailyDealItem } from '../types';
 import { JerseyRenderer } from './JerseyRenderer';
 import { InventoryEditor } from './InventoryEditor';
 import { ProductManager } from './ProductManager';
 import { TournamentPatchesPanel } from './TournamentPatchesPanel';
+import { SizeChartsPanel } from './SizeChartsPanel';
 import { TEAMS_LIST, RIVALRY_PRESETS, TeamItem } from '../data/teamsData';
 import { DEFAULT_LEAGUES } from '../data/leaguesData';
 import { DEFAULT_CLUBS, normalizeClubShowcase } from '../data/clubsData';
@@ -1468,6 +1469,7 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({
       items: [
         { id: 'inventory', label: 'Inventory', icon: Box },
         { id: 'tournament-patches', label: 'Patches', icon: Award },
+        { id: 'size-charts', label: 'Size Charts', icon: Ruler },
       ],
     },
     {
@@ -1519,6 +1521,7 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({
     if (activeSidebarTab === 'sales') return 'Invoice List';
     if (activeSidebarTab === 'inventory') return 'Inventory';
     if (activeSidebarTab === 'tournament-patches') return 'Patches';
+    if (activeSidebarTab === 'size-charts') return 'Size Charts';
     if (activeSidebarTab === 'product-management') return 'Product';
     return activeModuleLabel;
   })();
@@ -3359,6 +3362,16 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({
             formatPrice={formatPrice}
             products={products}
             setProducts={setProducts}
+          />
+        </div>
+      )}
+
+      {activeSidebarTab === 'size-charts' && (
+        <div className="space-y-4 animate-fadeIn">
+          <SizeChartsPanel
+            appConfig={appConfig}
+            onUpdateConfig={onUpdateConfig}
+            onRequireStaffLogin={onRequireStaffLogin}
           />
         </div>
       )}
@@ -5393,7 +5406,7 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({
       )}
 
       {/* 28 EXTENDED DYNAMIC CMS MODULE PANELS */}
-      {!['dashboard', 'inventory', 'tournament-patches', 'seller-requests', 'homepage-builder', 'coupons', 'brand-customizer'].includes(activeSidebarTab) && (
+      {!['dashboard', 'inventory', 'tournament-patches', 'size-charts', 'seller-requests', 'homepage-builder', 'coupons', 'brand-customizer'].includes(activeSidebarTab) && (
         <div className="bg-white border border-emerald-100 p-6 rounded-3xl space-y-8 animate-fadeIn">
           
           {/* MODULE: analytics */}

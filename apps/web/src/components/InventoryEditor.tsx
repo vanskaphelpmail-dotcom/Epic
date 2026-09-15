@@ -16,7 +16,6 @@ import {
 import { confirmAsync, toast } from './UiFeedback';
 import { ensureUniqueBarcode, nextSerialEan13, normalizeBarcode } from '../lib/retailCodes';
 import { BarcodeLabelPrint } from './admin/BarcodeLabelPrint';
-import { SizeChartsPanel } from './SizeChartsPanel';
 
 interface InventoryEditorProps {
   products: Product[];
@@ -419,14 +418,6 @@ export const InventoryEditor: React.FC<InventoryEditorProps> = ({
           <Plus size={14} className="stroke-[3]" /> Add New Jersey Release
         </button>
       </div>
-
-      {appConfig && onUpdateConfig ? (
-        <SizeChartsPanel
-          appConfig={appConfig}
-          onUpdateConfig={onUpdateConfig}
-          onRequireStaffLogin={onRequireStaffLogin}
-        />
-      ) : null}
 
       {/* Filter and Search Bar */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
