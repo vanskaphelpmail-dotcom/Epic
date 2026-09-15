@@ -16,7 +16,6 @@ import {
 import { confirmAsync, toast } from './UiFeedback';
 import { ensureUniqueBarcode, nextSerialEan13, normalizeBarcode } from '../lib/retailCodes';
 import { BarcodeLabelPrint } from './admin/BarcodeLabelPrint';
-import { TournamentPatchesPanel } from './TournamentPatchesPanel';
 import { SizeChartsPanel } from './SizeChartsPanel';
 
 interface InventoryEditorProps {
@@ -422,21 +421,11 @@ export const InventoryEditor: React.FC<InventoryEditorProps> = ({
       </div>
 
       {appConfig && onUpdateConfig ? (
-        <>
-          <TournamentPatchesPanel
-            appConfig={appConfig}
-            onUpdateConfig={onUpdateConfig}
-            onRequireStaffLogin={onRequireStaffLogin}
-            formatPrice={formatPrice}
-            products={products}
-            setProducts={setProducts}
-          />
-          <SizeChartsPanel
-            appConfig={appConfig}
-            onUpdateConfig={onUpdateConfig}
-            onRequireStaffLogin={onRequireStaffLogin}
-          />
-        </>
+        <SizeChartsPanel
+          appConfig={appConfig}
+          onUpdateConfig={onUpdateConfig}
+          onRequireStaffLogin={onRequireStaffLogin}
+        />
       ) : null}
 
       {/* Filter and Search Bar */}

@@ -4,6 +4,7 @@ import { Product, SellerRequest, Order, CarouselSlide, AppConfig, BannerConfig, 
 import { JerseyRenderer } from './JerseyRenderer';
 import { InventoryEditor } from './InventoryEditor';
 import { ProductManager } from './ProductManager';
+import { TournamentPatchesPanel } from './TournamentPatchesPanel';
 import { TEAMS_LIST, RIVALRY_PRESETS, TeamItem } from '../data/teamsData';
 import { DEFAULT_LEAGUES } from '../data/leaguesData';
 import { DEFAULT_CLUBS, normalizeClubShowcase } from '../data/clubsData';
@@ -1464,7 +1465,10 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({
     {
       title: 'Inventory',
       collapsible: true,
-      items: [{ id: 'inventory', label: 'Inventory', icon: Box }],
+      items: [
+        { id: 'inventory', label: 'Inventory', icon: Box },
+        { id: 'tournament-patches', label: 'Patches', icon: Award },
+      ],
     },
     {
       title: 'Operations',
@@ -1514,6 +1518,7 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({
   const headerModuleLabel = (() => {
     if (activeSidebarTab === 'sales') return 'Invoice List';
     if (activeSidebarTab === 'inventory') return 'Inventory';
+    if (activeSidebarTab === 'tournament-patches') return 'Patches';
     if (activeSidebarTab === 'product-management') return 'Product';
     return activeModuleLabel;
   })();
@@ -3343,6 +3348,19 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({
           appConfig={appConfig}
           onUpdateConfig={onUpdateConfig}
         />
+      )}
+
+      {activeSidebarTab === 'tournament-patches' && (
+        <div className="space-y-4 animate-fadeIn">
+          <TournamentPatchesPanel
+            appConfig={appConfig}
+            onUpdateConfig={onUpdateConfig}
+            onRequireStaffLogin={onRequireStaffLogin}
+            formatPrice={formatPrice}
+            products={products}
+            setProducts={setProducts}
+          />
+        </div>
       )}
 
       {activeSidebarTab === 'seller-requests' && (
@@ -5375,7 +5393,7 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({
       )}
 
       {/* 28 EXTENDED DYNAMIC CMS MODULE PANELS */}
-      {!['dashboard', 'inventory', 'seller-requests', 'homepage-builder', 'coupons', 'brand-customizer'].includes(activeSidebarTab) && (
+      {!['dashboard', 'inventory', 'tournament-patches', 'seller-requests', 'homepage-builder', 'coupons', 'brand-customizer'].includes(activeSidebarTab) && (
         <div className="bg-white border border-emerald-100 p-6 rounded-3xl space-y-8 animate-fadeIn">
           
           {/* MODULE: analytics */}

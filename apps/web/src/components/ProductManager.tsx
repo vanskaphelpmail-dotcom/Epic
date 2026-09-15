@@ -49,7 +49,6 @@ import {
 import { confirmAsync, toast } from './UiFeedback';
 import { ensureUniqueBarcode, nextSerialEan13, nextSkuSequence, normalizeBarcode } from '../lib/retailCodes';
 import { BarcodeLabelPrint } from './admin/BarcodeLabelPrint';
-import { TournamentPatchesPanel } from './TournamentPatchesPanel';
 
 /** Search keywords under product photos — admin can add up to this many. */
 const MAX_PRODUCT_TAGS = 8;
@@ -1746,17 +1745,6 @@ export const ProductManager: React.FC<ProductManagerProps> = ({
         </div>
       </div>
 
-      {(onUpdateConfig || setAppConfig) && (
-        <TournamentPatchesPanel
-          appConfig={appConfig}
-          onUpdateConfig={updateConfig}
-          onRequireStaffLogin={onRequireStaffLogin}
-          formatPrice={formatPrice}
-          products={products}
-          setProducts={setProducts}
-        />
-      )}
-
       {/* Main Tabs Navigation */}
       <div className="flex border-b border-emerald-200 gap-4 text-xs font-bold overflow-x-auto pb-1">
         <button
@@ -3367,21 +3355,14 @@ export const ProductManager: React.FC<ProductManagerProps> = ({
                         Enable Tournament Patch on this product
                       </label>
                       <p className="text-[10px] text-emerald-700 leading-relaxed">
-                        Manage patch images, names, prices, add/delete options, and pick which products offer them
-                        below. Changes apply after you click <strong>Update Patches</strong>.
+                        Patch images, names, and prices are managed under{' '}
+                        <strong>Inventory → Patches</strong>. Enable here so this jersey offers those options at
+                        checkout.
                       </p>
-                      {(onUpdateConfig || setAppConfig) ? (
-                        <TournamentPatchesPanel
-                          compact
-                          appConfig={appConfig}
-                          onUpdateConfig={updateConfig}
-                          onRequireStaffLogin={onRequireStaffLogin}
-                          formatPrice={formatPrice}
-                          products={products}
-                          setProducts={setProducts}
-                          focusProductId={editingProduct?.id}
-                        />
-                      ) : (
+                      {(appConfig.tournamentPatches?.length
+                        ? appConfig.tournamentPatches
+                        : pBadgeOptions
+                      ).length > 0 && (
                         <div className="flex flex-wrap gap-2 pt-1">
                           {(appConfig.tournamentPatches?.length
                             ? appConfig.tournamentPatches
