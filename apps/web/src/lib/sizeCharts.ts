@@ -220,10 +220,12 @@ export function getSizeChartById(
 ): SizeChartDef | null {
   if (!id) return null;
   const key = normalizeKey(id);
+  // Prefer custom / admin overrides over hard-coded built-ins
+  const fromMerged = getAllSizeCharts(customCharts).find((c) => c.id === key || c.id === id);
+  if (fromMerged) return fromMerged;
   if (SIZE_CHARTS[key]) return SIZE_CHARTS[key];
   if (SIZE_CHARTS[id]) return SIZE_CHARTS[id];
-  const custom = getAllSizeCharts(customCharts).find((c) => c.id === key || c.id === id);
-  return custom || null;
+  return null;
 }
 
 export function resolveSizeChart(
