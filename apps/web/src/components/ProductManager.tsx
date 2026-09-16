@@ -2705,7 +2705,7 @@ export const ProductManager: React.FC<ProductManagerProps> = ({
                   2. Product Images — Upload up to 6 Pictures
                 </h5>
                 <p className="text-[10px] text-emerald-700 font-mono">
-                  Slot 1 is the main storefront image (Cloudinary). Use Photo Library / Gallery — JPG or PNG preferred. Staff login required.
+                  Slot 1 is the main storefront image. Tap a slot → choose any photo from Gallery / Camera. Staff login required.
                 </p>
                 <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-3 gap-2.5 sm:gap-3">
                   {[0, 1, 2, 3, 4, 5].map((slot) => (
