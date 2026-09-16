@@ -13,18 +13,26 @@ export const IMAGE_FILE_ACCEPT =
 
 /** Mobile-safe defaults — keep payload under typical Vercel / phone memory limits. */
 export const MOBILE_UPLOAD_COMPRESS: CompressOptions = {
-  maxEdge: 1080,
-  quality: 0.7,
-  maxBytes: 520_000,
+  maxEdge: 960,
+  quality: 0.68,
+  maxBytes: 480_000,
 };
 
 const DEFAULT_COMPRESS: CompressOptions = MOBILE_UPLOAD_COMPRESS;
 
+function isMobileUa(): boolean {
+  if (typeof navigator === 'undefined') return false;
+  return /iPhone|iPad|iPod|Android/i.test(navigator.userAgent || '');
+}
+
 /** Mobile cameras / gallery often omit MIME type — still allow common image extensions. */
 export function isLikelyImageFile(file: File): boolean {
-  if (file.type && file.type.startsWith('image/')) return true;
+  const t = (file.type || '').toLowerCase();
+  // Non-standard image/jpg appears on some Android galleries
+  if (t === 'image/jpg' || t === 'image/pjpeg') return true;
+  if (t && t.startsWith('image/')) return true;
   // Empty / octet-stream is common on iOS & Android gallery picks
-  if (!file.type || file.type === 'application/octet-stream') {
+  if (!t || t === 'application/octet-stream') {
     if (!file.name || !file.name.includes('.')) return true;
     return /\.(jpe?g|png|gif|webp|heic|heif|avif|bmp|tiff?)$/i.test(file.name);
   }
@@ -67,6 +75,11 @@ function friendlyUploadError(err: unknown): Error {
   if (/Cloudinary is not configured/i.test(msg)) {
     return new Error('Cloudinary is not configured on the server. Add CLOUDINARY_* env on Vercel.');
   }
+  if (/rejected this image format|Invalid image|File format|unsupported/i.test(msg)) {
+    return new Error(
+      'Image format was rejected. Pick a real JPG or PNG from Gallery (not screenshot HEIC), then retry.',
+    );
+  }
   if (/HEIC|could not process|Could not read|non-JPEG|empty after compression/i.test(msg)) {
     return new Error(msg);
   }
@@ -75,7 +88,6 @@ function friendlyUploadError(err: unknown): Error {
       'Upload failed. On iPhone: Photos → export as JPG / Most Compatible. On Android: Gallery JPG. Then retry.',
     );
   }
-  // Avoid opaque default — keep server detail when useful
   if (msg && msg !== 'Failed to upload image to Cloudinary') {
     return new Error(msg);
   }
@@ -84,12 +96,28 @@ function friendlyUploadError(err: unknown): Error {
   );
 }
 
+function blobToDataUrl(b: Blob): Promise<string> {
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.onload = () => {
+      const result = String(reader.result || '');
+      if (!result.startsWith('data:image/')) {
+        reject(new Error('Compressed photo was not a valid image. Try JPG or PNG.'));
+        return;
+      }
+      resolve(result);
+    };
+    reader.onerror = () => reject(new Error('Could not read compressed image on this device.'));
+    reader.readAsDataURL(b);
+  });
+}
+
 /**
  * Compress a local image file, upload to Cloudinary via the API, and return the HTTPS URL.
  * Requires a staff session. Falls back to a compressed data URL only when API is disabled.
  *
- * Uses multipart FormData (JPEG Blob) first — far more reliable on iOS/Android than
- * multi‑hundred‑KB JSON base64 payloads.
+ * On mobile: JSON data-URL first (most reliable through Next/Vercel).
+ * Desktop: multipart first, then JSON fallback.
  */
 export async function uploadStoreImage(
   file: File,
@@ -123,20 +151,10 @@ export async function uploadStoreImage(
     throw new Error('Compression produced an empty image. Try another photo (JPG/PNG).');
   }
 
-  const blobToDataUrl = (b: Blob) =>
-    new Promise<string>((resolve, reject) => {
-      const reader = new FileReader();
-      reader.onload = () => {
-        const result = String(reader.result || '');
-        if (!result.startsWith('data:image/')) {
-          reject(new Error('Compressed photo was not a valid image. Try JPG or PNG.'));
-          return;
-        }
-        resolve(result);
-      };
-      reader.onerror = () => reject(new Error('Could not read compressed image on this device.'));
-      reader.readAsDataURL(b);
-    });
+  // Normalize MIME — Android sometimes uses image/jpg which Cloudinary dislikes in headers.
+  if (blob.type === 'image/jpg' || blob.type === 'image/pjpeg' || !blob.type) {
+    blob = new Blob([blob], { type: 'image/jpeg' });
+  }
 
   const tryMultipart = async () => {
     const result = await api.uploadImageFile({
@@ -147,8 +165,7 @@ export async function uploadStoreImage(
     return result.url;
   };
 
-  const tryJsonFallback = async () => {
-    // Reuse the already-compressed JPEG — do not re-decode the original phone file.
+  const tryJson = async () => {
     const dataUrl = await blobToDataUrl(blob);
     const result = await api.uploadImage({
       dataUrl,
@@ -178,13 +195,26 @@ export async function uploadStoreImage(
     }
   };
 
+  const mobile = isMobileUa();
+
+  if (mobile) {
+    // Mobile: JSON first — avoids multipart/form-data quirks on iOS Safari / Android WebViews.
+    try {
+      return await runWithSessionRetry(tryJson);
+    } catch (jsonErr) {
+      try {
+        return await runWithSessionRetry(tryMultipart);
+      } catch {
+        throw friendlyUploadError(jsonErr);
+      }
+    }
+  }
+
   try {
     return await runWithSessionRetry(tryMultipart);
   } catch (multipartErr) {
-    // Always try JSON data-URL path — multipart can fail on some phones/proxies
-    // even when the compressed JPEG is fine.
     try {
-      return await runWithSessionRetry(tryJsonFallback);
+      return await runWithSessionRetry(tryJson);
     } catch (jsonErr) {
       throw friendlyUploadError(jsonErr ?? multipartErr);
     }

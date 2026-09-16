@@ -72,29 +72,33 @@ export function cloudinaryErrorMessage(err: unknown): string {
 }
 
 function dataUrlToBuffer(source: string): Buffer | null {
-  const match = /^data:([^;]+);base64,(.+)$/s.exec(source);
+  // Accept data URLs even when phones put charset or odd mime params before base64.
+  const match = /^data:([^,]*?),(.+)$/s.exec(source);
   if (!match?.[2]) return null;
+  const meta = match[1] || "";
+  const payload = match[2];
   try {
-    return Buffer.from(match[2], "base64");
+    if (/;base64/i.test(meta) || /^[A-Za-z0-9+/=\s]+$/.test(payload.slice(0, 80))) {
+      return Buffer.from(payload.replace(/\s/g, ""), "base64");
+    }
+    return Buffer.from(decodeURIComponent(payload));
   } catch {
     return null;
   }
 }
 
-function assertLikelyImageBuffer(buffer: Buffer): void {
-  if (buffer.length < 32) {
-    throw new Error("Invalid image data from device. Try another photo (JPG/PNG).");
-  }
-  // JPEG SOI
-  const isJpeg = buffer[0] === 0xff && buffer[1] === 0xd8 && buffer[2] === 0xff;
-  // PNG signature
-  const isPng =
+function sniffImageKind(buffer: Buffer): "jpeg" | "png" | "webp" | null {
+  if (buffer.length < 32) return null;
+  if (buffer[0] === 0xff && buffer[1] === 0xd8 && buffer[2] === 0xff) return "jpeg";
+  if (
     buffer[0] === 0x89 &&
     buffer[1] === 0x50 &&
     buffer[2] === 0x4e &&
-    buffer[3] === 0x47;
-  // WEBP: RIFF....WEBP
-  const isWebp =
+    buffer[3] === 0x47
+  ) {
+    return "png";
+  }
+  if (
     buffer[0] === 0x52 &&
     buffer[1] === 0x49 &&
     buffer[2] === 0x46 &&
@@ -103,11 +107,31 @@ function assertLikelyImageBuffer(buffer: Buffer): void {
     buffer[8] === 0x57 &&
     buffer[9] === 0x45 &&
     buffer[10] === 0x42 &&
-    buffer[11] === 0x50;
-  if (!isJpeg && !isPng && !isWebp) {
+    buffer[11] === 0x50
+  ) {
+    return "webp";
+  }
+  return null;
+}
+
+function assertLikelyImageBuffer(buffer: Buffer): void {
+  const kind = sniffImageKind(buffer);
+  if (!kind) {
     throw new Error(
-      "Cloudinary rejected this image format. On iPhone use Most Compatible / JPG; on Android pick Gallery JPG/PNG.",
+      "Image bytes are not JPG/PNG/WEBP. On iPhone use Most Compatible / JPG; on Android pick Gallery JPG/PNG.",
     );
+  }
+  // Truncated mobile canvas JPEGs start with SOI but never end with EOI — Cloudinary rejects them.
+  if (kind === "jpeg") {
+    const hasEoi =
+      buffer.length >= 4 &&
+      buffer[buffer.length - 2] === 0xff &&
+      buffer[buffer.length - 1] === 0xd9;
+    if (!hasEoi) {
+      throw new Error(
+        "JPEG from device looks truncated. Try a smaller JPG/PNG from Gallery and retry.",
+      );
+    }
   }
 }
 

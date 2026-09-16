@@ -18,6 +18,35 @@ const UPLOAD_FOLDERS = new Set([
   "patches",
 ]);
 
+function sniffImageMime(buf: Buffer): string | null {
+  if (buf.length >= 3 && buf[0] === 0xff && buf[1] === 0xd8 && buf[2] === 0xff) {
+    return "image/jpeg";
+  }
+  if (
+    buf.length >= 4 &&
+    buf[0] === 0x89 &&
+    buf[1] === 0x50 &&
+    buf[2] === 0x4e &&
+    buf[3] === 0x47
+  ) {
+    return "image/png";
+  }
+  if (
+    buf.length > 11 &&
+    buf[0] === 0x52 &&
+    buf[1] === 0x49 &&
+    buf[2] === 0x46 &&
+    buf[3] === 0x46 &&
+    buf[8] === 0x57 &&
+    buf[9] === 0x45 &&
+    buf[10] === 0x42 &&
+    buf[11] === 0x50
+  ) {
+    return "image/webp";
+  }
+  return null;
+}
+
 async function bodyFromMultipart(request: NextRequest): Promise<Record<string, unknown> | null> {
   try {
     const form = await request.formData();
@@ -28,10 +57,15 @@ async function bodyFromMultipart(request: NextRequest): Promise<Record<string, u
     if (buf.length < 32) {
       return { __uploadError: "Empty or invalid image file from device." };
     }
-    const mime =
-      (typeof blob.type === "string" && blob.type.startsWith("image/") && blob.type) ||
-      "image/jpeg";
-    const dataUrl = `data:${mime};base64,${buf.toString("base64")}`;
+    // Trust magic bytes over Blob.type — phones often send image/jpg, empty, or wrong MIME.
+    const sniffed = sniffImageMime(buf);
+    if (!sniffed) {
+      return {
+        __uploadError:
+          "Cloudinary rejected this image format. Use a real JPG or PNG from Gallery.",
+      };
+    }
+    const dataUrl = `data:${sniffed};base64,${buf.toString("base64")}`;
     const folderRaw = String(form.get("folder") || "products").trim();
     const folder = UPLOAD_FOLDERS.has(folderRaw) ? folderRaw : "products";
     const fileName =
