@@ -45,6 +45,9 @@ function collectAllowedOrigins(): Set<string> {
   // Production custom domain (same project as classic-football-jerseys-web)
   add("https://www.jerseyaddictbd.com");
   add("https://jerseyaddictbd.com");
+  // Epic Vanskap production
+  add("https://www.epicvanskap.com");
+  add("https://epicvanskap.com");
 
   return set;
 }
@@ -65,6 +68,9 @@ export function createApp() {
           const host = new URL(origin).hostname;
           if (host.endsWith(".vercel.app")) return cb(null, true);
           if (host === "jerseyaddictbd.com" || host.endsWith(".jerseyaddictbd.com")) {
+            return cb(null, true);
+          }
+          if (host === "epicvanskap.com" || host.endsWith(".epicvanskap.com")) {
             return cb(null, true);
           }
         } catch {

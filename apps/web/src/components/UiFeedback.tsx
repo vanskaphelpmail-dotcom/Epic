@@ -51,7 +51,13 @@ export function confirmAsync(messageOrOpts: string | ConfirmOptions): Promise<bo
 
 /** Branded toast — replaces window.alert for feedback */
 export function toast(message: string, tone: ToastTone = 'info') {
-  ensureHost().toast(message, tone);
+  const text =
+    typeof message === 'string' && message && message !== '[object Object]'
+      ? message
+      : message && typeof message === 'object' && message !== null && 'message' in (message as object)
+        ? String((message as { message?: unknown }).message || 'Something went wrong')
+        : String(message || 'Something went wrong');
+  ensureHost().toast(text === '[object Object]' ? 'Something went wrong' : text, tone);
 }
 
 export function UiFeedbackHost() {
@@ -60,7 +66,11 @@ export function UiFeedbackHost() {
 
   const pushToast = useCallback((message: string, tone: ToastTone = 'info') => {
     const id = ++toastId;
-    setToasts((prev) => [...prev.slice(-4), { id, message, tone }]);
+    const text =
+      typeof message === 'string' && message !== '[object Object]'
+        ? message
+        : 'Something went wrong';
+    setToasts((prev) => [...prev.slice(-4), { id, message: text, tone }]);
     window.setTimeout(() => {
       setToasts((prev) => prev.filter((t) => t.id !== id));
     }, 4200);

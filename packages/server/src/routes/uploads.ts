@@ -2,6 +2,7 @@ import { Router } from "express";
 import { z } from "zod";
 import { requireStaff, type AuthedRequest } from "../middleware/auth";
 import {
+  cloudinaryErrorMessage,
   destroyCloudinaryImage,
   isCloudinaryConfigured,
   uploadImageToCloudinary,
@@ -68,11 +69,12 @@ uploadsRouter.post(
       });
     }
     console.error("[POST /uploads/image]", error);
-    return res.status(400).json({
+    const message = cloudinaryErrorMessage(error);
+    const status =
+      /not configured/i.test(message) ? 503 : /too large|Invalid image data/i.test(message) ? 413 : 400;
+    return res.status(status).json({
       success: false,
-      error: {
-        message: error instanceof Error ? error.message : "Failed to upload image to Cloudinary",
-      },
+      error: { message },
     });
   }
 });

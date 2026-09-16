@@ -1,16 +1,24 @@
 import React, { useState, useEffect, useMemo, useRef } from 'react';
-import { AreaChart, Users, Shirt, ShoppingBag, Check, X, ShieldAlert, BadgeCheck, FileText, Plus, Save, Sparkles, Download, Upload, AlertTriangle, Image, Trash2, Edit, Search, Smartphone, Monitor, ChevronLeft, ChevronRight, ChevronUp, ChevronDown, SlidersHorizontal, TrendingUp, ArrowUpRight, ArrowDownRight, RefreshCw, BarChart3, Clock, CheckCircle, AlertOctagon, HelpCircle, UserCheck, PlusCircle, Activity, Trophy, Star, Flame, Globe, Tag, Box, Compass, Heart, Phone, MapPin, Mail, Layers, Grid, ArrowUp, ArrowDown, ShieldCheck, Award, Printer, Truck, RotateCcw, DollarSign, CheckCircle2, PackageCheck, Send, Copy, ExternalLink, XCircle, Eye, Bell, CreditCard, LayoutGrid, KeyRound, type LucideIcon } from 'lucide-react';
+import { AreaChart, Users, Shirt, ShoppingBag, Check, X, ShieldAlert, BadgeCheck, FileText, Plus, Save, Sparkles, Download, Upload, AlertTriangle, Image, Trash2, Edit, Search, Smartphone, Monitor, ChevronLeft, ChevronRight, ChevronUp, ChevronDown, SlidersHorizontal, TrendingUp, ArrowUpRight, ArrowDownRight, RefreshCw, BarChart3, Clock, CheckCircle, AlertOctagon, HelpCircle, UserCheck, PlusCircle, Activity, Trophy, Star, Flame, Globe, Tag, Box, Compass, Heart, Phone, MapPin, Mail, Layers, Grid, ArrowUp, ArrowDown, ShieldCheck, Award, Printer, Truck, RotateCcw, DollarSign, CheckCircle2, PackageCheck, Send, Copy, ExternalLink, XCircle, Eye, Bell, CreditCard, LayoutGrid, KeyRound, Ruler, type LucideIcon } from 'lucide-react';
 import { Product, SellerRequest, Order, CarouselSlide, AppConfig, BannerConfig, BannerType, MenuItem, MenuPlacement, PageSection, DailyDealItem } from '../types';
 import { JerseyRenderer } from './JerseyRenderer';
 import { InventoryEditor } from './InventoryEditor';
 import { ProductManager } from './ProductManager';
+import { TournamentPatchesPanel } from './TournamentPatchesPanel';
+import { SizeChartsPanel } from './SizeChartsPanel';
 import { TEAMS_LIST, RIVALRY_PRESETS, TeamItem } from '../data/teamsData';
 import { DEFAULT_LEAGUES } from '../data/leaguesData';
 import { DEFAULT_CLUBS, normalizeClubShowcase } from '../data/clubsData';
 import { LeagueLogo } from './LeagueLogo';
 import { LeagueConfigItem, ClubConfigItem } from '../types';
 import { api, getToken, isApiEnabled } from '../lib/apiClient';
-import { uploadStoreImage } from '../lib/cloudinaryUpload';
+import {
+  uploadStoreImage,
+  isLikelyImageFile,
+  formatUploadError,
+  IMAGE_FILE_ACCEPT,
+  MOBILE_UPLOAD_COMPRESS,
+} from '../lib/cloudinaryUpload';
 import { confirmAsync, toast } from './UiFeedback';
 import { BrandMark } from './BrandMark';
 import { BrandWordmark } from './BrandWordmark';
@@ -1464,7 +1472,11 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({
     {
       title: 'Inventory',
       collapsible: true,
-      items: [{ id: 'inventory', label: 'Inventory', icon: Box }],
+      items: [
+        { id: 'inventory', label: 'Inventory', icon: Box },
+        { id: 'tournament-patches', label: 'Patches', icon: Award },
+        { id: 'size-charts', label: 'Size Charts', icon: Ruler },
+      ],
     },
     {
       title: 'Operations',
@@ -1514,6 +1526,8 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({
   const headerModuleLabel = (() => {
     if (activeSidebarTab === 'sales') return 'Invoice List';
     if (activeSidebarTab === 'inventory') return 'Inventory';
+    if (activeSidebarTab === 'tournament-patches') return 'Patches';
+    if (activeSidebarTab === 'size-charts') return 'Size Charts';
     if (activeSidebarTab === 'product-management') return 'Product';
     return activeModuleLabel;
   })();
@@ -3345,6 +3359,29 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({
         />
       )}
 
+      {activeSidebarTab === 'tournament-patches' && (
+        <div className="space-y-4 animate-fadeIn">
+          <TournamentPatchesPanel
+            appConfig={appConfig}
+            onUpdateConfig={onUpdateConfig}
+            onRequireStaffLogin={onRequireStaffLogin}
+            formatPrice={formatPrice}
+            products={products}
+            setProducts={setProducts}
+          />
+        </div>
+      )}
+
+      {activeSidebarTab === 'size-charts' && (
+        <div className="space-y-4 animate-fadeIn">
+          <SizeChartsPanel
+            appConfig={appConfig}
+            onUpdateConfig={onUpdateConfig}
+            onRequireStaffLogin={onRequireStaffLogin}
+          />
+        </div>
+      )}
+
       {activeSidebarTab === 'seller-requests' && (
         <div className="space-y-6 animate-fadeIn">
           <div>
@@ -4606,7 +4643,7 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({
                       {/* Custom File Upload Area */}
                       <div className="space-y-1">
                         <label className="text-[10px] text-emerald-700 font-mono uppercase block">Or Upload Custom Banner File:</label>
-                        <label className="bg-white hover:bg-emerald-50/50 border border-emerald-100 hover:border-emerald-200 p-3 rounded-xl flex items-center gap-3.5 cursor-pointer transition-all">
+                        <label className="relative bg-white hover:bg-emerald-50/50 border border-emerald-100 hover:border-emerald-200 p-3 rounded-xl flex items-center gap-3.5 cursor-pointer transition-all touch-manipulation overflow-hidden">
                           <div className="w-12 h-12 rounded-lg bg-emerald-50 border border-emerald-100 flex items-center justify-center overflow-hidden flex-shrink-0">
                             {activeSlide.customImage ? (
                               <img
@@ -4622,7 +4659,7 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({
                           
                           <div className="flex-1 min-w-0">
                             <p className="text-[11px] font-bold text-emerald-950 uppercase">Upload custom banner image</p>
-                            <p className="text-[9px] text-emerald-700 truncate">Tap to pick custom file from your device</p>
+                            <p className="text-[9px] text-emerald-700 truncate">Photo / Gallery · JPG PNG HEIC</p>
                           </div>
                           
                           <span className="bg-emerald-800 text-white font-extrabold text-[9px] uppercase px-2.5 py-1.5 rounded-lg">
@@ -4631,22 +4668,23 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({
                           
                           <input
                             type="file"
-                            accept="image/*"
+                            accept={IMAGE_FILE_ACCEPT}
                             onChange={async (e) => {
                               const file = e.target.files?.[0];
+                              e.target.value = '';
                               if (!file) return;
+                              if (!isLikelyImageFile(file)) {
+                                alert('Please upload an image file (JPG, PNG, WEBP).');
+                                return;
+                              }
                               try {
-                                const url = await uploadStoreImage(file, 'banners', {
-                                  maxEdge: 1600,
-                                  quality: 0.8,
-                                  maxBytes: 900_000,
-                                });
+                                const url = await uploadStoreImage(file, 'banners', MOBILE_UPLOAD_COMPRESS);
                                 handleUpdateSlide({ ...activeSlide, customImage: url });
                               } catch (err) {
-                                alert(err instanceof Error ? err.message : 'Failed to upload banner image');
+                                alert(formatUploadError(err));
                               }
                             }}
-                            className="hidden"
+                            className="absolute inset-0 z-[1] h-full w-full cursor-pointer opacity-0"
                           />
                         </label>
                       </div>
@@ -5305,8 +5343,8 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({
                   {/* Mobile-optimized touch image upload trigger */}
                   <div className="space-y-1.5">
                     <label className="text-[10px] font-mono text-emerald-700 block uppercase font-bold">Jersey Photo (Optional):</label>
-                    <label className="flex items-center gap-3.5 bg-white hover:bg-emerald-50/50 border border-emerald-100 hover:border-emerald-200 p-3 rounded-xl cursor-pointer transition-all group">
-                      <div className="w-11 h-11 rounded-lg bg-emerald-50 border border-emerald-100 flex items-center justify-center overflow-hidden flex-shrink-0 group-hover:scale-105 transition-transform">
+                    <label className="relative flex items-center gap-3.5 bg-white hover:bg-emerald-50/50 border border-emerald-100 hover:border-emerald-200 p-3 rounded-xl cursor-pointer transition-all group touch-manipulation overflow-hidden">
+                      <div className="w-11 h-11 rounded-lg bg-emerald-50 border border-emerald-100 flex items-center justify-center overflow-hidden flex-shrink-0 group-hover:scale-105 transition-transform pointer-events-none">
                         {quickAddImage ? (
                           <img
                             src={quickAddImage}
@@ -5317,35 +5355,40 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({
                           <Image size={15} className="text-emerald-700 group-hover:text-emerald-600 transition-colors" />
                         )}
                       </div>
-                      <div className="flex-1 min-w-0">
+                      <div className="flex-1 min-w-0 pointer-events-none">
                         <div className="bg-emerald-800 text-white group-hover:bg-emerald-700 border border-emerald-600 text-[9px] font-extrabold uppercase px-3 py-1.5 rounded-lg transition-all inline-flex items-center gap-1">
                           <Upload size={9} />
-                          Browse Photo
+                          Tap to upload photo
                         </div>
                         {quickAddImage ? (
                           <span className="text-[9px] text-emerald-800 font-mono block mt-0.5 truncate">✓ Photo loaded</span>
                         ) : (
-                          <span className="text-[9px] text-emerald-700 font-mono block mt-0.5">JPEG/PNG → Cloudinary (max 5MB)</span>
+                          <span className="text-[9px] text-emerald-700 font-mono block mt-0.5">Photo / Gallery → Cloudinary</span>
                         )}
                       </div>
                       <input
                         type="file"
-                        accept="image/*"
+                        accept={IMAGE_FILE_ACCEPT}
                         onChange={async (e) => {
                           const file = e.target.files?.[0];
+                          e.target.value = '';
                           if (!file) return;
-                          if (file.size > 5 * 1024 * 1024) {
-                            alert('File is too large! Maximum limit is 5MB.');
+                          if (!isLikelyImageFile(file)) {
+                            alert('Please upload an image file (JPG, PNG, WEBP).');
+                            return;
+                          }
+                          if (file.size > 12 * 1024 * 1024) {
+                            alert('File is too large! Maximum limit is 12MB.');
                             return;
                           }
                           try {
-                            const url = await uploadStoreImage(file, 'products');
+                            const url = await uploadStoreImage(file, 'products', MOBILE_UPLOAD_COMPRESS);
                             setQuickAddImage(url);
                           } catch (err) {
-                            alert(err instanceof Error ? err.message : 'Failed to upload image to Cloudinary');
+                            alert(formatUploadError(err));
                           }
                         }}
-                        className="hidden"
+                        className="absolute inset-0 z-[1] h-full w-full cursor-pointer opacity-0"
                       />
                     </label>
                     {quickAddImage && (
@@ -5374,7 +5417,7 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({
       )}
 
       {/* 28 EXTENDED DYNAMIC CMS MODULE PANELS */}
-      {!['dashboard', 'inventory', 'seller-requests', 'homepage-builder', 'coupons', 'brand-customizer'].includes(activeSidebarTab) && (
+      {!['dashboard', 'inventory', 'tournament-patches', 'size-charts', 'seller-requests', 'homepage-builder', 'coupons', 'brand-customizer'].includes(activeSidebarTab) && (
         <div className="bg-white border border-emerald-100 p-6 rounded-3xl space-y-8 animate-fadeIn">
           
           {/* MODULE: analytics */}
@@ -6879,39 +6922,43 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({
                               One image → applied to Desktop, Tablet &amp; Mobile automatically (storefront picks by screen size).
                             </p>
                           </div>
-                          <label className="inline-flex items-center justify-center gap-1.5 bg-zinc-950 hover:bg-zinc-800 text-white font-bold text-xs px-4 py-2.5 rounded-lg cursor-pointer shrink-0 w-full sm:w-auto">
+                          <label className="relative inline-flex items-center justify-center gap-1.5 bg-zinc-950 hover:bg-zinc-800 text-white font-bold text-xs px-4 py-2.5 rounded-lg cursor-pointer shrink-0 w-full sm:w-auto touch-manipulation overflow-hidden min-h-[44px]">
                             <Upload size={14} />
                             {bannerUploading ? 'Uploading…' : 'Upload for all devices'}
                             <input
                               type="file"
-                              accept="image/jpeg,image/png,image/webp,image/gif"
-                              className="hidden"
+                              accept={IMAGE_FILE_ACCEPT}
+                              className="absolute inset-0 z-[1] h-full w-full cursor-pointer opacity-0"
                               disabled={bannerUploading}
                               onChange={async (e) => {
                                 const file = e.target.files?.[0];
                                 e.target.value = '';
                                 if (!file) return;
-                                if (!file.type.startsWith('image/')) {
+                                if (!isLikelyImageFile(file)) {
                                   toast('Please upload an image file.', 'error');
                                   return;
                                 }
-                                if (file.size > 6 * 1024 * 1024) {
-                                  toast('Image must be under 6MB.', 'error');
+                                if (file.size > 12 * 1024 * 1024) {
+                                  toast('Image must be under 12MB.', 'error');
                                   return;
                                 }
                                 setBannerUploading(true);
                                 try {
                                   const specs = getBannerPixelSpecs(editingBanner.type);
-                                  const maxEdge = Math.max(
-                                    specs.desktop.width,
-                                    specs.desktop.height,
-                                    specs.tablet.width,
-                                    specs.mobile.width,
+                                  const maxEdge = Math.min(
+                                    1600,
+                                    Math.max(
+                                      specs.desktop.width,
+                                      specs.desktop.height,
+                                      specs.tablet.width,
+                                      specs.mobile.width,
+                                      1080,
+                                    ),
                                   );
                                   const url = await uploadStoreImage(file, 'banners', {
                                     maxEdge,
-                                    quality: 0.82,
-                                    maxBytes: 1_200_000,
+                                    quality: 0.75,
+                                    maxBytes: 700_000,
                                   });
                                   setEditingBanner({
                                     ...editingBanner,
@@ -6922,7 +6969,7 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({
                                   });
                                   toast('Banner set for Desktop · Tablet · Mobile', 'success');
                                 } catch (err) {
-                                  toast(err instanceof Error ? err.message : 'Upload failed', 'error');
+                                  toast(formatUploadError(err), 'error');
                                 } finally {
                                   setBannerUploading(false);
                                 }
@@ -7049,37 +7096,37 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({
                                     Copy desktop
                                   </button>
                                 )}
-                                <label className="inline-flex items-center gap-1.5 bg-emerald-800 hover:bg-emerald-900 text-white font-bold text-xs px-4 py-2.5 rounded-lg cursor-pointer">
+                                <label className="relative inline-flex items-center gap-1.5 bg-emerald-800 hover:bg-emerald-900 text-white font-bold text-xs px-4 py-2.5 rounded-lg cursor-pointer touch-manipulation overflow-hidden min-h-[44px]">
                                   <Upload size={14} />
                                   Upload
                                   <input
                                     type="file"
-                                    accept="image/*"
-                                    className="hidden"
+                                    accept={IMAGE_FILE_ACCEPT}
+                                    className="absolute inset-0 z-[1] h-full w-full cursor-pointer opacity-0"
                                     disabled={bannerUploading}
                                     onChange={async (e) => {
                                       const file = e.target.files?.[0];
                                       e.target.value = '';
                                       if (!file) return;
-                                      if (!file.type.startsWith('image/')) {
+                                      if (!isLikelyImageFile(file)) {
                                         toast('Please upload an image file.', 'error');
                                         return;
                                       }
-                                      if (file.size > 5 * 1024 * 1024) {
-                                        toast('Image must be under 5MB.', 'error');
+                                      if (file.size > 12 * 1024 * 1024) {
+                                        toast('Image must be under 12MB.', 'error');
                                         return;
                                       }
                                       setBannerUploading(true);
                                       try {
                                         const url = await uploadStoreImage(file, 'banners', {
-                                          maxEdge: slot.maxEdge,
-                                          quality: slot.quality,
-                                          maxBytes: slot.maxBytes,
+                                          maxEdge: Math.min(slot.maxEdge, 1400),
+                                          quality: Math.min(slot.quality, 0.78),
+                                          maxBytes: Math.min(slot.maxBytes, 700_000),
                                         });
                                         slot.onUrl(url);
                                         toast(`${slot.label} image uploaded`, 'success');
                                       } catch (err) {
-                                        toast(err instanceof Error ? err.message : 'Upload failed', 'error');
+                                        toast(formatUploadError(err), 'error');
                                       } finally {
                                         setBannerUploading(false);
                                       }

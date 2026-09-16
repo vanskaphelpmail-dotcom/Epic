@@ -3,7 +3,13 @@ import { Plus, Edit, Trash2, Image as ImageIcon, X, AlertTriangle, Search, Filte
 import { AppConfig, Product } from '../types';
 import { JerseyRenderer } from './JerseyRenderer';
 import { api, getToken, isApiEnabled } from '../lib/apiClient';
-import { uploadStoreImage } from '../lib/cloudinaryUpload';
+import {
+  uploadStoreImage,
+  isLikelyImageFile,
+  formatUploadError,
+  IMAGE_FILE_ACCEPT,
+  MOBILE_UPLOAD_COMPRESS,
+} from '../lib/cloudinaryUpload';
 import { DEFAULT_FALLBACK_SIZES, STANDARD_PRODUCT_SIZES } from '../lib/productSizes';
 import {
   calcDiscountAmount,
@@ -16,8 +22,6 @@ import {
 import { confirmAsync, toast } from './UiFeedback';
 import { ensureUniqueBarcode, nextSerialEan13, normalizeBarcode } from '../lib/retailCodes';
 import { BarcodeLabelPrint } from './admin/BarcodeLabelPrint';
-import { TournamentPatchesPanel } from './TournamentPatchesPanel';
-import { SizeChartsPanel } from './SizeChartsPanel';
 
 interface InventoryEditorProps {
   products: Product[];
@@ -352,19 +356,24 @@ export const InventoryEditor: React.FC<InventoryEditorProps> = ({
     }
   };
 
-  // Image upload → Cloudinary
+  // Image upload → Cloudinary (mobile gallery / camera friendly)
   const handleImageChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
+    e.target.value = '';
     if (!file) return;
-    if (file.size > 5 * 1024 * 1024) {
-      alert('File is too large! Maximum limit is 5MB.');
+    if (!isLikelyImageFile(file)) {
+      alert('Please upload an image file (JPG, PNG, WEBP).');
+      return;
+    }
+    if (file.size > 12 * 1024 * 1024) {
+      alert('File is too large! Maximum limit is 12MB.');
       return;
     }
     try {
-      const url = await uploadStoreImage(file, 'products');
+      const url = await uploadStoreImage(file, 'products', MOBILE_UPLOAD_COMPRESS);
       setFormUploadedImage(url);
     } catch (err) {
-      alert(err instanceof Error ? err.message : 'Failed to upload image to Cloudinary');
+      alert(formatUploadError(err));
     }
   };
 
@@ -415,22 +424,6 @@ export const InventoryEditor: React.FC<InventoryEditorProps> = ({
           <Plus size={14} className="stroke-[3]" /> Add New Jersey Release
         </button>
       </div>
-
-      {appConfig && onUpdateConfig ? (
-        <>
-          <TournamentPatchesPanel
-            appConfig={appConfig}
-            onUpdateConfig={onUpdateConfig}
-            onRequireStaffLogin={onRequireStaffLogin}
-            formatPrice={formatPrice}
-          />
-          <SizeChartsPanel
-            appConfig={appConfig}
-            onUpdateConfig={onUpdateConfig}
-            onRequireStaffLogin={onRequireStaffLogin}
-          />
-        </>
-      ) : null}
 
       {/* Filter and Search Bar */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
@@ -640,11 +633,11 @@ export const InventoryEditor: React.FC<InventoryEditorProps> = ({
 
       {/* ADD PRODUCT MODAL */}
       {isAddModalOpen && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm p-4 overflow-y-auto">
-          <div className="bg-white border border-zinc-200 rounded-2xl p-6 w-full max-w-2xl max-h-[90vh] overflow-y-auto shadow-2xl space-y-6 animate-scaleUp text-zinc-950">
+        <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center bg-black/50 backdrop-blur-sm p-0 sm:p-4 overflow-y-auto">
+          <div className="bg-white border border-zinc-200 rounded-t-2xl sm:rounded-2xl p-5 sm:p-6 w-full max-w-2xl h-[100dvh] sm:h-auto max-h-[100dvh] sm:max-h-[90vh] overflow-y-auto shadow-2xl space-y-6 animate-scaleUp text-zinc-950 pb-[max(1.25rem,env(safe-area-inset-bottom))]">
             
             {/* Header */}
-            <div className="flex justify-between items-center border-b border-zinc-300 pb-3.5">
+            <div className="flex justify-between items-center border-b border-zinc-300 pb-3.5 sticky top-0 bg-white z-10">
               <div>
                 <h3 className="text-lg font-black uppercase text-zinc-950">Add New Vault Jersey</h3>
                 <p className="text-[10px] text-zinc-700 font-mono">Provide vintage specifications, dimensions & custom pictures.</p>
@@ -652,7 +645,7 @@ export const InventoryEditor: React.FC<InventoryEditorProps> = ({
               <button
                 type="button"
                 onClick={() => setIsAddModalOpen(false)}
-                className="p-1.5 hover:bg-emerald-950 rounded-full text-zinc-700 hover:text-white transition-colors cursor-pointer"
+                className="p-2 hover:bg-emerald-950 rounded-full text-zinc-700 hover:text-white transition-colors cursor-pointer touch-manipulation"
               >
                 <X size={18} />
               </button>
@@ -1011,37 +1004,37 @@ export const InventoryEditor: React.FC<InventoryEditorProps> = ({
                     </div>
                   </div>
 
-                  {/* Image manual uploader with base64 string storage */}
+                  {/* Image upload — touch-friendly for mobile gallery / camera */}
                   <div className="space-y-2 pt-1">
-                    <label className="text-[10px] text-zinc-700 font-mono uppercase block font-bold">Jersey Illustration Image (Base64):</label>
-                    <label className="flex items-center gap-4 bg-zinc-50 hover:bg-zinc-100 border border-zinc-300 hover:border-emerald-800 p-4 rounded-2xl cursor-pointer transition-all group">
-                      <div className="w-16 h-16 rounded-xl bg-zinc-100 border border-zinc-300/60 flex items-center justify-center overflow-hidden flex-shrink-0 group-hover:scale-105 transition-transform">
+                    <label className="text-[10px] text-zinc-700 font-mono uppercase block font-bold">Jersey Photo:</label>
+                    <label className="relative flex items-center gap-4 bg-zinc-50 hover:bg-zinc-100 border border-zinc-300 hover:border-emerald-800 p-4 rounded-2xl cursor-pointer transition-all group touch-manipulation overflow-hidden">
+                      <div className="w-16 h-16 rounded-xl bg-zinc-100 border border-zinc-300/60 flex items-center justify-center overflow-hidden flex-shrink-0 group-hover:scale-105 transition-transform pointer-events-none">
                         {formUploadedImage ? (
                           <img
                             src={formUploadedImage}
-                            alt="Uploaded base64 preview"
+                            alt="Uploaded preview"
                             className="w-full h-full object-contain filter drop-shadow"
                           />
                         ) : (
                           <ImageIcon size={20} className="text-emerald-600 group-hover:text-zinc-950 transition-colors" />
                         )}
                       </div>
-                      <div className="flex-1 min-w-0">
+                      <div className="flex-1 min-w-0 pointer-events-none">
                         <div className="bg-zinc-100 group-hover:bg-zinc-950 group-hover:text-white border border-zinc-300 text-emerald-400 text-[10px] font-extrabold uppercase px-4 py-2.5 rounded-xl transition-all inline-flex items-center gap-1.5 shadow-sm">
                           <Plus size={11} />
-                          Browse Local Jersey Photo
+                          Tap to upload photo
                         </div>
                         {formUploadedImage ? (
                           <p className="text-[9px] text-emerald-500 font-mono mt-1">✓ Image loaded successfully</p>
                         ) : (
-                          <p className="text-[9px] text-zinc-600 font-mono leading-tight mt-1">PNG/JPG with resolution limits of up to 2MB</p>
+                          <p className="text-[9px] text-zinc-600 font-mono leading-tight mt-1">Photo / Gallery · JPG PNG HEIC</p>
                         )}
                       </div>
                       <input
                         type="file"
-                        accept="image/*"
+                        accept={IMAGE_FILE_ACCEPT}
                         onChange={handleImageChange}
-                        className="hidden"
+                        className="absolute inset-0 z-[1] h-full w-full cursor-pointer opacity-0"
                       />
                     </label>
                     {formUploadedImage && (
@@ -1085,11 +1078,11 @@ export const InventoryEditor: React.FC<InventoryEditorProps> = ({
 
       {/* EDIT PRODUCT MODAL */}
       {isEditModalOpen && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm p-4 overflow-y-auto">
-          <div className="bg-white border border-zinc-200 rounded-2xl p-6 w-full max-w-2xl max-h-[90vh] overflow-y-auto shadow-2xl space-y-6 animate-scaleUp text-zinc-950">
+        <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center bg-black/50 backdrop-blur-sm p-0 sm:p-4 overflow-y-auto">
+          <div className="bg-white border border-zinc-200 rounded-t-2xl sm:rounded-2xl p-5 sm:p-6 w-full max-w-2xl h-[100dvh] sm:h-auto max-h-[100dvh] sm:max-h-[90vh] overflow-y-auto shadow-2xl space-y-6 animate-scaleUp text-zinc-950 pb-[max(1.25rem,env(safe-area-inset-bottom))]">
             
             {/* Header */}
-            <div className="flex justify-between items-center border-b border-zinc-300 pb-3.5">
+            <div className="flex justify-between items-center border-b border-zinc-300 pb-3.5 sticky top-0 bg-white z-10">
               <div>
                 <h3 className="text-lg font-black uppercase text-zinc-950">Edit Vault Jersey Details</h3>
                 <p className="text-[10px] text-zinc-700 font-mono">ID: {editingProduct?.id} | SKU: {editingProduct?.sku}</p>
@@ -1100,7 +1093,7 @@ export const InventoryEditor: React.FC<InventoryEditorProps> = ({
                   setIsEditModalOpen(false);
                   setEditingProduct(null);
                 }}
-                className="p-1.5 hover:bg-emerald-950 rounded-full text-zinc-700 hover:text-white transition-colors cursor-pointer"
+                className="p-2 hover:bg-emerald-950 rounded-full text-zinc-700 hover:text-white transition-colors cursor-pointer touch-manipulation"
               >
                 <X size={18} />
               </button>
@@ -1459,37 +1452,37 @@ export const InventoryEditor: React.FC<InventoryEditorProps> = ({
                     </div>
                   </div>
 
-                  {/* Image manual uploader with base64 string storage */}
+                  {/* Image upload — touch-friendly for mobile gallery / camera */}
                   <div className="space-y-2 pt-1">
-                    <label className="text-[10px] text-zinc-700 font-mono uppercase block font-bold">Jersey Illustration Image (Base64):</label>
-                    <label className="flex items-center gap-4 bg-zinc-50 hover:bg-zinc-100 border border-zinc-300 hover:border-emerald-800 p-4 rounded-2xl cursor-pointer transition-all group">
-                      <div className="w-16 h-16 rounded-xl bg-zinc-100 border border-zinc-300/60 flex items-center justify-center overflow-hidden flex-shrink-0 group-hover:scale-105 transition-transform">
+                    <label className="text-[10px] text-zinc-700 font-mono uppercase block font-bold">Jersey Photo:</label>
+                    <label className="relative flex items-center gap-4 bg-zinc-50 hover:bg-zinc-100 border border-zinc-300 hover:border-emerald-800 p-4 rounded-2xl cursor-pointer transition-all group touch-manipulation overflow-hidden">
+                      <div className="w-16 h-16 rounded-xl bg-zinc-100 border border-zinc-300/60 flex items-center justify-center overflow-hidden flex-shrink-0 group-hover:scale-105 transition-transform pointer-events-none">
                         {formUploadedImage ? (
                           <img
                             src={formUploadedImage}
-                            alt="Uploaded base64 preview"
+                            alt="Uploaded preview"
                             className="w-full h-full object-contain filter drop-shadow"
                           />
                         ) : (
                           <ImageIcon size={20} className="text-emerald-600 group-hover:text-zinc-950 transition-colors" />
                         )}
                       </div>
-                      <div className="flex-1 min-w-0">
+                      <div className="flex-1 min-w-0 pointer-events-none">
                         <div className="bg-zinc-100 group-hover:bg-zinc-950 group-hover:text-white border border-zinc-300 text-emerald-400 text-[10px] font-extrabold uppercase px-4 py-2.5 rounded-xl transition-all inline-flex items-center gap-1.5 shadow-sm">
                           <Plus size={11} />
-                          Replace Jersey Photo
+                          Tap to replace photo
                         </div>
                         {formUploadedImage ? (
                           <p className="text-[9px] text-emerald-500 font-mono mt-1">✓ Image loaded successfully</p>
                         ) : (
-                          <p className="text-[9px] text-zinc-600 font-mono leading-tight mt-1">PNG/JPG with resolution limits of up to 2MB</p>
+                          <p className="text-[9px] text-zinc-600 font-mono leading-tight mt-1">Photo / Gallery · JPG PNG HEIC</p>
                         )}
                       </div>
                       <input
                         type="file"
-                        accept="image/*"
+                        accept={IMAGE_FILE_ACCEPT}
                         onChange={handleImageChange}
-                        className="hidden"
+                        className="absolute inset-0 z-[1] h-full w-full cursor-pointer opacity-0"
                       />
                     </label>
                     {formUploadedImage && (
