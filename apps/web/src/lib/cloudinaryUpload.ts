@@ -1,8 +1,4 @@
-<<<<<<< HEAD
-import { compressImageToDataUrl, looksLikeImageFile, type CompressOptions } from './imageCompress';
-=======
 import { compressImageToBlob, compressImageToDataUrl, type CompressOptions } from './imageCompress';
->>>>>>> dd2065fb31ae5ebe7f606bbae05c11d0d61f9470
 import { api, getToken, isApiEnabled, setToken } from './apiClient';
 
 export type UploadFolder = 'products' | 'banners' | 'media' | 'avatars' | 'categories' | 'patches';
@@ -39,7 +35,7 @@ export function formatUploadError(err: unknown): string {
   if (err instanceof Error && err.message && err.message !== '[object Object]') {
     return err.message;
   }
-  if (typeof err === 'string' && err.trim() && err !== '[object Object]') {
+  if (typeof err === 'string' && err.trim() && err.trim() !== '[object Object]') {
     return err.trim();
   }
   if (err && typeof err === 'object') {
@@ -100,16 +96,11 @@ export async function uploadStoreImage(
   folder: UploadFolder = 'products',
   compress: CompressOptions = DEFAULT_COMPRESS,
 ): Promise<string> {
-<<<<<<< HEAD
-  if (!looksLikeImageFile(file)) {
-    throw new Error('Please upload an image file (JPG, PNG, WEBP).');
-=======
   if (!isLikelyImageFile(file)) {
     throw new Error('Please upload an image file (JPG, PNG, or WEBP).');
   }
   if (!file.size) {
     throw new Error('Selected file is empty. Pick the photo again from Gallery.');
->>>>>>> dd2065fb31ae5ebe7f606bbae05c11d0d61f9470
   }
 
   if (!isApiEnabled()) {
@@ -128,6 +119,25 @@ export async function uploadStoreImage(
     throw friendlyUploadError(err);
   }
 
+  if (!blob.size) {
+    throw new Error('Compression produced an empty image. Try another photo (JPG/PNG).');
+  }
+
+  const blobToDataUrl = (b: Blob) =>
+    new Promise<string>((resolve, reject) => {
+      const reader = new FileReader();
+      reader.onload = () => {
+        const result = String(reader.result || '');
+        if (!result.startsWith('data:image/')) {
+          reject(new Error('Compressed photo was not a valid image. Try JPG or PNG.'));
+          return;
+        }
+        resolve(result);
+      };
+      reader.onerror = () => reject(new Error('Could not read compressed image on this device.'));
+      reader.readAsDataURL(b);
+    });
+
   const tryMultipart = async () => {
     const result = await api.uploadImageFile({
       file: blob,
@@ -138,12 +148,8 @@ export async function uploadStoreImage(
   };
 
   const tryJsonFallback = async () => {
-    // Last resort for older adapters — still compressed JPEG data URL
-    const dataUrl = await compressImageToDataUrl(file, {
-      ...compress,
-      maxBytes: Math.min(compress.maxBytes ?? 520_000, 400_000),
-      maxEdge: Math.min(compress.maxEdge ?? 1080, 960),
-    });
+    // Reuse the already-compressed JPEG — do not re-decode the original phone file.
+    const dataUrl = await blobToDataUrl(blob);
     const result = await api.uploadImage({
       dataUrl,
       folder,
@@ -175,15 +181,12 @@ export async function uploadStoreImage(
   try {
     return await runWithSessionRetry(tryMultipart);
   } catch (multipartErr) {
-    const msg = formatUploadError(multipartErr);
-    // Retry with JSON only when multipart itself looks unsupported / parse-related
-    if (/multipart|Invalid upload payload|Unexpected token|Unsupported Media|400/i.test(msg)) {
-      try {
-        return await runWithSessionRetry(tryJsonFallback);
-      } catch (jsonErr) {
-        throw friendlyUploadError(jsonErr);
-      }
+    // Always try JSON data-URL path — multipart can fail on some phones/proxies
+    // even when the compressed JPEG is fine.
+    try {
+      return await runWithSessionRetry(tryJsonFallback);
+    } catch (jsonErr) {
+      throw friendlyUploadError(jsonErr ?? multipartErr);
     }
-    throw friendlyUploadError(multipartErr);
   }
 }

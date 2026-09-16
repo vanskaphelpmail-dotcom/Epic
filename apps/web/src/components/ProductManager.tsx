@@ -856,15 +856,7 @@ export const ProductManager: React.FC<ProductManagerProps> = ({
   const handleImageSlotUpload = async (slotIndex: number, file: File | null) => {
     if (!file) return;
     if (slotIndex < 0 || slotIndex > 5) return;
-<<<<<<< HEAD
-    // Mobile gallery pickers sometimes omit MIME — allow by extension too
-    const looksImage =
-      (file.type && file.type.startsWith('image/')) ||
-      /\.(jpe?g|png|gif|webp|heic|heif|bmp)$/i.test(file.name || '');
-    if (!looksImage) {
-=======
     if (!isLikelyImageFile(file)) {
->>>>>>> dd2065fb31ae5ebe7f606bbae05c11d0d61f9470
       toast('Please upload an image file (JPG, PNG, WEBP).', 'error');
       return;
     }
@@ -2732,16 +2724,12 @@ export const ProductManager: React.FC<ProductManagerProps> = ({
                           </button>
                         )}
                       </div>
-<<<<<<< HEAD
                       <label
                         htmlFor={`product-image-slot-${slot}`}
                         className={`relative block aspect-square rounded-lg sm:rounded-xl overflow-hidden border-2 border-dashed border-emerald-300 bg-white cursor-pointer hover:border-emerald-500 transition-colors group touch-manipulation ${
                           uploadingSlot === slot ? 'pointer-events-none opacity-80' : ''
                         }`}
                       >
-=======
-                      <label className={`relative block aspect-square rounded-lg sm:rounded-xl overflow-hidden border-2 border-dashed border-emerald-300 bg-white cursor-pointer hover:border-emerald-500 transition-colors group touch-manipulation ${uploadingSlot === slot ? 'pointer-events-none opacity-80' : ''}`}>
->>>>>>> dd2065fb31ae5ebe7f606bbae05c11d0d61f9470
                         {pImageSlots[slot] ? (
                           <img
                             src={pImageSlots[slot]}
@@ -2753,11 +2741,7 @@ export const ProductManager: React.FC<ProductManagerProps> = ({
                           <div className="absolute inset-0 flex flex-col items-center justify-center gap-1 sm:gap-2 text-emerald-700 px-2 text-center pointer-events-none">
                             <Upload size={18} className="text-emerald-600 sm:w-[22px] sm:h-[22px]" />
                             <span className="text-[9px] sm:text-[10px] font-bold uppercase tracking-wide">Tap to upload</span>
-<<<<<<< HEAD
-                            <span className="text-[8px] sm:text-[9px] font-mono opacity-70">JPG / PNG / WEBP</span>
-=======
                             <span className="text-[8px] sm:text-[9px] font-mono opacity-70">Photo / Gallery</span>
->>>>>>> dd2065fb31ae5ebe7f606bbae05c11d0d61f9470
                           </div>
                         )}
                         {/* Decorative overlays must not steal taps on mobile */}
@@ -2772,19 +2756,13 @@ export const ProductManager: React.FC<ProductManagerProps> = ({
                             <span className="text-white text-[9px] font-black uppercase">Uploading…</span>
                           </div>
                         )}
-                        {/* File input on top — opacity 0.01 helps iOS register taps */}
+                        {/* File input on top — opacity 0.01 helps iOS register taps; no capture= so Gallery stays available */}
                         <input
                           id={`product-image-slot-${slot}`}
                           type="file"
-<<<<<<< HEAD
-                          accept="image/*"
+                          accept={IMAGE_FILE_ACCEPT}
                           className="absolute inset-0 z-20 h-full w-full cursor-pointer opacity-[0.01] touch-manipulation"
                           style={{ fontSize: 16 }}
-=======
-                          accept={IMAGE_FILE_ACCEPT}
-                          // No capture= attribute — keeps both Camera and Photo Library on iOS/Android
-                          className="absolute inset-0 z-[1] h-full w-full cursor-pointer opacity-0"
->>>>>>> dd2065fb31ae5ebe7f606bbae05c11d0d61f9470
                           disabled={uploadingSlot !== null}
                           onChange={(e) => {
                             const f = e.target.files?.[0] || null;
@@ -2792,20 +2770,6 @@ export const ProductManager: React.FC<ProductManagerProps> = ({
                             void handleImageSlotUpload(slot, f);
                           }}
                         />
-<<<<<<< HEAD
-=======
-                        {uploadingSlot === slot && (
-                          <div className="absolute inset-0 bg-emerald-950/60 flex flex-col items-center justify-center gap-2 z-10">
-                            <RefreshCw size={20} className="text-white animate-spin" />
-                            <span className="text-white text-[9px] font-black uppercase">Uploading…</span>
-                          </div>
-                        )}
-                        {pImageSlots[slot] && uploadingSlot !== slot && (
-                          <div className="absolute inset-0 z-[2] bg-emerald-950/50 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center pointer-events-none">
-                            <span className="text-white text-[9px] sm:text-[10px] font-black uppercase">Replace</span>
-                          </div>
-                        )}
->>>>>>> dd2065fb31ae5ebe7f606bbae05c11d0d61f9470
                       </label>
                     </div>
                   ))}

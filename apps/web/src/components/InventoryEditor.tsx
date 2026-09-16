@@ -1034,7 +1034,8 @@ export const InventoryEditor: React.FC<InventoryEditorProps> = ({
                         type="file"
                         accept={IMAGE_FILE_ACCEPT}
                         onChange={handleImageChange}
-                        className="absolute inset-0 z-[1] h-full w-full cursor-pointer opacity-0"
+                        className="absolute inset-0 z-20 h-full w-full cursor-pointer opacity-[0.01] touch-manipulation"
+                        style={{ fontSize: 16 }}
                       />
                     </label>
                     {formUploadedImage && (
@@ -1482,7 +1483,8 @@ export const InventoryEditor: React.FC<InventoryEditorProps> = ({
                         type="file"
                         accept={IMAGE_FILE_ACCEPT}
                         onChange={handleImageChange}
-                        className="absolute inset-0 z-[1] h-full w-full cursor-pointer opacity-0"
+                        className="absolute inset-0 z-20 h-full w-full cursor-pointer opacity-[0.01] touch-manipulation"
+                        style={{ fontSize: 16 }}
                       />
                     </label>
                     {formUploadedImage && (
