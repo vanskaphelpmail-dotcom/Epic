@@ -140,7 +140,7 @@ export const TournamentPatchesPanel: React.FC<TournamentPatchesPanelProps> = ({
       return;
     }
     if (!isLikelyImageFile(file)) {
-      toast('Please choose an image (JPG, PNG, WEBP).', 'error');
+      toast('Please choose an image from Gallery.', 'error');
       return;
     }
     const row = draft[index];
