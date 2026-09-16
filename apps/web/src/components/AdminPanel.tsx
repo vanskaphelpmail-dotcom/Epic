@@ -4674,7 +4674,7 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({
                               e.target.value = '';
                               if (!file) return;
                               if (!isLikelyImageFile(file)) {
-                                alert('Please upload an image file (JPG, PNG, WEBP).');
+                                alert('Please choose an image from Gallery.');
                                 return;
                               }
                               try {
@@ -5374,7 +5374,7 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({
                           e.target.value = '';
                           if (!file) return;
                           if (!isLikelyImageFile(file)) {
-                            alert('Please upload an image file (JPG, PNG, WEBP).');
+                            alert('Please choose an image from Gallery.');
                             return;
                           }
                           if (file.size > 12 * 1024 * 1024) {

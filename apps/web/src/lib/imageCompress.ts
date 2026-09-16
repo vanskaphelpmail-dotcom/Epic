@@ -1,6 +1,5 @@
-/** Compress / resize an image File to a JPEG Blob/data URL under a target byte budget.
- *  Works across iOS Safari, Android Chrome, desktop — including HEIC → JPEG when the
- *  browser can decode the source (Safari). Falls back through multiple loaders.
+/** Compress / resize any phone/desktop photo to a Cloudinary-safe JPEG Blob/data URL.
+ *  Accepts JPG, PNG, WEBP, GIF, BMP, HEIC/HEIF (when the browser can decode), AVIF, etc.
  */
 
 export type CompressOptions = {
@@ -8,6 +7,9 @@ export type CompressOptions = {
   quality?: number;
   maxBytes?: number;
 };
+
+/** Gallery files under this size can upload as-is (JPG/PNG/WEBP/GIF) without canvas re-encode. */
+const PASSTHROUGH_MAX_BYTES = 3_500_000;
 
 function approxBytesFromDataUrl(dataUrl: string): number {
   const i = dataUrl.indexOf(',');
@@ -54,10 +56,27 @@ function isWebpBytes(bytes: Uint8Array): boolean {
   );
 }
 
-/** JPEG must end with EOI — truncated mobile canvas output often still starts with SOI. */
+function isGifBytes(bytes: Uint8Array): boolean {
+  if (bytes.length < 6) return false;
+  const h = String.fromCharCode(bytes[0], bytes[1], bytes[2], bytes[3], bytes[4], bytes[5]);
+  return h === 'GIF87a' || h === 'GIF89a';
+}
+
+function isBmpBytes(bytes: Uint8Array): boolean {
+  return bytes.length >= 2 && bytes[0] === 0x42 && bytes[1] === 0x4d;
+}
+
+/**
+ * Phones often append trailing bytes after JPEG EOI — do not require EOI at exact EOF.
+ */
 function hasJpegEoi(bytes: Uint8Array): boolean {
-  if (bytes.length < 4) return false;
-  return bytes[bytes.length - 2] === 0xff && bytes[bytes.length - 1] === 0xd9;
+  if (!isJpegBytes(bytes)) return false;
+  const start = Math.max(0, bytes.length - 4096);
+  for (let i = bytes.length - 2; i >= start; i--) {
+    if (bytes[i] === 0xff && bytes[i + 1] === 0xd9) return true;
+  }
+  // Still accept SOI-only for large camera JPEGs (EOI search miss on odd trailers)
+  return bytes.length > 1024;
 }
 
 function baseName(fileName: string): string {
@@ -65,14 +84,13 @@ function baseName(fileName: string): string {
 }
 
 /**
- * If the gallery file is already a real JPG/PNG under the byte budget, skip canvas
- * re-encode (mobile Safari/Chrome often corrupt photos during canvas → JPEG).
+ * Pass through real gallery images Cloudinary already accepts (no canvas — avoids mobile corruption).
  */
 async function tryPassthroughImage(
   file: File,
-  maxBytes: number,
+  maxBytes: number = PASSTHROUGH_MAX_BYTES,
 ): Promise<{ blob: Blob; fileName: string } | null> {
-  if (isHeicLike(file)) return null;
+  if (isHeicLike(file)) return null; // always convert HEIC → JPEG when browser can
   if (!file.size || file.size > maxBytes) return null;
 
   let bytes: Uint8Array;
@@ -94,22 +112,30 @@ async function tryPassthroughImage(
       fileName: `${baseName(file.name)}.png`,
     };
   }
-  if (isWebpBytes(bytes) && file.size <= Math.min(maxBytes, 400_000)) {
+  if (isWebpBytes(bytes)) {
     return {
       blob: new Blob([bytes], { type: 'image/webp' }),
       fileName: `${baseName(file.name)}.webp`,
+    };
+  }
+  if (isGifBytes(bytes)) {
+    return {
+      blob: new Blob([bytes], { type: 'image/gif' }),
+      fileName: `${baseName(file.name)}.gif`,
+    };
+  }
+  if (isBmpBytes(bytes) && file.size <= 1_500_000) {
+    return {
+      blob: new Blob([bytes], { type: 'image/bmp' }),
+      fileName: `${baseName(file.name)}.bmp`,
     };
   }
   return null;
 }
 
 async function bitmapFromFile(file: File): Promise<ImageBitmap | null> {
-  // HEIC on iOS often "succeeds" via createImageBitmap with a blank/corrupt bitmap.
-  if (isHeicLike(file)) return null;
   if (typeof createImageBitmap !== 'function') return null;
-
-  // Never pass resizeWidth alone — on mobile WebKit/Chrome that can yield corrupt bitmaps
-  // that still encode as "JPEG" headers but Cloudinary rejects as invalid format.
+  // Allow HEIC through bitmap when Safari can decode it
   try {
     return await createImageBitmap(file, { imageOrientation: 'from-image' } as ImageBitmapOptions);
   } catch {
@@ -127,12 +153,12 @@ function loadHtmlImage(src: string): Promise<HTMLImageElement> {
     img.decoding = 'async';
     img.onload = () => {
       if (!img.naturalWidth || !img.naturalHeight) {
-        reject(new Error('Could not read this photo on this device. Try JPG or PNG.'));
+        reject(new Error('Could not read this photo on this device.'));
         return;
       }
       resolve(img);
     };
-    img.onerror = () => reject(new Error('Could not read this photo on this device. Try JPG or PNG.'));
+    img.onerror = () => reject(new Error('Could not read this photo on this device.'));
     img.src = src;
   });
 }
@@ -143,10 +169,9 @@ function dataUrlToJpegBlob(dataUrl: string): Blob {
   const binary = atob(match[2]);
   const bytes = new Uint8Array(binary.length);
   for (let i = 0; i < binary.length; i++) bytes[i] = binary.charCodeAt(i);
-  if (!isJpegBytes(bytes) || !hasJpegEoi(bytes)) {
+  if (!isJpegBytes(bytes)) {
     throw new Error('Compression produced a non-JPEG image. Try another photo from Gallery.');
   }
-  // Always force image/jpeg — some phones label blobs oddly and Cloudinary then rejects.
   return new Blob([bytes], { type: 'image/jpeg' });
 }
 
@@ -182,12 +207,11 @@ async function drawToJpegDataUrl(
   let q = quality;
   let dataUrl = encode(w, h, q);
 
-  // Some mobile browsers ignore JPEG and return PNG — reject early and retry smaller.
   if (!dataUrl.startsWith('data:image/jpeg')) {
-    dataUrl = encode(Math.min(w, 960), Math.min(h, Math.round((960 * h) / w)), 0.65);
+    dataUrl = encode(Math.min(w, 960), Math.max(1, Math.round((Math.min(w, 960) * h) / w)), 0.65);
   }
   if (!dataUrl.startsWith('data:image/jpeg')) {
-    throw new Error('Device could not encode JPEG. Try a JPG from the gallery.');
+    throw new Error('Device could not encode this image. Try another photo from Gallery.');
   }
 
   while (approxBytesFromDataUrl(dataUrl) > maxBytes && q > 0.4) {
@@ -206,16 +230,15 @@ async function drawToJpegDataUrl(
   }
 
   if (!dataUrl.startsWith('data:image/jpeg')) {
-    throw new Error('Device could not encode JPEG. Try a JPG from the gallery.');
+    throw new Error('Device could not encode this image. Try another photo from Gallery.');
   }
   if (approxBytesFromDataUrl(dataUrl) < 256) {
-    throw new Error('Photo came out empty after compression. Try another image (JPG/PNG).');
+    throw new Error('Photo came out empty after compression. Try another image.');
   }
-  if (approxBytesFromDataUrl(dataUrl) > maxBytes * 1.2) {
+  if (approxBytesFromDataUrl(dataUrl) > maxBytes * 1.25) {
     throw new Error('Photo is still too large after compression. Pick a smaller image and try again.');
   }
 
-  // Validate real JPEG bytes (not truncated canvas garbage).
   const probe = dataUrlToJpegBlob(dataUrl);
   if (!probe.size) {
     throw new Error('Compression produced an empty JPEG. Try another photo.');
@@ -258,7 +281,7 @@ async function compressViaFileReader(
     reader.readAsDataURL(file);
   });
   if (!dataUrlSrc.startsWith('data:')) {
-    throw new Error('Could not read this photo. Try JPG or PNG.');
+    throw new Error('Could not read this photo.');
   }
   const img = await loadHtmlImage(dataUrlSrc);
   return await drawToJpegDataUrl(
@@ -279,12 +302,10 @@ export async function compressImageToDataUrl(
   options?: CompressOptions,
 ): Promise<string> {
   const mobile = isMobileUa();
-  // Slightly smaller on mobile to avoid truncated JPEG from canvas OOM.
-  const maxEdge = options?.maxEdge ?? (mobile ? 960 : 1280);
-  const quality = options?.quality ?? (mobile ? 0.68 : 0.74);
-  const maxBytes = options?.maxBytes ?? (mobile ? 480_000 : 720_000);
+  const maxEdge = options?.maxEdge ?? (mobile ? 1280 : 1600);
+  const quality = options?.quality ?? (mobile ? 0.72 : 0.78);
+  const maxBytes = options?.maxBytes ?? (mobile ? 900_000 : 1_200_000);
 
-  // On mobile / HEIC: prefer HTMLImageElement first (most reliable on iOS Photos).
   if (mobile || isHeicLike(file)) {
     try {
       return await compressViaObjectUrl(file, maxEdge, quality, maxBytes);
@@ -292,7 +313,7 @@ export async function compressImageToDataUrl(
       try {
         return await compressViaFileReader(file, maxEdge, quality, maxBytes);
       } catch {
-        // fall through to bitmap path below
+        // fall through
       }
     }
   }
@@ -316,23 +337,17 @@ export async function compressImageToDataUrl(
     } catch {
       throw objectUrlErr instanceof Error
         ? objectUrlErr
-        : new Error(
-            'This device could not process the photo (HEIC/RAW may be unsupported). Export as JPG in Photos and retry.',
-          );
+        : new Error('This device could not process the photo. Try another image from Gallery.');
     }
   }
 }
 
-/** Compress to a JPEG/PNG Blob — preferred for uploads on mobile. */
+/** Any gallery image → Cloudinary-safe Blob (passthrough or JPEG). */
 export async function compressImageToBlob(
   file: File,
   options?: CompressOptions,
 ): Promise<{ blob: Blob; fileName: string }> {
-  const mobile = isMobileUa();
-  const maxBytes = options?.maxBytes ?? (mobile ? 480_000 : 720_000);
-
-  // Pass through real JPG/PNG from gallery when already small enough.
-  const passthrough = await tryPassthroughImage(file, maxBytes);
+  const passthrough = await tryPassthroughImage(file, PASSTHROUGH_MAX_BYTES);
   if (passthrough) return passthrough;
 
   const dataUrl = await compressImageToDataUrl(file, options);

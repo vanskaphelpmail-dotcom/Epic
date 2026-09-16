@@ -857,7 +857,7 @@ export const ProductManager: React.FC<ProductManagerProps> = ({
     if (!file) return;
     if (slotIndex < 0 || slotIndex > 5) return;
     if (!isLikelyImageFile(file)) {
-      toast('Please upload an image file (JPG, PNG, WEBP).', 'error');
+      toast('Please choose an image from Gallery.', 'error');
       return;
     }
     const limit = imageUploadLimitForCategory(pCategory);
@@ -3631,7 +3631,7 @@ export const ProductManager: React.FC<ProductManagerProps> = ({
                         e.target.value = '';
                         if (!file) return;
                         if (!isLikelyImageFile(file)) {
-                          alert('Please upload an image file (JPG, PNG, WEBP).');
+                          alert('Please choose an image from Gallery.');
                           return;
                         }
                         try {

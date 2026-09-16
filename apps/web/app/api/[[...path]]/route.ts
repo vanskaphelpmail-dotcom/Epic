@@ -44,6 +44,16 @@ function sniffImageMime(buf: Buffer): string | null {
   ) {
     return "image/webp";
   }
+  if (buf.length >= 6) {
+    const h = buf.subarray(0, 6).toString("ascii");
+    if (h === "GIF87a" || h === "GIF89a") return "image/gif";
+  }
+  if (buf.length >= 2 && buf[0] === 0x42 && buf[1] === 0x4d) return "image/bmp";
+  // HEIC/HEIF: ....ftypheic / mif1 / heif
+  if (buf.length >= 12 && buf.subarray(4, 8).toString("ascii") === "ftyp") {
+    const brand = buf.subarray(8, 12).toString("ascii");
+    if (/^(heic|heix|hevc|hevx|mif1|msf1|heif)$/i.test(brand)) return "image/heic";
+  }
   return null;
 }
 
@@ -57,14 +67,11 @@ async function bodyFromMultipart(request: NextRequest): Promise<Record<string, u
     if (buf.length < 32) {
       return { __uploadError: "Empty or invalid image file from device." };
     }
-    // Trust magic bytes over Blob.type — phones often send image/jpg, empty, or wrong MIME.
-    const sniffed = sniffImageMime(buf);
-    if (!sniffed) {
-      return {
-        __uploadError:
-          "Cloudinary rejected this image format. Use a real JPG or PNG from Gallery.",
-      };
-    }
+    // Prefer magic bytes; fall back to Blob.type; never hard-block unknown — Cloudinary may still accept.
+    const sniffed =
+      sniffImageMime(buf) ||
+      (typeof blob.type === "string" && blob.type.startsWith("image/") ? blob.type : null) ||
+      "application/octet-stream";
     const dataUrl = `data:${sniffed};base64,${buf.toString("base64")}`;
     const folderRaw = String(form.get("folder") || "products").trim();
     const folder = UPLOAD_FOLDERS.has(folderRaw) ? folderRaw : "products";

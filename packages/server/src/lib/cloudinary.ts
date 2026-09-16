@@ -87,8 +87,10 @@ function dataUrlToBuffer(source: string): Buffer | null {
   }
 }
 
-function sniffImageKind(buffer: Buffer): "jpeg" | "png" | "webp" | null {
-  if (buffer.length < 32) return null;
+function sniffImageKind(
+  buffer: Buffer,
+): "jpeg" | "png" | "webp" | "gif" | "bmp" | "heic" | "unknown" {
+  if (buffer.length < 12) return "unknown";
   if (buffer[0] === 0xff && buffer[1] === 0xd8 && buffer[2] === 0xff) return "jpeg";
   if (
     buffer[0] === 0x89 &&
@@ -111,28 +113,34 @@ function sniffImageKind(buffer: Buffer): "jpeg" | "png" | "webp" | null {
   ) {
     return "webp";
   }
-  return null;
+  const gif = buffer.subarray(0, 6).toString("ascii");
+  if (gif === "GIF87a" || gif === "GIF89a") return "gif";
+  if (buffer[0] === 0x42 && buffer[1] === 0x4d) return "bmp";
+  if (buffer.subarray(4, 8).toString("ascii") === "ftyp") {
+    const brand = buffer.subarray(8, 12).toString("ascii");
+    if (/^(heic|heix|hevc|hevx|mif1|msf1|heif)$/i.test(brand)) return "heic";
+  }
+  return "unknown";
+}
+
+function jpegHasEoiNearEnd(buffer: Buffer): boolean {
+  const start = Math.max(0, buffer.length - 4096);
+  for (let i = buffer.length - 2; i >= start; i--) {
+    if (buffer[i] === 0xff && buffer[i + 1] === 0xd9) return true;
+  }
+  return buffer.length > 1024;
 }
 
 function assertLikelyImageBuffer(buffer: Buffer): void {
+  if (buffer.length < 32) {
+    throw new Error("Invalid image data from device. Try another photo.");
+  }
   const kind = sniffImageKind(buffer);
-  if (!kind) {
-    throw new Error(
-      "Image bytes are not JPG/PNG/WEBP. On iPhone use Most Compatible / JPG; on Android pick Gallery JPG/PNG.",
-    );
+  // Allow all common formats through to Cloudinary — do not hard-block unknown.
+  if (kind === "jpeg" && !jpegHasEoiNearEnd(buffer) && buffer.length < 2048) {
+    throw new Error("JPEG from device looks truncated. Try another photo from Gallery.");
   }
-  // Truncated mobile canvas JPEGs start with SOI but never end with EOI — Cloudinary rejects them.
-  if (kind === "jpeg") {
-    const hasEoi =
-      buffer.length >= 4 &&
-      buffer[buffer.length - 2] === 0xff &&
-      buffer[buffer.length - 1] === 0xd9;
-    if (!hasEoi) {
-      throw new Error(
-        "JPEG from device looks truncated. Try a smaller JPG/PNG from Gallery and retry.",
-      );
-    }
-  }
+  // unknown: still attempt upload — Cloudinary supports many formats
 }
 
 function uploadBuffer(

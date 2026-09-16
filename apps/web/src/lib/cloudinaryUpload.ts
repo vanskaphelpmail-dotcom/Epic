@@ -4,18 +4,16 @@ import { api, getToken, isApiEnabled, setToken } from './apiClient';
 export type UploadFolder = 'products' | 'banners' | 'media' | 'avatars' | 'categories' | 'patches';
 
 /**
- * Use on every admin `<input type="file">` so iOS/Android show Photo Library + Camera
- * and accept HEIC (converted client-side to JPEG before Cloudinary).
+ * Broad accept so iOS/Android Photo Library shows every photo (JPG/PNG/HEIC/WEBP/GIF…).
  * Do NOT set `capture` — that forces camera-only on many phones.
  */
-export const IMAGE_FILE_ACCEPT =
-  'image/*,image/jpeg,image/png,image/webp,.jpg,.jpeg,.png,.webp,.heic,.heif';
+export const IMAGE_FILE_ACCEPT = 'image/*';
 
 /** Mobile-safe defaults — keep payload under typical Vercel / phone memory limits. */
 export const MOBILE_UPLOAD_COMPRESS: CompressOptions = {
-  maxEdge: 960,
-  quality: 0.68,
-  maxBytes: 480_000,
+  maxEdge: 1280,
+  quality: 0.72,
+  maxBytes: 900_000,
 };
 
 const DEFAULT_COMPRESS: CompressOptions = MOBILE_UPLOAD_COMPRESS;
@@ -25,18 +23,41 @@ function isMobileUa(): boolean {
   return /iPhone|iPad|iPod|Android/i.test(navigator.userAgent || '');
 }
 
-/** Mobile cameras / gallery often omit MIME type — still allow common image extensions. */
+/**
+ * Accept any image the phone can pick. Only reject obvious non-images (video/audio/pdf…).
+ * Empty MIME / octet-stream is common on iOS & Android galleries — allow those.
+ */
 export function isLikelyImageFile(file: File): boolean {
-  const t = (file.type || '').toLowerCase();
-  // Non-standard image/jpg appears on some Android galleries
-  if (t === 'image/jpg' || t === 'image/pjpeg') return true;
-  if (t && t.startsWith('image/')) return true;
-  // Empty / octet-stream is common on iOS & Android gallery picks
-  if (!t || t === 'application/octet-stream') {
-    if (!file.name || !file.name.includes('.')) return true;
-    return /\.(jpe?g|png|gif|webp|heic|heif|avif|bmp|tiff?)$/i.test(file.name);
+  if (!file) return false;
+  const t = (file.type || '').toLowerCase().trim();
+
+  if (t.startsWith('video/') || t.startsWith('audio/') || t.startsWith('text/')) return false;
+  if (
+    t === 'application/pdf' ||
+    t === 'application/zip' ||
+    t === 'application/x-zip-compressed' ||
+    t.includes('msword') ||
+    t.includes('officedocument')
+  ) {
+    return false;
   }
-  return false;
+
+  // image/*, image/jpg (Android), image/pjpeg, heic, etc.
+  if (t.startsWith('image/')) return true;
+  if (t === 'image/jpg' || t === 'image/pjpeg') return true;
+
+  // Empty / generic — gallery often omits type; allow and let decode/Cloudinary decide
+  if (!t || t === 'application/octet-stream' || t === 'binary/octet-stream') {
+    if (!file.name || !file.name.includes('.')) return true;
+    // Block only clear non-image extensions
+    if (/\.(mp4|mov|avi|mkv|webm|mp3|wav|pdf|doc|docx|xls|xlsx|zip|rar|txt|csv)$/i.test(file.name)) {
+      return false;
+    }
+    return true;
+  }
+
+  // Unknown MIME with image-like extension
+  return /\.(jpe?g|png|gif|webp|heic|heif|avif|bmp|tiff?|jfif|svg)$/i.test(file.name || '');
 }
 
 export function formatUploadError(err: unknown): string {
@@ -77,7 +98,7 @@ function friendlyUploadError(err: unknown): Error {
   }
   if (/rejected this image format|Invalid image|File format|unsupported/i.test(msg)) {
     return new Error(
-      'Image format was rejected. Pick a real JPG or PNG from Gallery (not screenshot HEIC), then retry.',
+      'Could not upload this photo. Try again from Gallery — JPG, PNG, WEBP, HEIC, and GIF are supported.',
     );
   }
   if (/HEIC|could not process|Could not read|non-JPEG|empty after compression/i.test(msg)) {
@@ -125,7 +146,7 @@ export async function uploadStoreImage(
   compress: CompressOptions = DEFAULT_COMPRESS,
 ): Promise<string> {
   if (!isLikelyImageFile(file)) {
-    throw new Error('Please upload an image file (JPG, PNG, or WEBP).');
+    throw new Error('Please choose an image from Gallery (any photo format).');
   }
   if (!file.size) {
     throw new Error('Selected file is empty. Pick the photo again from Gallery.');
