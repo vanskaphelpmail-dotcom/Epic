@@ -1,4 +1,4 @@
-import { compressImageToDataUrl, type CompressOptions } from './imageCompress';
+import { compressImageToDataUrl, looksLikeImageFile, type CompressOptions } from './imageCompress';
 import { api, getToken, isApiEnabled, setToken } from './apiClient';
 
 export type UploadFolder = 'products' | 'banners' | 'media' | 'avatars' | 'categories' | 'patches';
@@ -18,7 +18,7 @@ export async function uploadStoreImage(
   folder: UploadFolder = 'products',
   compress: CompressOptions = DEFAULT_COMPRESS,
 ): Promise<string> {
-  if (!file.type.startsWith('image/')) {
+  if (!looksLikeImageFile(file)) {
     throw new Error('Please upload an image file (JPG, PNG, WEBP).');
   }
 

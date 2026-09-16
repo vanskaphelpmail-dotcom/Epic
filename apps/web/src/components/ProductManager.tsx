@@ -850,7 +850,11 @@ export const ProductManager: React.FC<ProductManagerProps> = ({
   const handleImageSlotUpload = async (slotIndex: number, file: File | null) => {
     if (!file) return;
     if (slotIndex < 0 || slotIndex > 5) return;
-    if (!file.type.startsWith('image/')) {
+    // Mobile gallery pickers sometimes omit MIME — allow by extension too
+    const looksImage =
+      (file.type && file.type.startsWith('image/')) ||
+      /\.(jpe?g|png|gif|webp|heic|heif|bmp)$/i.test(file.name || '');
+    if (!looksImage) {
       toast('Please upload an image file (JPG, PNG, WEBP).', 'error');
       return;
     }
@@ -2720,26 +2724,51 @@ export const ProductManager: React.FC<ProductManagerProps> = ({
                           <button
                             type="button"
                             onClick={() => clearImageSlot(slot)}
-                            className="text-[9px] font-bold text-rose-700 hover:underline cursor-pointer shrink-0"
+                            className="text-[9px] font-bold text-rose-700 hover:underline cursor-pointer shrink-0 relative z-30"
                           >
                             Clear
                           </button>
                         )}
                       </div>
-                      <label className={`relative block aspect-square rounded-lg sm:rounded-xl overflow-hidden border-2 border-dashed border-emerald-300 bg-white cursor-pointer hover:border-emerald-500 transition-colors group ${uploadingSlot === slot ? 'pointer-events-none opacity-80' : ''}`}>
+                      <label
+                        htmlFor={`product-image-slot-${slot}`}
+                        className={`relative block aspect-square rounded-lg sm:rounded-xl overflow-hidden border-2 border-dashed border-emerald-300 bg-white cursor-pointer hover:border-emerald-500 transition-colors group touch-manipulation ${
+                          uploadingSlot === slot ? 'pointer-events-none opacity-80' : ''
+                        }`}
+                      >
                         {pImageSlots[slot] ? (
-                          <img src={pImageSlots[slot]} alt={`Slot ${slot + 1}`} className="w-full h-full object-cover" />
+                          <img
+                            src={pImageSlots[slot]}
+                            alt={`Slot ${slot + 1}`}
+                            className="w-full h-full object-cover pointer-events-none"
+                            draggable={false}
+                          />
                         ) : (
-                          <div className="absolute inset-0 flex flex-col items-center justify-center gap-1 sm:gap-2 text-emerald-700 px-2 text-center">
+                          <div className="absolute inset-0 flex flex-col items-center justify-center gap-1 sm:gap-2 text-emerald-700 px-2 text-center pointer-events-none">
                             <Upload size={18} className="text-emerald-600 sm:w-[22px] sm:h-[22px]" />
                             <span className="text-[9px] sm:text-[10px] font-bold uppercase tracking-wide">Tap to upload</span>
-                            <span className="text-[8px] sm:text-[9px] font-mono opacity-70 hidden xs:inline">JPG / PNG / WEBP</span>
+                            <span className="text-[8px] sm:text-[9px] font-mono opacity-70">JPG / PNG / WEBP</span>
                           </div>
                         )}
+                        {/* Decorative overlays must not steal taps on mobile */}
+                        {pImageSlots[slot] && uploadingSlot !== slot && (
+                          <div className="absolute inset-0 bg-emerald-950/50 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center pointer-events-none">
+                            <span className="text-white text-[9px] sm:text-[10px] font-black uppercase">Replace</span>
+                          </div>
+                        )}
+                        {uploadingSlot === slot && (
+                          <div className="absolute inset-0 bg-emerald-950/60 flex flex-col items-center justify-center gap-2 z-10 pointer-events-none">
+                            <RefreshCw size={20} className="text-white animate-spin" />
+                            <span className="text-white text-[9px] font-black uppercase">Uploading…</span>
+                          </div>
+                        )}
+                        {/* File input on top — opacity 0.01 helps iOS register taps */}
                         <input
+                          id={`product-image-slot-${slot}`}
                           type="file"
-                          accept="image/jpeg,image/png,image/webp,image/gif"
-                          className="absolute inset-0 opacity-0 cursor-pointer"
+                          accept="image/*"
+                          className="absolute inset-0 z-20 h-full w-full cursor-pointer opacity-[0.01] touch-manipulation"
+                          style={{ fontSize: 16 }}
                           disabled={uploadingSlot !== null}
                           onChange={(e) => {
                             const f = e.target.files?.[0] || null;
@@ -2747,17 +2776,6 @@ export const ProductManager: React.FC<ProductManagerProps> = ({
                             void handleImageSlotUpload(slot, f);
                           }}
                         />
-                        {uploadingSlot === slot && (
-                          <div className="absolute inset-0 bg-emerald-950/60 flex flex-col items-center justify-center gap-2 z-10">
-                            <RefreshCw size={20} className="text-white animate-spin" />
-                            <span className="text-white text-[9px] font-black uppercase">Uploading…</span>
-                          </div>
-                        )}
-                        {pImageSlots[slot] && uploadingSlot !== slot && (
-                          <div className="absolute inset-0 bg-emerald-950/50 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
-                            <span className="text-white text-[9px] sm:text-[10px] font-black uppercase">Replace</span>
-                          </div>
-                        )}
                       </label>
                     </div>
                   ))}
