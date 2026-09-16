@@ -9,11 +9,11 @@ export type UploadFolder = 'products' | 'banners' | 'media' | 'avatars' | 'categ
  */
 export const IMAGE_FILE_ACCEPT = 'image/*';
 
-/** Mobile-safe defaults — keep payload under typical Vercel / phone memory limits. */
+/** Mobile-safe defaults — stay under Vercel body limits after base64. */
 export const MOBILE_UPLOAD_COMPRESS: CompressOptions = {
-  maxEdge: 1280,
-  quality: 0.72,
-  maxBytes: 900_000,
+  maxEdge: 1024,
+  quality: 0.7,
+  maxBytes: 650_000,
 };
 
 const DEFAULT_COMPRESS: CompressOptions = MOBILE_UPLOAD_COMPRESS;
@@ -81,7 +81,7 @@ function friendlyUploadError(err: unknown): Error {
   if (/Failed to fetch|NetworkError|network/i.test(msg)) {
     return new Error('Upload failed — check mobile data/Wi‑Fi and try again.');
   }
-  if (/413|too large|Entity Too Large|Request Entity/i.test(msg)) {
+  if (/413|too large|Entity Too Large|Request Entity|FUNCTION_PAYLOAD_TOO_LARGE/i.test(msg)) {
     return new Error('Image too large for the server. Try a smaller photo.');
   }
   if (/timeout|504|ETIMEDOUT/i.test(msg)) {
@@ -90,41 +90,46 @@ function friendlyUploadError(err: unknown): Error {
   if (/401|Unauthorized|Invalid or expired token/i.test(msg)) {
     return new Error('Session expired. Sign out of admin, sign in again, then retry upload.');
   }
-  if (/403|permission|Staff/i.test(msg)) {
+  if (/403|permission|Staff access required/i.test(msg)) {
     return new Error('Staff permission required to upload. Sign in with an admin account.');
   }
-  if (/Cloudinary is not configured/i.test(msg)) {
+  if (/Cloudinary is not configured|credentials incomplete/i.test(msg)) {
     return new Error('Cloudinary is not configured on the server. Add CLOUDINARY_* env on Vercel.');
   }
-  if (/rejected this image format|Invalid image|File format|unsupported/i.test(msg)) {
-    return new Error(
-      'Could not upload this photo. Try again from Gallery — JPG, PNG, WEBP, HEIC, and GIF are supported.',
-    );
+  if (/Invalid Signature|Invalid API Key|api_key|api_secret/i.test(msg)) {
+    return new Error('Cloudinary API keys are wrong on the server. Update CLOUDINARY_URL on Vercel.');
+  }
+  if (/Invalid image file|invalid file|File format invalid|unsupported file format|could not read this photo file/i.test(msg)) {
+    return new Error('Could not read this photo. Try another image from Gallery.');
   }
   if (/HEIC|could not process|Could not read|non-JPEG|empty after compression/i.test(msg)) {
     return new Error(msg);
   }
   if (/\[object Object\]/i.test(msg)) {
-    return new Error(
-      'Upload failed. On iPhone: Photos → export as JPG / Most Compatible. On Android: Gallery JPG. Then retry.',
-    );
+    return new Error('Upload failed. Sign out, sign in again, then retry with a Gallery photo.');
   }
-  if (msg && msg !== 'Failed to upload image to Cloudinary') {
+  // Surface the real server message — do not hide it behind a fake format list
+  if (msg && msg.trim()) {
     return new Error(msg);
   }
-  return new Error(
-    'Upload failed. On iPhone: use “Most Compatible” / JPG. On Android: try Gallery JPG. Then retry.',
-  );
+  return new Error('Upload failed. Sign out, sign in again, then retry with a Gallery photo.');
 }
 
 function blobToDataUrl(b: Blob): Promise<string> {
   return new Promise((resolve, reject) => {
     const reader = new FileReader();
     reader.onload = () => {
-      const result = String(reader.result || '');
-      if (!result.startsWith('data:image/')) {
-        reject(new Error('Compressed photo was not a valid image. Try JPG or PNG.'));
+      let result = String(reader.result || '');
+      // Some phones label blobs oddly — rewrite to image/jpeg when bytes are JPEG
+      if (result.startsWith('data:application/octet-stream;base64,')) {
+        result = result.replace('data:application/octet-stream;base64,', 'data:image/jpeg;base64,');
+      }
+      if (!result.startsWith('data:image/') && !result.startsWith('data:application/octet-stream')) {
+        reject(new Error('Compressed photo was not a valid image. Try another Gallery photo.'));
         return;
+      }
+      if (!result.startsWith('data:image/')) {
+        result = result.replace(/^data:[^;]+;base64,/, 'data:image/jpeg;base64,');
       }
       resolve(result);
     };

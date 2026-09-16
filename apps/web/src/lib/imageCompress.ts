@@ -8,8 +8,10 @@ export type CompressOptions = {
   maxBytes?: number;
 };
 
-/** Gallery files under this size can upload as-is (JPG/PNG/WEBP/GIF) without canvas re-encode. */
-const PASSTHROUGH_MAX_BYTES = 3_500_000;
+/** Gallery files under this size can upload as-is.
+ *  Keep well under Vercel’s ~4.5MB body limit (base64 expands ~33%).
+ */
+const PASSTHROUGH_MAX_BYTES = 700_000;
 
 function approxBytesFromDataUrl(dataUrl: string): number {
   const i = dataUrl.indexOf(',');
@@ -302,9 +304,9 @@ export async function compressImageToDataUrl(
   options?: CompressOptions,
 ): Promise<string> {
   const mobile = isMobileUa();
-  const maxEdge = options?.maxEdge ?? (mobile ? 1280 : 1600);
-  const quality = options?.quality ?? (mobile ? 0.72 : 0.78);
-  const maxBytes = options?.maxBytes ?? (mobile ? 900_000 : 1_200_000);
+  const maxEdge = options?.maxEdge ?? (mobile ? 1024 : 1400);
+  const quality = options?.quality ?? (mobile ? 0.7 : 0.78);
+  const maxBytes = options?.maxBytes ?? (mobile ? 650_000 : 1_000_000);
 
   if (mobile || isHeicLike(file)) {
     try {

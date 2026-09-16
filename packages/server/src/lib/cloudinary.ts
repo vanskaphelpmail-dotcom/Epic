@@ -13,23 +13,32 @@ export function isCloudinaryConfigured(): boolean {
 
 function ensureConfigured() {
   if (configured) return;
-  if (process.env.CLOUDINARY_URL?.trim()) {
-    // CLOUDINARY_URL=cloudinary://API_KEY:API_SECRET@CLOUD_NAME — SDK reads it automatically
+  const url = process.env.CLOUDINARY_URL?.trim();
+  if (url) {
+    // Must pass the URL string — `{ secure: true }` alone does not load credentials
+    // and can leave uploads failing with "Invalid Signature" / opaque errors.
+    cloudinary.config(url);
     cloudinary.config({ secure: true });
   } else if (
-    process.env.CLOUDINARY_CLOUD_NAME &&
-    process.env.CLOUDINARY_API_KEY &&
-    process.env.CLOUDINARY_API_SECRET
+    process.env.CLOUDINARY_CLOUD_NAME?.trim() &&
+    process.env.CLOUDINARY_API_KEY?.trim() &&
+    process.env.CLOUDINARY_API_SECRET?.trim()
   ) {
     cloudinary.config({
-      cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
-      api_key: process.env.CLOUDINARY_API_KEY,
-      api_secret: process.env.CLOUDINARY_API_SECRET,
+      cloud_name: process.env.CLOUDINARY_CLOUD_NAME.trim(),
+      api_key: process.env.CLOUDINARY_API_KEY.trim(),
+      api_secret: process.env.CLOUDINARY_API_SECRET.trim(),
       secure: true,
     });
   } else {
     throw new Error(
       "Cloudinary is not configured. Set CLOUDINARY_URL or CLOUDINARY_CLOUD_NAME / API_KEY / API_SECRET in .env",
+    );
+  }
+  const cfg = cloudinary.config();
+  if (!cfg.cloud_name || !cfg.api_key || !cfg.api_secret) {
+    throw new Error(
+      "Cloudinary credentials incomplete. Check CLOUDINARY_URL (cloudinary://API_KEY:API_SECRET@CLOUD_NAME).",
     );
   }
   configured = true;
@@ -157,6 +166,8 @@ function uploadBuffer(
         overwrite: false,
         unique_filename: true,
         timeout: 60_000,
+        // Normalize phone formats (HEIC/WEBP/GIF/PNG) to JPEG on Cloudinary when needed
+        format: "jpg",
       },
       (err, result) => {
         if (err || !result) {
@@ -206,11 +217,14 @@ export async function uploadImageToCloudinary(
       return await uploadBuffer(buffer, { folder, publicId: options?.publicId, tags });
     } catch (err) {
       const msg = cloudinaryErrorMessage(err);
-      throw new Error(
-        /Invalid|format|image|File format|unsupported/i.test(msg)
-          ? "Cloudinary rejected this image format. Use JPG or PNG from the gallery."
-          : msg || "Failed to upload image to Cloudinary",
-      );
+      // Do NOT match bare "image" / "Invalid" — that hid real errors (signature, auth, size)
+      // behind a fake "format rejected" toast on mobile.
+      if (/Invalid image file|invalid file|File format|unsupported media|unsupported file format/i.test(msg)) {
+        throw new Error(
+          "Cloudinary could not read this photo file. Try another Gallery photo.",
+        );
+      }
+      throw new Error(msg || "Failed to upload to Cloudinary");
     }
   }
 
