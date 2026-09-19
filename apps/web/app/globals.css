@@ -933,3 +933,41 @@ select:focus {
     transform: translate3d(-50%, 0, 0);
   }
 }
+
+/* Photo gallery marquees — same seamless -50% loop as club logos */
+.gallery-photo-marquee {
+  -webkit-mask-image: linear-gradient(to right, transparent, #000 5%, #000 95%, transparent);
+  mask-image: linear-gradient(to right, transparent, #000 5%, #000 95%, transparent);
+}
+
+.gallery-photo-marquee-track {
+  transform: translate3d(0, 0, 0);
+  will-change: transform;
+  backface-visibility: hidden;
+  animation: none;
+}
+
+.gallery-photo-marquee-track.is-waiting {
+  animation: none;
+  transform: translate3d(0, 0, 0);
+}
+
+.gallery-photo-marquee-track.is-running {
+  animation-name: club-logo-scroll;
+  animation-timing-function: linear;
+  animation-iteration-count: infinite;
+  animation-fill-mode: none;
+  animation-play-state: running !important;
+}
+
+.gallery-photo-marquee:hover .gallery-photo-marquee-track.is-running,
+.gallery-photo-marquee:focus-within .gallery-photo-marquee-track.is-running {
+  animation-play-state: running !important;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .gallery-photo-marquee-track.is-running {
+    animation: none !important;
+    transform: translate3d(0, 0, 0) !important;
+  }
+}

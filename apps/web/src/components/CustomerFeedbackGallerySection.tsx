@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
 import type { CustomerFeedbackGalleryConfig } from '../lib/customerFeedbackGallery';
 import {
   customerFeedbackSubtitleLine,
@@ -17,8 +17,19 @@ interface CustomerFeedbackGallerySectionProps {
   compact?: boolean;
 }
 
+const ANIM_START_DELAY_MS = 700;
+
+/** Pad one marquee half wide enough for a seamless -50% CSS loop */
+function buildMarqueeHalf<T>(items: T[]): T[] {
+  if (items.length === 0) return [];
+  const minCards = Math.max(10, items.length * 2);
+  const half: T[] = [];
+  while (half.length < minCards) half.push(...items);
+  return half;
+}
+
 /**
- * Customers Feedback strip — same marquee pattern as Community Gallery.
+ * Customers Feedback / Journey strip — CSS infinite marquee (same motion as club logos).
  */
 export const CustomerFeedbackGallerySection: React.FC<CustomerFeedbackGallerySectionProps> = ({
   config,
@@ -34,290 +45,91 @@ export const CustomerFeedbackGallerySection: React.FC<CustomerFeedbackGallerySec
   const href = (gallery.facebookUrl || '').trim();
   const hasLink = /^https?:\/\//i.test(href);
 
-  const trackRef = useRef<HTMLDivElement>(null);
-  const offsetRef = useRef(0);
-  const setWidthRef = useRef(0);
-  const draggingRef = useRef(false);
-  const dragStartX = useRef(0);
-  const dragStartY = useRef(0);
-  const dragStartOffset = useRef(0);
-  const movedRef = useRef(false);
-  const axisLock = useRef<'x' | 'y' | null>(null);
-  const pageCountRef = useRef(1);
-  const resumeTimer = useRef<number | null>(null);
-  const [paused, setPaused] = useState(false);
-  const [reduceMotion, setReduceMotion] = useState(false);
-  const [activePage, setActivePage] = useState(0);
-
-  // Pad then double — fills wide viewports so the seamless wrap never shows a gap
-  const halfImages = useMemo(() => {
-    if (images.length === 0) return [];
-    const minCards = Math.max(10, images.length * 2);
-    const half: typeof images = [];
-    while (half.length < minCards) half.push(...images);
-    return half;
-  }, [images]);
+  const halfImages = useMemo(() => buildMarqueeHalf(images), [images]);
   const loopImages = useMemo(
     () => (halfImages.length === 0 ? [] : [...halfImages, ...halfImages]),
     [halfImages],
   );
 
-  const pageCount = Math.min(7, Math.max(1, images.length));
-  pageCountRef.current = pageCount;
+  // Club-logo pace: slow, steady (photos are wider → longer duration)
+  const durationSec = Math.max(48, Math.round(halfImages.length * 5.2));
+  const [animReady, setAnimReady] = useState(false);
 
   useEffect(() => {
-    if (typeof window === 'undefined') return;
-    const mq = window.matchMedia('(prefers-reduced-motion: reduce)');
-    const apply = () => setReduceMotion(mq.matches);
-    apply();
-    mq.addEventListener?.('change', apply);
-    return () => mq.removeEventListener?.('change', apply);
-  }, []);
-
-  const measureSetWidth = useCallback(() => {
-    const el = trackRef.current;
-    if (!el || halfImages.length === 0) return 0;
-    const kids = el.children;
-    // Distance from first card of half A → first card of half B (includes flex gap)
-    if (kids.length >= halfImages.length * 2) {
-      const a = kids[0] as HTMLElement;
-      const b = kids[halfImages.length] as HTMLElement;
-      const w = b.offsetLeft - a.offsetLeft;
-      if (w > 0) return w;
-    }
-    return el.scrollWidth / 2;
-  }, [halfImages.length]);
-
-  const applyOffset = useCallback(
-    (next: number, updateDots = true) => {
-      const el = trackRef.current;
-      if (!el) return;
-
-      let setWidth = setWidthRef.current;
-      if (setWidth <= 0) {
-        setWidth = measureSetWidth();
-        setWidthRef.current = setWidth;
-      }
-
-      let offset = next;
-      if (setWidth > 0) {
-        // Seamless wrap — stay in [0, setWidth)
-        offset = ((offset % setWidth) + setWidth) % setWidth;
-
-        if (updateDots) {
-          const pages = pageCountRef.current;
-          const page = Math.floor((offset / setWidth) * pages) % pages;
-          setActivePage((prev) => (prev === page ? prev : page));
-        }
-      }
-
-      offsetRef.current = offset;
-      el.style.transform = `translate3d(${-offset}px, 0, 0)`;
-    },
-    [measureSetWidth],
-  );
-
-  // Remeasure when images load / viewport changes
-  useEffect(() => {
-    const el = trackRef.current;
-    if (!el) return;
-
-    const refresh = () => {
-      setWidthRef.current = measureSetWidth();
-      applyOffset(offsetRef.current, false);
-    };
-
-    refresh();
-    const ro = typeof ResizeObserver !== 'undefined' ? new ResizeObserver(refresh) : null;
-    ro?.observe(el);
-
-    const imgs = el.querySelectorAll('img');
-    imgs.forEach((img) => {
-      if (!img.complete) img.addEventListener('load', refresh, { once: true });
-    });
-
-    return () => ro?.disconnect();
-  }, [applyOffset, halfImages.length, measureSetWidth]);
-
-  useEffect(() => {
-    const el = trackRef.current;
-    if (!el || images.length < 1 || reduceMotion || paused) return;
-
-    let raf = 0;
-    let last = performance.now();
-    // Steady continuous drift — readable, not rushed
-    const speed =
-      typeof window !== 'undefined' && window.innerWidth < 640
-        ? 120
-        : typeof window !== 'undefined' && window.innerWidth < 1024
-          ? 145
-          : 165;
-
-    const tick = (now: number) => {
-      const dt = Math.min(32, now - last);
-      last = now;
-      if (!draggingRef.current) {
-        applyOffset(offsetRef.current + (speed * dt) / 1000);
-      }
-      raf = requestAnimationFrame(tick);
-    };
-
-    raf = requestAnimationFrame(tick);
-    return () => cancelAnimationFrame(raf);
-  }, [applyOffset, images.length, paused, reduceMotion]);
-
-  const clearResumeTimer = () => {
-    if (resumeTimer.current != null) {
-      window.clearTimeout(resumeTimer.current);
-      resumeTimer.current = null;
-    }
-  };
-
-  const scheduleResume = (ms: number) => {
-    clearResumeTimer();
-    resumeTimer.current = window.setTimeout(() => {
-      resumeTimer.current = null;
-      setPaused(false);
-    }, ms);
-  };
-
-  useEffect(() => () => clearResumeTimer(), []);
-
-  const onPointerDown = (e: React.PointerEvent) => {
-    draggingRef.current = true;
-    movedRef.current = false;
-    axisLock.current = null;
-    dragStartX.current = e.clientX;
-    dragStartY.current = e.clientY;
-    dragStartOffset.current = offsetRef.current;
-    clearResumeTimer();
-    setPaused(true);
-    (e.currentTarget as HTMLElement).setPointerCapture?.(e.pointerId);
-  };
-
-  const onPointerMove = (e: React.PointerEvent) => {
-    if (!draggingRef.current) return;
-    const dx = e.clientX - dragStartX.current;
-    const dy = e.clientY - dragStartY.current;
-
-    if (!axisLock.current && (Math.abs(dx) > 6 || Math.abs(dy) > 6)) {
-      axisLock.current = Math.abs(dx) > Math.abs(dy) ? 'x' : 'y';
-    }
-
-    // Vertical intent → let the page scroll; cancel drag
-    if (axisLock.current === 'y') {
-      draggingRef.current = false;
-      scheduleResume(200);
-      return;
-    }
-
-    if (axisLock.current === 'x') {
-      e.preventDefault();
-      if (Math.abs(dx) > 8) movedRef.current = true;
-      applyOffset(dragStartOffset.current - dx);
-    }
-  };
-
-  const endDrag = () => {
-    draggingRef.current = false;
-    axisLock.current = null;
-    scheduleResume(350);
-  };
-
-  const goToPage = (page: number) => {
-    const setWidth = setWidthRef.current || measureSetWidth();
-    if (setWidth <= 0) return;
-    setWidthRef.current = setWidth;
-    clearResumeTimer();
-    setPaused(true);
-    applyOffset((page / pageCount) * setWidth);
-    scheduleResume(500);
-  };
-
-  const onAnchorClick = (e: React.MouseEvent) => {
-    if (movedRef.current) {
-      e.preventDefault();
-      movedRef.current = false;
-    }
-  };
+    setAnimReady(false);
+    if (images.length === 0) return;
+    const t = window.setTimeout(() => setAnimReady(true), ANIM_START_DELAY_MS);
+    return () => window.clearTimeout(t);
+  }, [images.length, durationSec]);
 
   if (gallery.enabled === false || images.length === 0) return null;
 
   const shellClassName =
     'block w-full min-w-0 text-[#0A0A0A] no-underline outline-none focus-visible:ring-2 focus-visible:ring-[#0A0A0A]/25 focus-visible:ring-offset-2';
+
   const galleryInner = (
-        <div
-          className={`max-w-7xl mx-auto px-4 sm:px-6 ${
+    <div
+      className={`max-w-7xl mx-auto px-4 sm:px-6 ${
+        compact
+          ? 'pt-0 pb-2 sm:pb-3 space-y-4 sm:space-y-5'
+          : 'pt-1 sm:pt-2 pb-6 sm:pb-8 space-y-6 sm:space-y-10'
+      }`}
+    >
+      <div className={`text-center px-1 ${compact ? 'space-y-1 sm:space-y-2' : 'space-y-1.5 sm:space-y-3'}`}>
+        <h2
+          className={`font-black uppercase tracking-tight text-[#0A0A0A] leading-tight ${
             compact
-              ? 'pt-0 space-y-4 sm:space-y-5'
-              : 'pt-1 sm:pt-2 space-y-6 sm:space-y-10'
+              ? 'text-base sm:text-xl md:text-2xl'
+              : 'text-[1.05rem] sm:text-2xl md:text-3xl'
           }`}
         >
-          <div className={`text-center px-1 ${compact ? 'space-y-1 sm:space-y-2' : 'space-y-1.5 sm:space-y-3'}`}>
-            <h2
-              className={`font-black uppercase tracking-tight text-[#0A0A0A] leading-tight ${
-                compact
-                  ? 'text-base sm:text-xl md:text-2xl'
-                  : 'text-[1.05rem] sm:text-2xl md:text-3xl'
-              }`}
-            >
-              {title}
-            </h2>
-            {subtitle ? (
-              <p
-                className={`text-[#555555] font-medium tracking-wide ${
-                  compact ? 'text-[11px] sm:text-sm' : 'text-xs sm:text-base'
-                }`}
-              >
-                {subtitle}
-              </p>
-            ) : null}
-          </div>
-
-          <div
-            className="relative overflow-hidden w-full min-w-0 select-none"
-            style={{ touchAction: 'pan-y', WebkitUserSelect: 'none' }}
-            onPointerDown={onPointerDown}
-            onPointerMove={onPointerMove}
-            onPointerUp={endDrag}
-            onPointerCancel={endDrag}
+          {title}
+        </h2>
+        {subtitle ? (
+          <p
+            className={`text-[#555555] font-medium tracking-wide ${
+              compact ? 'text-[11px] sm:text-sm' : 'text-xs sm:text-base'
+            }`}
           >
-            {/* Height follows tallest image — cards vertically centered */}
-            <div className="flex items-center w-full min-w-0">
+            {subtitle}
+          </p>
+        ) : null}
+      </div>
+
+      <div className="gallery-photo-marquee relative w-full overflow-hidden py-1">
+        <div
+          className={`gallery-photo-marquee-track flex w-max items-center gap-3 sm:gap-4 md:gap-5 ${
+            animReady ? 'is-running' : 'is-waiting'
+          }`}
+          style={{ animationDuration: `${durationSec}s` }}
+        >
+          {loopImages.map((img, index) => {
+            const size = customerFeedbackImageDisplaySize(img, index % images.length);
+            const widthCls =
+              size === 'lg'
+                ? 'w-[128px] sm:w-[180px] md:w-[220px]'
+                : 'w-[110px] sm:w-[140px] md:w-[160px]';
+            return (
               <div
-                ref={trackRef}
-                className="flex items-center gap-1.5 sm:gap-2 will-change-transform [backface-visibility:hidden]"
-                style={{ transform: 'translate3d(0,0,0)' }}
+                key={`${img.id}-${index}`}
+                className={`relative shrink-0 overflow-hidden bg-transparent border-0 shadow-none ${widthCls}`}
               >
-                {loopImages.map((img, index) => {
-                  const size = customerFeedbackImageDisplaySize(img, index % images.length);
-                  // Width rhythm only — height follows the photo (no empty card area)
-                  const widthCls =
-                    size === 'lg'
-                      ? 'w-[128px] sm:w-[180px] md:w-[220px]'
-                      : 'w-[110px] sm:w-[140px] md:w-[160px]';
-                  return (
-                    <div
-                      key={`${img.id}-${index}`}
-                      className={`relative shrink-0 overflow-hidden bg-transparent border-0 shadow-none ${widthCls}`}
-                    >
-                      <img
-                        src={img.imageUrl}
-                        alt={img.title || 'Customer feedback'}
-                        className="pointer-events-none block w-full !h-auto max-h-none object-cover align-middle"
-                        loading={index < 6 ? 'eager' : 'lazy'}
-                        decoding="async"
-                        draggable={false}
-                        referrerPolicy="no-referrer"
-                        sizes="(max-width: 640px) 130px, (max-width: 768px) 180px, 220px"
-                      />
-                    </div>
-                  );
-                })}
+                <img
+                  src={img.imageUrl}
+                  alt={img.title || 'Customer feedback'}
+                  className="pointer-events-none block w-full !h-auto max-h-none object-cover align-middle"
+                  loading={index < 6 ? 'eager' : 'lazy'}
+                  decoding="async"
+                  draggable={false}
+                  referrerPolicy="no-referrer"
+                  sizes="(max-width: 640px) 130px, (max-width: 768px) 180px, 220px"
+                />
               </div>
-            </div>
-          </div>
+            );
+          })}
         </div>
+      </div>
+    </div>
   );
 
   return (
@@ -328,7 +140,6 @@ export const CustomerFeedbackGallerySection: React.FC<CustomerFeedbackGallerySec
           target="_blank"
           rel="noopener noreferrer"
           aria-label="Customers feedback gallery"
-          onClick={onAnchorClick}
           className={`${shellClassName} cursor-pointer`}
         >
           {galleryInner}
@@ -336,38 +147,6 @@ export const CustomerFeedbackGallerySection: React.FC<CustomerFeedbackGallerySec
       ) : (
         <div className={shellClassName}>{galleryInner}</div>
       )}
-
-      <div
-        className={`max-w-7xl mx-auto px-4 sm:px-6 ${
-          compact
-            ? 'pt-3 sm:pt-4 pb-2 sm:pb-3'
-            : 'pb-[max(0.5rem,env(safe-area-inset-bottom))] pt-6 sm:pt-10'
-        }`}
-      >
-        <div
-          className="flex justify-center items-center gap-2.5 sm:gap-2"
-          role="tablist"
-          aria-label="Customers feedback pages"
-        >
-          {Array.from({ length: pageCount }).map((_, i) => (
-            <button
-              key={`dot-${i}`}
-              type="button"
-              role="tab"
-              aria-selected={i === activePage}
-              aria-label={`Gallery page ${i + 1}`}
-              onClick={() => goToPage(i)}
-              className={`min-h-8 min-w-8 sm:min-h-0 sm:min-w-0 inline-flex items-center justify-center cursor-pointer border-0 bg-transparent p-0 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#0A0A0A]`}
-            >
-              <span
-                className={`block h-1.5 rounded-full transition-all ${
-                  i === activePage ? 'w-5 bg-[#0A0A0A]' : 'w-1.5 bg-[#C8C8C8]'
-                }`}
-              />
-            </button>
-          ))}
-        </div>
-      </div>
     </section>
   );
 };
