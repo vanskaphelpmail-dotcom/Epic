@@ -55,6 +55,11 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
   const segments = slug.map(decodeSeg);
   const root = (segments[0] || "").toLowerCase();
 
+  // Should never hit these (middleware/public serve them), but never emit homepage SEO for them
+  if (root === "robots.txt" || root === "sitemap.xml" || root === "favicon.ico") {
+    return { robots: { index: false, follow: false } };
+  }
+
   if (isNoIndexPath(segments)) {
     const path = `/${segments.join("/")}`;
     return {

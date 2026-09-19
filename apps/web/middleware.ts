@@ -2,14 +2,50 @@ import { NextResponse } from "next/server";
 import type { NextRequest } from "next/server";
 
 const PREFERRED_HOST = "www.epicvanskap.com";
+const SITE_ORIGIN = "https://www.epicvanskap.com";
+
+const ROBOTS_BODY = `User-agent: *
+Allow: /
+Disallow: /admin
+Disallow: /admin/
+Disallow: /cart
+Disallow: /checkout
+Disallow: /account
+Disallow: /auth
+Disallow: /order-success
+Disallow: /seller
+Disallow: /api/
+
+Host: ${SITE_ORIGIN}
+Sitemap: ${SITE_ORIGIN}/sitemap.xml
+`;
 
 /**
  * Force HTTPS + www for production hostnames.
- * Skip localhost, Vercel previews, and already-correct hosts.
+ * Also serve robots.txt / rewrite sitemap.xml so the SPA catch-all cannot swallow them.
  */
 export function middleware(request: NextRequest) {
+  const { pathname } = request.nextUrl;
   const host = (request.headers.get("host") || "").toLowerCase().split(":")[0];
   const proto = (request.headers.get("x-forwarded-proto") || "https").toLowerCase();
+
+  // Always serve robots.txt as plain text (never SPA HTML)
+  if (pathname === "/robots.txt") {
+    return new NextResponse(ROBOTS_BODY, {
+      status: 200,
+      headers: {
+        "Content-Type": "text/plain; charset=utf-8",
+        "Cache-Control": "public, max-age=3600",
+      },
+    });
+  }
+
+  // Rewrite sitemap.xml to API route (avoids [[...slug]] catch-all)
+  if (pathname === "/sitemap.xml") {
+    const url = request.nextUrl.clone();
+    url.pathname = "/api/seo/sitemap";
+    return NextResponse.rewrite(url);
+  }
 
   if (
     !host ||
@@ -43,10 +79,6 @@ export function middleware(request: NextRequest) {
 
 export const config = {
   matcher: [
-    /*
-     * Run on all paths except Next internals and static assets that
-     * should not be redirected (still OK if they are — matcher is broad).
-     */
     "/((?!_next/static|_next/image|favicon.ico|.*\\.(?:svg|png|jpg|jpeg|gif|webp|ico)$).*)",
   ],
 };

@@ -1,0 +1,14 @@
+User-agent: *
+Allow: /
+Disallow: /admin
+Disallow: /admin/
+Disallow: /cart
+Disallow: /checkout
+Disallow: /account
+Disallow: /auth
+Disallow: /order-success
+Disallow: /seller
+Disallow: /api/
+
+Host: https://www.epicvanskap.com
+Sitemap: https://www.epicvanskap.com/sitemap.xml
