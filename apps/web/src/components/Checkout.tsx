@@ -15,6 +15,8 @@ import { mapApiOrderToSpa } from '../lib/mapOrder';
 import { getProductSizes, getSizeStock, isSizeAvailable } from '../lib/productSizes';
 import { getProductImageSrc } from '../lib/productImage';
 import { JerseyRenderer } from './JerseyRenderer';
+import { DistrictSelect } from './DistrictSelect';
+import { findDistrictOption } from '../lib/bangladeshDistricts';
 
 const isInsideFeniDistrict = (district: string) =>
   district.trim().toLowerCase() === 'feni';
@@ -93,10 +95,11 @@ export const Checkout: React.FC<CheckoutProps> = ({
   };
 
   const applyDistrict = (district: string) => {
-    setCity(district);
-    const trimmed = district.trim();
-    if (!trimmed) return;
-    setDeliveryRegion(isInsideFeniDistrict(trimmed) ? 'inside' : 'outside');
+    const matched = findDistrictOption(district);
+    const next = matched?.district || district.trim();
+    setCity(next);
+    if (!next) return;
+    setDeliveryRegion(isInsideFeniDistrict(next) ? 'inside' : 'outside');
   };
 
   const fillFromProfile = () => {
@@ -539,17 +542,17 @@ export const Checkout: React.FC<CheckoutProps> = ({
 
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <div className="space-y-1.5">
-                <label className="text-[10px] text-[#0A0A0A] font-mono font-black block tracking-wider">DISTRICT *</label>
-                <input
-                  type="text"
-                  required
-                  placeholder="e.g. Feni"
+                <label className="text-[10px] text-[#0A0A0A] font-mono font-black block tracking-wider">
+                  DISTRICT *
+                </label>
+                <DistrictSelect
+                  id="checkout-district"
                   value={city}
-                  onChange={(e) => applyDistrict(e.target.value)}
-                  className="w-full bg-[#F8F8F7] border-2 border-[#E5E5E5] focus:border-[#E30613] focus:bg-white rounded-xl py-3 px-4 text-xs font-bold focus:outline-none transition-colors text-[#0A0A0A] placeholder:text-[#555555]"
+                  required
+                  onChange={applyDistrict}
                 />
                 <span className="text-[10px] text-[#555555] font-mono block font-medium">
-                  Type <span className="text-[#0A0A0A] font-bold">Feni</span> for 70 · any other district 120
+                  Select <span className="text-[#0A0A0A] font-bold">Feni</span> for 70 · any other district 120
                 </span>
               </div>
 
