@@ -524,6 +524,30 @@ export const ProductManager: React.FC<ProductManagerProps> = ({
       const has = prev.includes(label);
       return has ? prev.filter((c) => c !== label) : [...prev, label];
     });
+    // Selecting a club league → set Target Page to that league (not International / World Cup)
+    const clubLeagues = [
+      'La Liga',
+      'Premier League',
+      'Ligue 1',
+      'Serie A',
+      'Bundesliga',
+      'MLS',
+      'Saudi Pro League',
+    ];
+    const matchedLeague = clubLeagues.find(
+      (l) => l.toLowerCase() === label.toLowerCase(),
+    );
+    if (matchedLeague && !pCategories.includes(label)) {
+      const page = storefrontPages.find(
+        (pg) => pg.id === matchedLeague || pg.name === matchedLeague,
+      );
+      if (page) {
+        setPTargetPage(page.id);
+        setPPageNumber(page.pageNumber);
+      } else {
+        setPTargetPage(matchedLeague);
+      }
+    }
     // Infer size charts outside the categories updater (avoids nested setState crashes)
     setPSizeChartIds((charts) => {
       const has = pCategories.includes(label);
@@ -2856,8 +2880,18 @@ export const ProductManager: React.FC<ProductManagerProps> = ({
                       <option value="ADD_NEW" className="font-bold text-emerald-800">+ Add New Page...</option>
                     </select>
                     <p className="text-[10px] text-emerald-700 font-mono mt-1">
-                      Nav destination (e.g. Retro Store). Products appear when shoppers open that menu.
+                      Nav menu destination. Club kits → pick La Liga / Premier League (not International Teams). International Teams is for national / World Cup kits only.
                     </p>
+                    {pCategories.some((c) =>
+                      ['La Liga', 'Premier League', 'Ligue 1', 'Serie A', 'Bundesliga', 'MLS'].some(
+                        (l) => l.toLowerCase() === c.toLowerCase(),
+                      ),
+                    ) &&
+                    /international|world\s*cup/i.test(pTargetPage || '') ? (
+                      <p className="text-[10px] text-rose-700 font-mono mt-1 font-bold">
+                        Warning: club league selected but Target Page is International/World Cup — change Target Page to the league (e.g. La Liga).
+                      </p>
+                    ) : null}
                   </div>
 
                   <div className="md:col-span-2">

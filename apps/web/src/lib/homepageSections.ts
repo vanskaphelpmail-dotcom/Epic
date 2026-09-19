@@ -365,42 +365,123 @@ function sortByCategoryRow(a: Product, b: Product): number {
   return String(a.name || '').localeCompare(String(b.name || ''));
 }
 
-/** Broad match so homepage rows fill from category, page, league, tags, or name. */
+const CLUB_LEAGUE_LABELS = [
+  'La Liga',
+  'Premier League',
+  'Ligue 1',
+  'Serie A',
+  'Bundesliga',
+  'MLS',
+  'Saudi Pro League',
+] as const;
+
+function productHasClubLeagueSignal(p: Product, productCats: string[]): boolean {
+  const fields = [
+    ...productCats,
+    p.category,
+    p.league,
+    p.targetPage,
+    p.pageName,
+  ]
+    .map((v) => String(v || '').trim())
+    .filter(Boolean);
+  return fields.some((f) =>
+    CLUB_LEAGUE_LABELS.some((league) => storefrontLabelsMatch(f, league)),
+  );
+}
+
+function isWorldCupHomepageCategory(cat: string): boolean {
+  const t = cat.trim();
+  return /^world\s*cup(\s*vault)?$/i.test(t) || storefrontLabelsMatch(t, 'World Cup');
+}
+
+/** Exact / literal World Cup signals — never treat "International Teams" alone as World Cup. */
+function productHasExplicitWorldCupSignal(p: Product, productCats: string[]): boolean {
+  const fields = [
+    ...productCats,
+    p.category,
+    p.league,
+    p.pageName,
+    p.targetPage,
+    ...(p.tags || []),
+  ]
+    .map((v) => String(v || '').trim())
+    .filter(Boolean);
+  if (fields.some((f) => /world\s*cup/i.test(f))) return true;
+  if (/world\s*cup/i.test(p.name || '')) return true;
+  // National-team kit without a club league assignment
+  if (p.nationalTeam && !p.club && !productHasClubLeagueSignal(p, productCats)) return true;
+  return false;
+}
+
+/**
+ * Match product fields to a homepage row category.
+ * Uses exact/normalized equality first; does NOT collapse International Teams ↔ World Cup
+ * (that alias is for nav listing only).
+ */
+function homepageFieldMatchesCategory(field: string, cat: string): boolean {
+  const a = String(field || '').trim();
+  const b = String(cat || '').trim();
+  if (!a || !b) return false;
+  const na = a.toLowerCase().replace(/[^a-z0-9]+/g, '');
+  const nb = b.toLowerCase().replace(/[^a-z0-9]+/g, '');
+  if (na === nb) return true;
+  // Allow known equal pairs without International↔WorldCup collapse
+  if (storefrontLabelsMatch(a, b)) {
+    const pa = resolveStorefrontPage(a);
+    const pb = resolveStorefrontPage(b);
+    // Same storefront page id only when neither side is a World Cup *category row* mismatch
+    if (pa && pb && pa.id === pb.id) {
+      const aIsWorldCupLiteral = /world\s*cup/i.test(a);
+      const bIsWorldCupLiteral = /world\s*cup/i.test(b);
+      const aIsIntl = /international/i.test(a) || pa.id === 'International Teams';
+      const bIsIntl = /international/i.test(b) || pb.id === 'International Teams';
+      // International Teams target must not satisfy a "World Cup" homepage category
+      if ((aIsIntl && bIsWorldCupLiteral && !aIsWorldCupLiteral) || (bIsIntl && aIsWorldCupLiteral && !bIsWorldCupLiteral)) {
+        return false;
+      }
+      return true;
+    }
+    return true;
+  }
+  return false;
+}
+
+/** Match homepage product-row category — club leagues never bleed into World Cup. */
 export function productMatchesHomepageCategory(p: Product, cat: string): boolean {
   if (!cat?.trim()) return false;
   if (/^all(\s*jerseys)?$/i.test(cat.trim())) return true;
   const productCats = getProductCategories(p);
-  if (productCats.some((c) => storefrontLabelsMatch(c, cat))) return true;
-  if (storefrontLabelsMatch(p.category || '', cat)) return true;
-  if (storefrontLabelsMatch(p.targetPage || '', cat)) return true;
-  if (storefrontLabelsMatch(p.pageName || '', cat)) return true;
-  if (storefrontLabelsMatch(p.league || '', cat)) return true;
-  if (storefrontLabelsMatch(p.club || '', cat)) return true;
-  if (storefrontLabelsMatch(p.nationalTeam || '', cat)) return true;
-  if (storefrontLabelsMatch(p.country || '', cat)) return true;
-  if ((p.tags || []).some((t) => storefrontLabelsMatch(t, cat))) return true;
+
+  // World Cup homepage row: national / WC kits only — never club (La Liga, etc.) products
+  if (isWorldCupHomepageCategory(cat)) {
+    if (productHasClubLeagueSignal(p, productCats)) return false;
+    return productHasExplicitWorldCupSignal(p, productCats);
+  }
+
+  if (productCats.some((c) => homepageFieldMatchesCategory(c, cat))) return true;
+  if (homepageFieldMatchesCategory(p.category || '', cat)) return true;
+  if (homepageFieldMatchesCategory(p.targetPage || '', cat)) return true;
+  if (homepageFieldMatchesCategory(p.pageName || '', cat)) return true;
+  if (homepageFieldMatchesCategory(p.league || '', cat)) return true;
+  if (homepageFieldMatchesCategory(p.club || '', cat)) return true;
+  if (homepageFieldMatchesCategory(p.nationalTeam || '', cat)) return true;
+  if (homepageFieldMatchesCategory(p.country || '', cat)) return true;
+  if ((p.tags || []).some((t) => homepageFieldMatchesCategory(t, cat))) return true;
 
   if (
     storefrontLabelsMatch(cat, 'Retro') &&
     (storefrontLabelsMatch(p.category || '', 'Legends') ||
       storefrontLabelsMatch(p.targetPage || '', 'Legends') ||
-      storefrontLabelsMatch(p.pageName || '', 'Retro Store'))
-  ) {
-    return true;
-  }
-  if (
-    storefrontLabelsMatch(cat, 'World Cup') &&
-    (storefrontLabelsMatch(p.targetPage || '', 'World Cup') ||
-      storefrontLabelsMatch(p.targetPage || '', 'World Cup Vault') ||
-      storefrontLabelsMatch(p.pageName || '', 'World Cup') ||
-      /world\s*cup/i.test(p.name || ''))
+      storefrontLabelsMatch(p.pageName || '', 'Retro Store') ||
+      /retro/i.test(p.name || ''))
   ) {
     return true;
   }
   if (
     storefrontLabelsMatch(cat, 'La Liga') &&
-    (storefrontLabelsMatch(p.targetPage || '', 'La Liga') ||
-      storefrontLabelsMatch(p.pageName || '', 'La Liga') ||
+    (homepageFieldMatchesCategory(p.targetPage || '', 'La Liga') ||
+      homepageFieldMatchesCategory(p.pageName || '', 'La Liga') ||
       /la\s*liga/i.test(p.name || '') ||
       /real madrid|barcelona|atletico|athletic club|sevilla|valencia/i.test(p.name || ''))
   ) {
@@ -451,8 +532,9 @@ export function productMatchesHomepageCategory(p: Product, cat: string): boolean
     return isCatalogAssignedProduct(p);
   }
 
+  // Fuzzy name includes — skip for short / ambiguous category tokens like "cup"
   const catLower = cat.toLowerCase().trim();
-  if (catLower.length >= 3) {
+  if (catLower.length >= 4 && !/^world\s*cup/i.test(catLower)) {
     const hay = [p.name, p.brand, ...(p.tags || [])].join(' ').toLowerCase();
     if (hay.includes(catLower)) return true;
   }
