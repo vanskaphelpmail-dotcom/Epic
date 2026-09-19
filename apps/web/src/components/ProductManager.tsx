@@ -16,7 +16,6 @@ import {
   resolveSectionCategory,
 } from '../lib/homepageSections';
 import { canonicalTargetPageId, canonicalTargetPageName, productMatchesListingCategory } from '../lib/storefrontPages';
-import { getProductCategories } from '../lib/sizeCharts';
 import { api, getToken, isApiEnabled } from '../lib/apiClient';
 import { JerseyRenderer } from './JerseyRenderer';
 import { isRenderableImageSrc } from '../lib/productImage';
@@ -38,9 +37,11 @@ import {
 } from '../lib/cloudinaryUpload';
 import {
   getAllSizeCharts,
+  getProductCategories,
   getSizeChartById,
   imageUploadLimitForCategory,
   inferSizeChartId,
+  isSizeChartCategoryName,
 } from '../lib/sizeCharts';
 import {
   calcDiscountAmount,
@@ -345,7 +346,10 @@ export const ProductManager: React.FC<ProductManagerProps> = ({
     const names = new Map<string, string>();
     categoryItems.forEach((c) => names.set(c.name.toLowerCase(), c.name));
     homepageCategoryNames.forEach((n) => names.set(n.toLowerCase(), n));
-    return [...names.values()].sort((a, b) => a.localeCompare(b));
+    // Size charts live in their own picker — never show edition/chart labels here
+    return [...names.values()]
+      .filter((n) => !isSizeChartCategoryName(n))
+      .sort((a, b) => a.localeCompare(b));
   }, [categoryItems, homepageCategoryNames]);
 
   // Stock Audit Logs
@@ -548,17 +552,7 @@ export const ProductManager: React.FC<ProductManagerProps> = ({
         setPTargetPage(matchedLeague);
       }
     }
-    // Infer size charts outside the categories updater (avoids nested setState crashes)
-    setPSizeChartIds((charts) => {
-      const has = pCategories.includes(label);
-      if (has) return charts;
-      const chartIds = new Set(charts.filter(Boolean));
-      const inferred = inferSizeChartId(label);
-      if (inferred) chartIds.add(inferred);
-      const catItem = categoryItems.find((c) => c.name === label);
-      if (catItem?.sizeChartId) chartIds.add(String(catItem.sizeChartId));
-      return Array.from(chartIds);
-    });
+    // Size charts are chosen only in the Size Charts multi-select — never auto-add from category
   };
 
   const toggleSizeChart = (id: string) => {
@@ -2908,7 +2902,7 @@ export const ProductManager: React.FC<ProductManagerProps> = ({
                       </button>
                     </div>
                     <p className="text-[10px] text-emerald-700 font-mono mb-1.5">
-                      Tick multiple boxes — e.g. Retro + La Liga + Fan Edition. Edition categories auto-add matching size charts.
+                      Tick multiple boxes — e.g. Retro + La Liga + Premier League. Size charts are selected separately below.
                     </p>
                     <div className="max-h-56 sm:max-h-64 md:max-h-72 overflow-y-auto overscroll-contain rounded-xl border border-emerald-200 bg-emerald-50/30 p-2.5 sm:p-3 grid grid-cols-1 min-[380px]:grid-cols-2 md:grid-cols-3 gap-2 touch-manipulation">
                       {productCategoryOptions.map((name) => {

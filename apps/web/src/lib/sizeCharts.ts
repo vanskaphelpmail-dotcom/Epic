@@ -130,6 +130,37 @@ export const SIZE_CHART_OPTIONS: SizeChartDef[] = [
   SIZE_CHARTS.kids,
 ];
 
+/** Category labels that belong in Size Charts — not the product Categories multi-select. */
+export const SIZE_CHART_CATEGORY_NAMES = new Set(
+  [
+    'Player Edition',
+    'Fan Edition',
+    'Kids',
+    'Customised Kit',
+    'Customised',
+    'Retro Kit',
+    ...SIZE_CHART_OPTIONS.map((c) => c.label),
+  ].map((n) => n.toLowerCase().trim()),
+);
+
+export function isSizeChartCategoryName(name?: string | null): boolean {
+  const key = String(name || '')
+    .toLowerCase()
+    .trim();
+  if (!key) return false;
+  if (SIZE_CHART_CATEGORY_NAMES.has(key)) return true;
+  // Compact / slug forms
+  const compact = key.replace(/[^a-z0-9]+/g, '');
+  return (
+    compact === 'playeredition' ||
+    compact === 'fanedition' ||
+    compact === 'kids' ||
+    compact === 'customisedkit' ||
+    compact === 'customizedkit' ||
+    compact === 'retrokit'
+  );
+}
+
 /** Max upload bytes before client compression, by edition category. */
 export const IMAGE_UPLOAD_LIMITS_BYTES: Record<string, number> = {
   'player-edition': 3 * 1024 * 1024,

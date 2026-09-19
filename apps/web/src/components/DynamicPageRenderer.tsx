@@ -124,7 +124,6 @@ export const DEFAULT_HOMEPAGE_SECTIONS: PageSection[] = [
   { id: 'live-auction', name: 'Bidding & Live Auctions', visible: false, bgColor: 'bg-transparent', padding: 'py-12', margin: 'my-0', status: 'inactive' },
   { id: 'daily-deals', name: 'Daily Deals Countdown', visible: false, bgColor: 'bg-transparent', padding: 'py-12', margin: 'my-4', title: 'LIMITED DAILY DEAL DECK', subtitle: '24-hour flash sale on ultra rare collectibles', status: 'inactive' },
   { id: 'featured-collection', name: 'Featured Collection Row', visible: true, bgColor: 'bg-transparent', padding: 'py-12', margin: 'my-0', title: 'VERIFIED FEATURED CLASSICS', subtitle: 'Curated 1-of-1 historic collectibles', status: 'active', sectionType: 'product-row', productCategory: 'Featured', buttonText: 'VIEW ALL', buttonUrl: 'listing', maxProducts: 4 },
-  { id: 'all-jerseys', name: 'All Jerseys Row', visible: true, bgColor: 'bg-transparent', padding: 'py-12', margin: 'my-0', title: 'ALL JERSEYS', subtitle: 'Complete storefront catalog — every kit in stock', status: 'active', sectionType: 'product-row', productCategory: 'All', buttonText: 'VIEW ALL', buttonUrl: 'listing', maxProducts: 500 },
   { id: 'retro-collection', name: 'Retro Collection Row', visible: true, bgColor: 'bg-transparent', padding: 'py-12', margin: 'my-0', title: 'RETRO', subtitle: 'Rare 80s, 90s & 2000s vintage reissues', status: 'active', sectionType: 'product-row', productCategory: 'Retro', buttonText: 'VIEW ALL', buttonUrl: 'listing', maxProducts: 4 },
   { id: 'product-row-la-liga', name: 'La Liga Row', visible: true, bgColor: 'bg-transparent', padding: 'py-12', margin: 'my-0', title: 'LA LIGA', subtitle: 'Shop La Liga — curated picks for collectors', status: 'active', sectionType: 'product-row', productCategory: 'La Liga', buttonText: 'VIEW ALL', buttonUrl: 'listing', maxProducts: 4 },
   { id: 'product-row-world-cup', name: 'World Cup Row', visible: true, bgColor: 'bg-transparent', padding: 'py-12', margin: 'my-0', title: 'WORLD CUP', subtitle: 'National team World Cup kits & vault classics', status: 'active', sectionType: 'product-row', productCategory: 'World Cup', buttonText: 'VIEW ALL', buttonUrl: 'listing', maxProducts: 4 },
@@ -319,6 +318,7 @@ export const DynamicPageRenderer: React.FC<DynamicPageRendererProps> = ({
           section.id === 'preorder-jacket' ||
           section.id === 'preorder-track-suit' ||
           section.id === 'preorder-badminton' ||
+          section.id === 'all-jerseys' ||
           isRemovedHomepageCategory(section.productCategory) ||
           isRemovedHomepageCategory(section.title)
         ) {

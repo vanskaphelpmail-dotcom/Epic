@@ -4,6 +4,7 @@ import { getProductCategories } from './sizeCharts';
 
 /** Sections permanently removed from the live storefront (still may exist in old DB rows). */
 export const REMOVED_HOMEPAGE_SECTION_IDS = new Set([
+  'all-jerseys',
   'latest-products',
   'best-sellers',
   'current-season',
@@ -106,49 +107,9 @@ function shouldDropHomepageSection(s: PageSection): boolean {
   return false;
 }
 
-/** Ensure All Jerseys row exists so the homepage always lists the full catalog. */
+/** Strip All Jerseys dump row — removed from landing page. */
 export function ensureAllJerseysSection(sections: PageSection[]): PageSection[] {
-  const existing = sections.find((s) => s.id === 'all-jerseys');
-  const row: PageSection = {
-    id: 'all-jerseys',
-    name: 'All Jerseys Row',
-    visible: true,
-    bgColor: 'bg-transparent',
-    padding: 'py-12',
-    margin: 'my-0',
-    title: 'ALL JERSEYS',
-    subtitle: 'Complete storefront catalog — every kit in stock',
-    status: 'active',
-    sectionType: 'product-row',
-    productCategory: 'All',
-    productSelectionMode: 'category',
-    buttonText: 'VIEW ALL',
-    buttonUrl: 'listing',
-    maxProducts: Math.max(500, existing?.maxProducts ?? 500),
-  };
-  if (existing) {
-    return sections.map((s) =>
-      s.id === 'all-jerseys'
-        ? {
-            ...row,
-            ...existing,
-            id: 'all-jerseys',
-            visible: true,
-            status: 'active',
-            sectionType: 'product-row',
-            productCategory: existing.productCategory || 'All',
-            maxProducts: Math.max(500, existing.maxProducts ?? 500),
-            title: existing.title || row.title,
-            subtitle: existing.subtitle || row.subtitle,
-          }
-        : s,
-    );
-  }
-  const afterFeatured = sections.findIndex((s) => s.id === 'featured-collection');
-  if (afterFeatured >= 0) {
-    return [...sections.slice(0, afterFeatured + 1), row, ...sections.slice(afterFeatured + 1)];
-  }
-  return [row, ...sections];
+  return sections.filter((s) => s.id !== 'all-jerseys');
 }
 
 export function normalizeHomepageSections(sections: PageSection[]): PageSection[] {
@@ -751,7 +712,6 @@ export function ensureHomepageRowsForCategories(
 
   const coreKeepIds = new Set([
     'featured-collection',
-    'all-jerseys',
     'retro-collection',
     'player-edition',
     'customised-kit',
