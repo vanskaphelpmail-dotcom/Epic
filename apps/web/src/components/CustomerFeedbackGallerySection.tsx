@@ -46,11 +46,18 @@ export const CustomerFeedbackGallerySection: React.FC<CustomerFeedbackGallerySec
   const [reduceMotion, setReduceMotion] = useState(false);
   const [activePage, setActivePage] = useState(0);
 
-  // Two identical halves — enough for a seamless -setWidth wrap
-  const loopImages = useMemo(() => {
+  // Pad then double — fills wide viewports so the seamless wrap never shows a gap
+  const halfImages = useMemo(() => {
     if (images.length === 0) return [];
-    return [...images, ...images];
+    const minCards = Math.max(10, images.length * 2);
+    const half: typeof images = [];
+    while (half.length < minCards) half.push(...images);
+    return half;
   }, [images]);
+  const loopImages = useMemo(
+    () => (halfImages.length === 0 ? [] : [...halfImages, ...halfImages]),
+    [halfImages],
+  );
 
   const pageCount = Math.min(7, Math.max(1, images.length));
   pageCountRef.current = pageCount;
@@ -66,17 +73,17 @@ export const CustomerFeedbackGallerySection: React.FC<CustomerFeedbackGallerySec
 
   const measureSetWidth = useCallback(() => {
     const el = trackRef.current;
-    if (!el || images.length === 0) return 0;
+    if (!el || halfImages.length === 0) return 0;
     const kids = el.children;
     // Distance from first card of half A → first card of half B (includes flex gap)
-    if (kids.length >= images.length * 2) {
+    if (kids.length >= halfImages.length * 2) {
       const a = kids[0] as HTMLElement;
-      const b = kids[images.length] as HTMLElement;
+      const b = kids[halfImages.length] as HTMLElement;
       const w = b.offsetLeft - a.offsetLeft;
       if (w > 0) return w;
     }
     return el.scrollWidth / 2;
-  }, [images.length]);
+  }, [halfImages.length]);
 
   const applyOffset = useCallback(
     (next: number, updateDots = true) => {
@@ -127,21 +134,21 @@ export const CustomerFeedbackGallerySection: React.FC<CustomerFeedbackGallerySec
     });
 
     return () => ro?.disconnect();
-  }, [applyOffset, images.length, measureSetWidth]);
+  }, [applyOffset, halfImages.length, measureSetWidth]);
 
   useEffect(() => {
     const el = trackRef.current;
-    if (!el || images.length < 2 || reduceMotion || paused) return;
+    if (!el || images.length < 1 || reduceMotion || paused) return;
 
     let raf = 0;
     let last = performance.now();
-    // Faster continuous drift — still readable
+    // Fast continuous drift — club-flag style, never idle
     const speed =
       typeof window !== 'undefined' && window.innerWidth < 640
-        ? 120
+        ? 220
         : typeof window !== 'undefined' && window.innerWidth < 1024
-          ? 140
-          : 160;
+          ? 260
+          : 300;
 
     const tick = (now: number) => {
       const dt = Math.min(32, now - last);
@@ -211,7 +218,7 @@ export const CustomerFeedbackGallerySection: React.FC<CustomerFeedbackGallerySec
   const endDrag = () => {
     draggingRef.current = false;
     axisLock.current = null;
-    scheduleResume(700);
+    scheduleResume(350);
   };
 
   const goToPage = (page: number) => {
@@ -221,7 +228,7 @@ export const CustomerFeedbackGallerySection: React.FC<CustomerFeedbackGallerySec
     clearResumeTimer();
     setPaused(true);
     applyOffset((page / pageCount) * setWidth);
-    scheduleResume(1200);
+    scheduleResume(500);
   };
 
   const onAnchorClick = (e: React.MouseEvent) => {
@@ -251,13 +258,6 @@ export const CustomerFeedbackGallerySection: React.FC<CustomerFeedbackGallerySec
           <div
             className="relative overflow-hidden w-full min-w-0 select-none"
             style={{ touchAction: 'pan-y', WebkitUserSelect: 'none' }}
-            onMouseEnter={() => {
-              if (typeof window !== 'undefined' && window.matchMedia('(hover: hover)').matches) {
-                clearResumeTimer();
-                setPaused(true);
-              }
-            }}
-            onMouseLeave={() => setPaused(false)}
             onPointerDown={onPointerDown}
             onPointerMove={onPointerMove}
             onPointerUp={endDrag}
@@ -267,7 +267,7 @@ export const CustomerFeedbackGallerySection: React.FC<CustomerFeedbackGallerySec
             <div className="flex items-center w-full min-w-0">
               <div
                 ref={trackRef}
-                className="flex items-center gap-2 sm:gap-3.5 will-change-transform [backface-visibility:hidden]"
+                className="flex items-center gap-1.5 sm:gap-2 will-change-transform [backface-visibility:hidden]"
                 style={{ transform: 'translate3d(0,0,0)' }}
               >
                 {loopImages.map((img, index) => {
