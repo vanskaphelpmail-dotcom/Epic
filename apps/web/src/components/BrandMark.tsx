@@ -23,8 +23,8 @@ type BrandMarkProps = {
   onToneChange?: (tone: BrandMarkTone) => void;
 };
 
-/** Official red geometric mark (second reference image). */
-const MARK_SRC = '/epic-vanskap-mark-red.png?v=4';
+/** Official red geometric mark (flat two-shard V / E shape). */
+const MARK_SRC = '/epic-vanskap-mark-red.png?v=5';
 
 function filterForTone(tone: BrandMarkTone): string {
   if (tone === 'red') return 'none';

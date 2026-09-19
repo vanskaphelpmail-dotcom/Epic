@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useEffect, useMemo, useRef, useState } from 'react';
+import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import type { CommunityGalleryConfig } from '../types';
 import {
   communityGallerySubtitleLine,
@@ -17,8 +17,8 @@ interface CommunityGallerySectionProps {
 }
 
 /**
- * Homepage community strip — CSS transform marquee + semantic Facebook link.
- * Mobile/tablet: no page overflow, swipe-friendly, safe-area aware.
+ * Homepage community strip — GPU translate3d infinite marquee.
+ * Two identical halves; wrap at measured set width so the loop never jumps.
  */
 export const CommunityGallerySection: React.FC<CommunityGallerySectionProps> = ({
   config,
@@ -33,8 +33,8 @@ export const CommunityGallerySection: React.FC<CommunityGallerySectionProps> = (
   const href = (gallery.facebookUrl || VANSKAP_COMMUNITY_FACEBOOK_URL).trim();
 
   const trackRef = useRef<HTMLDivElement>(null);
-  const viewportRef = useRef<HTMLDivElement>(null);
   const offsetRef = useRef(0);
+  const setWidthRef = useRef(0);
   const draggingRef = useRef(false);
   const dragStartX = useRef(0);
   const dragStartY = useRef(0);
@@ -42,13 +42,15 @@ export const CommunityGallerySection: React.FC<CommunityGallerySectionProps> = (
   const movedRef = useRef(false);
   const axisLock = useRef<'x' | 'y' | null>(null);
   const pageCountRef = useRef(1);
+  const resumeTimer = useRef<number | null>(null);
   const [paused, setPaused] = useState(false);
   const [reduceMotion, setReduceMotion] = useState(false);
   const [activePage, setActivePage] = useState(0);
 
+  // Two identical halves — enough for a seamless -setWidth wrap
   const loopImages = useMemo(() => {
     if (images.length === 0) return [];
-    return [...images, ...images, ...images];
+    return [...images, ...images];
   }, [images]);
 
   const pageCount = Math.min(7, Math.max(1, images.length));
@@ -63,21 +65,70 @@ export const CommunityGallerySection: React.FC<CommunityGallerySectionProps> = (
     return () => mq.removeEventListener?.('change', apply);
   }, []);
 
-  const applyOffset = (next: number) => {
+  const measureSetWidth = useCallback(() => {
+    const el = trackRef.current;
+    if (!el || images.length === 0) return 0;
+    const kids = el.children;
+    // Distance from first card of half A → first card of half B (includes flex gap)
+    if (kids.length >= images.length * 2) {
+      const a = kids[0] as HTMLElement;
+      const b = kids[images.length] as HTMLElement;
+      const w = b.offsetLeft - a.offsetLeft;
+      if (w > 0) return w;
+    }
+    return el.scrollWidth / 2;
+  }, [images.length]);
+
+  const applyOffset = useCallback(
+    (next: number, updateDots = true) => {
+      const el = trackRef.current;
+      if (!el) return;
+
+      let setWidth = setWidthRef.current;
+      if (setWidth <= 0) {
+        setWidth = measureSetWidth();
+        setWidthRef.current = setWidth;
+      }
+
+      let offset = next;
+      if (setWidth > 0) {
+        // Seamless wrap — stay in [0, setWidth)
+        offset = ((offset % setWidth) + setWidth) % setWidth;
+
+        if (updateDots) {
+          const pages = pageCountRef.current;
+          const page = Math.floor((offset / setWidth) * pages) % pages;
+          setActivePage((prev) => (prev === page ? prev : page));
+        }
+      }
+
+      offsetRef.current = offset;
+      el.style.transform = `translate3d(${-offset}px, 0, 0)`;
+    },
+    [measureSetWidth],
+  );
+
+  // Remeasure when images load / viewport changes
+  useEffect(() => {
     const el = trackRef.current;
     if (!el) return;
-    const setWidth = el.scrollWidth / 3;
-    const pages = pageCountRef.current;
-    let offset = next;
-    if (setWidth > 0) {
-      while (offset < 0) offset += setWidth;
-      while (offset >= setWidth) offset -= setWidth;
-      const page = Math.floor((offset / setWidth) * pages) % pages;
-      setActivePage((prev) => (prev === page ? prev : page));
-    }
-    offsetRef.current = offset;
-    el.style.transform = `translate3d(${-offset}px, 0, 0)`;
-  };
+
+    const refresh = () => {
+      setWidthRef.current = measureSetWidth();
+      applyOffset(offsetRef.current, false);
+    };
+
+    refresh();
+    const ro = typeof ResizeObserver !== 'undefined' ? new ResizeObserver(refresh) : null;
+    ro?.observe(el);
+
+    const imgs = el.querySelectorAll('img');
+    imgs.forEach((img) => {
+      if (!img.complete) img.addEventListener('load', refresh, { once: true });
+    });
+
+    return () => ro?.disconnect();
+  }, [applyOffset, images.length, measureSetWidth]);
 
   useEffect(() => {
     const el = trackRef.current;
@@ -85,10 +136,16 @@ export const CommunityGallerySection: React.FC<CommunityGallerySectionProps> = (
 
     let raf = 0;
     let last = performance.now();
-    const speed = typeof window !== 'undefined' && window.innerWidth < 640 ? 36 : 42;
+    // Faster continuous drift — still readable (~1.5–2s per card)
+    const speed =
+      typeof window !== 'undefined' && window.innerWidth < 640
+        ? 78
+        : typeof window !== 'undefined' && window.innerWidth < 1024
+          ? 90
+          : 105;
 
     const tick = (now: number) => {
-      const dt = Math.min(40, now - last);
+      const dt = Math.min(32, now - last);
       last = now;
       if (!draggingRef.current) {
         applyOffset(offsetRef.current + (speed * dt) / 1000);
@@ -98,7 +155,24 @@ export const CommunityGallerySection: React.FC<CommunityGallerySectionProps> = (
 
     raf = requestAnimationFrame(tick);
     return () => cancelAnimationFrame(raf);
-  }, [images.length, paused, reduceMotion]);
+  }, [applyOffset, images.length, paused, reduceMotion]);
+
+  const clearResumeTimer = () => {
+    if (resumeTimer.current != null) {
+      window.clearTimeout(resumeTimer.current);
+      resumeTimer.current = null;
+    }
+  };
+
+  const scheduleResume = (ms: number) => {
+    clearResumeTimer();
+    resumeTimer.current = window.setTimeout(() => {
+      resumeTimer.current = null;
+      setPaused(false);
+    }, ms);
+  };
+
+  useEffect(() => () => clearResumeTimer(), []);
 
   const onPointerDown = (e: React.PointerEvent) => {
     draggingRef.current = true;
@@ -107,6 +181,7 @@ export const CommunityGallerySection: React.FC<CommunityGallerySectionProps> = (
     dragStartX.current = e.clientX;
     dragStartY.current = e.clientY;
     dragStartOffset.current = offsetRef.current;
+    clearResumeTimer();
     setPaused(true);
     (e.currentTarget as HTMLElement).setPointerCapture?.(e.pointerId);
   };
@@ -123,7 +198,7 @@ export const CommunityGallerySection: React.FC<CommunityGallerySectionProps> = (
     // Vertical intent → let the page scroll; cancel drag
     if (axisLock.current === 'y') {
       draggingRef.current = false;
-      setPaused(false);
+      scheduleResume(200);
       return;
     }
 
@@ -137,17 +212,17 @@ export const CommunityGallerySection: React.FC<CommunityGallerySectionProps> = (
   const endDrag = () => {
     draggingRef.current = false;
     axisLock.current = null;
-    window.setTimeout(() => setPaused(false), 900);
+    scheduleResume(700);
   };
 
   const goToPage = (page: number) => {
-    const el = trackRef.current;
-    if (!el) return;
-    const setWidth = el.scrollWidth / 3;
+    const setWidth = setWidthRef.current || measureSetWidth();
     if (setWidth <= 0) return;
+    setWidthRef.current = setWidth;
+    clearResumeTimer();
     setPaused(true);
     applyOffset((page / pageCount) * setWidth);
-    window.setTimeout(() => setPaused(false), 1600);
+    scheduleResume(1200);
   };
 
   const onAnchorClick = (e: React.MouseEvent) => {
@@ -182,11 +257,11 @@ export const CommunityGallerySection: React.FC<CommunityGallerySectionProps> = (
           </div>
 
           <div
-            ref={viewportRef}
             className="relative overflow-hidden w-full min-w-0 select-none"
             style={{ touchAction: 'pan-y', WebkitUserSelect: 'none' }}
             onMouseEnter={() => {
               if (typeof window !== 'undefined' && window.matchMedia('(hover: hover)').matches) {
+                clearResumeTimer();
                 setPaused(true);
               }
             }}
@@ -203,7 +278,7 @@ export const CommunityGallerySection: React.FC<CommunityGallerySectionProps> = (
             >
               <div
                 ref={trackRef}
-                className="flex items-end gap-2 sm:gap-3.5 will-change-transform"
+                className="flex items-end gap-2 sm:gap-3.5 will-change-transform [backface-visibility:hidden]"
                 style={{ transform: 'translate3d(0,0,0)' }}
               >
                 {loopImages.map((img, index) => {

@@ -93,7 +93,7 @@ export const ClubLogoShowcase: React.FC<ClubLogoShowcaseProps> = ({
 
   return (
     <section
-      className="w-full max-w-[1440px] mx-auto px-3 sm:px-4 md:px-5 lg:px-6 pt-3 sm:pt-4 pb-2"
+      className="w-full max-w-[1440px] mx-auto px-3 sm:px-4 md:px-5 lg:px-6 pt-2 sm:pt-4 pb-0 md:pb-2"
       aria-label="Football club logo showcase"
     >
       <div className="club-logo-marquee relative w-full overflow-hidden py-1.5">

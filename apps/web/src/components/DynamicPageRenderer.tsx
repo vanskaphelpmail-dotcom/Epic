@@ -376,7 +376,11 @@ export const DynamicPageRenderer: React.FC<DynamicPageRendererProps> = ({
                 ? `bg-transparent pt-3 pb-5 sm:pt-8 sm:pb-10 lg:py-10 my-0 ${getAnimationClass(section.animation)} transition-all duration-300 relative`
                 : section.id === 'community-gallery'
                   ? `bg-white py-8 sm:py-12 md:py-16 my-0 overflow-x-hidden ${getAnimationClass(section.animation)} transition-all duration-300 relative`
-                  : `${safeBg} ${section.padding} ${section.margin} ${getAnimationClass(section.animation)} transition-all duration-300 relative`;
+                  : isProductRowSection(section)
+                    // Mobile: ~16–20px above first row (RETRO) so it sits close to club logos.
+                    // md+: keep original py-12 from CMS (tablet/desktop unchanged).
+                    ? `${safeBg} pt-4 pb-10 md:py-12 my-0 ${getAnimationClass(section.animation)} transition-all duration-300 relative`
+                    : `${safeBg} ${section.padding} ${section.margin} ${getAnimationClass(section.animation)} transition-all duration-300 relative`;
         const headingColor = 'text-[#0A0A0A]';
         const subColor = 'text-[#555555]';
 

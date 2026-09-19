@@ -8,7 +8,7 @@ const StorefrontApp = dynamic(() => import("@/src/App"), {
     <div className="min-h-screen flex items-center justify-center bg-white">
       <div className="flex flex-col items-center gap-3" role="status" aria-label="Loading">
         <img
-          src="/epic-vanskap-logo.png?v=1"
+          src="/epic-vanskap-logo.png?v=5"
           alt="Epic Vanskap"
           className="w-10 h-10 rounded-xl object-contain bg-black"
           width={40}

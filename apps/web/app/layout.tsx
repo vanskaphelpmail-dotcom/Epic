@@ -43,8 +43,8 @@ export const metadata: Metadata = {
     follow: true,
   },
   icons: {
-    icon: [{ url: "/epic-vanskap-logo.png?v=1", type: "image/png" }],
-    apple: [{ url: "/epic-vanskap-logo.png?v=1" }],
+    icon: [{ url: "/epic-vanskap-logo.png?v=5", type: "image/png" }],
+    apple: [{ url: "/epic-vanskap-logo.png?v=5" }],
   },
 };
 
