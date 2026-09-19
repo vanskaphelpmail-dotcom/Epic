@@ -1,16 +1,26 @@
 import React, { useState } from 'react';
 import { Mail, Phone, MapPin, Send, HelpCircle, ShieldCheck, FileText, ChevronDown } from 'lucide-react';
+import { getPrimaryOutlet, type OutletLocation } from '../lib/outletInfo';
 
 interface InfoPagesProps {
   pageType: string;
   onBack: () => void;
+  brandName?: string;
+  outlets?: OutletLocation[];
 }
 
-export const InfoPages: React.FC<InfoPagesProps> = ({ pageType, onBack }) => {
+export const InfoPages: React.FC<InfoPagesProps> = ({ pageType, onBack, brandName, outlets }) => {
   const [ticketSubject, setTicketSubject] = useState('');
   const [ticketMsg, setTicketMsg] = useState('');
   const [ticketConfirmed, setTicketConfirmed] = useState(false);
   const [expandedFaq, setExpandedFaq] = useState<number | null>(0);
+  const primary = getPrimaryOutlet(outlets);
+  const shopLabel = brandName || 'Epic Vanskap';
+  const contactEmail = primary.email || 'support@epicvanskap.com';
+  const contactPhone = primary.phone || '';
+  const outletList = (outlets && outlets.length > 0 ? outlets : [primary]).filter(
+    (o) => o.city || o.address || o.phone,
+  );
 
   const handleTicketSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -247,7 +257,7 @@ export const InfoPages: React.FC<InfoPagesProps> = ({ pageType, onBack }) => {
               </button>
             </form>
 
-            {/* Quick Contact Info */}
+            {/* Quick Contact Info — from Admin → Physical Outlet Cards */}
             <div className="md:col-span-5 bg-zinc-900 border border-zinc-800 p-6 rounded-2xl space-y-4 text-xs text-zinc-300">
               <h3 className="text-xs font-mono font-black text-white uppercase tracking-widest border-b border-zinc-800 pb-2">
                 Helpdesk Coordinates
@@ -255,19 +265,29 @@ export const InfoPages: React.FC<InfoPagesProps> = ({ pageType, onBack }) => {
               
               <div className="flex items-center gap-3">
                 <Mail size={16} className="text-zinc-400" />
-                <span>admin@epicvanskap.com</span>
+                <span>{contactEmail}</span>
               </div>
-              <div className="flex items-center gap-3">
-                <Phone size={16} className="text-zinc-400" />
-                <span>Visit our Feni shop for in-person help</span>
-              </div>
-              <div className="flex items-start gap-3">
-                <MapPin size={16} className="text-zinc-400 mt-0.5" />
-                <div className="space-y-1">
-                  <span className="font-bold text-white block">Feni Garden City Market</span>
-                  <span>Shop no: B: 67-68, 1st Floor, Feni Garden City Market, Feni, 3900</span>
+              {contactPhone ? (
+                <div className="flex items-center gap-3">
+                  <Phone size={16} className="text-zinc-400" />
+                  <span>{contactPhone}</span>
                 </div>
-              </div>
+              ) : (
+                <div className="flex items-center gap-3">
+                  <Phone size={16} className="text-zinc-400" />
+                  <span>Visit our {primary.city || shopLabel} shop for in-person help</span>
+                </div>
+              )}
+              {outletList.map((loc, idx) => (
+                <div key={`${loc.city}-${idx}`} className="flex items-start gap-3">
+                  <MapPin size={16} className="text-zinc-400 mt-0.5 shrink-0" />
+                  <div className="space-y-1">
+                    <span className="font-bold text-white block">{loc.city || shopLabel}</span>
+                    {loc.address ? <span className="block">{loc.address}</span> : null}
+                    {loc.phone ? <span className="block font-mono text-zinc-400">{loc.phone}</span> : null}
+                  </div>
+                </div>
+              ))}
             </div>
 
           </div>

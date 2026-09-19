@@ -19,7 +19,8 @@ export const STORE_LOCATIONS = [
   {
     city: 'Feni',
     address: 'Shop no: B: 67-68, 1st Floor, Feni Garden City Market, Feni, 3900',
-    phone: '',
+    phone: '+880 1840-990700',
+    email: 'support@epicvanskap.com',
     hours: '11:00 AM - 09:30 PM (Friday - Wednesday)',
   },
 ];

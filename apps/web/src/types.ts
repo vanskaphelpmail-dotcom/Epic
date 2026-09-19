@@ -433,7 +433,7 @@ export interface AppConfig {
   logoSubtext: string;
   theme: 'classic' | 'crimson' | 'royal' | 'bengal';
   footerAbout: string;
-  footerLocations: { city: string; address: string; phone: string }[];
+  footerLocations: { city: string; address: string; phone: string; email?: string; hours?: string }[];
   footerCopyright: string;
   currencySymbol: string;
   currencyCode: string;

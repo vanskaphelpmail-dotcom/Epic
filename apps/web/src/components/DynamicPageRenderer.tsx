@@ -1028,31 +1028,25 @@ export const DynamicPageRenderer: React.FC<DynamicPageRendererProps> = ({
                 </div>
                 <div className={`grid grid-cols-1 ${(appConfig.footerLocations?.length || 0) > 1 ? 'md:grid-cols-2 max-w-4xl' : 'max-w-xl'} mx-auto gap-6`}>
                   {(appConfig.footerLocations?.length
-                    ? appConfig.footerLocations.map((loc) => ({
-                        city: loc.city,
-                        address: loc.address,
-                        phone: loc.phone,
-                        hours: '11:00 AM - 09:30 PM (Friday - Wednesday)',
-                      }))
-                    : [
-                        {
-                          city: 'Dhaka HQ Bailey Road',
-                          address: 'Shop No. 8, 3rd Floor, AQP Shopping Mall, 143/2 New Bailey Road, Dhaka 1217, Bangladesh',
-                          hours: '11:00 AM - 09:30 PM (Friday - Wednesday)',
-                          phone: '+880 1840-990700',
-                        },
-                      ]
+                    ? appConfig.footerLocations
+                    : []
                   ).map((loc) => (
-                    <div key={loc.city} className="bg-white border border-[#E5E5E5] p-6 rounded-2xl space-y-3 shadow-sm relative">
+                    <div key={`${loc.city}-${loc.address}`} className="bg-white border border-[#E5E5E5] p-6 rounded-2xl space-y-3 shadow-sm relative">
                       <span className="absolute top-4 right-4 text-[#555555]"><MapPin size={20} /></span>
-                      <h4 className="text-xs font-black text-[#0A0A0A] uppercase">{loc.city}</h4>
+                      <h4 className="text-xs font-black text-[#0A0A0A] uppercase">{loc.city || 'Outlet'}</h4>
                       <p className="text-[11px] text-[#555555] leading-relaxed font-sans">{loc.address}</p>
                       <div className="text-[9px] font-mono text-[#555555] space-y-1 pt-2 border-t border-[#E5E5E5]">
-                        <span className="block">HOURS: {loc.hours}</span>
-                        <span className="block">TELEPHONE: {loc.phone}</span>
+                        {loc.hours ? <span className="block">HOURS: {loc.hours}</span> : null}
+                        {loc.phone ? <span className="block">TELEPHONE: {loc.phone}</span> : null}
+                        {loc.email ? <span className="block">EMAIL: {loc.email}</span> : null}
                       </div>
                     </div>
                   ))}
+                  {!appConfig.footerLocations?.length ? (
+                    <p className="text-center text-xs text-[#555555] font-mono col-span-full">
+                      Outlet details coming soon — check back shortly.
+                    </p>
+                  ) : null}
                 </div>
               </div>
             )}

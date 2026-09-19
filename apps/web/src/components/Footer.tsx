@@ -147,11 +147,14 @@ export const Footer: React.FC<FooterProps> = ({ currentPage, setCurrentPage, app
           </h4>
           <div className="space-y-3">
             {appConfig.footerLocations.map((loc) => (
-              <div key={loc.city} className="border-l border-[#E5E5E5] pl-3 space-y-1">
+              <div key={`${loc.city}-${loc.address}`} className="border-l border-[#E5E5E5] pl-3 space-y-1">
                 <p className="font-bold text-[#0A0A0A] uppercase">{loc.city}</p>
                 <p className="text-[#0A0A0A]/70 text-[11px]">{loc.address}</p>
                 {loc.phone ? (
                   <p className="text-[10px] text-[#0A0A0A]/40 font-mono">{loc.phone}</p>
+                ) : null}
+                {loc.email ? (
+                  <p className="text-[10px] text-[#0A0A0A]/40 font-mono">{loc.email}</p>
                 ) : null}
               </div>
             ))}

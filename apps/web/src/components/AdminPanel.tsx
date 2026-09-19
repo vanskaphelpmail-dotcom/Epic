@@ -24,6 +24,7 @@ import { BrandMark } from './BrandMark';
 import { BrandWordmark } from './BrandWordmark';
 import { isBannerLive } from '../lib/bannerVisibility';
 import { persistOrders } from '../lib/orderStorage';
+import { getPrimaryOutlet, getShopBrandName } from '../lib/outletInfo';
 import { DEFAULT_HOMEPAGE_SECTIONS } from './DynamicPageRenderer';
 import {
   countProductsInSection,
@@ -5107,6 +5108,17 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({
                         placeholder="Helpline / phone"
                         className="w-full bg-emerald-50/40 border border-emerald-100 rounded-xl py-2 px-3 text-xs text-emerald-950 font-mono"
                       />
+                      <input
+                        type="email"
+                        value={loc.email || ''}
+                        onChange={(e) => {
+                          const copy = [...(appConfig.footerLocations || [])];
+                          copy[idx] = { ...copy[idx], email: e.target.value };
+                          onUpdateConfig({ ...appConfig, footerLocations: copy });
+                        }}
+                        placeholder="Outlet email (shown on invoices)"
+                        className="w-full bg-emerald-50/40 border border-emerald-100 rounded-xl py-2 px-3 text-xs text-emerald-950 font-mono"
+                      />
                     </div>
                   ))}
                 </div>
@@ -7613,9 +7625,9 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({
               setCustomers={setCustomers}
               formatPrice={formatPrice}
               staffName={staffName}
-              shopName={appConfig?.logoText || 'Epic Vanskap'}
-              shopAddress={appConfig?.footerLocations?.[0]?.address}
-              shopPhone={appConfig?.footerLocations?.[0]?.phone}
+              shopName={getShopBrandName(appConfig?.logoText)}
+              shopAddress={getPrimaryOutlet(appConfig?.footerLocations).address}
+              shopPhone={getPrimaryOutlet(appConfig?.footerLocations).phone}
             />
           )}
 
@@ -7625,9 +7637,9 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({
               setOrders={setOrders}
               formatPrice={formatPrice}
               staffName={staffName}
-              shopName={appConfig?.logoText || 'Epic Vanskap'}
-              shopAddress={appConfig?.footerLocations?.[0]?.address}
-              shopPhone={appConfig?.footerLocations?.[0]?.phone}
+              shopName={getShopBrandName(appConfig?.logoText)}
+              shopAddress={getPrimaryOutlet(appConfig?.footerLocations).address}
+              shopPhone={getPrimaryOutlet(appConfig?.footerLocations).phone}
             />
           )}
 
@@ -8088,23 +8100,26 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({
             </div>
           )}
 
-          {/* Locations: multi-outlet cards (same data as storefront footer / homepage) */}
+          {/* Locations: single source of truth for invoices, POS, footer, contact, homepage */}
           {activeSidebarTab === 'locations' && (
             <div className="space-y-6">
               <div className="border-b border-emerald-100 pb-4 flex flex-wrap items-center justify-between gap-3">
                 <div>
                   <h3 className="text-base font-bold uppercase text-emerald-950">Physical Outlet Cards</h3>
-                  <p className="text-[10px] text-emerald-700 font-mono">
-                    Add multiple outlets — shown on homepage store section, footer, and contact page for all visitors.
+                  <p className="text-[10px] text-emerald-700 font-mono max-w-xl">
+                    Edit once — updates website footer, homepage store section, contact page, customer order invoices, admin invoices, and shop POS receipts.
+                  </p>
+                  <p className="text-[10px] text-emerald-800 font-mono mt-1">
+                    Primary outlet (first card) is printed on all invoices.
                   </p>
                 </div>
                 <button
                   type="button"
                   onClick={() => {
                     const copy = [...(appConfig.footerLocations || [])];
-                    copy.push({ city: `Outlet ${copy.length + 1}`, address: '', phone: '+880 ' });
+                    copy.push({ city: `Outlet ${copy.length + 1}`, address: '', phone: '+880 ', email: '' });
                     onUpdateConfig({ ...appConfig, footerLocations: copy });
-                    showSaveFeedback('Outlet card added — save brand settings to sync for all users');
+                    showSaveFeedback('Outlet card added — changes sync for all visitors & invoices');
                   }}
                   className="bg-emerald-800 text-white text-[10px] font-black uppercase tracking-wider px-4 py-2 rounded-xl cursor-pointer"
                 >
@@ -8115,7 +8130,12 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({
                 {(appConfig.footerLocations || []).map((loc, idx) => (
                   <div key={idx} className="bg-white border border-emerald-100 p-5 rounded-2xl space-y-3 shadow-sm relative">
                     <div className="flex justify-between items-start">
-                      <h4 className="text-xs font-black text-emerald-950 uppercase">{loc.city || `Outlet ${idx + 1}`}</h4>
+                      <h4 className="text-xs font-black text-emerald-950 uppercase">
+                        {loc.city || `Outlet ${idx + 1}`}
+                        {idx === 0 ? (
+                          <span className="ml-2 text-[9px] font-mono font-bold text-emerald-700 normal-case">Primary · invoices</span>
+                        ) : null}
+                      </h4>
                       {(appConfig.footerLocations || []).length > 1 && (
                         <button
                           type="button"
@@ -8125,6 +8145,7 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({
                               ...appConfig,
                               footerLocations: (appConfig.footerLocations || []).filter((_, i) => i !== idx),
                             });
+                            showSaveFeedback('Outlet removed — invoices & site updated');
                           }}
                         >
                           Remove
@@ -8150,7 +8171,7 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({
                         copy[idx] = { ...copy[idx], address: e.target.value };
                         onUpdateConfig({ ...appConfig, footerLocations: copy });
                       }}
-                      placeholder="Address"
+                      placeholder="Full street address"
                     />
                     <input
                       className="w-full border border-emerald-100 rounded-xl px-3 py-2 text-xs font-mono"
@@ -8162,8 +8183,46 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({
                       }}
                       placeholder="Phone / helpline"
                     />
+                    <input
+                      className="w-full border border-emerald-100 rounded-xl px-3 py-2 text-xs font-mono"
+                      type="email"
+                      value={loc.email || ''}
+                      onChange={(e) => {
+                        const copy = [...(appConfig.footerLocations || [])];
+                        copy[idx] = { ...copy[idx], email: e.target.value };
+                        onUpdateConfig({ ...appConfig, footerLocations: copy });
+                      }}
+                      placeholder="Email (invoices & contact)"
+                    />
+                    <input
+                      className="w-full border border-emerald-100 rounded-xl px-3 py-2 text-xs"
+                      value={loc.hours || ''}
+                      onChange={(e) => {
+                        const copy = [...(appConfig.footerLocations || [])];
+                        copy[idx] = { ...copy[idx], hours: e.target.value };
+                        onUpdateConfig({ ...appConfig, footerLocations: copy });
+                      }}
+                      placeholder="Hours (optional)"
+                    />
                   </div>
                 ))}
+              </div>
+              <div className="flex flex-wrap items-center gap-3">
+                <button
+                  type="button"
+                  onClick={() => {
+                    onUpdateConfig({ ...appConfig, footerLocations: [...(appConfig.footerLocations || [])] });
+                    showSaveFeedback('Outlet details saved — live on invoices, POS, footer & contact');
+                    toast('Outlets published to website & invoices', 'success');
+                  }}
+                  className="inline-flex items-center gap-2 bg-emerald-900 text-white text-[11px] font-black uppercase tracking-wider px-5 py-2.5 rounded-xl cursor-pointer"
+                >
+                  <Save size={14} />
+                  Update outlets everywhere
+                </button>
+                <p className="text-[10px] text-emerald-700 font-mono">
+                  Preview primary: {getPrimaryOutlet(appConfig.footerLocations).city} · {getPrimaryOutlet(appConfig.footerLocations).phone || 'no phone'}
+                </p>
               </div>
             </div>
           )}
@@ -8571,11 +8630,25 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({
               <div className="min-w-0">
                 <div className="flex items-center gap-2.5 mb-1">
                   <BrandMark tone="red" imgClassName="w-10 h-10" />
-                  <BrandWordmark text="Epic Vanskap" wordClassName="text-xl" />
+                  <BrandWordmark text={getShopBrandName(appConfig.logoText)} wordClassName="text-xl" />
                 </div>
                 <p className="text-xs text-zinc-600">Authentic Retro & Match-Issue Football Kits</p>
-                <p className="text-[11px] text-zinc-500 font-mono mt-1">Shop no: B: 67-68, 1st Floor, Feni Garden City Market, Feni, 3900</p>
-                <p className="text-[11px] text-zinc-500 font-mono">Hotline: +880 1840-990700</p>
+                {(() => {
+                  const outlet = getPrimaryOutlet(appConfig.footerLocations);
+                  return (
+                    <>
+                      {outlet.address ? (
+                        <p className="text-[11px] text-zinc-500 font-mono mt-1">{outlet.address}</p>
+                      ) : null}
+                      {outlet.phone ? (
+                        <p className="text-[11px] text-zinc-500 font-mono">Hotline: {outlet.phone}</p>
+                      ) : null}
+                      {outlet.email ? (
+                        <p className="text-[11px] text-zinc-500 font-mono">Email: {outlet.email}</p>
+                      ) : null}
+                    </>
+                  );
+                })()}
               </div>
 
               <div className="text-right font-mono shrink-0">

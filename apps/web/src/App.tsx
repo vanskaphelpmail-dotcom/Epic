@@ -47,6 +47,12 @@ import {
   saveLocalWishlist,
 } from './lib/cartWishlistStorage';
 import {
+  getPrimaryOutlet,
+  getShopBrandName,
+  normalizeOutlets,
+  outletContactLines,
+} from './lib/outletInfo';
+import {
   homepageRowCategoryCandidates,
   canonicalTargetPageName,
   productMatchesListingCategory,
@@ -242,7 +248,12 @@ const DEFAULT_APP_CONFIG: AppConfig = {
   theme: 'bengal',
   footerAbout: "The world's premium destination for verified original vintage football jerseys. Founded by obsessive collectors, for obsessive collectors. Every kit undergoes a rigorous 12-point authentication process in our physical workshop in Feni, Bangladesh.",
   footerLocations: [
-    { city: 'Feni', address: 'Shop no: B: 67-68, 1st Floor, Feni Garden City Market, Feni, 3900', phone: '' },
+    {
+      city: 'Feni',
+      address: 'Shop no: B: 67-68, 1st Floor, Feni Garden City Market, Feni, 3900',
+      phone: '+880 1840-990700',
+      email: 'support@epicvanskap.com',
+    },
   ],
   footerCopyright: '© 2026 Epic Vanskap. All rights reserved.',
   currencySymbol: '৳',
@@ -739,9 +750,10 @@ export default function App() {
           parsed.logoText = 'Epic Vanskap';
         }
         parsed.logoSubtext = '';
-        parsed.footerLocations = [
-          { city: 'Feni', address: 'Shop no: B: 67-68, 1st Floor, Feni Garden City Market, Feni, 3900', phone: '' },
-        ];
+        // Keep admin-saved outlets; only fill default if missing/empty
+        const savedOutlets = normalizeOutlets(parsed.footerLocations);
+        parsed.footerLocations =
+          savedOutlets.length > 0 ? savedOutlets : DEFAULT_APP_CONFIG.footerLocations;
         parsed.menuItems = DEFAULT_APP_CONFIG.menuItems;
         parsed.pages = DEFAULT_APP_CONFIG.pages;
         if (!parsed.banners || !Array.isArray(parsed.banners) || parsed.banners.length === 0) {
@@ -1195,18 +1207,25 @@ export default function App() {
                 next.menuItems = DEFAULT_APP_CONFIG.menuItems;
                 next.pages = DEFAULT_APP_CONFIG.pages;
                 if (Array.isArray((settings as any).footerLocations) && (settings as any).footerLocations.length) {
-                  next.footerLocations = (settings as any).footerLocations;
+                  next.footerLocations = normalizeOutlets((settings as any).footerLocations);
                 }
               }
-              if (Array.isArray(cms.locations) && cms.locations.length) {
-                next.footerLocations = cms.locations.map((loc: any) => ({
-                  city: loc.city,
-                  address: loc.address,
-                  phone: loc.phone,
-                }));
+              // Prefer admin StoreSettings outlets; fall back to StoreLocation rows only if settings empty
+              if (
+                (!Array.isArray(next.footerLocations) || next.footerLocations.length < 1) &&
+                Array.isArray(cms.locations) &&
+                cms.locations.length
+              ) {
+                next.footerLocations = normalizeOutlets(
+                  cms.locations.map((loc: any) => ({
+                    city: loc.city,
+                    address: loc.address,
+                    phone: loc.phone,
+                    email: loc.email,
+                    hours: loc.hours,
+                  })),
+                );
               }
-              // Always prefer the single Feni storefront location
-              next.footerLocations = DEFAULT_APP_CONFIG.footerLocations;
               if (Array.isArray(cms.banners) && cms.banners.length) {
                 const defaultsById = new Map(
                   (DEFAULT_APP_CONFIG.banners || []).map((b) => [b.id, b]),
@@ -2797,16 +2816,16 @@ export default function App() {
                   <div className="flex items-center gap-2">
                     <BrandMark tone="red" imgClassName="w-8 h-8" />
                     <BrandWordmark
-                      text="Epic Vanskap"
+                      text={getShopBrandName(appConfig.logoText)}
                       onDark
                       wordClassName="text-sm md:text-base"
                     />
                   </div>
-                  <p className="text-[10px] text-zinc-600 mt-2.5 uppercase font-bold leading-relaxed">
-                    Premium Authenticated Football Kits<br />
-                    Shop No. 8, 3rd Floor, AQP Shopping Mall,<br />
-                    143/2 New Bailey Road, Dhaka 1217, Bangladesh<br />
-                    Email: support@epicvanskap.com • <span className="text-zinc-300 font-black">Phone: +880 1840-990700</span>
+                  <p className="text-[10px] text-zinc-600 mt-2.5 uppercase font-bold leading-relaxed whitespace-pre-line">
+                    {`Premium Authenticated Football Kits\n${outletContactLines(
+                      getPrimaryOutlet(appConfig.footerLocations),
+                      { includeEmail: true, fallbackEmail: 'support@epicvanskap.com' },
+                    ).join('\n')}`}
                   </p>
                 </div>
                 <div className="text-left md:text-right font-mono text-[11px] space-y-1">
@@ -3070,7 +3089,12 @@ export default function App() {
             currentPage === 'refund' ||
             currentPage === 'terms' ||
             currentPage === 'shipping') && (
-          <InfoPages pageType={currentPage} onBack={() => goToPage('listing')} />
+          <InfoPages
+            pageType={currentPage}
+            onBack={() => goToPage('listing')}
+            brandName={getShopBrandName(appConfig.logoText)}
+            outlets={appConfig.footerLocations}
+          />
         )}
 
       </main>
