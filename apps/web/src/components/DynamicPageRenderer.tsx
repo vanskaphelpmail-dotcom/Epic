@@ -375,7 +375,7 @@ export const DynamicPageRenderer: React.FC<DynamicPageRendererProps> = ({
               : compactShopIds.has(section.id)
                 ? `bg-transparent pt-3 pb-5 sm:pt-8 sm:pb-10 lg:py-10 my-0 ${getAnimationClass(section.animation)} transition-all duration-300 relative`
                 : section.id === 'community-gallery'
-                  ? `bg-white py-12 sm:py-16 my-0 ${getAnimationClass(section.animation)} transition-all duration-300 relative`
+                  ? `bg-white py-8 sm:py-12 md:py-16 my-0 overflow-x-hidden ${getAnimationClass(section.animation)} transition-all duration-300 relative`
                   : `${safeBg} ${section.padding} ${section.margin} ${getAnimationClass(section.animation)} transition-all duration-300 relative`;
         const headingColor = 'text-[#0A0A0A]';
         const subColor = 'text-[#555555]';

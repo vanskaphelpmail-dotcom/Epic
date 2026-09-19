@@ -2510,7 +2510,7 @@ export default function App() {
       <div className="flex w-full min-w-0 flex-1">
         <div className="flex-1 min-w-0 flex flex-col w-full">
       {/* MAIN BODY DISPLAY — pb for fixed mobile bottom nav (storefront only) */}
-      <main className={`flex-grow w-full min-w-0 overflow-x-hidden ${isAdminShell ? '' : 'pb-20 lg:pb-0'}`}>
+      <main className={`flex-grow w-full min-w-0 overflow-x-hidden ${isAdminShell ? '' : 'pb-[calc(5.25rem+env(safe-area-inset-bottom,0px))] lg:pb-0'}`}>
         
         {/* Secret admin portal — login or panel only (no storefront UI) */}
         {isAdminShell && (

@@ -31,7 +31,7 @@ export const WhatsAppFloat: React.FC<WhatsAppFloatProps> = ({ hidden = false }) 
       rel="noopener noreferrer"
       aria-label="Chat with us on WhatsApp"
       title="Chat on WhatsApp"
-      className="group fixed z-[40] flex items-center justify-center rounded-full bg-[#25D366] text-white border-2 border-[#20BD5A] shadow-lg shadow-[#25D366]/30 transition-all duration-300 ease-out hover:scale-110 hover:bg-[#20BD5A] hover:shadow-xl hover:shadow-[#25D366]/45 active:scale-95 motion-reduce:transition-none motion-reduce:hover:scale-100 bottom-[calc(4.25rem+env(safe-area-inset-bottom,0px))] right-[max(1rem,env(safe-area-inset-right))] lg:bottom-6 sm:right-6 lg:right-6 w-14 h-14 sm:w-[3.75rem] sm:h-[3.75rem]"
+      className="group fixed z-[40] flex items-center justify-center rounded-full bg-[#25D366] text-white border-2 border-[#20BD5A] shadow-lg shadow-[#25D366]/30 transition-all duration-300 ease-out hover:scale-110 hover:bg-[#20BD5A] hover:shadow-xl hover:shadow-[#25D366]/45 active:scale-95 motion-reduce:transition-none motion-reduce:hover:scale-100 bottom-[calc(5.5rem+env(safe-area-inset-bottom,0px))] right-[max(0.75rem,env(safe-area-inset-right))] sm:right-6 lg:bottom-6 lg:right-6 w-12 h-12 sm:w-[3.75rem] sm:h-[3.75rem] touch-manipulation"
       id="whatsapp-float-button"
     >
       <WhatsAppIcon className="w-7 h-7 sm:w-8 sm:h-8 drop-shadow-sm transition-transform duration-300 group-hover:rotate-[-8deg] motion-reduce:group-hover:rotate-0" />

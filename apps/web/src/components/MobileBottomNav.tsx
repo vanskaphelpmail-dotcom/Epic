@@ -60,7 +60,7 @@ export const MobileBottomNav: React.FC<MobileBottomNavProps> = ({
   }
 
   const itemClass = (tab: MobileTab) =>
-    `flex flex-1 flex-col items-center justify-center gap-0.5 py-1.5 min-w-0 transition-colors cursor-pointer ${
+    `flex flex-1 flex-col items-center justify-center gap-0.5 py-1.5 min-w-0 touch-manipulation transition-colors cursor-pointer ${
       active === tab ? 'text-[#E30613]' : 'text-[#0A0A0A]'
     }`;
 
@@ -72,18 +72,18 @@ export const MobileBottomNav: React.FC<MobileBottomNavProps> = ({
   return (
     <nav
       aria-label="Mobile primary"
-      className="lg:hidden fixed inset-x-0 bottom-0 z-[45] bg-white border-t border-[#E5E5E5] shadow-[0_-4px_24px_rgba(0,0,0,0.08)]"
+      className="lg:hidden fixed inset-x-0 bottom-0 z-[45] bg-white/95 backdrop-blur-md border-t border-[#E5E5E5] shadow-[0_-4px_24px_rgba(0,0,0,0.08)]"
       style={{ paddingBottom: 'env(safe-area-inset-bottom, 0px)' }}
     >
-      <div className="flex items-stretch justify-between px-0.5 pt-1 max-w-lg mx-auto">
+      <div className="flex items-stretch justify-between px-0.5 pt-1.5 pb-1 max-w-lg mx-auto w-full min-w-0">
         <button type="button" className={itemClass('home')} onClick={() => go('home', onHome)} aria-current={active === 'home' ? 'page' : undefined}>
           <Home size={22} strokeWidth={active === 'home' ? 2.5 : 1.75} />
-          <span className={`text-[9px] leading-none ${active === 'home' ? 'font-bold' : 'font-medium'}`}>Home</span>
+          <span className={`text-[9px] leading-none truncate max-w-full ${active === 'home' ? 'font-bold' : 'font-medium'}`}>Home</span>
         </button>
 
         <button type="button" className={itemClass('categories')} onClick={() => go('categories', onCategories)} aria-current={active === 'categories' ? 'page' : undefined}>
           <LayoutGrid size={22} strokeWidth={active === 'categories' ? 2.5 : 1.75} />
-          <span className={`text-[9px] leading-none ${active === 'categories' ? 'font-bold' : 'font-medium'}`}>Categories</span>
+          <span className={`text-[9px] leading-none truncate max-w-full ${active === 'categories' ? 'font-bold' : 'font-medium'}`}>Categories</span>
         </button>
 
         <button
@@ -105,26 +105,26 @@ export const MobileBottomNav: React.FC<MobileBottomNavProps> = ({
               </span>
             )}
           </span>
-          <span className={`text-[9px] leading-none ${active === 'cart' ? 'font-bold' : 'font-medium'}`}>Cart</span>
+          <span className={`text-[9px] leading-none truncate max-w-full ${active === 'cart' ? 'font-bold' : 'font-medium'}`}>Cart</span>
         </button>
 
         <a
           href={WHATSAPP_URL}
           target="_blank"
           rel="noopener noreferrer"
-          className={`flex flex-1 flex-col items-center justify-center gap-0.5 py-1.5 min-w-0 transition-colors cursor-pointer ${WHATSAPP_GREEN}`}
+          className={`flex flex-1 flex-col items-center justify-center gap-0.5 py-1.5 min-w-0 transition-colors cursor-pointer touch-manipulation ${WHATSAPP_GREEN}`}
           onClick={() => setForcedTab('whatsapp')}
           aria-label="Chat on WhatsApp"
         >
           <WhatsAppIcon className={`w-[22px] h-[22px] ${WHATSAPP_GREEN}`} />
-          <span className={`text-[9px] leading-none ${WHATSAPP_GREEN} ${active === 'whatsapp' ? 'font-bold' : 'font-medium'}`}>
+          <span className={`text-[9px] leading-none truncate max-w-full ${WHATSAPP_GREEN} ${active === 'whatsapp' ? 'font-bold' : 'font-medium'}`}>
             WhatsApp
           </span>
         </a>
 
         <button type="button" className={itemClass('search')} onClick={() => go('search', onSearch)}>
           <Search size={22} strokeWidth={active === 'search' ? 2.5 : 1.75} />
-          <span className={`text-[9px] leading-none ${active === 'search' ? 'font-bold' : 'font-medium'}`}>Search</span>
+          <span className={`text-[9px] leading-none truncate max-w-full ${active === 'search' ? 'font-bold' : 'font-medium'}`}>Search</span>
         </button>
       </div>
     </nav>
