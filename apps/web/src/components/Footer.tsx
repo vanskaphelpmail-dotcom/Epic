@@ -76,7 +76,7 @@ export const Footer: React.FC<FooterProps> = ({ currentPage, setCurrentPage, app
       id: 2,
       name: 'Fahim Chowdhury',
       quote:
-        'Been looking for the Spain 2026 Yamal jersey for literal years. Finally secured it at Epic Vanskap BD with custom physics certificates. Unrivaled experience.',
+        'Been looking for the Spain 2026 Yamal jersey for literal years. Finally secured it at Epic Vanskap with custom physics certificates. Unrivaled experience.',
       rating: 5,
     },
     {

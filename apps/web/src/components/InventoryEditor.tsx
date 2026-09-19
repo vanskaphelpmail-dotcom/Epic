@@ -201,7 +201,7 @@ export const InventoryEditor: React.FC<InventoryEditorProps> = ({
       originalPrice: formHasDiscount ? formOriginalPrice : null,
       discount: formHasDiscount ? discountAmount : null,
       sellingPrice: salePrice,
-      description: formDescription || 'Special customized vintage retro kit added to Epic Vanskap BD inventory.',
+      description: formDescription || 'Special customized vintage retro kit added to Epic Vanskap inventory.',
       image: imageSrc,
       images: [imageSrc] as string[],
       brand: formBrand,

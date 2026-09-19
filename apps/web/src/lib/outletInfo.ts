@@ -50,7 +50,10 @@ export function getPrimaryOutlet(
 
 export function getShopBrandName(logoText?: string | null): string {
   const t = String(logoText || '').trim();
-  return t || 'Epic Vanskap';
+  if (!t || t === 'THE VAULT BD' || t === 'Epic Vanskap BD') return 'Epic Vanskap';
+  // Strip trailing " BD" from legacy brand strings
+  const withoutBd = t.replace(/\s+BD\s*$/i, '').trim();
+  return withoutBd || 'Epic Vanskap';
 }
 
 /** Lines for invoice / receipt headers (address, phone, email). */

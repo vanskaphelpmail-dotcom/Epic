@@ -1,5 +1,5 @@
 type BrandWordmarkProps = {
-  /** Full brand string, e.g. "Epic Vanskap" or "Epic Vanskap BD" */
+  /** Full brand string, e.g. "Epic Vanskap" or "Epic Vanskap" */
   text?: string;
   className?: string;
   /** Extra classes on each word span (size overrides, etc.) */

@@ -1116,7 +1116,7 @@ export default function App() {
                 next.logoText =
                   rawLogo === 'THE VAULT BD' || rawLogo === 'Epic Vanskap BD'
                     ? 'Epic Vanskap'
-                    : rawLogo;
+                    : getShopBrandName(rawLogo);
                 next.logoSubtext = settings.logoSubtext || prev.logoSubtext;
                 next.theme = (settings.theme as AppConfig['theme']) || prev.theme;
                 next.footerAbout = settings.footerAbout || prev.footerAbout;
@@ -2993,7 +2993,7 @@ export default function App() {
                 {/* Vault Stamp / Guarantee */}
                 <div className="border-4 border-double border-zinc-400 rounded-full px-5 py-2 text-center text-zinc-500 select-none scale-90 rotate-[-2deg] bg-white">
                   <p className="text-[8px] font-black tracking-widest uppercase">OFFICIAL SEAL</p>
-                  <p className="text-[11px] font-black tracking-tight text-zinc-800 uppercase">Epic Vanskap BD AUTHENTIC</p>
+                  <p className="text-[11px] font-black tracking-tight text-zinc-800 uppercase">Epic Vanskap AUTHENTIC</p>
                   <p className="text-[8px] font-mono tracking-widest uppercase font-bold">100% DEADSTOCK CO.</p>
                 </div>
               </div>

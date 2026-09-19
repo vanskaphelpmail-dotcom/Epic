@@ -934,7 +934,7 @@ export const DynamicPageRenderer: React.FC<DynamicPageRendererProps> = ({
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
                   {[
                     { id: 1, name: 'Siyam Rahman', quote: 'The AC Milan 1996 shirt has absolute perfect manufacturer stitching tags. Authentic holographic stamps included. Highly recommended for premium kit collectors in Dhaka.', rating: 5, date: '2026-07-12' },
-                    { id: 2, name: 'Fahim Chowdhury', quote: 'Been looking for the Spain 2026 Yamal jersey for literal years. Finally secured it at Epic Vanskap BD with custom physics certificates. Unrivaled experience.', rating: 5, date: '2026-07-08' },
+                    { id: 2, name: 'Fahim Chowdhury', quote: 'Been looking for the Spain 2026 Yamal jersey for literal years. Finally secured it at Epic Vanskap with custom physics certificates. Unrivaled experience.', rating: 5, date: '2026-07-08' },
                     { id: 3, name: 'Anika Bushra', quote: 'Extremely fast delivery inside Dhaka (secured within 24 hours). The vacuum packaging smelled wonderful, complete with care instructions.', rating: 5, date: '2026-07-05' }
                   ].map((t) => (
                     <div key={t.id} className="bg-white border border-[#E5E5E5] p-5 rounded-2xl space-y-3 relative shadow-sm">

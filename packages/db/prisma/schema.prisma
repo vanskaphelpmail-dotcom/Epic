@@ -1,5 +1,5 @@
 // =============================================================================
-// Epic Vanskap BD — Enterprise Prisma Schema (Neon PostgreSQL)
+// Epic Vanskap — Enterprise Prisma Schema (Neon PostgreSQL)
 // =============================================================================
 // Prisma 7: connection URLs live in prisma.config.ts (CLI) and packages/db/src/index.ts (runtime).
 // Neon setup:
@@ -738,7 +738,7 @@ model PageSection {
 
 model StoreSettings {
   id                 String   @id @default("default")
-  logoText           String   @default("Epic Vanskap BD")
+  logoText           String   @default("Epic Vanskap")
   logoSubtext        String   @default("")
   theme              String   @default("bengal")
   footerAbout        String   @db.Text

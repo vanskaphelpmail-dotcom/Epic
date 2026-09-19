@@ -308,7 +308,7 @@ export const InfoPages: React.FC<InfoPagesProps> = ({ pageType, onBack, brandNam
           </div>
 
           <p>
-            Epic Vanskap BD is strictly dedicated to safeguarding data privacy, secure SSL token transactions, and legal consumer transparency.
+            Epic Vanskap is strictly dedicated to safeguarding data privacy, secure SSL token transactions, and legal consumer transparency.
           </p>
           <div className="bg-zinc-900 p-5 rounded-xl border border-zinc-800 text-[11px] space-y-2 font-mono">
             <p className="text-white font-bold">[SECTION A: SOURCE TRANSPAREIVITY]</p>
