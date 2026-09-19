@@ -76,10 +76,18 @@ export const MobileBottomNav: React.FC<MobileBottomNavProps> = ({
       style={{ paddingBottom: 'env(safe-area-inset-bottom, 0px)' }}
     >
       <div className="flex items-stretch justify-between px-0.5 pt-1.5 pb-1 max-w-lg mx-auto w-full min-w-0">
-        <button type="button" className={itemClass('home')} onClick={() => go('home', onHome)} aria-current={active === 'home' ? 'page' : undefined}>
+        <a
+          href="/"
+          className={itemClass('home')}
+          onClick={(e) => {
+            e.preventDefault();
+            go('home', onHome);
+          }}
+          aria-current={active === 'home' ? 'page' : undefined}
+        >
           <Home size={22} strokeWidth={active === 'home' ? 2.5 : 1.75} />
           <span className={`text-[9px] leading-none truncate max-w-full ${active === 'home' ? 'font-bold' : 'font-medium'}`}>Home</span>
-        </button>
+        </a>
 
         <button type="button" className={itemClass('categories')} onClick={() => go('categories', onCategories)} aria-current={active === 'categories' ? 'page' : undefined}>
           <LayoutGrid size={22} strokeWidth={active === 'categories' ? 2.5 : 1.75} />

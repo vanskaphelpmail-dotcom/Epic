@@ -145,10 +145,18 @@ export const Footer: React.FC<FooterProps> = ({ currentPage, setCurrentPage, app
         
         {/* Brand Information Column */}
         <div className="space-y-4">
-          <div className="flex items-center gap-3">
+          <a
+            href="/"
+            onClick={(e) => {
+              e.preventDefault();
+              setCurrentPage('home');
+            }}
+            className="flex items-center gap-3 no-underline text-inherit"
+            aria-label="Epic Vanskap home"
+          >
             <BrandMark tone="red" imgClassName="w-7 h-7" />
             <BrandWordmark text={appConfig.logoText || 'Epic Vanskap'} wordClassName="text-sm" />
-          </div>
+          </a>
           <p className="text-[#0A0A0A]/70 leading-relaxed">
             {appConfig.footerAbout}
           </p>

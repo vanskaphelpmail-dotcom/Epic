@@ -1,33 +1,42 @@
 import type { Metadata, Viewport } from "next";
 import { GoogleAnalytics } from "@/src/components/GoogleAnalytics";
+import {
+  SITE_DESCRIPTION,
+  SITE_NAME,
+  SITE_OG_IMAGE,
+  SITE_ORIGIN,
+  SITE_TITLE,
+} from "@/src/lib/siteSeo";
 import "./globals.css";
 
 export const metadata: Metadata = {
-  metadataBase: new URL("https://www.epicvanskap.com"),
+  metadataBase: new URL(SITE_ORIGIN),
   title: {
-    default: "Epic Vanskap — Authentic Football Jerseys",
-    template: "%s | Epic Vanskap",
+    default: SITE_TITLE,
+    template: `%s | ${SITE_NAME}`,
   },
-  description:
-    "Epic Vanskap — authentic classic and modern football jerseys for collectors in Bangladesh. Shop verified kits online. Feni Garden City Market outlet.",
-  applicationName: "Epic Vanskap",
-  alternates: {
-    canonical: "https://www.epicvanskap.com/",
-  },
+  description: SITE_DESCRIPTION,
+  applicationName: SITE_NAME,
   openGraph: {
     type: "website",
-    url: "https://www.epicvanskap.com/",
-    siteName: "Epic Vanskap",
-    title: "Epic Vanskap — Authentic Football Jerseys",
-    description:
-      "Authentic classic and modern football jerseys for collectors in Bangladesh. Verified kits, Player Edition, Retro, and more.",
+    siteName: SITE_NAME,
+    title: SITE_TITLE,
+    description: SITE_DESCRIPTION,
     locale: "en_BD",
+    images: [
+      {
+        url: SITE_OG_IMAGE,
+        width: 512,
+        height: 512,
+        alt: SITE_NAME,
+      },
+    ],
   },
   twitter: {
     card: "summary_large_image",
-    title: "Epic Vanskap — Authentic Football Jerseys",
-    description:
-      "Authentic classic and modern football jerseys for collectors in Bangladesh.",
+    title: SITE_TITLE,
+    description: SITE_DESCRIPTION,
+    images: [SITE_OG_IMAGE],
   },
   robots: {
     index: true,

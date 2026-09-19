@@ -32,6 +32,32 @@ const nextConfig: NextConfig = {
       bodySizeLimit: "10mb",
     },
   },
+  async redirects() {
+    return [
+      // Prefer www + https (middleware also enforces; this covers static edge cases)
+      {
+        source: "/:path*",
+        has: [{ type: "host", value: "epicvanskap.com" }],
+        destination: "https://www.epicvanskap.com/:path*",
+        permanent: true,
+      },
+      {
+        source: "/home",
+        destination: "/",
+        permanent: true,
+      },
+      {
+        source: "/index",
+        destination: "/",
+        permanent: true,
+      },
+      {
+        source: "/index.html",
+        destination: "/",
+        permanent: true,
+      },
+    ];
+  },
 };
 
 export default nextConfig;

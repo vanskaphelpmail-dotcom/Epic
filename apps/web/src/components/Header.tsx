@@ -340,14 +340,17 @@ export const Header: React.FC<HeaderProps> = ({
       {/* Top Navigation Row */}
       <div className="bg-white border-b border-[#E5E5E5] py-3 sm:py-4 px-2.5 sm:px-4 lg:px-12 flex justify-between items-center gap-1.5 sm:gap-2 min-w-0 overflow-visible transition-all duration-300">
         
-        {/* Brand Logo */}
-        <div
-          onClick={() => {
+        {/* Brand Logo — real <a href="/"> for crawlers + SPA navigate on click */}
+        <a
+          href="/"
+          onClick={(e) => {
+            e.preventDefault();
             setCurrentPage('home');
             setSelectedCategory('All');
           }}
-          className="flex items-center gap-2 sm:gap-3 cursor-pointer group min-w-0 flex-1 overflow-visible py-0.5 pr-1 lg:max-w-none"
+          className="flex items-center gap-2 sm:gap-3 cursor-pointer group min-w-0 flex-1 overflow-visible py-0.5 pr-1 lg:max-w-none no-underline text-inherit"
           id="brand-logo"
+          aria-label="Epic Vanskap home"
         >
           <BrandMark interactive tone="red" framed imgClassName="w-7 h-7 sm:w-8 sm:h-8" />
           
@@ -360,7 +363,7 @@ export const Header: React.FC<HeaderProps> = ({
               <span className="hidden sm:block text-[9px] font-mono text-[#0A0A0A]/50 tracking-wider uppercase mt-0.5 truncate">{appConfig.logoSubtext}</span>
             ) : null}
           </div>
-        </div>
+        </a>
 
         {/* Search Bar - Desktop */}
         <div className="relative hidden lg:block w-full max-w-lg mx-6">

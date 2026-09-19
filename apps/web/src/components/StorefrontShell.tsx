@@ -1,0 +1,26 @@
+"use client";
+
+import dynamic from "next/dynamic";
+
+const StorefrontApp = dynamic(() => import("@/src/App"), {
+  ssr: false,
+  loading: () => (
+    <div className="min-h-screen flex items-center justify-center bg-white">
+      <div className="flex flex-col items-center gap-3" role="status" aria-label="Loading">
+        <img
+          src="/epic-vanskap-logo.png?v=1"
+          alt="Epic Vanskap"
+          className="w-10 h-10 rounded-xl object-contain bg-black"
+          width={40}
+          height={40}
+        />
+        <div className="w-6 h-6 border-2 border-red-100 border-t-red-600 rounded-full animate-spin" />
+      </div>
+    </div>
+  ),
+});
+
+/** Client SPA shell — SEO metadata/SSR content live in the server page wrapper. */
+export function StorefrontShell() {
+  return <StorefrontApp />;
+}
