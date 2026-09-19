@@ -225,8 +225,8 @@ export function normalizeHomepageSections(sections: PageSection[]): PageSection[
     // Storefront is light — never keep dark CMS section paints
     bgColor: 'bg-transparent',
   }));
-  return ensureCatalogSectionAtBottom(
-    ensureCustomerFeedbackBeforeStoreLocations(
+  return ensureCustomerFeedbackBeforeStoreLocations(
+    ensureCatalogSectionAtBottom(
       ensureCommunityGalleryAfterPremierLeague(
         ensureAllJerseysSection(ensureJerseyHomepageOrder(darkened)),
       ),
