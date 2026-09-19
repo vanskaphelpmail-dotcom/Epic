@@ -99,6 +99,9 @@ function shouldDropHomepageSection(s: PageSection): boolean {
   if (isRemovedHomepageCategory(s.productCategory)) return true;
   if (isRemovedHomepageCategory(s.title)) return true;
   if (isRemovedHomepageCategory(s.name)) return true;
+  // Homepage dump row only — does not affect the All Jerseys listing page or nav
+  if (/^all\s*jerseys$/i.test(String(s.title || '').trim())) return true;
+  if (/^all\s*jerseys$/i.test(String(s.name || '').trim())) return true;
   // Auto rows: product-row-mls, product-row-new-in, etc.
   if (/^product-row-/i.test(s.id)) {
     const fromId = s.id.replace(/^product-row-/i, '').replace(/-/g, ' ');
