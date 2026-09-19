@@ -69,18 +69,18 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
     };
   }
 
-  // Homepage
+  // Homepage — always absolute www URL with trailing slash (matches sitemap + JSON-LD)
   if (segments.length === 0) {
+    const homeUrl = absoluteUrl("/");
     return {
       title: { absolute: SITE_TITLE },
       description: SITE_DESCRIPTION,
       alternates: {
-        // Relative "/" resolves against metadataBase → preferred www homepage
-        canonical: "/",
+        canonical: homeUrl,
       },
       openGraph: {
         type: "website",
-        url: absoluteUrl("/"),
+        url: homeUrl,
         siteName: SITE_NAME,
         title: SITE_TITLE,
         description: SITE_DESCRIPTION,
