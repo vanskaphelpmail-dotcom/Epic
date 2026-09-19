@@ -293,6 +293,26 @@ cmsRouter.get("/homepage", async (_req, res) => {
 
     const heroSlides = banners.filter((b) => b.type === "HERO_SLIDER" && b.status === "ACTIVE");
 
+    // Stale Prisma clients omit new Json columns — always hydrate from SQL when missing
+    let customerFeedbackGallery =
+      settings &&
+      (settings as { customerFeedbackGallery?: unknown }).customerFeedbackGallery &&
+      typeof (settings as { customerFeedbackGallery?: unknown }).customerFeedbackGallery ===
+        "object"
+        ? (settings as { customerFeedbackGallery: unknown }).customerFeedbackGallery
+        : null;
+    if (!customerFeedbackGallery) {
+      try {
+        const rows = await prisma.$queryRaw<
+          Array<{ customerFeedbackGallery: unknown }>
+        >`SELECT "customerFeedbackGallery" FROM "store_settings" WHERE id = 'default' LIMIT 1`;
+        const raw = rows?.[0]?.customerFeedbackGallery;
+        if (raw && typeof raw === "object") customerFeedbackGallery = raw;
+      } catch (err) {
+        console.warn("[GET /cms/homepage] customerFeedbackGallery SQL fallback:", err);
+      }
+    }
+
     const normalizedSettings = settings
       ? {
           ...settings,
@@ -342,13 +362,7 @@ cmsRouter.get("/homepage", async (_req, res) => {
             typeof (settings as { communityGallery?: unknown }).communityGallery === "object"
               ? (settings as { communityGallery: unknown }).communityGallery
               : undefined,
-          customerFeedbackGallery:
-            settings &&
-            (settings as { customerFeedbackGallery?: unknown }).customerFeedbackGallery &&
-            typeof (settings as { customerFeedbackGallery?: unknown }).customerFeedbackGallery ===
-              "object"
-              ? (settings as { customerFeedbackGallery: unknown }).customerFeedbackGallery
-              : undefined,
+          customerFeedbackGallery: customerFeedbackGallery || undefined,
         }
       : null;
 

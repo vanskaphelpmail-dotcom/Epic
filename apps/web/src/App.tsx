@@ -89,7 +89,7 @@ import { CustomerAuth } from './components/CustomerAuth';
 import { DynamicPageRenderer } from './components/DynamicPageRenderer';
 import { MobileBottomNav } from './components/MobileBottomNav';
 import { UiFeedbackHost, toast } from './components/UiFeedback';
-import { ArrowRight, CheckCircle, ShieldCheck, Heart, Sparkles, MessageSquare, BookOpen, Star, Printer, Receipt, ShoppingBag, Download } from 'lucide-react';
+import { ArrowRight, CheckCircle, ShieldCheck, Heart, Sparkles, MessageSquare, BookOpen, Star, Printer, Receipt, ShoppingBag, Download, MapPin } from 'lucide-react';
 
 const INITIAL_SLIDES: CarouselSlide[] = [
   {
@@ -3155,10 +3155,69 @@ export default function App() {
 
       {!isAdminShell && (
         <>
-          {/* Customers Feedback on non-home pages (home shows it before Outlets in page sections) */}
-          {currentPage !== 'home' && (
+          {/* Customers Feedback — every storefront page, immediately before Outlets on home */}
+          <div
+            id="section-customer-feedback-gallery"
+            className="bg-white w-full max-w-[100vw] min-w-0 overflow-x-hidden"
+          >
             <CustomerFeedbackGallerySection config={appConfig.customerFeedbackGallery} />
+          </div>
+
+          {/* Physical Outlets — home only (was a homepage CMS section) */}
+          {currentPage === 'home' && (
+            <section
+              id="section-store-locations"
+              className="bg-transparent py-12 my-0 w-full"
+            >
+              <div className="max-w-7xl mx-auto px-4 sm:px-6 space-y-8">
+                <div className="text-center space-y-2">
+                  <h2 className="text-xl md:text-2xl font-black uppercase tracking-tight text-[#0A0A0A]">
+                    PHYSICAL OUTLET POINTS
+                  </h2>
+                  <p className="text-xs font-mono text-[#555555]">
+                    Visit us for physical sizing and authentications
+                  </p>
+                </div>
+                <div
+                  className={`grid grid-cols-1 ${
+                    (appConfig.footerLocations?.length || 0) > 1
+                      ? 'md:grid-cols-2 max-w-4xl'
+                      : 'max-w-xl'
+                  } mx-auto gap-6`}
+                >
+                  {(appConfig.footerLocations?.length ? appConfig.footerLocations : []).map(
+                    (loc) => (
+                      <div
+                        key={`${loc.city}-${loc.address}`}
+                        className="bg-white border border-[#E5E5E5] p-6 rounded-2xl space-y-3 shadow-sm relative"
+                      >
+                        <span className="absolute top-4 right-4 text-[#555555]">
+                          <MapPin size={20} />
+                        </span>
+                        <h4 className="text-xs font-black text-[#0A0A0A] uppercase">
+                          {loc.city || 'Outlet'}
+                        </h4>
+                        <p className="text-[11px] text-[#555555] leading-relaxed font-sans">
+                          {loc.address}
+                        </p>
+                        <div className="text-[9px] font-mono text-[#555555] space-y-1 pt-2 border-t border-[#E5E5E5]">
+                          {loc.hours ? <span className="block">HOURS: {loc.hours}</span> : null}
+                          {loc.phone ? <span className="block">TELEPHONE: {loc.phone}</span> : null}
+                          {loc.email ? <span className="block">EMAIL: {loc.email}</span> : null}
+                        </div>
+                      </div>
+                    ),
+                  )}
+                  {!appConfig.footerLocations?.length ? (
+                    <p className="text-center text-xs text-[#555555] font-mono col-span-full">
+                      Outlet details coming soon — check back shortly.
+                    </p>
+                  ) : null}
+                </div>
+              </div>
+            </section>
           )}
+
           {/* Embedded Brand Footer — extra space above fixed mobile bottom nav */}
           <div className="pb-20 lg:pb-0">
             <Footer currentPage={currentPage} setCurrentPage={setCurrentPageNav} appConfig={appConfig} />

@@ -13,9 +13,7 @@ import { isBannerLive, isHeroBannerType } from '../lib/bannerVisibility';
 import { flyProductToCart } from '../lib/flyToCart';
 import { getProductsForHomepageSection, isCatalogAssignedProduct, isProductRowSection, isRemovedHomepageCategory, normalizeHomepageSections, resolveSectionCategory } from '../lib/homepageSections';
 import { CommunityGallerySection } from './CommunityGallerySection';
-import { CustomerFeedbackGallerySection } from './CustomerFeedbackGallerySection';
 import { getActiveCommunityImages, normalizeCommunityGallery } from '../lib/communityGallery';
-import { getActiveCustomerFeedbackImages, normalizeCustomerFeedbackGallery } from '../lib/customerFeedbackGallery';
 import { buildCatalogSearchKeywords, productMatchesSearchQuery, productMatchesNationalTeam } from '../lib/catalogSearch';
 import { DEFAULT_FALLBACK_SIZES } from '../lib/productSizes';
 import {
@@ -30,7 +28,7 @@ import {
 } from '../lib/dailyDeals';
 import { 
   Star, ArrowRight, Sparkles, Flame, Percent, Trophy, RefreshCw, 
-  Layers, Eye, ShieldCheck, Mail, MapPin, HelpCircle, 
+  Layers, Eye, ShieldCheck, Mail, HelpCircle, 
   ChevronRight, ChevronLeft, Calendar, UserCheck, AlertCircle, ShoppingBag, BadgeCheck, X
 } from 'lucide-react';
 import type { BannerConfig } from '../types';
@@ -343,9 +341,8 @@ export const DynamicPageRenderer: React.FC<DynamicPageRendererProps> = ({
           const gallery = normalizeCommunityGallery(appConfig.communityGallery);
           if (gallery.enabled === false || getActiveCommunityImages(gallery).length === 0) return null;
         }
-        // Customers Feedback is forced immediately before Outlets (see store-locations).
-        // Skip the CMS row here to avoid duplicates / order races with Catalog.
-        if (section.id === 'customer-feedback-gallery') {
+        // Customers Feedback + Outlets are rendered in App.tsx (guaranteed before footer).
+        if (section.id === 'customer-feedback-gallery' || section.id === 'store-locations') {
           return null;
         }
         if (section.id === 'trending-searches' && trendingKeywords.length === 0) return null;
@@ -973,62 +970,7 @@ export const DynamicPageRenderer: React.FC<DynamicPageRendererProps> = ({
             {/* 20. NEWSLETTER — customer signup removed */}
             {section.id === 'newsletter' && null}
 
-            {/* 21. CUSTOMERS FEEDBACK (always immediately before Outlets) + STORE LOCATIONS */}
-            {section.id === 'store-locations' && (
-              <>
-                {(() => {
-                  const feedback = normalizeCustomerFeedbackGallery(
-                    appConfig.customerFeedbackGallery,
-                  );
-                  if (
-                    feedback.enabled === false ||
-                    getActiveCustomerFeedbackImages(feedback).length === 0
-                  ) {
-                    return null;
-                  }
-                  return (
-                    <div
-                      id="section-customer-feedback-gallery"
-                      className="bg-white py-8 sm:py-12 md:py-16 my-0 overflow-x-hidden w-full"
-                    >
-                      <CustomerFeedbackGallerySection
-                        config={feedback}
-                        headingFallback="CUSTOMERS FEEDBACK"
-                        subtitleFallback="Real photos from verified buyers"
-                      />
-                    </div>
-                  );
-                })()}
-                <div className="max-w-7xl mx-auto px-4 sm:px-6 space-y-8">
-                  <div className="text-center space-y-2">
-                    <h2 className={`text-xl md:text-2xl font-black uppercase tracking-tight ${headingColor}`}>{section.title || 'VISIT OUR OUTLET VAULTS'}</h2>
-                    <p className={`text-xs font-mono ${subColor}`}>{section.subtitle || 'Stop by for sizing configurations and physically authenticated checks'}</p>
-                  </div>
-                  <div className={`grid grid-cols-1 ${(appConfig.footerLocations?.length || 0) > 1 ? 'md:grid-cols-2 max-w-4xl' : 'max-w-xl'} mx-auto gap-6`}>
-                    {(appConfig.footerLocations?.length
-                      ? appConfig.footerLocations
-                      : []
-                    ).map((loc) => (
-                      <div key={`${loc.city}-${loc.address}`} className="bg-white border border-[#E5E5E5] p-6 rounded-2xl space-y-3 shadow-sm relative">
-                        <span className="absolute top-4 right-4 text-[#555555]"><MapPin size={20} /></span>
-                        <h4 className="text-xs font-black text-[#0A0A0A] uppercase">{loc.city || 'Outlet'}</h4>
-                        <p className="text-[11px] text-[#555555] leading-relaxed font-sans">{loc.address}</p>
-                        <div className="text-[9px] font-mono text-[#555555] space-y-1 pt-2 border-t border-[#E5E5E5]">
-                          {loc.hours ? <span className="block">HOURS: {loc.hours}</span> : null}
-                          {loc.phone ? <span className="block">TELEPHONE: {loc.phone}</span> : null}
-                          {loc.email ? <span className="block">EMAIL: {loc.email}</span> : null}
-                        </div>
-                      </div>
-                    ))}
-                    {!appConfig.footerLocations?.length ? (
-                      <p className="text-center text-xs text-[#555555] font-mono col-span-full">
-                        Outlet details coming soon — check back shortly.
-                      </p>
-                    ) : null}
-                  </div>
-                </div>
-              </>
-            )}
+            {/* 21. STORE LOCATIONS + Customers Feedback — rendered in App.tsx */}
 
           </div>
         );
