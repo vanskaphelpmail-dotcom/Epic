@@ -271,11 +271,8 @@ export const CommunityGallerySection: React.FC<CommunityGallerySectionProps> = (
             onPointerUp={endDrag}
             onPointerCancel={endDrag}
           >
-            {/* Reserve height to avoid layout shift while images load */}
-            <div
-              className="min-h-[210px] sm:min-h-[290px] md:min-h-[350px] flex items-end"
-              aria-hidden={false}
-            >
+            {/* Height follows tallest image — no fixed min-height / gray shells */}
+            <div className="flex items-end w-full min-w-0">
               <div
                 ref={trackRef}
                 className="flex items-end gap-2 sm:gap-3.5 will-change-transform [backface-visibility:hidden]"
@@ -283,20 +280,20 @@ export const CommunityGallerySection: React.FC<CommunityGallerySectionProps> = (
               >
                 {loopImages.map((img, index) => {
                   const size = communityImageDisplaySize(img, index % images.length);
-                  // Mobile: [large][large] · Tablet: three larges · Desktop: sm/lg/lg/lg/sm rhythm
-                  const tall =
+                  // Width rhythm only — height follows the photo (no empty card area)
+                  const widthCls =
                     size === 'lg'
-                      ? 'h-[200px] w-[128px] sm:h-[280px] sm:w-[180px] md:h-[340px] md:w-[220px]'
-                      : 'h-[170px] w-[110px] sm:h-[200px] sm:w-[140px] md:h-[240px] md:w-[160px]';
+                      ? 'w-[128px] sm:w-[180px] md:w-[220px]'
+                      : 'w-[110px] sm:w-[140px] md:w-[160px]';
                   return (
                     <div
                       key={`${img.id}-${index}`}
-                      className={`relative shrink-0 overflow-hidden bg-[#F4F4F3] rounded-sm ${tall}`}
+                      className={`relative shrink-0 overflow-hidden bg-transparent border-0 shadow-none ${widthCls}`}
                     >
                       <img
                         src={img.imageUrl}
                         alt={img.title || 'Vanskap community member'}
-                        className="absolute inset-0 h-full w-full object-cover pointer-events-none"
+                        className="pointer-events-none block w-full !h-auto max-h-none object-cover align-bottom"
                         loading={index < 6 ? 'eager' : 'lazy'}
                         decoding="async"
                         draggable={false}
