@@ -48,8 +48,8 @@ export const CommunityGallerySection: React.FC<CommunityGallerySectionProps> = (
     [halfImages],
   );
 
-  // Club-logo pace: slow, steady, never rushed (photos are wider → longer duration)
-  const durationSec = Math.max(48, Math.round(halfImages.length * 5.2));
+  // Same perceived pace as club-logo ticker (narrow logos ≈ 3.8s/card; photos a bit less)
+  const durationSec = Math.max(36, Math.round(halfImages.length * 2.6));
   const [animReady, setAnimReady] = useState(false);
 
   useEffect(() => {
