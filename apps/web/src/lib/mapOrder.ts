@@ -103,6 +103,7 @@ export function mapApiOrderToSpa(apiOrder: any, cartFallback: CartItem[] = []): 
 
   return {
     id: apiOrder?.id || apiOrder?.orderNumber || `order-${Date.now()}`,
+    orderNumber: apiOrder?.orderNumber || apiOrder?.id || undefined,
     date: created.toLocaleDateString("en-US", {
       year: "numeric",
       month: "long",

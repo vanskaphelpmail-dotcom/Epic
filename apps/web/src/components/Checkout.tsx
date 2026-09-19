@@ -25,6 +25,8 @@ interface CheckoutProps {
   onOrderSuccess: (order: Order) => void;
   onBackToCart: () => void;
   onBackToCatalog: () => void;
+  /** Optional — open login without blocking guest checkout */
+  onSignIn?: () => void;
   formatPrice: (amount: number) => string;
   appConfig: AppConfig;
   currentUser?: UserType | null;
@@ -36,6 +38,7 @@ export const Checkout: React.FC<CheckoutProps> = ({
   onOrderSuccess,
   onBackToCart,
   onBackToCatalog,
+  onSignIn,
   formatPrice,
   appConfig,
   currentUser = null,
@@ -270,7 +273,8 @@ export const Checkout: React.FC<CheckoutProps> = ({
         } catch (mapErr) {
           console.error('Failed to map order response', mapErr);
           placedOrder = attachBkashFields({
-            id: created?.orderNumber || created?.id || `ORD-${Date.now()}`,
+            id: created?.id || created?.orderNumber || `ORD-${Date.now()}`,
+            orderNumber: created?.orderNumber || created?.id,
             date: new Date().toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' }),
             createdAt: new Date().toISOString(),
             deliveryRegion,
@@ -280,7 +284,7 @@ export const Checkout: React.FC<CheckoutProps> = ({
             tax: 0,
             shipping: deliveryChargeBDT,
             total: grandTotal,
-            status: 'Pending',
+            status: 'Confirmed',
             trackingNumber: created?.orderNumber || created?.id,
             shippingAddress: {
               fullName,
@@ -379,6 +383,39 @@ export const Checkout: React.FC<CheckoutProps> = ({
             </p>
           </div>
 
+          {/* Guest vs signed-in — checkout never requires an account */}
+          {currentUser ? (
+            <div className="rounded-2xl border-2 border-emerald-200 bg-emerald-50/80 px-4 py-3 flex flex-wrap items-center justify-between gap-2">
+              <p className="text-[11px] text-emerald-900 font-medium leading-relaxed">
+                Ordering as <span className="font-black">{currentUser.fullName || currentUser.email}</span>
+                {' — '}this order will appear in your Order History.
+              </p>
+            </div>
+          ) : (
+            <div className="rounded-2xl border-2 border-[#E5E5E5] bg-white px-4 py-3 space-y-2 shadow-sm">
+              <p className="text-[11px] text-[#0A0A0A] font-black uppercase tracking-wider">
+                Guest Checkout
+              </p>
+              <p className="text-[11px] text-[#555555] font-medium leading-relaxed">
+                No account needed. Enter your delivery details below to place this order.
+                {onSignIn ? (
+                  <>
+                    {' '}
+                    Already have an account?{' '}
+                    <button
+                      type="button"
+                      onClick={onSignIn}
+                      className="text-[#E30613] font-black underline underline-offset-2 cursor-pointer"
+                    >
+                      Sign in
+                    </button>{' '}
+                    to save it to your Order History.
+                  </>
+                ) : null}
+              </p>
+            </div>
+          )}
+
           {hasPreOrder && (
             <div className="bg-amber-50 border-2 border-amber-300 rounded-2xl p-4 flex gap-3 items-start text-amber-950">
               <AlertCircle size={18} className="flex-shrink-0 mt-0.5 text-amber-600" />
@@ -424,9 +461,14 @@ export const Checkout: React.FC<CheckoutProps> = ({
                 </button>
               </div>
             )}
-            {profileLoaded && !savedProfile && (
+            {profileLoaded && !savedProfile && currentUser && (
               <p className="text-[11px] text-[#555555] font-medium leading-relaxed">
                 No saved address yet. Enter details below, or save an address in your profile for next time.
+              </p>
+            )}
+            {profileLoaded && !currentUser && (
+              <p className="text-[11px] text-[#555555] font-medium leading-relaxed">
+                Enter your name, phone, and delivery address. Email is optional — keep your order number for tracking.
               </p>
             )}
             

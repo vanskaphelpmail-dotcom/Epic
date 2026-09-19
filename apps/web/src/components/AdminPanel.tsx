@@ -260,7 +260,7 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({
     // Always replace local/demo ledger with Neon orders when staff is authenticated
     void import('../lib/mapOrder')
       .then(({ mapApiOrderToSpa }) =>
-        api.listOrders({ limit: 50 }).then(({ items }) => {
+        api.listOrders({ limit: 50, scope: 'all' }).then(({ items }) => {
           setOrders((items || []).map((o: any) => mapApiOrderToSpa(o)));
           try {
             localStorage.removeItem('vault_orders');
@@ -281,7 +281,7 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({
     const poll = async () => {
       try {
         const { mapApiOrderToSpa } = await import('../lib/mapOrder');
-        const { items } = await api.listOrders({ limit: 30 });
+        const { items } = await api.listOrders({ limit: 30, scope: 'all' });
         if (cancelled) return;
         const mapped = (items || []).map((o: any) => mapApiOrderToSpa(o));
         const ids = new Set(mapped.map((o) => o.id));

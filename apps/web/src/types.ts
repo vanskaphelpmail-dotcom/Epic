@@ -248,6 +248,8 @@ export interface OrderTimelineEvent {
 
 export interface Order {
   id: string;
+  /** Human-facing reference e.g. JAB-20260919-1234 */
+  orderNumber?: string;
   date: string;
   createdAt?: string;
   deliveryRegion?: 'inside' | 'outside';

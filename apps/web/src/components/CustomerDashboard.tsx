@@ -414,7 +414,7 @@ export const CustomerDashboard: React.FC<CustomerDashboardProps> = ({
                     <div className="bg-[#F8F8F7] border-b border-[#E5E5E5] p-4 md:p-6 flex flex-wrap justify-between items-center gap-4 text-xs font-mono text-[#0A0A0A]">
                       <div>
                         <span className="text-[#555555]">ORDER NUMBER:</span>
-                        <p className="text-[#0A0A0A] font-bold text-sm">{ord.id}</p>
+                        <p className="text-[#0A0A0A] font-bold text-sm">{ord.orderNumber || ord.id}</p>
                       </div>
                       <div>
                         <span className="text-[#555555]">DATE CONFIRMED:</span>
@@ -424,9 +424,14 @@ export const CustomerDashboard: React.FC<CustomerDashboardProps> = ({
                         <span className="text-[#555555]">TOTAL VALUE:</span>
                         <p className="text-[#0A0A0A] font-extrabold text-sm">{displayPrice(ord.total)}</p>
                       </div>
-                      <span className="bg-[#E30613] text-white px-3 py-1 rounded font-bold">
-                        {ord.status.toUpperCase()}
-                      </span>
+                      <div className="flex flex-col items-end gap-1">
+                        <span className="bg-[#E30613] text-white px-3 py-1 rounded font-bold">
+                          {ord.status.toUpperCase()}
+                        </span>
+                        <span className="text-[10px] font-mono text-[#555555] uppercase">
+                          Payment: {ord.paymentStatus || 'Unpaid'}
+                        </span>
+                      </div>
                     </div>
 
                     {/* Order content detail */}

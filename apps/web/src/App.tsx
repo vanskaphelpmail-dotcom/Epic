@@ -1469,7 +1469,7 @@ export default function App() {
     if (!(isApiEnabled() && getToken())) return;
     try {
       const { mapApiOrderToSpa } = await import('./lib/mapOrder');
-      const { items: apiOrders } = await api.listOrders();
+      const { items: apiOrders } = await api.listOrders({ scope: 'mine' });
       setOrders((apiOrders || []).map((o: any) => mapApiOrderToSpa(o)));
       setApiConnected(true);
       clearStoredOrders();
@@ -1908,12 +1908,9 @@ export default function App() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [currentPage, currentUser]);
 
-  const requireCustomerLogin = () => {
-    if (currentUser && getToken()) return true;
-    setCheckoutLoginRequired(true);
-    goToPage('signup');
-    toast('Create an account (or sign in) to place your order.', 'info');
-    return false;
+  const goToCheckout = () => {
+    setCheckoutLoginRequired(false);
+    goToPage('checkout');
   };
 
   // Add to Cart
@@ -1969,8 +1966,7 @@ export default function App() {
   // Product details — full customization (nameset, badges, computed price)
   const handleOrderNow = (item: CartItem) => {
     handleAddToCart(item);
-    if (!requireCustomerLogin()) return;
-    goToPage('checkout');
+    goToCheckout();
   };
 
   // Wishlist heart toggler — optimistic UI; persists to Neon when logged in
@@ -2690,34 +2686,27 @@ export default function App() {
           <Cart
             cart={cart}
             setCart={setCart}
-            onCheckout={() => {
-              if (!requireCustomerLogin()) return;
-              goToPage('checkout');
-            }}
+            onCheckout={() => goToCheckout()}
             onBackToCatalog={() => goToPage('listing')}
             formatPrice={formatPrice}
           />
         )}
 
-        {/* ROUTE 5: CHECKOUT — requires customer login */}
-        {currentPage === 'checkout' && currentUser && getToken() && (
+        {/* ROUTE 5: CHECKOUT — guest or logged-in (auth never required) */}
+        {currentPage === 'checkout' && (
           <Checkout
             cart={cart}
             setCart={setCart}
             onOrderSuccess={handleOrderSuccess}
             onBackToCart={() => goToPage('cart')}
             onBackToCatalog={() => goToPage('listing')}
+            onSignIn={() => {
+              setCheckoutLoginRequired(true);
+              goToPage('login');
+            }}
             formatPrice={formatPrice}
             appConfig={appConfig}
             currentUser={currentUser}
-          />
-        )}
-        {currentPage === 'checkout' && (!currentUser || !getToken()) && (
-          <CustomerAuth
-            isCheckoutRedirect
-            initialMode="signup"
-            onLoginSuccess={handleLoginSuccess}
-            onCancel={() => goToPage('cart')}
           />
         )}
 
@@ -2726,7 +2715,7 @@ export default function App() {
             isCheckoutRedirect={checkoutLoginRequired}
             initialMode={currentPage === 'signup' ? 'signup' : 'login'}
             onLoginSuccess={handleLoginSuccess}
-            onCancel={() => goToPage(checkoutLoginRequired ? 'cart' : 'home')}
+            onCancel={() => goToPage(checkoutLoginRequired ? 'checkout' : 'home')}
           />
         )}
 
@@ -2740,14 +2729,34 @@ export default function App() {
 
               <div className="space-y-2">
                 <h1 className="text-2xl md:text-3xl font-black uppercase tracking-tight text-zinc-950">Order Placed Successfully!</h1>
+                <p className="text-sm text-zinc-950 font-mono font-black tracking-wide">
+                  Order No: {lastPlacedOrder.orderNumber || lastPlacedOrder.id}
+                </p>
                 <p className="text-xs text-zinc-500 font-mono font-bold uppercase tracking-wider">
-                  Reference ID: {lastPlacedOrder.id} • STATUS: CONFIRMED
+                  Status: {String(lastPlacedOrder.status || 'Confirmed').toUpperCase()}
+                  {lastPlacedOrder.paymentStatus ? ` · Payment: ${lastPlacedOrder.paymentStatus}` : ''}
                 </p>
               </div>
 
               <p className="text-zinc-600 text-xs md:text-sm font-medium leading-relaxed max-w-sm mx-auto">
-                Thank you for your order! Your vintage jersey package is being prepared for secure delivery. You will pay the bill upon doorstep arrival. Below is your official invoice.
+                Thank you for your order! Save your order number for tracking and support.
+                {!currentUser
+                  ? ' You ordered as a guest — create an account anytime with the same email to see this order in Order History.'
+                  : ' This order is saved to your account Order History.'}
               </p>
+
+              {!currentUser && (
+                <button
+                  type="button"
+                  onClick={() => {
+                    setCheckoutLoginRequired(false);
+                    goToPage('signup');
+                  }}
+                  className="w-full sm:w-auto mx-auto bg-white hover:bg-zinc-50 text-zinc-900 border-2 border-zinc-300 font-extrabold text-xs uppercase tracking-widest px-6 py-3 rounded-xl cursor-pointer transition-all"
+                >
+                  Create Account (Optional)
+                </button>
+              )}
 
               <div className="flex flex-col sm:flex-row gap-3 pt-2">
                 <button
@@ -2802,7 +2811,7 @@ export default function App() {
                   </p>
                 </div>
                 <div className="text-left md:text-right font-mono text-[11px] space-y-1 text-zinc-800">
-                  <p><span className="font-bold text-zinc-950">INVOICE:</span> #{lastPlacedOrder.id.slice(0, 8).toUpperCase()}</p>
+                  <p><span className="font-bold text-zinc-950">INVOICE:</span> #{(lastPlacedOrder.orderNumber || lastPlacedOrder.id).slice(0, 24).toUpperCase()}</p>
                   <p><span className="font-bold text-zinc-950">DATE:</span> {new Date().toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' })}</p>
                   <p><span className="font-bold text-zinc-950">TRACKING:</span> {lastPlacedOrder.trackingNumber}</p>
                   <p><span className="font-bold text-zinc-950">METHOD:</span> {lastPlacedOrder.paymentMethod}</p>

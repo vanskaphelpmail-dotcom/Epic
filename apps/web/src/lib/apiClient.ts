@@ -218,11 +218,15 @@ export const api = {
       method: "DELETE",
     }),
 
-  listOrders: (opts?: { limit?: number }) => {
-    const q =
-      opts?.limit != null && Number.isFinite(opts.limit)
-        ? `?limit=${Math.min(Math.max(Math.trunc(opts.limit), 1), 100)}`
-        : "";
+  listOrders: (opts?: { limit?: number; scope?: "mine" | "all" }) => {
+    const params = new URLSearchParams();
+    if (opts?.limit != null && Number.isFinite(opts.limit)) {
+      params.set("limit", String(Math.min(Math.max(Math.trunc(opts.limit), 1), 100)));
+    }
+    if (opts?.scope === "mine" || opts?.scope === "all") {
+      params.set("scope", opts.scope);
+    }
+    const q = params.toString() ? `?${params.toString()}` : "";
     return request<{ items: any[] }>(`/api/orders${q}`);
   },
   createOrder: (body: unknown) =>

@@ -65,7 +65,10 @@ const createOrderSchema = z.object({
   deliveryCharge: z.number().nonnegative(),
   shipFullName: z.string().min(2),
   shipPhone: z.string().min(8),
-  shipEmail: z.string().email().optional(),
+  shipEmail: z
+    .union([z.string().email(), z.literal("")])
+    .optional()
+    .transform((v) => (v && v.length > 0 ? v : undefined)),
   shipAddressLine1: z.string().min(3),
   shipAddressLine2: z.string().optional(),
   shipCity: z.string().min(2),
@@ -103,9 +106,37 @@ ordersRouter.get("/", requireAuth, async (req: AuthedRequest, res) => {
         ? 50
         : 30;
 
+    const scopeRaw = String(req.query.scope || "")
+      .trim()
+      .toLowerCase();
+    // Admin sales lists use all; customer dashboard always uses mine (even for staff accounts)
+    const scope: "mine" | "all" =
+      scopeRaw === "mine" ? "mine" : scopeRaw === "all" && isStaff ? "all" : isStaff ? "all" : "mine";
+
+    const email = String(req.user!.email || "")
+      .trim()
+      .toLowerCase();
+
+    const where =
+      scope === "all"
+        ? undefined
+        : {
+            OR: [
+              { customerId: req.user!.id },
+              ...(email
+                ? [
+                    {
+                      customerId: null as string | null,
+                      guestEmail: { equals: email, mode: "insensitive" as const },
+                    },
+                  ]
+                : []),
+            ],
+          };
+
     // Lean list: line items already store name/sku/image — skip nested product + timeline
     const orders = await prisma.order.findMany({
-      where: isStaff ? undefined : { customerId: req.user!.id },
+      where,
       select: {
         id: true,
         orderNumber: true,
@@ -368,7 +399,11 @@ ordersRouter.post("/", optionalAuth, async (req: AuthedRequest, res) => {
           data: {
             orderNumber,
             customerId: req.user?.id ?? null,
-            guestEmail: req.user?.id ? undefined : body.shipEmail || null,
+            guestEmail: req.user?.id
+              ? undefined
+              : body.shipEmail
+                ? body.shipEmail.trim().toLowerCase()
+                : null,
             paymentMethod: isMobileWalletPay ? walletLabel : "CASH ON DELIVERY",
             paymentStatus: "UNPAID",
             bkashNumber: body.bkashNumber,
