@@ -56,6 +56,47 @@ const nextConfig: NextConfig = {
         destination: "/",
         permanent: true,
       },
+      // Legacy WordPress / WooCommerce URLs still ranked in Google → www homepage
+      {
+        source: "/product-category",
+        destination: "https://www.epicvanskap.com/",
+        permanent: true,
+      },
+      {
+        source: "/product-category/:path*",
+        destination: "https://www.epicvanskap.com/",
+        permanent: true,
+      },
+      {
+        source: "/product-tag",
+        destination: "https://www.epicvanskap.com/",
+        permanent: true,
+      },
+      {
+        source: "/product-tag/:path*",
+        destination: "https://www.epicvanskap.com/",
+        permanent: true,
+      },
+      {
+        source: "/category",
+        destination: "https://www.epicvanskap.com/",
+        permanent: true,
+      },
+      {
+        source: "/category/:path*",
+        destination: "https://www.epicvanskap.com/",
+        permanent: true,
+      },
+      {
+        source: "/my-account",
+        destination: "https://www.epicvanskap.com/",
+        permanent: true,
+      },
+      {
+        source: "/my-account/:path*",
+        destination: "https://www.epicvanskap.com/",
+        permanent: true,
+      },
     ];
   },
 };

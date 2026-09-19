@@ -8,6 +8,7 @@ import {
   SITE_TITLE,
   absoluteUrl,
   homepageJsonLd,
+  isLegacyWordpressPath,
   isNoIndexPath,
 } from "@/src/lib/siteSeo";
 
@@ -58,6 +59,16 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
   // Should never hit these (middleware/public serve them), but never emit homepage SEO for them
   if (root === "robots.txt" || root === "sitemap.xml" || root === "favicon.ico") {
     return { robots: { index: false, follow: false } };
+  }
+
+  // Legacy WP paths are 301'd in middleware — if anything slips through, do not index
+  const requestPath = `/${segments.join("/")}`;
+  if (isLegacyWordpressPath(requestPath) || root === "category" || root === "product-category") {
+    return {
+      title: SITE_NAME,
+      robots: { index: false, follow: false },
+      alternates: { canonical: absoluteUrl("/") },
+    };
   }
 
   if (isNoIndexPath(segments)) {
@@ -216,11 +227,12 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
     };
   }
 
+  // Unknown multi-segment paths — never pretend to be the homepage
   return {
-    title: SITE_TITLE,
+    title: SITE_NAME,
     description: SITE_DESCRIPTION,
     alternates: { canonical: absoluteUrl("/") },
-    robots: { index: true, follow: true },
+    robots: { index: false, follow: false },
   };
 }
 

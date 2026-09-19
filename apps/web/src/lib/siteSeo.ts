@@ -27,6 +27,29 @@ export function isNoIndexPath(segments: string[]): boolean {
   );
 }
 
+/**
+ * Old WordPress / WooCommerce paths still in Google's index.
+ * These must 301 to the www homepage — never soft-404 through the SPA.
+ */
+export function isLegacyWordpressPath(pathname: string): boolean {
+  const path = (pathname || "/").toLowerCase().split("?")[0].replace(/\/+$/, "") || "/";
+  if (path === "/category") return true;
+  if (path.startsWith("/category/")) return true;
+  if (path === "/product-category") return true;
+  if (path.startsWith("/product-category/")) return true;
+  if (path === "/product-tag") return true;
+  if (path.startsWith("/product-tag/")) return true;
+  if (path.startsWith("/wp-admin")) return true;
+  if (path.startsWith("/wp-content")) return true;
+  if (path.startsWith("/wp-includes")) return true;
+  if (path.startsWith("/wp-json")) return true;
+  if (path === "/feed" || path.startsWith("/feed/")) return true;
+  if (path === "/xmlrpc.php" || path.endsWith("/xmlrpc.php")) return true;
+  // WooCommerce my-account leftovers
+  if (path === "/my-account" || path.startsWith("/my-account/")) return true;
+  return false;
+}
+
 export function homepageJsonLd() {
   return {
     "@context": "https://schema.org",

@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import type { NextRequest } from "next/server";
+import { isLegacyWordpressPath } from "./src/lib/siteSeo";
 
 const PREFERRED_HOST = "www.epicvanskap.com";
 const SITE_ORIGIN = "https://www.epicvanskap.com";
@@ -22,7 +23,8 @@ Sitemap: ${SITE_ORIGIN}/sitemap.xml
 
 /**
  * Force HTTPS + www for production hostnames.
- * Also serve robots.txt / rewrite sitemap.xml so the SPA catch-all cannot swallow them.
+ * Serve robots/sitemap outside the SPA catch-all.
+ * 301 legacy WordPress URLs (still in Google) → www homepage.
  */
 export function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl;
@@ -45,6 +47,11 @@ export function middleware(request: NextRequest) {
     const url = request.nextUrl.clone();
     url.pathname = "/api/seo/sitemap";
     return NextResponse.rewrite(url);
+  }
+
+  // Old WooCommerce / WordPress URLs → permanent homepage (consolidate Google results)
+  if (isLegacyWordpressPath(pathname)) {
+    return NextResponse.redirect(`${SITE_ORIGIN}/`, 301);
   }
 
   if (
@@ -71,6 +78,10 @@ export function middleware(request: NextRequest) {
     const url = request.nextUrl.clone();
     url.protocol = "https:";
     url.host = PREFERRED_HOST;
+    // After host fix, also collapse legacy paths onto homepage
+    if (isLegacyWordpressPath(url.pathname)) {
+      return NextResponse.redirect(`${SITE_ORIGIN}/`, 301);
+    }
     return NextResponse.redirect(url, 308);
   }
 
