@@ -2894,8 +2894,8 @@ export const ProductManager: React.FC<ProductManagerProps> = ({
                     ) : null}
                   </div>
 
-                  <div className="md:col-span-2">
-                    <div className="flex items-center justify-between mb-1">
+                  <div className="md:col-span-2 min-w-0">
+                    <div className="flex flex-wrap items-center justify-between gap-2 mb-1">
                       <label className="font-bold text-emerald-950 block">Categories * (multi-select)</label>
                       <button
                         type="button"
@@ -2904,68 +2904,68 @@ export const ProductManager: React.FC<ProductManagerProps> = ({
                           setCatName('');
                           setIsCategoryModalOpen(true);
                         }}
-                        className="text-[10px] font-mono font-bold text-emerald-800 hover:text-emerald-900 bg-emerald-100/80 hover:bg-emerald-200 px-2 py-0.5 rounded flex items-center gap-1 cursor-pointer"
+                        className="text-[10px] font-mono font-bold text-emerald-800 hover:text-emerald-900 bg-emerald-100/80 hover:bg-emerald-200 px-2 py-0.5 rounded flex items-center gap-1 cursor-pointer shrink-0"
                       >
                         <Plus size={12} /> Add New Category
                       </button>
                     </div>
                     <p className="text-[10px] text-emerald-700 font-mono mb-1.5">
-                      Select multiple — e.g. Arsenal can be Fan Edition + Player Edition + Premier League. Edition categories auto-add matching size charts.
+                      Tick multiple boxes — e.g. Retro + La Liga + Fan Edition. Edition categories auto-add matching size charts.
                     </p>
-                    <div className="max-h-40 overflow-y-auto rounded-xl border border-emerald-200 bg-emerald-50/30 p-2 grid grid-cols-2 sm:grid-cols-3 gap-1.5">
+                    <div className="max-h-56 sm:max-h-64 md:max-h-72 overflow-y-auto overscroll-contain rounded-xl border border-emerald-200 bg-emerald-50/30 p-2.5 sm:p-3 grid grid-cols-1 min-[380px]:grid-cols-2 md:grid-cols-3 gap-2 touch-manipulation">
                       {productCategoryOptions.map((name) => {
                         const checked = pCategories.includes(name);
                         return (
                           <label
                             key={name}
-                            className={`flex items-center gap-1.5 text-[10px] font-bold font-mono px-2 py-1.5 rounded-lg cursor-pointer border ${
+                            className={`flex items-center gap-2.5 text-[11px] sm:text-[10px] font-bold font-mono px-2.5 py-2.5 sm:py-2 rounded-xl cursor-pointer border min-h-[44px] sm:min-h-[40px] select-none ${
                               checked
-                                ? 'bg-emerald-800 text-white border-emerald-800'
-                                : 'bg-white text-emerald-900 border-emerald-100 hover:border-emerald-300'
+                                ? 'bg-emerald-800 text-white border-emerald-800 shadow-sm'
+                                : 'bg-white text-emerald-900 border-emerald-100 hover:border-emerald-400'
                             }`}
                           >
                             <input
                               type="checkbox"
-                              className="sr-only"
+                              className="h-4 w-4 shrink-0 rounded border-emerald-300 accent-emerald-700 cursor-pointer"
                               checked={checked}
                               onChange={() => toggleCategory(name)}
                             />
-                            <span className="truncate">{name}</span>
+                            <span className="truncate leading-snug">{name}</span>
                           </label>
                         );
                       })}
                     </div>
                     {pCategories.length > 0 && (
-                      <p className="text-[9px] font-mono text-emerald-600 mt-1">
-                        Selected: {pCategories.join(' · ')}
+                      <p className="text-[10px] font-mono text-emerald-700 mt-1.5 break-words">
+                        Selected ({pCategories.length}): {pCategories.join(' · ')}
                       </p>
                     )}
                   </div>
 
-                  <div>
+                  <div className="min-w-0">
                     <label className="font-bold text-emerald-950 block mb-1">Size / Measurement Charts (multi)</label>
                     <p className="text-[10px] text-emerald-700 font-mono mb-1.5">
-                      Same jersey can show Fan + Player charts. Manage custom formats under Inventory.
+                      Tick one or more charts. Manage custom formats under Inventory → Size Charts.
                     </p>
-                    <div className="max-h-40 overflow-y-auto rounded-xl border border-emerald-200 bg-emerald-50/30 p-2 space-y-1">
+                    <div className="max-h-56 sm:max-h-64 md:max-h-72 overflow-y-auto overscroll-contain rounded-xl border border-emerald-200 bg-emerald-50/30 p-2.5 sm:p-3 space-y-2 touch-manipulation">
                       {availableSizeCharts.map((chart) => {
                         const checked = pSizeChartIds.includes(chart.id);
                         return (
                           <label
                             key={chart.id}
-                            className={`flex items-center gap-2 text-[10px] font-bold font-mono px-2 py-1.5 rounded-lg cursor-pointer border ${
+                            className={`flex items-center gap-2.5 text-[11px] sm:text-[10px] font-bold font-mono px-2.5 py-2.5 sm:py-2 rounded-xl cursor-pointer border min-h-[44px] sm:min-h-[40px] select-none ${
                               checked
-                                ? 'bg-emerald-800 text-white border-emerald-800'
-                                : 'bg-white text-emerald-900 border-emerald-100 hover:border-emerald-300'
+                                ? 'bg-emerald-800 text-white border-emerald-800 shadow-sm'
+                                : 'bg-white text-emerald-900 border-emerald-100 hover:border-emerald-400'
                             }`}
                           >
                             <input
                               type="checkbox"
-                              className="sr-only"
+                              className="h-4 w-4 shrink-0 rounded border-emerald-300 accent-emerald-700 cursor-pointer"
                               checked={checked}
                               onChange={() => toggleSizeChart(chart.id)}
                             />
-                            <span>{chart.label}</span>
+                            <span className="truncate leading-snug">{chart.label}</span>
                           </label>
                         );
                       })}
