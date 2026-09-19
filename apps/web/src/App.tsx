@@ -3129,7 +3129,13 @@ export default function App() {
             onSearch={() => {
               window.scrollTo({ top: 0, behavior: 'smooth' });
               requestAnimationFrame(() => {
-                const input = document.getElementById('mobile-header-search') as HTMLInputElement | null;
+                const listingInput = document.getElementById(
+                  'listing-search-input',
+                ) as HTMLInputElement | null;
+                const headerInput = document.getElementById(
+                  'mobile-header-search',
+                ) as HTMLInputElement | null;
+                const input = listingInput || headerInput;
                 input?.focus();
                 input?.scrollIntoView({ behavior: 'smooth', block: 'center' });
               });

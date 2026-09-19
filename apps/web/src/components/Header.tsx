@@ -683,7 +683,8 @@ export const Header: React.FC<HeaderProps> = ({
 
       </div>
 
-      {/* Mobile search — always visible above banner / page content */}
+      {/* Mobile search — hide on listing (ListingFiltersBar already has search + filters) */}
+      {currentPage !== 'listing' && (
       <div
         ref={mobileSearchPanelRef}
         className="lg:hidden px-3 sm:px-4 pt-2.5 pb-3 bg-[#F8F8F7] border-b border-[#E5E5E5] relative"
@@ -784,6 +785,7 @@ export const Header: React.FC<HeaderProps> = ({
           </div>
         )}
       </div>
+      )}
 
       {/* Dynamic Main & Mega Navigation Row — desktop strip optional (left sidebar preferred) */}
       {!hideDesktopMainNav && (

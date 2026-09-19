@@ -27,6 +27,12 @@ type BillLine = {
   namesetEnabled?: boolean;
   selectedBadges?: string[];
   badgeLabels?: string[];
+  /** Free-text note for this line (POS custom notes) */
+  notes?: string;
+  /** Extra BDT added on top of jersey + nameset + patches */
+  customExtra?: number;
+  /** Ad-hoc line not tied to catalog stock */
+  isCustomItem?: boolean;
 };
 
 type Props = {
@@ -98,6 +104,14 @@ export function PosPanel({
   const [cfgName, setCfgName] = useState('');
   const [cfgNumber, setCfgNumber] = useState('');
   const [cfgBadges, setCfgBadges] = useState<string[]>([]);
+  const [cfgNotes, setCfgNotes] = useState('');
+  const [cfgExtra, setCfgExtra] = useState('');
+  /** Standalone custom bill line (not from catalog) */
+  const [showCustomItem, setShowCustomItem] = useState(false);
+  const [customItemName, setCustomItemName] = useState('');
+  const [customItemPrice, setCustomItemPrice] = useState('');
+  const [customItemQty, setCustomItemQty] = useState(1);
+  const [customItemNotes, setCustomItemNotes] = useState('');
 
   const nowLabel = new Date().toLocaleString();
   const catalogStockUnits = products.reduce((s, p) => s + (Number(p.stock) || 0), 0);
@@ -141,6 +155,8 @@ export function PosPanel({
     setCfgName(p.player?.name || '');
     setCfgNumber(p.player?.number != null ? String(p.player.number) : '');
     setCfgBadges([]);
+    setCfgNotes('');
+    setCfgExtra('');
     setQuery('');
     setMsg('');
   };
@@ -157,12 +173,17 @@ export function PosPanel({
       return;
     }
     const badges = getProductBadgeOptions(configProduct).filter((b) => cfgBadges.includes(b.id));
-    const unit = lineUnitPrice(configProduct, { nameset: cfgNameset, badges: cfgBadges });
+    const extra = Math.max(0, Number(cfgExtra) || 0);
+    const unit =
+      lineUnitPrice(configProduct, { nameset: cfgNameset, badges: cfgBadges }) + extra;
+    const notes = cfgNotes.trim();
     const key = [
       configProduct.id,
       cfgSize,
       cfgNameset ? `${cfgName}-${cfgNumber}` : 'plain',
       cfgBadges.slice().sort().join(','),
+      notes || '-',
+      String(extra),
     ].join('|');
 
     setLines((prev) => {
@@ -189,10 +210,49 @@ export function PosPanel({
           namesetEnabled: cfgNameset,
           selectedBadges: cfgBadges.length ? [...cfgBadges] : undefined,
           badgeLabels: badges.map((b) => b.label),
+          notes: notes || undefined,
+          customExtra: extra > 0 ? extra : undefined,
         },
       ];
     });
     setConfigProduct(null);
+    setMsg('');
+  };
+
+  const addCustomBillItem = () => {
+    const name = customItemName.trim();
+    const price = Math.max(0, Number(customItemPrice) || 0);
+    if (!name) {
+      setMsg('Enter a custom item name');
+      return;
+    }
+    if (price <= 0) {
+      setMsg('Enter a custom price greater than 0');
+      return;
+    }
+    const notes = customItemNotes.trim();
+    const qty = Math.max(1, customItemQty || 1);
+    const id = `custom-${Date.now()}`;
+    setLines((prev) => [
+      ...prev,
+      {
+        key: id,
+        productId: id,
+        name,
+        sku: 'CUSTOM',
+        size: '—',
+        basePrice: price,
+        unitPrice: price,
+        qty,
+        notes: notes || undefined,
+        isCustomItem: true,
+      },
+    ]);
+    setCustomItemName('');
+    setCustomItemPrice('');
+    setCustomItemQty(1);
+    setCustomItemNotes('');
+    setShowCustomItem(false);
     setMsg('');
   };
 
@@ -219,7 +279,7 @@ export function PosPanel({
 
     setProducts((prev) =>
       prev.map((p) => {
-        const billLines = lines.filter((l) => l.productId === p.id);
+        const billLines = lines.filter((l) => !l.isCustomItem && l.productId === p.id);
         if (!billLines.length) return p;
         let stock = p.stock;
         const sizeStocks = { ...(p.sizeStocks || {}) };
@@ -243,15 +303,42 @@ export function PosPanel({
       deliveryRegion: 'inside',
       deliveryCharge: 0,
       items: lines.map((l) => {
-        const product = products.find((p) => p.id === l.productId)!;
-        const priced = {
-          ...product,
-          price: l.unitPrice,
-          sellingPrice: l.unitPrice,
-        };
+        const catalog = products.find((p) => p.id === l.productId);
+        const priced: Product = catalog
+          ? {
+              ...catalog,
+              price: l.unitPrice,
+              sellingPrice: l.unitPrice,
+            }
+          : {
+              id: l.productId,
+              name: l.name,
+              slug: l.productId,
+              sku: l.sku || 'CUSTOM',
+              brand: 'Custom',
+              category: 'Custom',
+              price: l.unitPrice,
+              sellingPrice: l.unitPrice,
+              stock: 0,
+              sizes: ['—'],
+              image: '',
+              images: [],
+              description: l.notes || 'POS custom item',
+              condition: 'Mint',
+              conditionDetail: '',
+              year: new Date().getFullYear(),
+              season: '',
+              color: '',
+              badgeAvailable: false,
+              printAvailable: false,
+              rating: 0,
+              reviewsCount: 0,
+              specification: { material: '', madeIn: '', fit: '' },
+              status: 'Active',
+            };
         const item: CartItem = {
           product: priced,
-          selectedSize: l.size,
+          selectedSize: l.size || '—',
           quantity: l.qty,
           namesetEnabled: l.namesetEnabled,
           selectedBadges: l.selectedBadges,
@@ -284,11 +371,21 @@ export function PosPanel({
       customerNotes: [
         discount > 0 ? `Discount ${discount}` : '',
         ...lines
-          .filter((l) => l.namesetEnabled || (l.badgeLabels && l.badgeLabels.length))
+          .filter(
+            (l) =>
+              l.namesetEnabled ||
+              (l.badgeLabels && l.badgeLabels.length) ||
+              l.notes ||
+              l.customExtra ||
+              l.isCustomItem,
+          )
           .map((l) => {
-            const bits = [`${l.name} (${l.size})`];
+            const bits = [`${l.name}${l.size && l.size !== '—' ? ` (${l.size})` : ''}`];
+            if (l.isCustomItem) bits.push('Custom item');
             if (l.customName) bits.push(`Name ${l.customName} #${l.jerseyNumber}`);
             if (l.badgeLabels?.length) bits.push(`Patches: ${l.badgeLabels.join(', ')}`);
+            if (l.customExtra) bits.push(`Extra +${l.customExtra}`);
+            if (l.notes) bits.push(`Notes: ${l.notes}`);
             return bits.join(' · ');
           }),
       ]
@@ -383,7 +480,9 @@ export function PosPanel({
     .reduce((s, o) => s + o.total, 0);
 
   const cfgPreviewPrice = configProduct
-    ? lineUnitPrice(configProduct, { nameset: cfgNameset, badges: cfgBadges }) * cfgQty
+    ? (lineUnitPrice(configProduct, { nameset: cfgNameset, badges: cfgBadges }) +
+        Math.max(0, Number(cfgExtra) || 0)) *
+      cfgQty
     : 0;
 
   return (
@@ -450,6 +549,16 @@ export function PosPanel({
             className="px-4 py-2.5 rounded-lg bg-zinc-950 text-white text-[13px] font-semibold cursor-pointer"
           >
             Add
+          </button>
+          <button
+            type="button"
+            onClick={() => {
+              setShowCustomItem(true);
+              setMsg('');
+            }}
+            className="px-4 py-2.5 rounded-lg bg-white text-zinc-950 text-[13px] font-semibold border border-zinc-300 cursor-pointer"
+          >
+            Custom item
           </button>
         </div>
         {matches.length > 0 && query && (
@@ -530,12 +639,19 @@ export function PosPanel({
                   <tr key={l.key}>
                     <td className="px-3 py-2">
                       <p className="font-medium text-zinc-950">{l.name}</p>
-                      <p className="text-[11px] text-zinc-500">{l.sku}</p>
-                      {(l.customName || l.badgeLabels?.length) && (
+                      <p className="text-[11px] text-zinc-500">
+                        {l.isCustomItem ? 'Custom item' : l.sku}
+                      </p>
+                      {(l.customName || l.badgeLabels?.length || l.notes || l.customExtra) && (
                         <p className="text-[11px] text-zinc-600 mt-0.5">
-                          {l.customName ? `${l.customName} #${l.jerseyNumber}` : ''}
-                          {l.customName && l.badgeLabels?.length ? ' · ' : ''}
-                          {l.badgeLabels?.length ? `Patches: ${l.badgeLabels.join(', ')}` : ''}
+                          {[
+                            l.customName ? `${l.customName} #${l.jerseyNumber}` : '',
+                            l.badgeLabels?.length ? `Patches: ${l.badgeLabels.join(', ')}` : '',
+                            l.customExtra ? `Extra +${formatPrice(l.customExtra)}` : '',
+                            l.notes ? `Notes: ${l.notes}` : '',
+                          ]
+                            .filter(Boolean)
+                            .join(' · ')}
                         </p>
                       )}
                     </td>
@@ -718,11 +834,114 @@ export function PosPanel({
                 </div>
               )}
 
+              <div className="border border-zinc-200 rounded-xl p-3 space-y-3">
+                <p className="text-[11px] font-semibold text-zinc-500 uppercase">Custom section</p>
+                <label className="block text-[11px] font-semibold text-zinc-500 uppercase">
+                  Custom price / extra charge (BDT)
+                  <input
+                    type="number"
+                    min={0}
+                    step={1}
+                    value={cfgExtra}
+                    onChange={(e) => setCfgExtra(e.target.value)}
+                    placeholder="0"
+                    className="mt-1 w-full text-[13px] px-2.5 py-2 border border-zinc-200 rounded-lg font-normal normal-case"
+                  />
+                </label>
+                <label className="block text-[11px] font-semibold text-zinc-500 uppercase">
+                  Custom notes
+                  <textarea
+                    rows={2}
+                    value={cfgNotes}
+                    onChange={(e) => setCfgNotes(e.target.value)}
+                    placeholder="e.g. gift wrap, special request…"
+                    className="mt-1 w-full text-[13px] px-2.5 py-2 border border-zinc-200 rounded-lg font-normal normal-case resize-none"
+                  />
+                </label>
+              </div>
+
               <div className="flex items-center justify-between gap-3 pt-1">
                 <p className="text-[14px] font-bold text-zinc-950">{formatPrice(cfgPreviewPrice)}</p>
                 <button
                   type="button"
                   onClick={confirmConfigure}
+                  className="px-4 py-2.5 rounded-lg bg-zinc-950 text-white text-[13px] font-semibold cursor-pointer"
+                >
+                  Add to bill
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {showCustomItem && (
+        <div className="fixed inset-0 z-[85] flex items-end sm:items-center justify-center bg-black/40 p-0 sm:p-4">
+          <div className="bg-white w-full sm:max-w-md sm:rounded-xl rounded-t-2xl border border-zinc-200 shadow-xl max-h-[92vh] overflow-y-auto">
+            <div className="px-4 py-3 border-b border-zinc-200 flex justify-between items-start gap-2">
+              <div>
+                <p className="text-[15px] font-semibold text-zinc-950">Custom item</p>
+                <p className="text-[12px] text-zinc-500">Add any item with a custom price to this bill</p>
+              </div>
+              <button
+                type="button"
+                onClick={() => setShowCustomItem(false)}
+                className="text-[12px] font-semibold px-2 py-1 border border-zinc-300 rounded-lg cursor-pointer"
+              >
+                Close
+              </button>
+            </div>
+            <div className="p-4 space-y-3">
+              <label className="block text-[11px] font-semibold text-zinc-500 uppercase">
+                Item name *
+                <input
+                  value={customItemName}
+                  onChange={(e) => setCustomItemName(e.target.value)}
+                  placeholder="e.g. Gift box, Sock pair, Repair fee"
+                  className="mt-1 w-full text-[13px] px-2.5 py-2 border border-zinc-200 rounded-lg font-normal normal-case"
+                  autoFocus
+                />
+              </label>
+              <div className="grid grid-cols-2 gap-2">
+                <label className="block text-[11px] font-semibold text-zinc-500 uppercase">
+                  Custom price (BDT) *
+                  <input
+                    type="number"
+                    min={0}
+                    value={customItemPrice}
+                    onChange={(e) => setCustomItemPrice(e.target.value)}
+                    placeholder="0"
+                    className="mt-1 w-full text-[13px] px-2.5 py-2 border border-zinc-200 rounded-lg font-normal normal-case"
+                  />
+                </label>
+                <label className="block text-[11px] font-semibold text-zinc-500 uppercase">
+                  Qty
+                  <input
+                    type="number"
+                    min={1}
+                    value={customItemQty}
+                    onChange={(e) => setCustomItemQty(Math.max(1, Number(e.target.value) || 1))}
+                    className="mt-1 w-full text-[13px] px-2.5 py-2 border border-zinc-200 rounded-lg font-normal normal-case"
+                  />
+                </label>
+              </div>
+              <label className="block text-[11px] font-semibold text-zinc-500 uppercase">
+                Custom notes
+                <textarea
+                  rows={2}
+                  value={customItemNotes}
+                  onChange={(e) => setCustomItemNotes(e.target.value)}
+                  placeholder="Optional note for this line…"
+                  className="mt-1 w-full text-[13px] px-2.5 py-2 border border-zinc-200 rounded-lg font-normal normal-case resize-none"
+                />
+              </label>
+              <div className="flex items-center justify-between gap-3 pt-1">
+                <p className="text-[14px] font-bold text-zinc-950">
+                  {formatPrice(Math.max(0, Number(customItemPrice) || 0) * Math.max(1, customItemQty))}
+                </p>
+                <button
+                  type="button"
+                  onClick={addCustomBillItem}
                   className="px-4 py-2.5 rounded-lg bg-zinc-950 text-white text-[13px] font-semibold cursor-pointer"
                 >
                   Add to bill

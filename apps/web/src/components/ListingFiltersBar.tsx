@@ -186,6 +186,7 @@ export const ListingFiltersBar: React.FC<ListingFiltersBarProps> = ({
             className="absolute left-3 top-1/2 -translate-y-1/2 text-[#555555] pointer-events-none"
           />
           <input
+            id="listing-search-input"
             type="search"
             value={searchQuery}
             onChange={(e) => onSearchChange(e.target.value)}
