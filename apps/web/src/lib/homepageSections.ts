@@ -4,6 +4,7 @@ import { getProductCategories } from './sizeCharts';
 
 /** Sections permanently removed from the live storefront (still may exist in old DB rows). */
 export const REMOVED_HOMEPAGE_SECTION_IDS = new Set([
+  'latest-products',
   'mystery-box',
   'instagram-feed',
   'video-banner',
@@ -56,10 +57,6 @@ export function ensureAllJerseysSection(sections: PageSection[]): PageSection[] 
         : s,
     );
   }
-  const afterLatest = sections.findIndex((s) => s.id === 'latest-products');
-  if (afterLatest >= 0) {
-    return [...sections.slice(0, afterLatest + 1), row, ...sections.slice(afterLatest + 1)];
-  }
   const afterFeatured = sections.findIndex((s) => s.id === 'featured-collection');
   if (afterFeatured >= 0) {
     return [...sections.slice(0, afterFeatured + 1), row, ...sections.slice(afterFeatured + 1)];
@@ -84,22 +81,6 @@ export function normalizeHomepageSections(sections: PageSection[]): PageSection[
     ensureAllJerseysSection(ensureJerseyHomepageOrder(darkened)),
   );
 }
-
-const LATEST_PRODUCTS_SECTION: PageSection = {
-  id: 'latest-products',
-  name: 'Latest Products Row',
-  visible: true,
-  bgColor: 'bg-transparent',
-  padding: 'py-12',
-  margin: 'my-0',
-  title: 'LATEST WORKSHOP DROPS',
-  subtitle: 'Freshly authenticated physical catalog arrivals',
-  status: 'active',
-  sectionType: 'product-row',
-  productCategory: 'New In',
-  buttonText: '',
-  maxProducts: 4,
-};
 
 const RETRO_SECTION: PageSection = {
   id: 'retro-collection',
@@ -173,7 +154,6 @@ const PLAYER_EDITION_SECTION: PageSection = {
 
 /** Canonical jersey browsing block order on the homepage. */
 export const JERSEY_HOMEPAGE_SECTION_IDS = [
-  'latest-products',
   'retro-collection',
   'product-row-la-liga',
   'product-row-world-cup',
@@ -181,7 +161,6 @@ export const JERSEY_HOMEPAGE_SECTION_IDS = [
 ] as const;
 
 const JERSEY_SECTION_DEFAULTS: Record<string, PageSection> = {
-  'latest-products': LATEST_PRODUCTS_SECTION,
   'retro-collection': RETRO_SECTION,
   'product-row-la-liga': LA_LIGA_SECTION,
   'product-row-world-cup': WORLD_CUP_SECTION,
@@ -241,7 +220,7 @@ function pickJerseySection(sections: PageSection[], id: string): PageSection {
 
 /**
  * Keep the main jersey sections in this fixed order after hero / trending / featured:
- * Latest → Retro → La Liga → World Cup → Player Edition
+ * Retro → La Liga → World Cup → Player Edition
  */
 export function ensureJerseyHomepageOrder(sections: PageSection[]): PageSection[] {
   const jerseyIds = new Set<string>(JERSEY_HOMEPAGE_SECTION_IDS);

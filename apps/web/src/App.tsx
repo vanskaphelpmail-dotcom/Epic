@@ -52,6 +52,7 @@ import {
   normalizeOutlets,
   outletContactLines,
 } from './lib/outletInfo';
+import { getProductCategories } from './lib/sizeCharts';
 import {
   homepageRowCategoryCandidates,
   canonicalTargetPageName,
@@ -300,7 +301,6 @@ const DEFAULT_APP_CONFIG: AppConfig = {
     { id: 'live-auction', name: 'Bidding & Live Auctions', visible: false, bgColor: 'bg-transparent', padding: 'py-12', margin: 'my-0', status: 'inactive' },
     { id: 'daily-deals', name: 'Daily Deals Countdown', visible: false, bgColor: 'bg-transparent', padding: 'py-12', margin: 'my-4', title: 'LIMITED DAILY DEAL DECK', subtitle: '24-hour flash sale on ultra rare collectibles', status: 'inactive' },
     { id: 'featured-collection', name: 'Featured Collection Row', visible: true, bgColor: 'bg-transparent', padding: 'py-12', margin: 'my-0', title: 'VERIFIED FEATURED CLASSICS', subtitle: 'Curated 1-of-1 historic collectibles', status: 'active', sectionType: 'product-row', productCategory: 'Featured', buttonText: 'VIEW ALL', buttonUrl: 'listing', maxProducts: 4 },
-    { id: 'latest-products', name: 'Latest Products Row', visible: true, bgColor: 'bg-transparent', padding: 'py-12', margin: 'my-0', title: 'LATEST WORKSHOP DROPS', subtitle: 'Freshly authenticated physical catalog arrivals', status: 'active', sectionType: 'product-row', productCategory: 'New In', buttonText: 'VIEW ALL', buttonUrl: 'listing', maxProducts: 8 },
     { id: 'all-jerseys', name: 'All Jerseys Row', visible: true, bgColor: 'bg-transparent', padding: 'py-12', margin: 'my-0', title: 'ALL JERSEYS', subtitle: 'Complete storefront catalog — every kit in stock', status: 'active', sectionType: 'product-row', productCategory: 'All', buttonText: 'VIEW ALL', buttonUrl: 'listing', maxProducts: 500 },
     { id: 'retro-collection', name: 'Retro Collection Row', visible: true, bgColor: 'bg-transparent', padding: 'py-12', margin: 'my-0', title: 'RETRO', subtitle: 'Rare 80s, 90s & 2000s vintage reissues', status: 'active', sectionType: 'product-row', productCategory: 'Retro', buttonText: 'VIEW ALL', buttonUrl: 'listing', maxProducts: 4 },
     { id: 'product-row-la-liga', name: 'La Liga Row', visible: true, bgColor: 'bg-transparent', padding: 'py-12', margin: 'my-0', title: 'LA LIGA', subtitle: 'Shop La Liga — curated picks for collectors', status: 'active', sectionType: 'product-row', productCategory: 'La Liga', buttonText: 'VIEW ALL', buttonUrl: 'listing', maxProducts: 4 },
@@ -842,7 +842,10 @@ export default function App() {
             if (s.id === 'fan-edition') return { ...s, visible: true, status: 'active', sectionType: 'product-row', productCategory: s.productCategory || 'Fan Edition', buttonText: s.buttonText ?? 'VIEW ALL', buttonUrl: s.buttonUrl || 'listing', maxProducts: s.maxProducts ?? 4 };
             if (s.id === 'current-season') return { ...s, sectionType: 'product-row', productCategory: s.productCategory || 'Current Season', buttonText: s.buttonText ?? 'EXPLORE MODERN', buttonUrl: s.buttonUrl || 'listing', maxProducts: s.maxProducts ?? 4 };
             if (s.id === 'clearance') return { ...s, sectionType: 'product-row', productCategory: s.productCategory || 'Clearance', title: s.title?.includes('OUTLET') ? 'CATALOG' : (s.title || 'CATALOG'), buttonText: /outlet/i.test(s.buttonText || '') ? 'VIEW CATALOG' : (s.buttonText ?? 'VIEW CATALOG'), buttonUrl: s.buttonUrl || 'listing', maxProducts: s.maxProducts ?? 4 };
-            if (s.id === 'latest-products') return { ...s, visible: true, status: 'active', sectionType: 'product-row', productCategory: s.productCategory || 'New In', buttonText: s.buttonText ?? 'VIEW ALL', buttonUrl: s.buttonUrl || 'listing', maxProducts: Math.max(8, s.maxProducts ?? 8) };
+            if (s.id === 'latest-products') {
+              // Removed from storefront — drop from saved CMS configs
+              return { ...s, visible: false, status: 'inactive' as const };
+            }
             if (s.id === 'all-jerseys') return { ...s, visible: true, status: 'active', sectionType: 'product-row', productCategory: 'All', buttonText: s.buttonText ?? 'VIEW ALL', buttonUrl: s.buttonUrl || 'listing', maxProducts: Math.max(500, s.maxProducts ?? 500) };
             if (s.id === 'hero-slider') return { ...s, visible: true, status: 'active', bgColor: 'bg-transparent', padding: 'py-0', margin: 'my-0' };
             return s;
@@ -2401,12 +2404,13 @@ export default function App() {
       if (p.isTrashed || p.isArchived) continue;
       if (p.status && p.status !== 'Active') continue;
       const b = String(p.brand || '').trim();
-      const c = String(p.category || '').trim();
       const cond = String(p.condition || '').trim();
       const season = String(p.season || '').trim();
       const club = String(p.club || p.nationalTeam || '').trim();
       if (b) brands.add(b);
-      if (c && !/mystery/i.test(c)) categories.add(c);
+      for (const c of getProductCategories(p)) {
+        if (c && !/mystery/i.test(c)) categories.add(c);
+      }
       if (cond) conditions.add(cond);
       if (season) seasons.add(season);
       if (club && !/mystery/i.test(club)) clubs.add(club);

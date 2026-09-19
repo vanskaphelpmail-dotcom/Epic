@@ -15,7 +15,8 @@ import {
   isProductRowSection,
   resolveSectionCategory,
 } from '../lib/homepageSections';
-import { canonicalTargetPageId, canonicalTargetPageName } from '../lib/storefrontPages';
+import { canonicalTargetPageId, canonicalTargetPageName, productMatchesListingCategory } from '../lib/storefrontPages';
+import { getProductCategories } from '../lib/sizeCharts';
 import { api, getToken, isApiEnabled } from '../lib/apiClient';
 import { JerseyRenderer } from './JerseyRenderer';
 import { isRenderableImageSrc } from '../lib/productImage';
@@ -1640,8 +1641,8 @@ export const ProductManager: React.FC<ProductManagerProps> = ({
         if (!pageMatches) return false;
       }
 
-      // Category Filter
-      if (filterCategory !== 'All' && p.category?.toLowerCase() !== filterCategory.toLowerCase()) return false;
+      // Category Filter — honor multi-select categories[]
+      if (filterCategory !== 'All' && !productMatchesListingCategory(p, filterCategory)) return false;
 
       // Search Query
       if (searchTerm.trim()) {
@@ -2410,7 +2411,11 @@ export const ProductManager: React.FC<ProductManagerProps> = ({
                 <div className="space-y-3">
                   {pageCats.length > 0 ? (
                     pageCats.map((cat) => {
-                      const prodsInCat = products.filter(p => p.category?.toLowerCase() === cat.name.toLowerCase());
+                      const prodsInCat = products.filter((p) =>
+                        getProductCategories(p).some(
+                          (c) => c.toLowerCase() === cat.name.toLowerCase(),
+                        ),
+                      );
                       const isChild = !!cat.parentId;
                       const parentCat = categoryItems.find(c => c.id === cat.parentId);
                       const IconComponent = CATEGORY_ICONS.find(i => i.id === cat.icon)?.icon || Shirt;

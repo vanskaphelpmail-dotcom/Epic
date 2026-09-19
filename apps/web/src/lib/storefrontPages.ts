@@ -1,4 +1,5 @@
 import type { Product } from '../types';
+import { getProductCategories } from './sizeCharts';
 
 /** Canonical storefront destination pages (nav URL id ↔ display name). */
 export type StorefrontPageDef = {
@@ -160,7 +161,7 @@ function isPrimaryLeagueLabel(value: string): boolean {
 
 /**
  * Product belongs on a nav / listing destination.
- * Explicit Target Page / pageName wins; league / category is fallback.
+ * Matches Target Page / pageName, league, primary category, and multi-select categories[].
  */
 export function productMatchesStorefrontFilter(
   product: Product,
@@ -170,18 +171,34 @@ export function productMatchesStorefrontFilter(
 
   const filterPage = resolveStorefrontPage(filter);
   const filterKey = norm(filter);
+  const multiCats = getProductCategories(product);
+
+  const tagMatchesFilter = (tag: string): boolean => {
+    if (!tag) return false;
+    if (storefrontLabelsMatch(tag, filter)) return true;
+    if (filterPage && storefrontLabelsMatch(tag, filterPage.id)) return true;
+    if (filterPage && storefrontLabelsMatch(tag, filterPage.name)) return true;
+    if (norm(tag) === filterKey) return true;
+    return false;
+  };
+
+  // Multi-select categories always count (Premier League can be secondary tag)
+  if (multiCats.some(tagMatchesFilter)) return true;
 
   const explicit =
     resolveStorefrontPage(product.targetPage) ||
     resolveStorefrontPage(product.pageName);
 
   if (explicit) {
-    if (filterPage) return explicit.id === filterPage.id;
-    return (
+    if (filterPage && explicit.id === filterPage.id) return true;
+    if (
       pageMatchKeys(explicit).includes(filterKey) ||
       norm(explicit.id) === filterKey ||
       norm(explicit.name) === filterKey
-    );
+    ) {
+      return true;
+    }
+    // Do not hard-fail when explicit page differs — secondary categories already checked above
   }
 
   if (filterPage?.id === 'Other Leagues') {
@@ -199,6 +216,7 @@ export function productMatchesStorefrontFilter(
       product.category,
       product.country,
       product.club,
+      ...multiCats,
     ]
       .map((v) => String(v || '').trim())
       .filter(Boolean);
@@ -219,9 +237,8 @@ export function productMatchesStorefrontFilter(
 
   // No Target Page set — match category only (exact / alias)
   const cat = String(product.category || '').trim();
-  if (!cat) return false;
-  if (storefrontLabelsMatch(cat, filter)) return true;
-  if (!filterPage && norm(cat) === filterKey) return true;
+  if (cat && storefrontLabelsMatch(cat, filter)) return true;
+  if (cat && !filterPage && norm(cat) === filterKey) return true;
   return false;
 }
 
@@ -274,7 +291,7 @@ export function productMatchesListingCategory(
 ): boolean {
   if (!filter || filter === 'All') return true;
 
-  // Nav destination pages — target-page + league matching
+  // Nav destination pages — target-page + league + multi-select categories
   if (resolveStorefrontPage(filter)) {
     return productMatchesStorefrontFilter(product, filter);
   }
@@ -287,12 +304,14 @@ export function productMatchesListingCategory(
     product.pageName,
     product.targetPage,
     product.league,
+    ...getProductCategories(product),
   ]
     .map((v) => norm(String(v || '')))
     .filter(Boolean);
 
   for (const field of fields) {
     if (aliases.has(field) || field === key) return true;
+    if (storefrontLabelsMatch(field, filter)) return true;
   }
   return false;
 }
@@ -315,9 +334,10 @@ export function homepageRowCategoryCandidates(products: Product[]): string[] {
   const skip = new Set(['mystery', 'all']);
   const names = new Set<string>();
   for (const p of products) {
-    const cat = String(p.category || '').trim();
-    if (!cat || skip.has(cat.toLowerCase())) continue;
-    names.add(cat);
+    for (const cat of getProductCategories(p)) {
+      if (!cat || skip.has(cat.toLowerCase())) continue;
+      names.add(cat);
+    }
   }
   for (const core of [
     'Featured',
