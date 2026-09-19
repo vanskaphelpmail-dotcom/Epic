@@ -2757,21 +2757,21 @@ export default function App() {
         )}
 
         {currentPage === 'order-success' && lastPlacedOrder && (
-          <section className="max-w-3xl mx-auto px-4 md:px-6 py-12 md:py-16 space-y-8 text-white animate-fadeIn">
+          <section className="max-w-3xl mx-auto px-4 md:px-6 py-12 md:py-16 space-y-8 text-zinc-900 animate-fadeIn">
             {/* STAGE 1: SUCCESS CELEBRATION CARD */}
-            <div className="bg-[#121212] border-2 border-zinc-700 rounded-3xl p-6 md:p-8 text-center space-y-6 shadow-xl max-w-xl mx-auto">
-              <div className="w-16 h-16 bg-zinc-900 border-2 border-zinc-8000 text-zinc-300 rounded-full flex items-center justify-center mx-auto shadow-sm">
-                <CheckCircle size={32} className="text-zinc-400" />
+            <div className="bg-white border border-zinc-200 rounded-3xl p-6 md:p-8 text-center space-y-6 shadow-lg max-w-xl mx-auto">
+              <div className="w-16 h-16 bg-emerald-50 border-2 border-emerald-200 text-emerald-700 rounded-full flex items-center justify-center mx-auto shadow-sm">
+                <CheckCircle size={32} className="text-emerald-600" />
               </div>
 
               <div className="space-y-2">
-                <h1 className="text-2xl md:text-3xl font-black uppercase tracking-tight text-white">Order Placed Successfully!</h1>
-                <p className="text-xs text-zinc-400 font-mono font-bold uppercase tracking-wider">
+                <h1 className="text-2xl md:text-3xl font-black uppercase tracking-tight text-zinc-950">Order Placed Successfully!</h1>
+                <p className="text-xs text-zinc-500 font-mono font-bold uppercase tracking-wider">
                   Reference ID: {lastPlacedOrder.id} • STATUS: CONFIRMED
                 </p>
               </div>
 
-              <p className="text-zinc-300 text-xs md:text-sm font-medium leading-relaxed max-w-sm mx-auto">
+              <p className="text-zinc-600 text-xs md:text-sm font-medium leading-relaxed max-w-sm mx-auto">
                 Thank you for your order! Your vintage jersey package is being prepared for secure delivery. You will pay the bill upon doorstep arrival. Below is your official invoice.
               </p>
 
@@ -2783,17 +2783,17 @@ export default function App() {
                       invoiceElement.scrollIntoView({ behavior: 'smooth' });
                     }
                   }}
-                  className="flex-1 bg-black hover:bg-zinc-900 text-white font-extrabold text-xs uppercase tracking-widest py-3 rounded-xl cursor-pointer transition-all flex items-center justify-center gap-2"
+                  className="flex-1 bg-zinc-950 hover:bg-zinc-800 text-white font-extrabold text-xs uppercase tracking-widest py-3 rounded-xl cursor-pointer transition-all flex items-center justify-center gap-2"
                 >
                   <Receipt size={14} /> View Invoice & Bill
                 </button>
                 <button
                   onClick={handleDownloadPDF}
                   disabled={isGeneratingPDF}
-                  className={`flex-1 font-extrabold text-xs uppercase tracking-wider py-3 rounded-xl cursor-pointer transition-all border-2 border-zinc-700 flex items-center justify-center gap-2 ${
+                  className={`flex-1 font-extrabold text-xs uppercase tracking-wider py-3 rounded-xl cursor-pointer transition-all border-2 flex items-center justify-center gap-2 ${
                     isGeneratingPDF 
-                      ? 'bg-zinc-800 text-zinc-400 border-zinc-800 cursor-not-allowed' 
-                      : 'bg-[#121212] hover:bg-zinc-800 text-white'
+                      ? 'bg-zinc-100 text-zinc-400 border-zinc-200 cursor-not-allowed' 
+                      : 'bg-white hover:bg-zinc-50 text-zinc-900 border-zinc-300'
                   }`}
                 >
                   <Download size={14} className={isGeneratingPDF ? 'animate-pulse' : ''} />
@@ -2802,22 +2802,21 @@ export default function App() {
               </div>
             </div>
 
-            {/* STAGE 2: THE PHYSICAL INVOICE & BILL RECEIPT */}
+            {/* STAGE 2: THE PHYSICAL INVOICE & BILL RECEIPT — white paper, high contrast */}
             <div 
               id="printable-invoice" 
-              className="bg-[#121212] border-2 border-zinc-400 p-6 md:p-10 rounded-2xl shadow-2xl space-y-8 relative overflow-hidden font-mono text-xs text-white max-w-2xl mx-auto"
+              className="bg-white border border-zinc-300 p-6 md:p-10 rounded-2xl shadow-xl space-y-8 relative overflow-hidden font-mono text-xs text-zinc-900 max-w-2xl mx-auto print:shadow-none print:border-zinc-400"
             >
-              {/* Paper Top Dotted Pattern */}
-              <div className="absolute top-0 left-0 right-0 h-1 bg-[radial-gradient(#000_1px,transparent_1px)] [background-size:8px_8px] opacity-20" />
+              {/* Paper top rule */}
+              <div className="absolute top-0 left-0 right-0 h-1.5 bg-gradient-to-r from-[#E30613] via-zinc-200 to-zinc-300" />
               
               {/* Receipt Header */}
-              <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 border-b-2 border-zinc-800 pb-6">
+              <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 border-b-2 border-zinc-200 pb-6">
                 <div>
                   <div className="flex items-center gap-2">
                     <BrandMark tone="red" imgClassName="w-8 h-8" />
                     <BrandWordmark
                       text={getShopBrandName(appConfig.logoText)}
-                      onDark
                       wordClassName="text-sm md:text-base"
                     />
                   </div>
@@ -2828,31 +2827,31 @@ export default function App() {
                     ).join('\n')}`}
                   </p>
                 </div>
-                <div className="text-left md:text-right font-mono text-[11px] space-y-1">
-                  <p><span className="font-bold">INVOICE:</span> #{lastPlacedOrder.id.slice(0, 8).toUpperCase()}</p>
-                  <p><span className="font-bold">DATE:</span> {new Date().toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' })}</p>
-                  <p><span className="font-bold">TRACKING:</span> {lastPlacedOrder.trackingNumber}</p>
-                  <p><span className="font-bold text-zinc-400">METHOD:</span> {lastPlacedOrder.paymentMethod}</p>
+                <div className="text-left md:text-right font-mono text-[11px] space-y-1 text-zinc-800">
+                  <p><span className="font-bold text-zinc-950">INVOICE:</span> #{lastPlacedOrder.id.slice(0, 8).toUpperCase()}</p>
+                  <p><span className="font-bold text-zinc-950">DATE:</span> {new Date().toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' })}</p>
+                  <p><span className="font-bold text-zinc-950">TRACKING:</span> {lastPlacedOrder.trackingNumber}</p>
+                  <p><span className="font-bold text-zinc-950">METHOD:</span> {lastPlacedOrder.paymentMethod}</p>
                 </div>
               </div>
 
               {/* Billed To Customer Details */}
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6 bg-zinc-900 border border-zinc-800 p-4 rounded-xl">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6 bg-zinc-50 border border-zinc-200 p-4 rounded-xl">
                 <div className="space-y-1">
                   <span className="text-[9px] font-black text-zinc-500 uppercase tracking-widest block">CLIENT DETAILS:</span>
-                  <p className="font-black text-sm text-white uppercase">{lastPlacedOrder.shippingAddress.fullName}</p>
-                  <p className="text-[11px] text-zinc-300 leading-normal font-bold">Phone: {lastPlacedOrder.shippingAddress.phone}</p>
+                  <p className="font-black text-sm text-zinc-950 uppercase">{lastPlacedOrder.shippingAddress.fullName}</p>
+                  <p className="text-[11px] text-zinc-700 leading-normal font-bold">Phone: {lastPlacedOrder.shippingAddress.phone}</p>
                   {lastPlacedOrder.shippingAddress.email && (
-                    <p className="text-[11px] text-zinc-600 truncate">Email: {lastPlacedOrder.shippingAddress.email}</p>
+                    <p className="text-[11px] text-zinc-500 truncate">Email: {lastPlacedOrder.shippingAddress.email}</p>
                   )}
                 </div>
                 <div className="space-y-1">
                   <span className="text-[9px] font-black text-zinc-500 uppercase tracking-widest block">DELIVERY DESTINATION:</span>
-                  <p className="font-medium text-zinc-300 leading-relaxed">
+                  <p className="font-medium text-zinc-700 leading-relaxed">
                     {lastPlacedOrder.shippingAddress.addressLine1}<br />
                     {lastPlacedOrder.shippingAddress.city} {lastPlacedOrder.shippingAddress.postalCode ? `- ${lastPlacedOrder.shippingAddress.postalCode}` : ''}
                   </p>
-                  <span className="inline-block bg-black text-white text-[9px] px-2 py-0.5 rounded font-black uppercase mt-1">
+                  <span className="inline-block bg-zinc-950 text-white text-[9px] px-2 py-0.5 rounded font-black uppercase mt-1">
                     {lastPlacedOrder.deliveryRegion === 'inside' ? 'Inside Dhaka (Home Delivery)' : 'Outside Dhaka (Courier)'}
                   </span>
                 </div>
@@ -2862,18 +2861,18 @@ export default function App() {
               <div className="space-y-3">
                 <span className="text-[9px] font-black text-zinc-500 uppercase tracking-widest block">ITEMIZED DESCRIPTION:</span>
                 
-                <div className="border-t border-b border-zinc-700 py-2">
-                  <div className="grid grid-cols-12 gap-2 font-black text-white pb-1.5 uppercase tracking-wider text-[10px]">
+                <div className="border-t border-b border-zinc-300 py-2">
+                  <div className="grid grid-cols-12 gap-2 font-black text-zinc-950 pb-1.5 uppercase tracking-wider text-[10px]">
                     <div className="col-span-6">JERSEY NAME</div>
                     <div className="col-span-2 text-center">SIZE</div>
                     <div className="col-span-1 text-center">QTY</div>
                     <div className="col-span-3 text-right">PRICE</div>
                   </div>
                   
-                  <div className="divide-y divide-dashed divide-zinc-800">
+                  <div className="divide-y divide-dashed divide-zinc-200">
                     {lastPlacedOrder.items.map((item, index) => (
-                      <div key={index} className="grid grid-cols-12 gap-2 py-2 items-center text-[11px] text-white font-semibold">
-                        <div className="col-span-6 truncate font-extrabold text-white" title={item.product.name}>
+                      <div key={index} className="grid grid-cols-12 gap-2 py-2 items-center text-[11px] text-zinc-800 font-semibold">
+                        <div className="col-span-6 truncate font-extrabold text-zinc-950" title={item.product.name}>
                           {item.product.name}
                         </div>
                         <div className="col-span-2 text-center font-mono font-black">{item.selectedSize}</div>
@@ -2887,24 +2886,24 @@ export default function App() {
 
               {/* Billing Breakdown Bill */}
               <div className="flex flex-col items-end pt-2">
-                <div className="w-full md:w-80 space-y-2.5 font-mono text-zinc-100 text-xs">
-                  <div className="flex justify-between border-b border-zinc-800 pb-2">
+                <div className="w-full md:w-80 space-y-2.5 font-mono text-zinc-800 text-xs">
+                  <div className="flex justify-between border-b border-zinc-200 pb-2">
                     <span className="font-bold">Subtotal:</span>
-                    <span className="font-black text-white">{formatPrice(lastPlacedOrder.subtotal)}</span>
+                    <span className="font-black text-zinc-950">{formatPrice(lastPlacedOrder.subtotal)}</span>
                   </div>
-                  <div className="flex justify-between border-b border-zinc-800 pb-2">
+                  <div className="flex justify-between border-b border-zinc-200 pb-2">
                     <span className="font-bold">Delivery Charge:</span>
-                    <span className="font-black text-white">{lastPlacedOrder.deliveryCharge || (lastPlacedOrder.deliveryRegion === 'inside' ? 70 : 130)}</span>
+                    <span className="font-black text-zinc-950">{lastPlacedOrder.deliveryCharge || (lastPlacedOrder.deliveryRegion === 'inside' ? 70 : 130)}</span>
                   </div>
-                  <div className="flex justify-between border-b border-zinc-800 pb-2">
+                  <div className="flex justify-between border-b border-zinc-200 pb-2">
                     <span className="font-bold">Order Total:</span>
-                    <span className="font-black text-white">{formatPrice(lastPlacedOrder.total)}</span>
+                    <span className="font-black text-zinc-950">{formatPrice(lastPlacedOrder.total)}</span>
                   </div>
                   {lastPlacedOrder.bkashPaymentType === 'partial' ? (
                     <>
-                      <div className="flex justify-between border-b border-zinc-800 pb-2 text-[10px] text-zinc-600">
+                      <div className="flex justify-between border-b border-zinc-200 pb-2 text-[10px] text-zinc-500">
                         <span className="font-bold">Advance rate:</span>
-                        <span className="font-mono font-black">
+                        <span className="font-mono font-black text-zinc-700">
                           {(appConfig.bkashPartialAmountBdt ?? 300).toLocaleString('en-BD')} ×{' '}
                           {lastPlacedOrder.items.reduce((s, i) => s + (i.quantity || 0), 0)}{' '}
                           jersey
@@ -2913,15 +2912,15 @@ export default function App() {
                             : 's'}
                         </span>
                       </div>
-                      <div className="flex justify-between border-b border-zinc-800 pb-2 text-[#E2136E]">
+                      <div className="flex justify-between border-b border-zinc-200 pb-2 text-[#C70A5A]">
                         <span className="font-bold">bKash advance paid now:</span>
                         <span className="font-black">
                           {formatPrice(lastPlacedOrder.bkashPaidAmount ?? 0)}
                         </span>
                       </div>
-                      <div className="flex justify-between border-b border-zinc-800 pb-2">
+                      <div className="flex justify-between border-b border-zinc-200 pb-2">
                         <span className="font-bold">Due on delivery:</span>
-                        <span className="font-black text-white">
+                        <span className="font-black text-zinc-950">
                           {formatPrice(
                             Math.max(
                               0,
@@ -2931,20 +2930,20 @@ export default function App() {
                         </span>
                       </div>
                       <div className="flex justify-between text-sm pt-1">
-                        <span className="font-black text-[#E2136E] uppercase tracking-wide">
+                        <span className="font-black text-[#C70A5A] uppercase tracking-wide">
                           Paid via bKash now:
                         </span>
-                        <span className="font-black text-[#E2136E] underline decoration-double decoration-2 underline-offset-4">
+                        <span className="font-black text-[#C70A5A] underline decoration-double decoration-2 underline-offset-4">
                           {formatPrice(lastPlacedOrder.bkashPaidAmount ?? 0)}
                         </span>
                       </div>
                     </>
                   ) : (
                     <div className="flex justify-between text-sm pt-1">
-                      <span className="font-black text-white uppercase tracking-wide">
+                      <span className="font-black text-zinc-950 uppercase tracking-wide">
                         Grand Total to Pay:
                       </span>
-                      <span className="font-black text-white underline decoration-double decoration-2 underline-offset-4">
+                      <span className="font-black text-zinc-950 underline decoration-double decoration-2 underline-offset-4">
                         {formatPrice(
                           lastPlacedOrder.bkashPaidAmount ?? lastPlacedOrder.total,
                         )}
@@ -2957,23 +2956,23 @@ export default function App() {
               {/* Mobile wallet payment receipt details */}
               {(lastPlacedOrder.paymentMethod?.toLowerCase().includes('bkash') ||
                 lastPlacedOrder.paymentMethod?.toLowerCase().includes('nagad')) && (
-                <div className="border-2 border-zinc-700 bg-zinc-900 rounded-xl p-4 space-y-2">
+                <div className="border-2 border-[#E2136E]/40 bg-[#FFF0F6] rounded-xl p-4 space-y-2">
                   <div className="flex items-center gap-2">
-                    <span className="inline-flex items-center justify-center w-7 h-7 rounded-md bg-black text-white font-black text-[9px]">SM</span>
-                    <span className="font-black text-xs uppercase tracking-wider text-white">
+                    <span className="inline-flex items-center justify-center w-7 h-7 rounded-md bg-[#E2136E] text-white font-black text-[9px]">SM</span>
+                    <span className="font-black text-xs uppercase tracking-wider text-zinc-950">
                       {lastPlacedOrder.paymentMethod?.toLowerCase().includes('nagad') ? 'Nagad' : 'bKash'} Send Money
                       {lastPlacedOrder.bkashPaymentType === 'partial'
                         ? ' · Partial Advance'
                         : ' · Full Pay'}
                     </span>
                   </div>
-                  <p className="text-[11px] font-bold text-zinc-300">
+                  <p className="text-[11px] font-bold text-zinc-700">
                     Amount sent:{' '}
-                    <span className="font-mono text-white">
+                    <span className="font-mono text-zinc-950">
                       {formatPrice(lastPlacedOrder.bkashPaidAmount ?? lastPlacedOrder.total)}
                     </span>
                     {lastPlacedOrder.bkashPaymentType === 'partial' && (
-                      <span className="text-zinc-600 font-medium">
+                      <span className="text-zinc-500 font-medium">
                         {' '}
                         (rest{' '}
                         {formatPrice(
@@ -2987,27 +2986,27 @@ export default function App() {
                     )}
                   </p>
                   {lastPlacedOrder.bkashNumber && (
-                    <p className="text-[11px] font-bold text-zinc-300">
-                      From: <span className="font-mono">{lastPlacedOrder.bkashNumber}</span>
+                    <p className="text-[11px] font-bold text-zinc-700">
+                      From: <span className="font-mono text-zinc-950">{lastPlacedOrder.bkashNumber}</span>
                     </p>
                   )}
                   {lastPlacedOrder.bkashTransactionId && (
-                    <p className="text-[11px] font-bold text-zinc-300">
-                      TrxID: <span className="font-mono uppercase">{lastPlacedOrder.bkashTransactionId}</span>
+                    <p className="text-[11px] font-bold text-zinc-700">
+                      TrxID: <span className="font-mono uppercase text-zinc-950">{lastPlacedOrder.bkashTransactionId}</span>
                     </p>
                   )}
                 </div>
               )}
 
               {/* Decorative Authentic Elements */}
-              <div className="flex flex-col sm:flex-row justify-between items-center gap-6 pt-6 border-t-2 border-zinc-800">
+              <div className="flex flex-col sm:flex-row justify-between items-center gap-6 pt-6 border-t-2 border-zinc-200">
                 {/* Simulated Barcode */}
                 <div className="flex flex-col items-start gap-1">
-                  <div className="h-10 w-44 flex gap-[2px] items-stretch opacity-85">
+                  <div className="h-10 w-44 flex gap-[2px] items-stretch opacity-90">
                     {[1, 3, 1, 2, 4, 1, 3, 2, 1, 4, 2, 1, 3, 1, 2, 1, 4, 1, 2, 3].map((w, i) => (
                       <div 
                         key={i} 
-                        className="bg-black" 
+                        className="bg-zinc-950" 
                         style={{ width: `${w}px` }}
                       />
                     ))}
@@ -3018,9 +3017,9 @@ export default function App() {
                 </div>
 
                 {/* Vault Stamp / Guarantee */}
-                <div className="border-4 border-double border-zinc-400 rounded-full px-5 py-2 text-center text-zinc-500 select-none scale-90 rotate-[-2deg]">
+                <div className="border-4 border-double border-zinc-400 rounded-full px-5 py-2 text-center text-zinc-500 select-none scale-90 rotate-[-2deg] bg-white">
                   <p className="text-[8px] font-black tracking-widest uppercase">OFFICIAL SEAL</p>
-                  <p className="text-[11px] font-black tracking-tight text-zinc-300 uppercase">Epic Vanskap BD AUTHENTIC</p>
+                  <p className="text-[11px] font-black tracking-tight text-zinc-800 uppercase">Epic Vanskap BD AUTHENTIC</p>
                   <p className="text-[8px] font-mono tracking-widest uppercase font-bold">100% DEADSTOCK CO.</p>
                 </div>
               </div>
@@ -3039,7 +3038,7 @@ export default function App() {
                   setLastPlacedOrder(null);
                   goToPage('listing');
                 }}
-                className="flex-1 bg-black hover:bg-zinc-900 text-white font-extrabold text-sm uppercase tracking-wide py-3.5 rounded-xl cursor-pointer transition-all flex items-center justify-center gap-2"
+                className="flex-1 bg-zinc-950 hover:bg-zinc-800 text-white font-extrabold text-sm uppercase tracking-wide py-3.5 rounded-xl cursor-pointer transition-all flex items-center justify-center gap-2"
               >
                 <ShoppingBag size={14} /> Go to Home
               </button>
@@ -3048,7 +3047,7 @@ export default function App() {
                   setLastPlacedOrder(null);
                   goToPage('dashboard');
                 }}
-                className="flex-1 bg-[#121212] hover:bg-zinc-800 text-white font-extrabold text-xs uppercase tracking-wider py-3.5 rounded-xl cursor-pointer transition-all border-2 border-zinc-700 flex items-center justify-center gap-2"
+                className="flex-1 bg-white hover:bg-zinc-50 text-zinc-900 font-extrabold text-xs uppercase tracking-wider py-3.5 rounded-xl cursor-pointer transition-all border-2 border-zinc-300 flex items-center justify-center gap-2"
               >
                 View My Purchase History
               </button>
