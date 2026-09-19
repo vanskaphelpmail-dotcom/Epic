@@ -784,6 +784,8 @@ model StoreSettings {
   socialLinks        Json?
   /// Homepage community gallery: { title, membersLabel, subtitle, facebookUrl, images[] }
   communityGallery   Json?
+  /// Customers feedback gallery: { title, membersLabel, subtitle, facebookUrl, images[] }
+  customerFeedbackGallery Json?
   updatedAt          DateTime @updatedAt
 
   @@map("store_settings")

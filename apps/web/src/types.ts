@@ -467,6 +467,8 @@ export interface AppConfig {
   };
   /** Homepage “Join the Vanskap Community” gallery */
   communityGallery?: CommunityGalleryConfig;
+  /** Storefront “Customers Feedback” image gallery (all pages, before Outlets) */
+  customerFeedbackGallery?: CommunityGalleryConfig;
   currencySymbol: string;
   currencyCode: string;
   exchangeRate: number;

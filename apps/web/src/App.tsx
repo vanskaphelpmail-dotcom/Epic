@@ -7,6 +7,10 @@ import { PRODUCTS, CUSTOMER_REVIEWS, SELLER_REQUESTS } from './data/storeData';
 import { DEFAULT_LEAGUES } from './data/leaguesData';
 import { DEFAULT_CLUBS, normalizeClubShowcase } from './data/clubsData';
 import { DEFAULT_COMMUNITY_GALLERY, normalizeCommunityGallery } from './lib/communityGallery';
+import {
+  DEFAULT_CUSTOMER_FEEDBACK_GALLERY,
+  normalizeCustomerFeedbackGallery,
+} from './lib/customerFeedbackGallery';
 import { Product, CartItem, SellerRequest, Order, CarouselSlide, User, AppConfig } from './types';
 import {
   api,
@@ -79,6 +83,7 @@ import { CustomerDashboard } from './components/CustomerDashboard';
 import { SellerModule } from './components/SellerModule';
 import { InfoPages } from './components/InfoPages';
 import { Footer } from './components/Footer';
+import { CustomerFeedbackGallerySection } from './components/CustomerFeedbackGallerySection';
 import { AuthScreen } from './components/AuthScreen';
 import { CustomerAuth } from './components/CustomerAuth';
 import { DynamicPageRenderer } from './components/DynamicPageRenderer';
@@ -288,6 +293,10 @@ const DEFAULT_APP_CONFIG: AppConfig = {
     ...DEFAULT_COMMUNITY_GALLERY,
     images: DEFAULT_COMMUNITY_GALLERY.images.map((img) => ({ ...img })),
   },
+  customerFeedbackGallery: {
+    ...DEFAULT_CUSTOMER_FEEDBACK_GALLERY,
+    images: [],
+  },
   tournamentPatches: [
     { id: 'patch-wc26', label: 'WC 26', priceBdt: 100 },
     { id: 'patch-ucl', label: 'UCL', priceBdt: 100 },
@@ -320,6 +329,7 @@ const DEFAULT_APP_CONFIG: AppConfig = {
     { id: 'community-gallery', name: 'Community Gallery', visible: true, bgColor: 'bg-white', padding: 'py-14', margin: 'my-0', title: 'JOIN THE VANSKAP COMMUNITY', subtitle: '+6,783 Members Since 2024.', status: 'active' },
     { id: 'customised-kit', name: 'Customised Kit Row', visible: true, bgColor: 'bg-transparent', padding: 'py-12', margin: 'my-0', title: 'CUSTOMISED KIT', subtitle: 'Custom printed kits with full size guide', status: 'active', sectionType: 'product-row', productCategory: 'Customised Kit', buttonText: 'VIEW ALL', buttonUrl: 'listing', maxProducts: 4 },
     { id: 'clearance', name: 'Catalog Row', visible: true, bgColor: 'bg-transparent', padding: 'py-12', margin: 'my-0', title: 'CATALOG', subtitle: 'Browse the full Catalog collection', status: 'active', sectionType: 'product-row', productCategory: 'Clearance', buttonText: 'VIEW CATALOG', buttonUrl: 'listing', maxProducts: 4 },
+    { id: 'customer-feedback-gallery', name: 'Customers Feedback', visible: true, bgColor: 'bg-white', padding: 'py-14', margin: 'my-0', title: 'CUSTOMERS FEEDBACK', subtitle: 'Real photos from verified buyers', status: 'active' },
     { id: 'store-locations', name: 'Physical Store Maps', visible: true, bgColor: 'bg-transparent', padding: 'py-12', margin: 'my-0', title: 'PHYSICAL OUTLET POINTS', subtitle: 'Visit us for physical sizing and authentications', status: 'active' }
   ],
   banners: [
@@ -939,6 +949,9 @@ export default function App() {
               tournamentPatches: cfg.tournamentPatches || [],
               clubShowcase: normalizeClubShowcase(cfg.clubs),
               communityGallery: normalizeCommunityGallery(cfg.communityGallery),
+              customerFeedbackGallery: normalizeCustomerFeedbackGallery(
+                cfg.customerFeedbackGallery,
+              ),
               customSizeCharts: cfg.customSizeCharts || [],
             })
             .catch((err) => {
@@ -1217,6 +1230,17 @@ export default function App() {
                   );
                 } else if (!next.communityGallery?.images?.length) {
                   next.communityGallery = normalizeCommunityGallery(null);
+                }
+                if (
+                  (settings as { customerFeedbackGallery?: unknown }).customerFeedbackGallery &&
+                  typeof (settings as { customerFeedbackGallery?: unknown })
+                    .customerFeedbackGallery === 'object'
+                ) {
+                  next.customerFeedbackGallery = normalizeCustomerFeedbackGallery(
+                    (settings as { customerFeedbackGallery: unknown }).customerFeedbackGallery,
+                  );
+                } else if (!next.customerFeedbackGallery) {
+                  next.customerFeedbackGallery = normalizeCustomerFeedbackGallery(null);
                 }
                 if (Array.isArray((settings as { customSizeCharts?: unknown }).customSizeCharts)) {
                   next.customSizeCharts = (settings as { customSizeCharts: AppConfig['customSizeCharts'] })
@@ -3126,6 +3150,10 @@ export default function App() {
 
       {!isAdminShell && (
         <>
+          {/* Customers Feedback on non-home pages (home shows it before Outlets in page sections) */}
+          {currentPage !== 'home' && (
+            <CustomerFeedbackGallerySection config={appConfig.customerFeedbackGallery} />
+          )}
           {/* Embedded Brand Footer — extra space above fixed mobile bottom nav */}
           <div className="pb-20 lg:pb-0">
             <Footer currentPage={currentPage} setCurrentPage={setCurrentPageNav} appConfig={appConfig} />

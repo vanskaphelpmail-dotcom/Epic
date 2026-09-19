@@ -6,6 +6,7 @@ import { InventoryEditor } from './InventoryEditor';
 import { ProductManager } from './ProductManager';
 import { TournamentPatchesPanel } from './TournamentPatchesPanel';
 import { CommunityGalleryPanel } from './CommunityGalleryPanel';
+import { CustomerFeedbackGalleryPanel } from './CustomerFeedbackGalleryPanel';
 import { SizeChartsPanel } from './SizeChartsPanel';
 import { TEAMS_LIST, RIVALRY_PRESETS, TeamItem } from '../data/teamsData';
 import { DEFAULT_LEAGUES } from '../data/leaguesData';
@@ -1481,6 +1482,7 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({
         { id: 'tournament-patches', label: 'Patches', icon: Award },
         { id: 'size-charts', label: 'Size Charts', icon: Ruler },
         { id: 'community-gallery', label: 'Community Section', icon: Image },
+        { id: 'customer-feedback-gallery', label: 'Customers Feedback', icon: Star },
       ],
     },
     {
@@ -1533,6 +1535,7 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({
     if (activeSidebarTab === 'inventory') return 'Inventory';
     if (activeSidebarTab === 'tournament-patches') return 'Patches';
     if (activeSidebarTab === 'community-gallery') return 'Community Section';
+    if (activeSidebarTab === 'customer-feedback-gallery') return 'Customers Feedback';
     if (activeSidebarTab === 'size-charts') return 'Size Charts';
     if (activeSidebarTab === 'product-management') return 'Product';
     return activeModuleLabel;
@@ -3381,6 +3384,16 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({
       {activeSidebarTab === 'community-gallery' && (
         <div className="space-y-4 animate-fadeIn">
           <CommunityGalleryPanel
+            appConfig={appConfig}
+            onUpdateConfig={onUpdateConfig}
+            onRequireStaffLogin={onRequireStaffLogin}
+          />
+        </div>
+      )}
+
+      {activeSidebarTab === 'customer-feedback-gallery' && (
+        <div className="space-y-4 animate-fadeIn">
+          <CustomerFeedbackGalleryPanel
             appConfig={appConfig}
             onUpdateConfig={onUpdateConfig}
             onRequireStaffLogin={onRequireStaffLogin}
@@ -5479,7 +5492,7 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({
       )}
 
       {/* 28 EXTENDED DYNAMIC CMS MODULE PANELS */}
-      {!['dashboard', 'inventory', 'tournament-patches', 'community-gallery', 'size-charts', 'seller-requests', 'homepage-builder', 'coupons', 'brand-customizer'].includes(activeSidebarTab) && (
+      {!['dashboard', 'inventory', 'tournament-patches', 'community-gallery', 'customer-feedback-gallery', 'size-charts', 'seller-requests', 'homepage-builder', 'coupons', 'brand-customizer'].includes(activeSidebarTab) && (
         <div className="bg-white border border-emerald-100 p-6 rounded-3xl space-y-8 animate-fadeIn">
           
           {/* MODULE: analytics */}

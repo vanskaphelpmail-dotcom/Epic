@@ -13,7 +13,9 @@ import { isBannerLive, isHeroBannerType } from '../lib/bannerVisibility';
 import { flyProductToCart } from '../lib/flyToCart';
 import { getProductsForHomepageSection, isCatalogAssignedProduct, isProductRowSection, isRemovedHomepageCategory, normalizeHomepageSections, resolveSectionCategory } from '../lib/homepageSections';
 import { CommunityGallerySection } from './CommunityGallerySection';
+import { CustomerFeedbackGallerySection } from './CustomerFeedbackGallerySection';
 import { getActiveCommunityImages, normalizeCommunityGallery } from '../lib/communityGallery';
+import { getActiveCustomerFeedbackImages, normalizeCustomerFeedbackGallery } from '../lib/customerFeedbackGallery';
 import { buildCatalogSearchKeywords, productMatchesSearchQuery, productMatchesNationalTeam } from '../lib/catalogSearch';
 import { DEFAULT_FALLBACK_SIZES } from '../lib/productSizes';
 import {
@@ -341,6 +343,12 @@ export const DynamicPageRenderer: React.FC<DynamicPageRendererProps> = ({
           const gallery = normalizeCommunityGallery(appConfig.communityGallery);
           if (gallery.enabled === false || getActiveCommunityImages(gallery).length === 0) return null;
         }
+        if (section.id === 'customer-feedback-gallery') {
+          const gallery = normalizeCustomerFeedbackGallery(appConfig.customerFeedbackGallery);
+          if (gallery.enabled === false || getActiveCustomerFeedbackImages(gallery).length === 0) {
+            return null;
+          }
+        }
         if (section.id === 'trending-searches' && trendingKeywords.length === 0) return null;
 
         // Known section renderers only — unknown / emptied CMS rows must not leave a colored bar
@@ -349,6 +357,7 @@ export const DynamicPageRenderer: React.FC<DynamicPageRendererProps> = ({
           'trending-searches',
           'daily-deals',
           'community-gallery',
+          'customer-feedback-gallery',
           'testimonials',
           'store-locations',
         ]);
@@ -374,7 +383,7 @@ export const DynamicPageRenderer: React.FC<DynamicPageRendererProps> = ({
               ? `hidden lg:block ${safeBg} ${section.padding} ${section.margin} ${getAnimationClass(section.animation)} transition-all duration-300 relative`
               : compactShopIds.has(section.id)
                 ? `bg-transparent pt-3 pb-5 sm:pt-8 sm:pb-10 lg:py-10 my-0 ${getAnimationClass(section.animation)} transition-all duration-300 relative`
-                : section.id === 'community-gallery'
+                : section.id === 'community-gallery' || section.id === 'customer-feedback-gallery'
                   ? `bg-white py-8 sm:py-12 md:py-16 my-0 overflow-x-hidden ${getAnimationClass(section.animation)} transition-all duration-300 relative`
                   : isProductRowSection(section)
                     // Mobile: ~16–20px above first row (RETRO) so it sits close to club logos.
@@ -899,33 +908,16 @@ export const DynamicPageRenderer: React.FC<DynamicPageRendererProps> = ({
               />
             )}
 
-            {/* 17. TESTIMONIALS */}
-            {section.id === 'testimonials' && (
-              <div className="max-w-7xl mx-auto px-4 sm:px-6 space-y-8">
-                <div className="text-center space-y-2">
-                  <h2 className={`text-xl md:text-2xl font-black uppercase tracking-tight ${headingColor}`}>{section.title || 'VERIFIED COLLECTOR REVIEWS'}</h2>
-                  <p className={`text-xs font-mono ${subColor}`}>{section.subtitle || 'Review logs verified by Bangladesh vintage authentication experts'}</p>
-                </div>
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-                  {[
-                    { id: 1, name: 'Siyam Rahman', quote: 'The AC Milan 1996 shirt has absolute perfect manufacturer stitching tags. Authentic holographic stamps included. Highly recommended for premium kit collectors in Dhaka.', rating: 5, date: '2026-07-12' },
-                    { id: 2, name: 'Fahim Chowdhury', quote: 'Been looking for the Spain 2026 Yamal jersey for literal years. Finally secured it at Epic Vanskap with custom physics certificates. Unrivaled experience.', rating: 5, date: '2026-07-08' },
-                    { id: 3, name: 'Anika Bushra', quote: 'Extremely fast delivery inside Dhaka (secured within 24 hours). The vacuum packaging smelled wonderful, complete with care instructions.', rating: 5, date: '2026-07-05' }
-                  ].map((t) => (
-                    <div key={t.id} className="bg-white border border-[#E5E5E5] p-5 rounded-2xl space-y-3 relative shadow-sm">
-                      <div className="flex gap-1 text-[#E30613]">
-                        {[...Array(t.rating)].map((_, i) => <Star key={i} size={11} className="fill-[#E30613] text-[#E30613]" />)}
-                      </div>
-                      <p className="text-[#555555] text-[11.5px] italic leading-relaxed">"{t.quote}"</p>
-                      <div className="border-t border-[#E5E5E5] pt-2 flex justify-between items-center text-[10px] font-mono">
-                        <span className="text-[#0A0A0A] font-bold">{t.name.toUpperCase()}</span>
-                        <span className="text-[#555555] font-bold">✓ VERIFIED COLLECTOR</span>
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              </div>
+            {section.id === 'customer-feedback-gallery' && (
+              <CustomerFeedbackGallerySection
+                config={appConfig.customerFeedbackGallery}
+                headingFallback={section.title}
+                subtitleFallback={section.subtitle}
+              />
             )}
+
+            {/* 17. TESTIMONIALS — removed; Customers Feedback gallery replaces this */}
+            {section.id === 'testimonials' && null}
 
             {/* 17b. SHOP BY INTERNATIONAL TEAM — 4 cards / row on mobile */}
             {section.id === 'shop-by-international-team' && (

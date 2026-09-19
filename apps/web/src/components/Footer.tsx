@@ -83,62 +83,8 @@ export const Footer: React.FC<FooterProps> = ({ currentPage, setCurrentPage, app
     .filter(m => m.placement === 'Footer Menu' && (m.status === 'Active' || m.status === 'active'))
     .sort((a, b) => a.order - b.order);
 
-  const reviews = [
-    {
-      id: 1,
-      name: 'Siyam Rahman',
-      quote:
-        'The AC Milan 1996 shirt has absolute perfect manufacturer stitching tags. Authentic holographic stamps included. Highly recommended for premium kit collectors in Dhaka.',
-      rating: 5,
-    },
-    {
-      id: 2,
-      name: 'Fahim Chowdhury',
-      quote:
-        'Been looking for the Spain 2026 Yamal jersey for literal years. Finally secured it at Epic Vanskap with custom physics certificates. Unrivaled experience.',
-      rating: 5,
-    },
-    {
-      id: 3,
-      name: 'Anika Bushra',
-      quote:
-        'Extremely fast delivery inside Dhaka (secured within 24 hours). The vacuum packaging smelled wonderful, complete with care instructions.',
-      rating: 5,
-    },
-  ];
-
   return (
     <footer className="bg-[#F8F8F7] text-[#0A0A0A] border-t border-[#E5E5E5] w-full min-w-0 overflow-x-hidden">
-
-      {/* Verified buyer reviews */}
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 md:px-12 pt-12 sm:pt-16 pb-10 sm:pb-12 border-b border-[#E5E5E5]">
-        <h3 className="text-center text-sm sm:text-base font-medium text-[#0A0A0A] mb-8 sm:mb-10">
-          Genuine reviews from verified buyers
-        </h3>
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4 sm:gap-6">
-          {reviews.map((t) => (
-            <div
-              key={t.id}
-              className="bg-white border border-[#E5E5E5] p-5 rounded-2xl space-y-3"
-            >
-              <div className="flex gap-1 text-amber-400">
-                {[...Array(t.rating)].map((_, i) => (
-                  <Star key={i} size={12} className="fill-amber-400 text-amber-400" />
-                ))}
-              </div>
-              <p className="text-[#0A0A0A]/70 text-[12px] italic leading-relaxed">
-                &ldquo;{t.quote}&rdquo;
-              </p>
-              <div className="border-t border-[#E5E5E5] pt-3 flex justify-between items-center gap-3 text-[10px] font-mono">
-                <span className="text-[#0A0A0A] font-bold uppercase tracking-wide">{t.name}</span>
-                <span className="text-[#0A0A0A]/50 font-bold uppercase whitespace-nowrap">
-                  ✓ Verified Collector
-                </span>
-              </div>
-            </div>
-          ))}
-        </div>
-      </div>
       
       {/* Main Multi-Column Footer Grid */}
       <div className="max-w-7xl mx-auto px-4 sm:px-6 md:px-12 py-10 sm:py-16 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8 sm:gap-12 text-xs">

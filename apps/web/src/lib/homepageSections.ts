@@ -168,6 +168,50 @@ export function ensureCommunityGalleryAfterPremierLeague(sections: PageSection[]
   return [...without, section];
 }
 
+const CUSTOMER_FEEDBACK_SECTION: PageSection = {
+  id: 'customer-feedback-gallery',
+  name: 'Customers Feedback',
+  visible: true,
+  bgColor: 'bg-white',
+  padding: 'py-14',
+  margin: 'my-0',
+  title: 'CUSTOMERS FEEDBACK',
+  subtitle: 'Real photos from verified buyers',
+  status: 'active',
+};
+
+/** Keep Customers Feedback directly before Physical Outlets on the homepage. */
+export function ensureCustomerFeedbackBeforeStoreLocations(
+  sections: PageSection[],
+): PageSection[] {
+  const existing = sections.find((s) => s.id === 'customer-feedback-gallery');
+  const section: PageSection = {
+    ...CUSTOMER_FEEDBACK_SECTION,
+    ...(existing || {}),
+    id: 'customer-feedback-gallery',
+    visible: true,
+    status: 'active',
+    bgColor: 'bg-white',
+    padding: 'py-14',
+    margin: 'my-0',
+    title: existing?.title || CUSTOMER_FEEDBACK_SECTION.title,
+    subtitle: existing?.subtitle || CUSTOMER_FEEDBACK_SECTION.subtitle,
+  };
+
+  const without = sections.filter((s) => s.id !== 'customer-feedback-gallery');
+  const insertAt = without.findIndex((s) => s.id === 'store-locations');
+  if (insertAt >= 0) {
+    return [...without.slice(0, insertAt), section, ...without.slice(insertAt)];
+  }
+  const fallback = without.findIndex(
+    (s) => s.id === 'newsletter' || s.id === 'clearance',
+  );
+  if (fallback >= 0) {
+    return [...without.slice(0, fallback), section, ...without.slice(fallback)];
+  }
+  return [...without, section];
+}
+
 export function normalizeHomepageSections(sections: PageSection[]): PageSection[] {
   const seen = new Set<string>();
   const filtered = sections.filter((s) => {
@@ -182,8 +226,10 @@ export function normalizeHomepageSections(sections: PageSection[]): PageSection[
     bgColor: 'bg-transparent',
   }));
   return ensureCatalogSectionAtBottom(
-    ensureCommunityGalleryAfterPremierLeague(
-      ensureAllJerseysSection(ensureJerseyHomepageOrder(darkened)),
+    ensureCustomerFeedbackBeforeStoreLocations(
+      ensureCommunityGalleryAfterPremierLeague(
+        ensureAllJerseysSection(ensureJerseyHomepageOrder(darkened)),
+      ),
     ),
   );
 }
@@ -780,6 +826,7 @@ export function ensureHomepageRowsForCategories(
     'trending-searches',
     'daily-deals',
     'community-gallery',
+    'customer-feedback-gallery',
     'store-locations',
   ]);
 
