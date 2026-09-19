@@ -1,4 +1,6 @@
-/** Persist SPA storefront route across refresh (no real URL router). */
+/** Persist SPA storefront route across refresh for deep links only.
+ * Bare `/` always boots Home in App (never restore listing from this key).
+ */
 
 const NAV_KEY = 'vault_nav_state';
 

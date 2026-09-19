@@ -610,21 +610,19 @@ const DEFAULT_APP_CONFIG: AppConfig = {
 };
 
 export default function App() {
-  // Boot from URL (SEO / refresh / Back); fall back to last local nav on bare `/`
+  // Boot from URL only. Bare `/` (Google, bookmarks, typed domain) ALWAYS opens Home —
+  // never restore a previous listing from localStorage (that broke “open site → home”).
   const bootRoute = useMemo((): SpaRoute => {
-    if (typeof window === 'undefined') return { page: 'home' };
+    if (typeof window === 'undefined') return { page: 'home', category: 'All' };
     const fromUrl = parseLocation();
     const path = window.location.pathname.replace(/\/+$/, '') || '/';
-    if (path !== '/' || fromUrl.page !== 'home') return fromUrl;
-    const saved = loadNavState();
-    if (saved?.page && saved.page !== 'home') {
-      return {
-        ...fromUrl,
-        page: saved.page,
-        productId: saved.productId,
-        category: saved.category || 'All',
-        search: saved.search || '',
-      };
+    if (path === '/' && fromUrl.page === 'home') {
+      try {
+        saveNavState({ page: 'home', category: 'All', search: '', productId: null });
+      } catch {
+        /* ignore */
+      }
+      return { page: 'home', category: 'All', search: '', productId: null };
     }
     return fromUrl;
   }, []);
@@ -1624,10 +1622,14 @@ export default function App() {
   };
 
   // Search & Filters State
-  const [searchQuery, setSearchQuery] = useState(() => bootRoute.search || loadNavState()?.search || '');
+  const [searchQuery, setSearchQuery] = useState(() =>
+    bootRoute.page === 'listing' || bootRoute.page === 'home'
+      ? bootRoute.search || ''
+      : '',
+  );
   const [selectedBrand, setSelectedBrand] = useState<string>(() => bootRoute.brand || 'All');
-  const [selectedCategory, setSelectedCategory] = useState<string>(
-    () => bootRoute.category || loadNavState()?.category || 'All',
+  const [selectedCategory, setSelectedCategory] = useState<string>(() =>
+    bootRoute.page === 'listing' ? bootRoute.category || 'All' : 'All',
   );
   const [selectedCondition, setSelectedCondition] = useState<string>(() => bootRoute.condition || 'All');
   const [selectedSeason, setSelectedSeason] = useState<string>('All');
@@ -1662,8 +1664,15 @@ export default function App() {
       product?: Product | null;
     },
   ) => {
-    if (opts?.category !== undefined) setSelectedCategory(opts.category);
-    if (opts?.search !== undefined) setSearchQuery(opts.search);
+    if (page === 'home') {
+      setSelectedCategory('All');
+      setSearchQuery('');
+      setSelectedBrand('All');
+      setSelectedCondition('All');
+    } else if (opts?.category !== undefined) {
+      setSelectedCategory(opts.category);
+    }
+    if (page !== 'home' && opts?.search !== undefined) setSearchQuery(opts.search);
     if (opts?.adminTab !== undefined) setAdminTab(opts.adminTab);
     if (opts?.product) {
       setSelectedProduct(opts.product);
