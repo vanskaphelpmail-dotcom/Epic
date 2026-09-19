@@ -306,22 +306,7 @@ const DEFAULT_APP_CONFIG: AppConfig = {
     { id: 'product-row-la-liga', name: 'La Liga Row', visible: true, bgColor: 'bg-transparent', padding: 'py-12', margin: 'my-0', title: 'LA LIGA', subtitle: 'Shop La Liga — curated picks for collectors', status: 'active', sectionType: 'product-row', productCategory: 'La Liga', buttonText: 'VIEW ALL', buttonUrl: 'listing', maxProducts: 4 },
     { id: 'product-row-world-cup', name: 'World Cup Row', visible: true, bgColor: 'bg-transparent', padding: 'py-12', margin: 'my-0', title: 'WORLD CUP', subtitle: 'National team World Cup kits & vault classics', status: 'active', sectionType: 'product-row', productCategory: 'World Cup', buttonText: 'VIEW ALL', buttonUrl: 'listing', maxProducts: 4 },
     { id: 'player-edition', name: 'Player Edition Row', visible: true, bgColor: 'bg-transparent', padding: 'py-12', margin: 'my-0', title: 'PLAYER EDITION', subtitle: 'Slim-fit match issue quality kits', status: 'active', sectionType: 'product-row', productCategory: 'Player Edition', buttonText: 'VIEW ALL', buttonUrl: 'listing', maxProducts: 4 },
-    { id: 'kids-collection', name: 'Kids Collection Row', visible: true, bgColor: 'bg-transparent', padding: 'py-12', margin: 'my-0', title: 'KIDS', subtitle: 'Junior kits sized for ages 1–14', status: 'active', sectionType: 'product-row', productCategory: 'Kids', buttonText: 'VIEW ALL', buttonUrl: 'listing', maxProducts: 4 },
     { id: 'customised-kit', name: 'Customised Kit Row', visible: true, bgColor: 'bg-transparent', padding: 'py-12', margin: 'my-0', title: 'CUSTOMISED KIT', subtitle: 'Custom printed kits with full size guide', status: 'active', sectionType: 'product-row', productCategory: 'Customised Kit', buttonText: 'VIEW ALL', buttonUrl: 'listing', maxProducts: 4 },
-    { id: 'fan-edition', name: 'Fan Edition Row', visible: true, bgColor: 'bg-transparent', padding: 'py-12', margin: 'my-0', title: 'FAN EDITION', subtitle: 'Comfortable stadium fan-fit replicas', status: 'active', sectionType: 'product-row', productCategory: 'Fan Edition', buttonText: 'VIEW ALL', buttonUrl: 'listing', maxProducts: 4 },
-    { id: 'preorder-jacket', name: 'Pre-Order Jacket Row', visible: true, bgColor: 'bg-transparent', padding: 'py-12', margin: 'my-0', title: 'PRE-ORDER · JACKET', subtitle: 'Reserve jackets before they land in Dhaka', status: 'active', sectionType: 'product-row', productCategory: 'Jacket', buttonText: 'VIEW ALL', buttonUrl: 'listing', maxProducts: 4 },
-    { id: 'preorder-track-suit', name: 'Pre-Order Track Suit Row', visible: true, bgColor: 'bg-transparent', padding: 'py-12', margin: 'my-0', title: 'PRE-ORDER · TRACK SUIT', subtitle: 'Upcoming track suit drops — reserve yours', status: 'active', sectionType: 'product-row', productCategory: 'Track Suit', buttonText: 'VIEW ALL', buttonUrl: 'listing', maxProducts: 4 },
-    { id: 'preorder-badminton', name: 'Pre-Order Badminton Row', visible: true, bgColor: 'bg-transparent', padding: 'py-12', margin: 'my-0', title: 'PRE-ORDER · BADMINTON RACKET', subtitle: 'Badminton rackets available for pre-order', status: 'active', sectionType: 'product-row', productCategory: 'Badminton Racket', buttonText: 'VIEW ALL', buttonUrl: 'listing', maxProducts: 4 },
-    { id: 'worldcup-collection', name: 'World Cup Vault Section', visible: false, bgColor: 'bg-transparent', padding: 'py-12', margin: 'my-0', title: 'WORLD CUP HERITAGE VAULT', subtitle: 'Historical match issue kits from 1970 to 2026', status: 'inactive' },
-    { id: 'current-season', name: 'Current Season Row', visible: true, bgColor: 'bg-transparent', padding: 'py-12', margin: 'my-0', title: 'CURRENT SEASON STOCK', subtitle: 'Direct from authorized team supplier docks', status: 'active', sectionType: 'product-row', productCategory: 'Current Season', buttonText: 'EXPLORE MODERN', buttonUrl: 'listing', maxProducts: 4 },
-    { id: 'mystery-box', name: 'Mystery Box Challenge', visible: false, bgColor: 'bg-transparent', padding: 'py-14', margin: 'my-6', title: 'THE VAULT MYSTERY BOX', subtitle: 'Receive one random 100% authentic retro or modern kit with premium certificates', status: 'inactive' },
-    { id: 'best-sellers', name: 'Best Sellers Grid', visible: true, bgColor: 'bg-transparent', padding: 'py-12', margin: 'my-0', title: 'BEST SELLERS', subtitle: 'Most reviewed and requested reissues', status: 'active', sectionType: 'product-row', productCategory: 'Best Sellers', buttonText: 'VIEW ALL', buttonUrl: 'listing', maxProducts: 4 },
-    { id: 'shop-by-legends', name: 'Shop by Legends portraits', visible: false, bgColor: 'bg-transparent', padding: 'py-12', margin: 'my-0', title: 'THE LEGENDS STORE', subtitle: 'Embroidered match prints of historical deities', status: 'inactive' },
-    { id: 'community-gallery', name: 'Dhaka Fan Community Gallery', visible: false, bgColor: 'bg-transparent', padding: 'py-12', margin: 'my-0', title: 'COLLECTORS IN DHAKA', subtitle: 'Fan gallery sharing local unboxings on Bailey Road', status: 'inactive' },
-    { id: 'testimonials', name: 'Testimonials Deck', visible: false, bgColor: 'bg-transparent', padding: 'py-12', margin: 'my-0', title: 'WHAT COLLECTORS DECLARE', subtitle: 'Genuine reviews from verified buyers', status: 'inactive' },
-    { id: 'video-banner', name: 'Video Feature Banner', visible: false, bgColor: 'bg-transparent', padding: 'py-16', margin: 'my-0', title: 'THE ART OF AUTHENTICATION', subtitle: 'A look inside our 12-point micro-fabric check laboratory in Dhaka', status: 'inactive' },
-    { id: 'instagram-feed', name: 'Instagram Feed Mockup', visible: false, bgColor: 'bg-transparent', padding: 'py-12', margin: 'my-0', title: 'FOLLOW @JERSEYADDICTS_BD', subtitle: 'Daily vintage drops, buyer photos, and restocks', status: 'inactive' },
-    { id: 'newsletter', name: 'Newsletter Subscription', visible: false, bgColor: 'bg-transparent', padding: 'py-12', margin: 'my-4', title: 'JOIN THE EXCLUSIVE CIRCLE', subtitle: 'Be first to receive physical workshop inventory arrivals', status: 'inactive' },
     { id: 'clearance', name: 'Catalog Row', visible: true, bgColor: 'bg-transparent', padding: 'py-12', margin: 'my-0', title: 'CATALOG', subtitle: 'Browse the full Catalog collection', status: 'active', sectionType: 'product-row', productCategory: 'Clearance', buttonText: 'VIEW CATALOG', buttonUrl: 'listing', maxProducts: 4 },
     { id: 'store-locations', name: 'Physical Store Maps', visible: true, bgColor: 'bg-transparent', padding: 'py-12', margin: 'my-0', title: 'PHYSICAL OUTLET POINTS', subtitle: 'Visit us for physical sizing and authentications', status: 'active' }
   ],
@@ -830,36 +815,39 @@ export default function App() {
           });
         }
         if (parsed.homepageSections && Array.isArray(parsed.homepageSections)) {
-          const hideIds = new Set(['mystery-box', 'instagram-feed', 'video-banner', 'worldcup-collection', 'live-auction', 'shop-by-legends', 'shop-by-league', 'shop-by-club', 'shop-by-international-team']);
+          const hideIds = new Set([
+            'mystery-box',
+            'instagram-feed',
+            'video-banner',
+            'worldcup-collection',
+            'live-auction',
+            'shop-by-legends',
+            'shop-by-league',
+            'shop-by-club',
+            'shop-by-international-team',
+            'latest-products',
+            'best-sellers',
+            'current-season',
+            'kids-collection',
+            'fan-edition',
+            'preorder-jacket',
+            'preorder-track-suit',
+            'preorder-badminton',
+          ]);
           parsed.homepageSections = parsed.homepageSections.map((s: any) => {
             if (hideIds.has(s.id)) return { ...s, visible: false, status: 'inactive' };
-            if (s.id === 'best-sellers') return { ...s, title: 'BEST SELLERS', visible: true, status: 'active', sectionType: 'product-row', productCategory: s.productCategory || 'Best Sellers', buttonText: s.buttonText ?? 'VIEW ALL', buttonUrl: s.buttonUrl || 'listing', maxProducts: s.maxProducts ?? 4 };
             if (s.id === 'featured-collection') return { ...s, sectionType: 'product-row', productCategory: s.productCategory || 'Featured', buttonText: s.buttonText ?? 'VIEW ALL', buttonUrl: s.buttonUrl || 'listing', maxProducts: s.maxProducts ?? 4 };
             if (s.id === 'player-edition') return { ...s, visible: true, status: 'active', sectionType: 'product-row', productCategory: s.productCategory || 'Player Edition', buttonText: s.buttonText ?? 'VIEW ALL', buttonUrl: s.buttonUrl || 'listing', maxProducts: s.maxProducts ?? 4 };
             if (s.id === 'retro-collection') return { ...s, visible: true, status: 'active', sectionType: 'product-row', productCategory: s.productCategory || 'Retro', buttonText: s.buttonText ?? 'VIEW ALL', buttonUrl: s.buttonUrl || 'listing', maxProducts: s.maxProducts ?? 4 };
-            if (s.id === 'kids-collection') return { ...s, visible: true, status: 'active', sectionType: 'product-row', productCategory: s.productCategory || 'Kids', buttonText: s.buttonText ?? 'VIEW ALL', buttonUrl: s.buttonUrl || 'listing', maxProducts: s.maxProducts ?? 4 };
             if (s.id === 'customised-kit') return { ...s, visible: true, status: 'active', sectionType: 'product-row', productCategory: s.productCategory || 'Customised Kit', buttonText: s.buttonText ?? 'VIEW ALL', buttonUrl: s.buttonUrl || 'listing', maxProducts: s.maxProducts ?? 4 };
-            if (s.id === 'fan-edition') return { ...s, visible: true, status: 'active', sectionType: 'product-row', productCategory: s.productCategory || 'Fan Edition', buttonText: s.buttonText ?? 'VIEW ALL', buttonUrl: s.buttonUrl || 'listing', maxProducts: s.maxProducts ?? 4 };
-            if (s.id === 'current-season') return { ...s, sectionType: 'product-row', productCategory: s.productCategory || 'Current Season', buttonText: s.buttonText ?? 'EXPLORE MODERN', buttonUrl: s.buttonUrl || 'listing', maxProducts: s.maxProducts ?? 4 };
             if (s.id === 'clearance') return { ...s, sectionType: 'product-row', productCategory: s.productCategory || 'Clearance', title: s.title?.includes('OUTLET') ? 'CATALOG' : (s.title || 'CATALOG'), buttonText: /outlet/i.test(s.buttonText || '') ? 'VIEW CATALOG' : (s.buttonText ?? 'VIEW CATALOG'), buttonUrl: s.buttonUrl || 'listing', maxProducts: s.maxProducts ?? 4 };
-            if (s.id === 'latest-products') {
-              // Removed from storefront — drop from saved CMS configs
-              return { ...s, visible: false, status: 'inactive' as const };
-            }
             if (s.id === 'all-jerseys') return { ...s, visible: true, status: 'active', sectionType: 'product-row', productCategory: 'All', buttonText: s.buttonText ?? 'VIEW ALL', buttonUrl: s.buttonUrl || 'listing', maxProducts: Math.max(500, s.maxProducts ?? 500) };
             if (s.id === 'hero-slider') return { ...s, visible: true, status: 'active', bgColor: 'bg-transparent', padding: 'py-0', margin: 'my-0' };
             return s;
           });
           parsed.homepageSections = normalizeHomepageSections(parsed.homepageSections);
           const rowDefaults = (DEFAULT_APP_CONFIG.homepageSections || []).filter((s) =>
-            [
-              'player-edition',
-              'retro-collection',
-              'fan-edition',
-              'preorder-jacket',
-              'preorder-track-suit',
-              'preorder-badminton',
-            ].includes(s.id),
+            ['player-edition', 'retro-collection', 'customised-kit'].includes(s.id),
           );
           const existingIds = new Set(parsed.homepageSections.map((s: any) => s.id));
           const missingRows = rowDefaults.filter((s) => !existingIds.has(s.id));
@@ -1296,16 +1284,7 @@ export default function App() {
                   );
                 }
                 const rowDefaults = (DEFAULT_APP_CONFIG.homepageSections || []).filter((s) =>
-                  [
-                    'player-edition',
-                    'retro-collection',
-                    'kids-collection',
-                    'customised-kit',
-                    'fan-edition',
-                    'preorder-jacket',
-                    'preorder-track-suit',
-                    'preorder-badminton',
-                  ].includes(s.id),
+                  ['player-edition', 'retro-collection', 'customised-kit'].includes(s.id),
                 );
                 const existingIds = new Set(sections.map((s) => s.id));
                 const missingRows = rowDefaults.filter((s) => !existingIds.has(s.id));
@@ -1318,15 +1297,8 @@ export default function App() {
                     ...sections.slice(insertAt),
                   ]);
                 }
-                // Ensure a homepage product-row exists for every live category (min 4 products)
-                const catNames = [
-                  ...homepageRowCategoryCandidates([]),
-                  ...(Array.isArray(next.categoryItems)
-                    ? next.categoryItems.map((c: { name?: string }) => String(c.name || ''))
-                    : []),
-                ];
-                sections = ensureHomepageRowsForCategories(sections, catNames);
-                next.homepageSections = sections;
+                // Defer category-row sync until catalog hydrates (products available)
+                next.homepageSections = normalizeHomepageSections(sections);
               }
               if ((!Array.isArray(next.footerLocations) || next.footerLocations.length < 1) && DEFAULT_APP_CONFIG.footerLocations) {
                 next.footerLocations = DEFAULT_APP_CONFIG.footerLocations;
@@ -1376,15 +1348,14 @@ export default function App() {
     };
   }, []);
 
-  // After catalog loads: ensure homepage has a product-row section per category (min 4 products)
+  // After catalog loads: sync homepage rows — only categories with stock, drop blocked rows
   useEffect(() => {
     if (!catalogHydrated) return;
     const fromProducts = homepageRowCategoryCandidates(products);
-    const fromItems = (appConfig.categoryItems || []).map((c) => c.name).filter(Boolean);
-    const names = [...new Set([...fromProducts, ...fromItems])];
+    const names = [...new Set([...fromProducts])];
     setAppConfig((prev) => {
       const current = prev.homepageSections || [];
-      const ensured = ensureHomepageRowsForCategories(current, names);
+      const ensured = ensureHomepageRowsForCategories(current, names, products);
       const same =
         ensured.length === current.length &&
         ensured.every(

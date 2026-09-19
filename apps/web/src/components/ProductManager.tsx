@@ -1211,22 +1211,20 @@ export const ProductManager: React.FC<ProductManagerProps> = ({
       });
     }
 
-    // Ensure homepage landing section exists for this category (min 4 products, all visitors)
-    if (appConfig && updatedProduct.category) {
-      const withCat = ensureCategoryForSection(appConfig.categoryItems, updatedProduct.category);
-      const sections = ensureHomepageRowsForCategories(appConfig.homepageSections || [], [
-        updatedProduct.category,
-        'Retro',
-        'Kids',
-        'Customised Kit',
-        'Featured',
-        'Player Edition',
-        'Fan Edition',
-        'Current Season',
-        'Clearance',
-        'Best Sellers',
-        'New In',
-      ]);
+    // Ensure homepage landing section exists for this product's categories (only if stock matches)
+    if (appConfig && (updatedProduct.categories?.length || updatedProduct.category)) {
+      const cats = Array.from(
+        new Set(
+          [...(updatedProduct.categories || []), updatedProduct.category].filter(Boolean) as string[],
+        ),
+      );
+      let withCat = appConfig.categoryItems || [];
+      for (const c of cats) withCat = ensureCategoryForSection(withCat, c);
+      const sections = ensureHomepageRowsForCategories(
+        appConfig.homepageSections || [],
+        cats,
+        [updatedProduct, ...products],
+      );
       updateConfig({
         ...appConfig,
         categoryItems: withCat,

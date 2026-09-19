@@ -590,7 +590,9 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({
       const cat = resolveSectionCategory(s);
       if (cat) names.add(cat);
     });
-    ['Featured', 'Current Season', 'Clearance', 'Best Sellers', 'New In', 'World Cup'].forEach((n) => names.add(n));
+    ['Featured', 'Clearance', 'World Cup', 'Retro', 'Player Edition', 'Customised Kit', 'La Liga'].forEach((n) =>
+      names.add(n),
+    );
     return [...names].sort((a, b) => a.localeCompare(b));
   }, [appConfig.categoryItems, productRowSections]);
 

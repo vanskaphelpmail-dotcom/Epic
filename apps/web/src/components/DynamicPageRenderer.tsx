@@ -11,7 +11,7 @@ import { DEFAULT_INTERNATIONAL_TEAMS } from '../data/internationalTeamsData';
 import { navigateFromCmsUrl } from '../lib/navigateFromCmsUrl';
 import { isBannerLive, isHeroBannerType } from '../lib/bannerVisibility';
 import { flyProductToCart } from '../lib/flyToCart';
-import { getProductsForHomepageSection, isCatalogAssignedProduct, isProductRowSection, normalizeHomepageSections, resolveSectionCategory } from '../lib/homepageSections';
+import { getProductsForHomepageSection, isCatalogAssignedProduct, isProductRowSection, isRemovedHomepageCategory, normalizeHomepageSections, resolveSectionCategory } from '../lib/homepageSections';
 import { buildCatalogSearchKeywords, productMatchesSearchQuery, productMatchesNationalTeam } from '../lib/catalogSearch';
 import { DEFAULT_FALLBACK_SIZES } from '../lib/productSizes';
 import {
@@ -129,23 +129,8 @@ export const DEFAULT_HOMEPAGE_SECTIONS: PageSection[] = [
   { id: 'product-row-la-liga', name: 'La Liga Row', visible: true, bgColor: 'bg-transparent', padding: 'py-12', margin: 'my-0', title: 'LA LIGA', subtitle: 'Shop La Liga — curated picks for collectors', status: 'active', sectionType: 'product-row', productCategory: 'La Liga', buttonText: 'VIEW ALL', buttonUrl: 'listing', maxProducts: 4 },
   { id: 'product-row-world-cup', name: 'World Cup Row', visible: true, bgColor: 'bg-transparent', padding: 'py-12', margin: 'my-0', title: 'WORLD CUP', subtitle: 'National team World Cup kits & vault classics', status: 'active', sectionType: 'product-row', productCategory: 'World Cup', buttonText: 'VIEW ALL', buttonUrl: 'listing', maxProducts: 4 },
   { id: 'player-edition', name: 'Player Edition Row', visible: true, bgColor: 'bg-transparent', padding: 'py-12', margin: 'my-0', title: 'PLAYER EDITION', subtitle: 'Slim-fit match issue quality kits', status: 'active', sectionType: 'product-row', productCategory: 'Player Edition', buttonText: 'VIEW ALL', buttonUrl: 'listing', maxProducts: 4 },
-  { id: 'kids-collection', name: 'Kids Collection Row', visible: true, bgColor: 'bg-transparent', padding: 'py-12', margin: 'my-0', title: 'KIDS', subtitle: 'Junior kits sized for ages 1–14', status: 'active', sectionType: 'product-row', productCategory: 'Kids', buttonText: 'VIEW ALL', buttonUrl: 'listing', maxProducts: 4 },
   { id: 'customised-kit', name: 'Customised Kit Row', visible: true, bgColor: 'bg-transparent', padding: 'py-12', margin: 'my-0', title: 'CUSTOMISED KIT', subtitle: 'Custom printed kits with full size guide', status: 'active', sectionType: 'product-row', productCategory: 'Customised Kit', buttonText: 'VIEW ALL', buttonUrl: 'listing', maxProducts: 4 },
-  { id: 'fan-edition', name: 'Fan Edition Row', visible: true, bgColor: 'bg-transparent', padding: 'py-12', margin: 'my-0', title: 'FAN EDITION', subtitle: 'Comfortable stadium fan-fit replicas', status: 'active', sectionType: 'product-row', productCategory: 'Fan Edition', buttonText: 'VIEW ALL', buttonUrl: 'listing', maxProducts: 4 },
-  { id: 'preorder-jacket', name: 'Pre-Order Jacket Row', visible: true, bgColor: 'bg-transparent', padding: 'py-12', margin: 'my-0', title: 'PRE-ORDER · JACKET', subtitle: 'Reserve jackets before they land in Dhaka', status: 'active', sectionType: 'product-row', productCategory: 'Jacket', buttonText: 'VIEW ALL', buttonUrl: 'listing', maxProducts: 4 },
-  { id: 'preorder-track-suit', name: 'Pre-Order Track Suit Row', visible: true, bgColor: 'bg-transparent', padding: 'py-12', margin: 'my-0', title: 'PRE-ORDER · TRACK SUIT', subtitle: 'Upcoming track suit drops — reserve yours', status: 'active', sectionType: 'product-row', productCategory: 'Track Suit', buttonText: 'VIEW ALL', buttonUrl: 'listing', maxProducts: 4 },
-  { id: 'preorder-badminton', name: 'Pre-Order Badminton Row', visible: true, bgColor: 'bg-transparent', padding: 'py-12', margin: 'my-0', title: 'PRE-ORDER · BADMINTON RACKET', subtitle: 'Badminton rackets available for pre-order', status: 'active', sectionType: 'product-row', productCategory: 'Badminton Racket', buttonText: 'VIEW ALL', buttonUrl: 'listing', maxProducts: 4 },
-  { id: 'worldcup-collection', name: 'World Cup Vault Section', visible: false, bgColor: 'bg-transparent', padding: 'py-12', margin: 'my-0', title: 'WORLD CUP HERITAGE VAULT', subtitle: 'Historical match issue kits from 1970 to 2026', status: 'inactive' },
-  { id: 'current-season', name: 'Current Season Row', visible: true, bgColor: 'bg-transparent', padding: 'py-12', margin: 'my-0', title: 'CURRENT SEASON STOCK', subtitle: 'Direct from authorized team supplier docks', status: 'active', sectionType: 'product-row', productCategory: 'Current Season', buttonText: 'EXPLORE MODERN', buttonUrl: 'listing', maxProducts: 4 },
-  { id: 'mystery-box', name: 'Mystery Box Challenge', visible: false, bgColor: 'bg-transparent', padding: 'py-14', margin: 'my-6', title: 'THE VAULT MYSTERY BOX', subtitle: 'Receive one random 100% authentic retro or modern kit with premium certificates', status: 'inactive' },
   { id: 'clearance', name: 'Catalog Row', visible: true, bgColor: 'bg-transparent', padding: 'py-12', margin: 'my-0', title: 'CATALOG', subtitle: 'Browse the full Catalog collection', status: 'active', sectionType: 'product-row', productCategory: 'Clearance', buttonText: 'VIEW CATALOG', buttonUrl: 'listing', maxProducts: 4 },
-  { id: 'best-sellers', name: 'Best Sellers Grid', visible: true, bgColor: 'bg-transparent', padding: 'py-12', margin: 'my-0', title: 'BEST SELLERS', subtitle: 'Most reviewed and requested reissues', status: 'active', sectionType: 'product-row', productCategory: 'Best Sellers', buttonText: 'VIEW ALL', buttonUrl: 'listing', maxProducts: 4 },
-  { id: 'shop-by-legends', name: 'Shop by Legends portraits', visible: false, bgColor: 'bg-transparent', padding: 'py-12', margin: 'my-0', title: 'THE LEGENDS STORE', subtitle: 'Embroidered match prints of historical deities', status: 'inactive' },
-  { id: 'community-gallery', name: 'Dhaka Fan Community Gallery', visible: false, bgColor: 'bg-transparent', padding: 'py-12', margin: 'my-0', title: 'COLLECTORS IN DHAKA', subtitle: 'Fan gallery sharing local unboxings on Bailey Road', status: 'inactive' },
-  { id: 'testimonials', name: 'Testimonials Deck', visible: false, bgColor: 'bg-transparent', padding: 'py-12', margin: 'my-0', title: 'WHAT COLLECTORS DECLARE', subtitle: 'Genuine reviews from verified buyers', status: 'inactive' },
-  { id: 'video-banner', name: 'Video Feature Banner', visible: false, bgColor: 'bg-transparent', padding: 'py-16', margin: 'my-0', title: 'THE ART OF AUTHENTICATION', subtitle: 'A look inside our 12-point micro-fabric check laboratory in Dhaka', status: 'inactive' },
-  { id: 'instagram-feed', name: 'Instagram Feed Mockup', visible: false, bgColor: 'bg-transparent', padding: 'py-12', margin: 'my-0', title: 'FOLLOW @JERSEYADDICTS_BD', subtitle: 'Daily vintage drops, buyer photos, and restocks', status: 'inactive' },
-  { id: 'newsletter', name: 'Newsletter Subscription', visible: false, bgColor: 'bg-transparent', padding: 'py-12', margin: 'my-4', title: 'JOIN THE EXCLUSIVE CIRCLE', subtitle: 'Be first to receive physical workshop inventory arrivals', status: 'inactive' },
   { id: 'store-locations', name: 'Physical Store Maps', visible: true, bgColor: 'bg-transparent', padding: 'py-12', margin: 'my-0', title: 'PHYSICAL OUTLET POINTS', subtitle: 'Visit us for physical sizing and authentications', status: 'active' },
 ];
 
@@ -325,7 +310,17 @@ export const DynamicPageRenderer: React.FC<DynamicPageRendererProps> = ({
           section.id === 'newsletter' ||
           section.id === 'live-auction' ||
           section.id === 'testimonials' ||
-          section.id === 'community-gallery'
+          section.id === 'community-gallery' ||
+          section.id === 'latest-products' ||
+          section.id === 'best-sellers' ||
+          section.id === 'current-season' ||
+          section.id === 'kids-collection' ||
+          section.id === 'fan-edition' ||
+          section.id === 'preorder-jacket' ||
+          section.id === 'preorder-track-suit' ||
+          section.id === 'preorder-badminton' ||
+          isRemovedHomepageCategory(section.productCategory) ||
+          isRemovedHomepageCategory(section.title)
         ) {
           return null;
         }

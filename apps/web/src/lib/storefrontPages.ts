@@ -329,38 +329,38 @@ export function productMatchesCondition(product: Product, condition: string): bo
   return norm(product.condition || '') === norm(condition);
 }
 
-/** Category names that should get a homepage product-row section. */
+/** Category names that may get a homepage product-row — only from live products. */
 export function homepageRowCategoryCandidates(products: Product[]): string[] {
-  const skip = new Set(['mystery', 'all']);
+  const skip = new Set([
+    'mystery',
+    'all',
+    'new in',
+    'classic',
+    'club classic',
+    'legends',
+    'england',
+    'best sellers',
+    'current season',
+    'mls',
+    'other leagues',
+    'league',
+    'kids',
+    'fan edition',
+    'jacket',
+    'track suit',
+    'badminton racket',
+    'badminton',
+  ]);
   const names = new Set<string>();
   for (const p of products) {
+    if (p.isTrashed || p.isArchived) continue;
+    if (p.status && p.status !== 'Active') continue;
     for (const cat of getProductCategories(p)) {
-      if (!cat || skip.has(cat.toLowerCase())) continue;
+      if (!cat) continue;
+      const key = cat.toLowerCase().trim();
+      if (skip.has(key)) continue;
       names.add(cat);
     }
-  }
-  for (const core of [
-    'Featured',
-    'Player Edition',
-    'Retro',
-    'Fan Edition',
-    'Kids',
-    'Customised Kit',
-    'Jacket',
-    'Track Suit',
-    'Badminton Racket',
-    'Current Season',
-    'Clearance',
-    'Best Sellers',
-    'New In',
-    'Premier League',
-    'La Liga',
-    'Ligue 1',
-    'Serie A',
-    'Bundesliga',
-    'MLS',
-  ]) {
-    names.add(core);
   }
   return [...names];
 }

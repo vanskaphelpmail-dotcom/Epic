@@ -5,6 +5,13 @@ import { getProductCategories } from './sizeCharts';
 /** Sections permanently removed from the live storefront (still may exist in old DB rows). */
 export const REMOVED_HOMEPAGE_SECTION_IDS = new Set([
   'latest-products',
+  'best-sellers',
+  'current-season',
+  'kids-collection',
+  'fan-edition',
+  'preorder-jacket',
+  'preorder-track-suit',
+  'preorder-badminton',
   'mystery-box',
   'instagram-feed',
   'video-banner',
@@ -18,6 +25,86 @@ export const REMOVED_HOMEPAGE_SECTION_IDS = new Set([
   'newsletter',
   'community-gallery',
 ]);
+
+/**
+ * Homepage product-row categories that must never appear
+ * (also strips auto-created product-row-* sections).
+ * Keys are stored normalized via categoryKey() — never put raw titles here.
+ */
+const REMOVED_HOMEPAGE_CATEGORY_RAW = [
+  'new in',
+  'newin',
+  'classic',
+  'club classic',
+  'club classics',
+  'legends',
+  'england',
+  'best sellers',
+  'bestsellers',
+  'current season',
+  'currentseason',
+  'mls',
+  'other leagues',
+  'other league',
+  'league',
+  'kids',
+  'fan edition',
+  'fanedition',
+  'jacket',
+  'track suit',
+  'tracksuit',
+  'badminton racket',
+  'badminton',
+  'pre-order jacket',
+  'pre-order track suit',
+  'pre-order badminton racket',
+  'preorder jacket',
+  'preorder track suit',
+  'preorder badminton',
+  'pre order jacket',
+  'pre order track suit',
+  'pre order badminton racket',
+];
+
+function categoryKey(value: string): string {
+  return String(value || '')
+    .toLowerCase()
+    .replace(/[·•]/g, ' ')
+    .replace(/[^a-z0-9]+/g, ' ')
+    .trim()
+    .replace(/\s+/g, ' ');
+}
+
+export const REMOVED_HOMEPAGE_CATEGORY_KEYS = new Set(
+  REMOVED_HOMEPAGE_CATEGORY_RAW.flatMap((raw) => {
+    const key = categoryKey(raw);
+    return key ? [key, key.replace(/\s+/g, '')] : [];
+  }),
+);
+
+export function isRemovedHomepageCategory(value?: string | null): boolean {
+  const key = categoryKey(value || '');
+  if (!key) return false;
+  if (REMOVED_HOMEPAGE_CATEGORY_KEYS.has(key)) return true;
+  const compact = key.replace(/\s+/g, '');
+  if (REMOVED_HOMEPAGE_CATEGORY_KEYS.has(compact)) return true;
+  // Titles like "PRE-ORDER · JACKET" / "PRE-ORDER · BADMINTON RACKET"
+  if (/^pre\s*order\b/.test(key) && /\b(jacket|track\s*suit|badminton)\b/.test(key)) return true;
+  return false;
+}
+
+function shouldDropHomepageSection(s: PageSection): boolean {
+  if (!s?.id || REMOVED_HOMEPAGE_SECTION_IDS.has(s.id)) return true;
+  if (isRemovedHomepageCategory(s.productCategory)) return true;
+  if (isRemovedHomepageCategory(s.title)) return true;
+  if (isRemovedHomepageCategory(s.name)) return true;
+  // Auto rows: product-row-mls, product-row-new-in, etc.
+  if (/^product-row-/i.test(s.id)) {
+    const fromId = s.id.replace(/^product-row-/i, '').replace(/-/g, ' ');
+    if (isRemovedHomepageCategory(fromId)) return true;
+  }
+  return false;
+}
 
 /** Ensure All Jerseys row exists so the homepage always lists the full catalog. */
 export function ensureAllJerseysSection(sections: PageSection[]): PageSection[] {
@@ -67,7 +154,7 @@ export function ensureAllJerseysSection(sections: PageSection[]): PageSection[] 
 export function normalizeHomepageSections(sections: PageSection[]): PageSection[] {
   const seen = new Set<string>();
   const filtered = sections.filter((s) => {
-    if (!s?.id || REMOVED_HOMEPAGE_SECTION_IDS.has(s.id)) return false;
+    if (shouldDropHomepageSection(s)) return false;
     if (seen.has(s.id)) return false;
     seen.add(s.id);
     return true;
@@ -579,36 +666,32 @@ export function getProductsForHomepageSection(section: PageSection, products: Pr
     return [...activeProducts].sort(sortByCategoryRow);
   }
 
-  // Latest Workshop Drops — prefer non-Catalog, never blank
+  // Latest Workshop Drops — removed; never fill with random stock
   if (section.id === 'latest-products') {
-    return mainPool.slice(0, max);
+    return [];
   }
 
   const cat = resolveSectionCategory(section);
 
   if (cat) {
+    if (isRemovedHomepageCategory(cat)) return [];
     const byCategory = mainPool
       .filter((p) => productMatchesHomepageCategory(p, cat))
       .sort(sortByCategoryRow);
-    if (byCategory.length > 0) return byCategory.slice(0, max);
+    // Strict: empty category rows stay empty (renderer hides them)
+    return byCategory.slice(0, max);
   }
 
   if (section.id === 'featured-collection') {
     const featured = mainPool.filter((p) => p.isFeatured).sort(sortByCategoryRow);
-    if (featured.length) return featured.slice(0, max);
-    return mainPool.slice(0, max);
+    return featured.slice(0, max);
   }
   if (section.id === 'best-sellers') {
     const best = mainPool.filter((p) => p.isBestSeller).sort(sortByCategoryRow);
-    if (best.length) return best.slice(0, max);
-    return mainPool.slice(0, max);
+    return best.slice(0, max);
   }
 
-  // Unknown product-row with no category hits: show stock rather than hide forever
-  if (isProductRowSection(section)) {
-    return mainPool.slice(0, max);
-  }
-
+  // Never dump unrelated stock into a product-row — hide instead
   return [];
 }
 
@@ -655,14 +738,44 @@ function slugifySectionId(categoryName: string): string {
 }
 
 /**
- * Ensure every storefront category has a visible homepage product-row section
- * showing at least 4 products (serial / categoryRow order).
+ * Ensure storefront categories that actually have products get a homepage row.
+ * Skips removed/blocked categories and never creates empty rows.
+ * When products are provided, also strips empty product-row shells (except core rows).
  */
 export function ensureHomepageRowsForCategories(
   sections: PageSection[],
   categoryNames: string[],
+  products: Product[] = [],
 ): PageSection[] {
   let next = normalizeHomepageSections(sections);
+
+  const coreKeepIds = new Set([
+    'featured-collection',
+    'all-jerseys',
+    'retro-collection',
+    'player-edition',
+    'customised-kit',
+    'clearance',
+    'product-row-la-liga',
+    'product-row-world-cup',
+    'hero-slider',
+    'trending-searches',
+    'daily-deals',
+    'store-locations',
+  ]);
+
+  // Drop empty / blocked product rows that still linger in CMS
+  if (products.length > 0) {
+    next = next.filter((s) => {
+      if (!isProductRowSection(s)) return true;
+      if (coreKeepIds.has(s.id)) return true;
+      if (shouldDropHomepageSection(s)) return false;
+      const count = getProductsForHomepageSection(s, products).length;
+      return count > 0;
+    });
+    next = normalizeHomepageSections(next);
+  }
+
   const existingCats = new Set(
     next
       .filter(isProductRowSection)
@@ -672,13 +785,26 @@ export function ensureHomepageRowsForCategories(
 
   for (const rawName of categoryNames) {
     const name = String(rawName || '').trim();
-    if (!name) continue;
+    if (!name || isRemovedHomepageCategory(name)) continue;
     const key = name.toLowerCase();
     const already = [...existingCats].some((c) => storefrontLabelsMatch(c, name));
     if (already) continue;
 
+    // Only auto-create when at least one active product matches
+    const hasStock =
+      products.length === 0
+        ? false
+        : products.some(
+            (p) =>
+              !p.isTrashed &&
+              !p.isArchived &&
+              (!p.status || p.status === 'Active') &&
+              productMatchesHomepageCategory(p, name),
+          );
+    if (!hasStock) continue;
+
     const id = slugifySectionId(name);
-    if (next.some((s) => s.id === id)) {
+    if (next.some((s) => s.id === id) || REMOVED_HOMEPAGE_SECTION_IDS.has(id)) {
       existingCats.add(key);
       continue;
     }
