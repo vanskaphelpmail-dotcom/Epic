@@ -1,9 +1,28 @@
 import React from 'react';
-import { ShieldCheck, HelpCircle, Phone, Globe, Instagram, Twitter, Facebook, Shirt, Trophy, Star, Flame, Sparkles, Tag, Box, Award, ShoppingBag, Compass, Heart, MapPin } from 'lucide-react';
+import { ShieldCheck, HelpCircle, Phone, Globe, Instagram, Facebook, Shirt, Trophy, Star, Flame, Sparkles, Tag, Box, Award, ShoppingBag, Compass, Heart, MapPin } from 'lucide-react';
 import { STORE_LOCATIONS } from '../data/storeData';
 import { AppConfig } from '../types';
 import { BrandMark } from './BrandMark';
 import { BrandWordmark } from './BrandWordmark';
+
+const DEFAULT_SOCIAL = {
+  facebook: 'https://www.facebook.com/share/19N5mZgVt4/?mibextid=wwXIfr',
+  instagram: 'https://www.instagram.com/retro._.walaa?stkn=ZXQwYzl1anF5eGR6',
+  tiktok: 'https://www.tiktok.com/@epic_vanskap?_r=1&_t=ZS-99rOqRbSjx7',
+};
+
+const TikTokIcon: React.FC<{ size?: number; className?: string }> = ({ size = 18, className }) => (
+  <svg
+    width={size}
+    height={size}
+    viewBox="0 0 24 24"
+    fill="currentColor"
+    aria-hidden
+    className={className}
+  >
+    <path d="M19.59 6.69a4.83 4.83 0 0 1-3.77-4.25V2h-3.45v13.67a2.89 2.89 0 0 1-2.88 2.5 2.89 2.89 0 0 1-2.89-2.89 2.89 2.89 0 0 1 2.89-2.89c.28 0 .54.04.79.1v-3.5a6.37 6.37 0 0 0-.79-.05A6.34 6.34 0 0 0 3.15 15.3 6.34 6.34 0 0 0 9.49 21.64a6.34 6.34 0 0 0 6.34-6.34V8.77a8.19 8.19 0 0 0 4.76 1.52V6.84a4.84 4.84 0 0 1-.99-.15z" />
+  </svg>
+);
 
 interface FooterProps {
   currentPage: string;
@@ -134,9 +153,33 @@ export const Footer: React.FC<FooterProps> = ({ currentPage, setCurrentPage, app
             {appConfig.footerAbout}
           </p>
           <div className="flex gap-3 text-[#0A0A0A]/60">
-            <a href="#" className="hover:text-[#E30613] transition-colors"><Instagram size={18} /></a>
-            <a href="#" className="hover:text-[#E30613] transition-colors"><Twitter size={18} /></a>
-            <a href="#" className="hover:text-[#E30613] transition-colors"><Facebook size={18} /></a>
+            {(() => {
+              const links = {
+                facebook: (appConfig.socialLinks?.facebook || DEFAULT_SOCIAL.facebook).trim(),
+                instagram: (appConfig.socialLinks?.instagram || DEFAULT_SOCIAL.instagram).trim(),
+                tiktok: (appConfig.socialLinks?.tiktok || DEFAULT_SOCIAL.tiktok).trim(),
+              };
+              const items: { key: string; href: string; label: string; icon: React.ReactNode }[] = [
+                { key: 'facebook', href: links.facebook, label: 'Facebook', icon: <Facebook size={18} /> },
+                { key: 'instagram', href: links.instagram, label: 'Instagram', icon: <Instagram size={18} /> },
+                { key: 'tiktok', href: links.tiktok, label: 'TikTok', icon: <TikTokIcon size={18} /> },
+              ];
+              return items
+                .filter((i) => i.href && i.href !== '#')
+                .map((i) => (
+                  <a
+                    key={i.key}
+                    href={i.href}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    aria-label={i.label}
+                    title={i.label}
+                    className="hover:text-[#E30613] transition-colors"
+                  >
+                    {i.icon}
+                  </a>
+                ));
+            })()}
           </div>
         </div>
 

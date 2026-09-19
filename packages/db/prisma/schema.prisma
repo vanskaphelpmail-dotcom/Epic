@@ -780,6 +780,8 @@ model StoreSettings {
   menuItems          Json?
   /// Cached outlet cards mirrored from StoreLocation for SPA footer
   footerLocations    Json?
+  /// Footer social URLs: { facebook?, instagram?, tiktok? }
+  socialLinks        Json?
   updatedAt          DateTime @updatedAt
 
   @@map("store_settings")

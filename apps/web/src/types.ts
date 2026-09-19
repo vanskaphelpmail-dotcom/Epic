@@ -437,6 +437,12 @@ export interface AppConfig {
   footerAbout: string;
   footerLocations: { city: string; address: string; phone: string; email?: string; hours?: string }[];
   footerCopyright: string;
+  /** Footer social profile URLs (editable in admin Theme / Brand) */
+  socialLinks?: {
+    facebook?: string;
+    instagram?: string;
+    tiktok?: string;
+  };
   currencySymbol: string;
   currencyCode: string;
   exchangeRate: number;

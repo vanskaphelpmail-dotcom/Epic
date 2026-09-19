@@ -5041,6 +5041,41 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({
                   />
                 </div>
 
+                <div className="space-y-3 rounded-2xl border border-emerald-100 bg-white p-4">
+                  <h5 className="text-[10px] font-mono font-black text-emerald-950 uppercase tracking-widest">
+                    Social Media Links
+                  </h5>
+                  <p className="text-[10px] text-emerald-700 leading-relaxed">
+                    Shown as Facebook, Instagram, and TikTok icons in the footer. Leave blank to hide an icon.
+                  </p>
+                  {(
+                    [
+                      { key: 'facebook' as const, label: 'Facebook URL' },
+                      { key: 'instagram' as const, label: 'Instagram URL' },
+                      { key: 'tiktok' as const, label: 'TikTok URL' },
+                    ] as const
+                  ).map((row) => (
+                    <div key={row.key} className="space-y-1">
+                      <label className="text-[10px] font-mono text-emerald-700 block">{row.label}</label>
+                      <input
+                        type="url"
+                        value={appConfig.socialLinks?.[row.key] || ''}
+                        onChange={(e) =>
+                          onUpdateConfig({
+                            ...appConfig,
+                            socialLinks: {
+                              ...(appConfig.socialLinks || {}),
+                              [row.key]: e.target.value,
+                            },
+                          })
+                        }
+                        placeholder={`https://…`}
+                        className="w-full bg-emerald-50/40 border border-emerald-100 rounded-xl py-2.5 px-4 text-xs font-mono text-emerald-950 focus:outline-none focus:border-emerald-500"
+                      />
+                    </div>
+                  ))}
+                </div>
+
                 <div className="space-y-3">
                   <div className="flex items-center justify-between gap-2">
                     <label className="text-[10px] font-mono text-emerald-700 block">OUTLET LOCATION CARDS</label>

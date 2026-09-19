@@ -508,6 +508,14 @@ cmsRouter.put("/settings", requirePermission("can_manage_system_settings"), asyn
         categoryItems: z.any().optional(),
         menuItems: z.any().optional(),
         footerLocations: z.any().optional(),
+        socialLinks: z
+          .object({
+            facebook: z.string().optional(),
+            instagram: z.string().optional(),
+            tiktok: z.string().optional(),
+          })
+          .optional()
+          .nullable(),
         tournamentPatches: z
           .array(
             z.object({

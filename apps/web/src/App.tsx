@@ -257,6 +257,11 @@ const DEFAULT_APP_CONFIG: AppConfig = {
     },
   ],
   footerCopyright: '© 2026 Epic Vanskap. All rights reserved.',
+  socialLinks: {
+    facebook: 'https://www.facebook.com/share/19N5mZgVt4/?mibextid=wwXIfr',
+    instagram: 'https://www.instagram.com/retro._.walaa?stkn=ZXQwYzl1anF5eGR6',
+    tiktok: 'https://www.tiktok.com/@epic_vanskap?_r=1&_t=ZS-99rOqRbSjx7',
+  },
   currencySymbol: '৳',
   currencyCode: 'BDT',
   exchangeRate: 115,
@@ -903,6 +908,7 @@ export default function App() {
               theme: cfg.theme,
               footerAbout: cfg.footerAbout,
               footerCopyright: cfg.footerCopyright,
+              socialLinks: cfg.socialLinks || {},
               currencySymbol: cfg.currencySymbol,
               currencyCode: cfg.currencyCode,
               exchangeRate: cfg.exchangeRate,
@@ -1121,6 +1127,13 @@ export default function App() {
                 next.theme = (settings.theme as AppConfig['theme']) || prev.theme;
                 next.footerAbout = settings.footerAbout || prev.footerAbout;
                 next.footerCopyright = settings.footerCopyright || prev.footerCopyright;
+                if (settings.socialLinks && typeof settings.socialLinks === 'object') {
+                  next.socialLinks = {
+                    facebook: String((settings.socialLinks as { facebook?: string }).facebook || ''),
+                    instagram: String((settings.socialLinks as { instagram?: string }).instagram || ''),
+                    tiktok: String((settings.socialLinks as { tiktok?: string }).tiktok || ''),
+                  };
+                }
                 next.bkashPersonalNumber = '01865962232';
                 next.bkashEnabled = settings.bkashEnabled ?? prev.bkashEnabled;
                 next.bkashPaymentMode =
