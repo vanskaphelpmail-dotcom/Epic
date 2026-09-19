@@ -237,7 +237,7 @@ export const CustomerAuth: React.FC<CustomerAuthProps> = ({
         onClick={onCancel}
         className="w-full mt-4 inline-flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl bg-[#F8F8F7] border border-[#E5E5E5] text-[#0A0A0A] hover:border-[#E30613] hover:bg-[#F8F8F7] text-sm font-black uppercase tracking-wide cursor-pointer transition-colors"
       >
-        {isCheckoutRedirect ? 'Back to bag' : 'Go to Home'}
+        {isCheckoutRedirect ? 'Back to cart' : 'Go to Home'}
       </button>
     </div>
   );

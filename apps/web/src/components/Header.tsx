@@ -20,6 +20,12 @@ import { BrandMark } from './BrandMark';
 import { BrandWordmark } from './BrandWordmark';
 import { JerseyRenderer } from './JerseyRenderer';
 import { getProductImageSrc } from '../lib/productImage';
+import {
+  getProductDiscountPercent,
+  getProductListPrice,
+  getProductSalePrice,
+  hasProductDiscount,
+} from '../lib/productPricing';
 
 interface HeaderProps {
   currentPage: string;
@@ -153,7 +159,7 @@ export const Header: React.FC<HeaderProps> = ({
     [products, searchQuery],
   );
 
-  const cartTotal = cart.reduce((sum, item) => sum + item.product.price * item.quantity, 0);
+  const cartTotal = cart.reduce((sum, item) => sum + getProductSalePrice(item.product) * item.quantity, 0);
   const cartCount = cart.reduce((sum, item) => sum + item.quantity, 0);
 
   const handleSearchInput = (value: string) => {
@@ -343,7 +349,7 @@ export const Header: React.FC<HeaderProps> = ({
           className="flex items-center gap-2 sm:gap-3 cursor-pointer group min-w-0 flex-1 overflow-visible py-0.5 pr-1 lg:max-w-none"
           id="brand-logo"
         >
-          <BrandMark interactive imgClassName="w-8 h-8 sm:w-9 sm:h-9" />
+          <BrandMark interactive tone="red" framed imgClassName="w-7 h-7 sm:w-8 sm:h-8" />
           
           <div className="flex flex-col min-w-0 overflow-visible">
             <BrandWordmark
@@ -532,7 +538,7 @@ export const Header: React.FC<HeaderProps> = ({
             )}
           </button>
 
-          {/* Cart Bag Icon with Preview Dropdown */}
+          {/* Cart icon with preview dropdown */}
           <div className="relative">
             <button
               onClick={() => setCurrentPage('cart')}
@@ -553,7 +559,7 @@ export const Header: React.FC<HeaderProps> = ({
               )}
             </button>
 
-            {/* Quick Bag Preview Dropdown */}
+            {/* Quick cart preview dropdown */}
             {showCartDropdown && cart.length > 0 && (
               <div
                 onMouseLeave={() => setShowCartDropdown(false)}
@@ -561,13 +567,13 @@ export const Header: React.FC<HeaderProps> = ({
               >
                 <div className="flex justify-between items-center border-b border-[#E5E5E5] pb-2 mb-3">
                   <span className="text-xs font-bold text-[#0A0A0A] uppercase tracking-wider">
-                    My Jersey Bag ({cartCount})
+                    My Jersey Cart ({cartCount})
                   </span>
                   <button
                     onClick={() => setCurrentPage('cart')}
                     className="text-[#0A0A0A]/50 hover:text-[#E30613] text-xs font-semibold"
                   >
-                    View Bag
+                    View Cart
                   </button>
                 </div>
                 <div className="space-y-3 max-h-60 overflow-y-auto pr-1">
@@ -609,7 +615,17 @@ export const Header: React.FC<HeaderProps> = ({
                           Size: {item.selectedSize} | Qty: {item.quantity}
                         </p>
                         <p className="text-xs font-black text-[#0A0A0A] mt-0.5">
-                          {formatPrice(item.product.price)}
+                          {formatPrice(getProductSalePrice(item.product))}
+                          {hasProductDiscount(item.product) && (
+                            <span className="ml-1.5 text-[10px] text-[#555555] line-through font-bold">
+                              {formatPrice(getProductListPrice(item.product))}
+                            </span>
+                          )}
+                          {hasProductDiscount(item.product) && (
+                            <span className="ml-1 text-[9px] text-[#E30613] font-black">
+                              {getProductDiscountPercent(item.product)}%
+                            </span>
+                          )}
                         </p>
                       </div>
                       <button
@@ -642,7 +658,7 @@ export const Header: React.FC<HeaderProps> = ({
           </div>
         </div>
 
-        {/* Mobile: bag + menu — bag is the fly-to-cart target under lg */}
+        {/* Mobile: cart + menu — cart is the fly-to-cart target under lg */}
         <div
           className="flex lg:hidden items-center gap-1.5 shrink-0 ml-auto"
           id="mobile-right-controls"

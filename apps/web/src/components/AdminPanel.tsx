@@ -5,6 +5,7 @@ import { JerseyRenderer } from './JerseyRenderer';
 import { InventoryEditor } from './InventoryEditor';
 import { ProductManager } from './ProductManager';
 import { TournamentPatchesPanel } from './TournamentPatchesPanel';
+import { CommunityGalleryPanel } from './CommunityGalleryPanel';
 import { SizeChartsPanel } from './SizeChartsPanel';
 import { TEAMS_LIST, RIVALRY_PRESETS, TeamItem } from '../data/teamsData';
 import { DEFAULT_LEAGUES } from '../data/leaguesData';
@@ -1479,6 +1480,7 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({
         { id: 'inventory', label: 'Inventory', icon: Box },
         { id: 'tournament-patches', label: 'Patches', icon: Award },
         { id: 'size-charts', label: 'Size Charts', icon: Ruler },
+        { id: 'community-gallery', label: 'Community Section', icon: Image },
       ],
     },
     {
@@ -1530,6 +1532,7 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({
     if (activeSidebarTab === 'sales') return 'Invoice List';
     if (activeSidebarTab === 'inventory') return 'Inventory';
     if (activeSidebarTab === 'tournament-patches') return 'Patches';
+    if (activeSidebarTab === 'community-gallery') return 'Community Section';
     if (activeSidebarTab === 'size-charts') return 'Size Charts';
     if (activeSidebarTab === 'product-management') return 'Product';
     return activeModuleLabel;
@@ -3371,6 +3374,16 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({
             formatPrice={formatPrice}
             products={products}
             setProducts={setProducts}
+          />
+        </div>
+      )}
+
+      {activeSidebarTab === 'community-gallery' && (
+        <div className="space-y-4 animate-fadeIn">
+          <CommunityGalleryPanel
+            appConfig={appConfig}
+            onUpdateConfig={onUpdateConfig}
+            onRequireStaffLogin={onRequireStaffLogin}
           />
         </div>
       )}
@@ -5466,7 +5479,7 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({
       )}
 
       {/* 28 EXTENDED DYNAMIC CMS MODULE PANELS */}
-      {!['dashboard', 'inventory', 'tournament-patches', 'size-charts', 'seller-requests', 'homepage-builder', 'coupons', 'brand-customizer'].includes(activeSidebarTab) && (
+      {!['dashboard', 'inventory', 'tournament-patches', 'community-gallery', 'size-charts', 'seller-requests', 'homepage-builder', 'coupons', 'brand-customizer'].includes(activeSidebarTab) && (
         <div className="bg-white border border-emerald-100 p-6 rounded-3xl space-y-8 animate-fadeIn">
           
           {/* MODULE: analytics */}

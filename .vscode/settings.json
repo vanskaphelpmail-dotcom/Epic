@@ -1,0 +1,6 @@
+{
+  "terminal.integrated.cwd": "${workspaceFolder}",
+  "terminal.integrated.defaultProfile.windows": "Command Prompt",
+  "terminal.integrated.shellIntegration.enabled": false,
+  "terminal.integrated.windowsEnableConpty": false
+}

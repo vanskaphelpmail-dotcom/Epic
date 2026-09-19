@@ -341,6 +341,11 @@ export const api = {
       "/api/cms/tournament-patches",
       { method: "PUT", body: JSON.stringify({ tournamentPatches }) },
     ),
+  updateCommunityGallery: (communityGallery: unknown) =>
+    request<{ communityGallery: unknown }>("/api/cms/community-gallery", {
+      method: "PUT",
+      body: JSON.stringify({ communityGallery }),
+    }),
 
   listBanners: () => request<{ items: any[] }>("/api/cms/banners"),
   createBanner: (body: unknown) =>

@@ -4,7 +4,7 @@ import { Product, CartItem, ProductBadgeOption } from '../types';
 import { JerseyRenderer } from './JerseyRenderer';
 import { isRenderableImageSrc } from '../lib/productImage';
 import { getProductSizes, getSizeStock, isSizeAvailable, displaySizeLabel } from '../lib/productSizes';
-import { getProductDiscountPercent, hasProductDiscount } from '../lib/productPricing';
+import { getProductDiscountPercent, getProductListPrice, getProductSalePrice, hasProductDiscount } from '../lib/productPricing';
 import { resolveProductSizeCharts } from '../lib/sizeCharts';
 import {
   getNamesetLabel,
@@ -95,7 +95,7 @@ export const ProductDetails: React.FC<ProductDetailsProps> = ({
   const showPhoto = isRenderableImageSrc(mainImageSrc);
 
   // Compute actual price based on customized selections
-  const basePrice = product.price;
+  const basePrice = getProductSalePrice(product);
   const namesetPrice = getNamesetPriceBdt(product);
   const namesetLabel = getNamesetLabel(product);
   const badgeOptions = getProductBadgeOptions(product, tournamentPatches);
@@ -211,15 +211,15 @@ export const ProductDetails: React.FC<ProductDetailsProps> = ({
     setGalleryIndex((i) => (i + 1) % galleryImages.length);
   };
 
+  // Desktop only: hidden until hover. Mobile/tablet: always hidden (swipe + thumbs).
   const chevronClass =
-    'absolute top-1/2 z-20 -translate-y-1/2 flex h-10 w-10 items-center justify-center ' +
+    'absolute top-1/2 z-20 -translate-y-1/2 hidden md:flex h-10 w-10 items-center justify-center ' +
     'rounded-full border-0 bg-black/25 text-white/95 shadow-none backdrop-blur-[2px] ' +
     'opacity-0 pointer-events-none transition-opacity duration-200 cursor-pointer ' +
     'hover:bg-black/40 ' +
-    'group-hover:opacity-100 group-hover:pointer-events-auto ' +
-    'group-focus-within:opacity-100 group-focus-within:pointer-events-auto ' +
-    'focus-visible:opacity-100 focus-visible:pointer-events-auto ' +
-    '[@media(hover:none)]:opacity-70 [@media(hover:none)]:pointer-events-auto';
+    'md:group-hover:opacity-100 md:group-hover:pointer-events-auto ' +
+    'md:group-focus-within:opacity-100 md:group-focus-within:pointer-events-auto ' +
+    'focus-visible:opacity-100 focus-visible:pointer-events-auto';
 
   return (
     <section className="bg-transparent text-[#0A0A0A] py-6 sm:py-10 px-3 sm:px-4 md:px-12 max-w-7xl mx-auto min-h-screen">
@@ -414,7 +414,7 @@ export const ProductDetails: React.FC<ProductDetailsProps> = ({
                 {hasProductDiscount(product) ? (
                   <>
                     <span className="text-[#555555] text-sm line-through font-mono">
-                      {formatPrice(product.originalPrice!)}
+                      {formatPrice(getProductListPrice(product))}
                     </span>
                     <span className="text-[#0A0A0A] text-2xl font-black">{formatPrice(finalPrice)}</span>
                     <span className="bg-rose-50 text-rose-700 border border-rose-100 text-[10px] font-black uppercase tracking-wider px-2 py-0.5 rounded-full">
@@ -440,17 +440,6 @@ export const ProductDetails: React.FC<ProductDetailsProps> = ({
               </div>
             </div>
           </div>
-
-          {(product.longDescription || product.shortDescription || product.description) && (
-            <div className="space-y-2">
-              <p className="text-[10px] font-mono font-bold uppercase tracking-widest text-[#555555]">
-                Description
-              </p>
-              <p className="text-[#555555] text-base leading-relaxed whitespace-pre-wrap break-words">
-                {product.longDescription || product.description || product.shortDescription}
-              </p>
-            </div>
-          )}
 
           {/* Size Selector Form */}
           <div className="space-y-3">
@@ -821,7 +810,7 @@ export const ProductDetails: React.FC<ProductDetailsProps> = ({
           <div className="space-y-3.5 pt-2">
             {addedConfirm && (
               <div className="bg-[#F8F8F7] border border-[#E5E5E5] text-[#555555] text-xs font-bold font-mono py-2.5 px-4 rounded-xl text-center tracking-wide animate-fadeIn">
-                ✓ SHIRT SUCCESFULLY INTEGRATED INTO YOUR BAG!
+                ✓ SHIRT SUCCESSFULLY ADDED TO YOUR CART!
               </div>
             )}
             <div className="grid grid-cols-1 sm:grid-cols-12 gap-3">
@@ -856,7 +845,7 @@ export const ProductDetails: React.FC<ProductDetailsProps> = ({
                   </button>
                 </>
               )}
-              
+
               <button
                 type="button"
                 onClick={() => onAddToWishlist(product)}
@@ -870,6 +859,17 @@ export const ProductDetails: React.FC<ProductDetailsProps> = ({
                 {isWishlisted ? 'Wishlisted' : 'Wishlist'}
               </button>
             </div>
+
+            {(product.longDescription || product.shortDescription || product.description) && (
+              <div className="space-y-2 pt-1">
+                <p className="text-[10px] font-mono font-bold uppercase tracking-widest text-[#555555]">
+                  Description
+                </p>
+                <p className="text-[#555555] text-base leading-relaxed whitespace-pre-wrap break-words">
+                  {product.longDescription || product.description || product.shortDescription}
+                </p>
+              </div>
+            )}
 
             {/* Share / Security Trust features */}
             <div className="flex flex-wrap justify-between items-center text-xs text-[#555555] pt-4 border-t border-[#E5E5E5]">
@@ -885,7 +885,6 @@ export const ProductDetails: React.FC<ProductDetailsProps> = ({
               </div>
             </div>
           </div>
-
         </div>
       </div>
 
@@ -906,6 +905,9 @@ export const ProductDetails: React.FC<ProductDetailsProps> = ({
               const relatedImg = [rp.uploadedImage, ...(rp.gallery || []), ...(rp.images || []), rp.image].find(
                 (src): src is string => isRenderableImageSrc(src),
               );
+              const rpSale = getProductSalePrice(rp);
+              const rpList = getProductListPrice(rp);
+              const rpPct = getProductDiscountPercent(rp);
               return (
                 <div
                   key={rp.id}
@@ -913,6 +915,11 @@ export const ProductDetails: React.FC<ProductDetailsProps> = ({
                   className="group bg-[#F8F8F7] hover:bg-[#F8F8F7] border border-[#E5E5E5] hover:border-[#E5E5E5] rounded-2xl p-4 cursor-pointer transition-all duration-300"
                 >
                   <div className="aspect-[3/4] bg-[#F8F8F7] rounded-xl flex items-center justify-center p-3 relative mb-3 overflow-hidden">
+                    {rpPct > 0 && (
+                      <span className="absolute top-2 left-2 z-10 bg-[#E30613] text-white text-[10px] font-black px-1.5 py-0.5 leading-none">
+                        {rpPct}%
+                      </span>
+                    )}
                     {relatedImg ? (
                       <img
                         src={relatedImg}
@@ -936,7 +943,17 @@ export const ProductDetails: React.FC<ProductDetailsProps> = ({
                     <h3 className="text-xs font-bold text-[#0A0A0A] group-hover:text-[#555555] transition-colors line-clamp-2">
                       {rp.name}
                     </h3>
-                    <p className="text-xs font-black text-[#0A0A0A]">{formatPrice(rp.price)}</p>
+                    <div className="flex items-baseline gap-1.5 flex-wrap">
+                      <p className="text-xs font-black text-[#0A0A0A]">{formatPrice(rpSale)}</p>
+                      {rpList > rpSale && (
+                        <>
+                          <span className="text-[10px] text-[#555555] line-through font-bold">
+                            {formatPrice(rpList)}
+                          </span>
+                          <span className="text-[9px] font-black text-[#E30613]">{rpPct}% OFF</span>
+                        </>
+                      )}
+                    </div>
                   </div>
                 </div>
               );

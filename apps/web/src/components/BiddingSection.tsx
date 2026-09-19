@@ -361,10 +361,10 @@ export const BiddingSection: React.FC<BiddingSectionProps> = ({ onAddToCart, set
                   type="button"
                   onClick={() => handleAddToCartClick(item)}
                   className="bg-zinc-900 hover:bg-zinc-800 text-zinc-300 border border-zinc-800 py-2.5 px-2 rounded-xl text-[10px] font-black uppercase tracking-wider flex items-center justify-center gap-1 transition-all cursor-pointer font-sans"
-                  title="Add to shopping bag"
+                  title="Add to shopping cart"
                 >
                   <ShoppingCart size={11} />
-                  <span>ADD TO BAG</span>
+                  <span>ADD TO CART</span>
                 </button>
                 <button
                   type="button"
@@ -406,10 +406,10 @@ export const BiddingSection: React.FC<BiddingSectionProps> = ({ onAddToCart, set
                 HERITAGE SECURED
               </span>
               <h3 className="text-xl font-black text-white uppercase tracking-tight">
-                Added to Your Bag
+                Added to Your Cart
               </h3>
               <p className="text-xs text-zinc-300 font-medium leading-relaxed">
-                The certified 1-of-1 <strong>{addedItem.title}</strong> has been successfully added to your shopping bag.
+                The certified 1-of-1 <strong>{addedItem.title}</strong> has been successfully added to your shopping cart.
               </p>
             </div>
 
@@ -448,7 +448,7 @@ export const BiddingSection: React.FC<BiddingSectionProps> = ({ onAddToCart, set
                 }}
                 className="bg-black hover:bg-zinc-900 text-white font-extrabold text-xs uppercase tracking-wider py-3.5 rounded-full transition-all cursor-pointer"
               >
-                Go to Bag
+                Go to Cart
               </button>
             </div>
 

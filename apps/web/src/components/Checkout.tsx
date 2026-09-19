@@ -185,7 +185,7 @@ export const Checkout: React.FC<CheckoutProps> = ({
         <div className="w-16 h-16 bg-[#F8F8F7] rounded-full flex items-center justify-center mx-auto text-[#555555] border border-[#E5E5E5]">
           <ShoppingBag size={28} />
         </div>
-        <h3 className="text-xl font-black uppercase tracking-tight text-[#0A0A0A]">Your Order Bag is Empty</h3>
+        <h3 className="text-xl font-black uppercase tracking-tight text-[#0A0A0A]">Your Order Cart is Empty</h3>
         <p className="text-xs text-[#555555] font-mono">You do not have any vintage shirts in your checkout session. Return to the catalog to select legendary items.</p>
         <button
           onClick={onBackToCatalog}
@@ -423,7 +423,7 @@ export const Checkout: React.FC<CheckoutProps> = ({
             <div className="bg-amber-50 border-2 border-amber-300 rounded-2xl p-4 flex gap-3 items-start text-amber-950">
               <AlertCircle size={18} className="flex-shrink-0 mt-0.5 text-amber-600" />
               <div className="space-y-1">
-                <p className="text-xs font-black uppercase tracking-wider">Pre-Order Items in Your Bag</p>
+                <p className="text-xs font-black uppercase tracking-wider">Pre-Order Items in Your Cart</p>
                 <p className="text-[11px] font-mono leading-relaxed">
                   This order includes pre-order product(s). They will ship when stock arrives
                   {preOrderItems.some((i) => i.product.preOrderEta)

@@ -782,6 +782,8 @@ model StoreSettings {
   footerLocations    Json?
   /// Footer social URLs: { facebook?, instagram?, tiktok? }
   socialLinks        Json?
+  /// Homepage community gallery: { title, membersLabel, subtitle, facebookUrl, images[] }
+  communityGallery   Json?
   updatedAt          DateTime @updatedAt
 
   @@map("store_settings")

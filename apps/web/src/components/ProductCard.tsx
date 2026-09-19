@@ -3,7 +3,12 @@ import { Heart, ShoppingBag } from 'lucide-react';
 import { Product } from '../types';
 import { JerseyRenderer } from './JerseyRenderer';
 import { isRenderableImageSrc } from '../lib/productImage';
-import { hasProductDiscount } from '../lib/productPricing';
+import {
+  getProductDiscountPercent,
+  getProductListPrice,
+  getProductSalePrice,
+  hasProductDiscount,
+} from '../lib/productPricing';
 import { flyProductToCart } from '../lib/flyToCart';
 
 interface ProductCardProps {
@@ -62,8 +67,9 @@ export const ProductCard: React.FC<ProductCardProps> = ({
       .join(' • ') || 'Jersey';
 
   const showDiscount = hasProductDiscount(product);
-  const salePrice = Number(product.price) || 0;
-  const originalPrice = Number(product.originalPrice) || 0;
+  const salePrice = getProductSalePrice(product);
+  const originalPrice = getProductListPrice(product);
+  const discountPercent = showDiscount ? getProductDiscountPercent(product) : 0;
   const activeIndex = slideCount ? Math.min(slide, slideCount - 1) : 0;
   const activeImageSrc = galleryImages[activeIndex] || product.uploadedImage || product.image;
 
@@ -174,7 +180,7 @@ export const ProductCard: React.FC<ProductCardProps> = ({
 
           <button
             onClick={handleWishlist}
-            className="absolute top-1.5 right-1.5 sm:top-2 sm:right-2 z-20 flex items-center justify-center w-7 h-7 sm:w-8 sm:h-8 rounded-full bg-white/95 shadow-sm border border-[#E5E5E5] transition-transform duration-200 hover:scale-105 active:scale-95 cursor-pointer"
+            className="absolute top-1.5 right-1.5 sm:top-2 sm:right-2 z-30 flex items-center justify-center w-7 h-7 sm:w-8 sm:h-8 rounded-full bg-white/95 shadow-sm border border-[#E5E5E5] transition-transform duration-200 hover:scale-105 active:scale-95 cursor-pointer"
             aria-label={isWishlisted ? 'Remove from Wishlist' : 'Add to Wishlist'}
             aria-pressed={isWishlisted}
             type="button"
@@ -190,8 +196,32 @@ export const ProductCard: React.FC<ProductCardProps> = ({
             />
           </button>
 
+          {discountPercent > 0 && (
+            <div
+              className="absolute top-3 left-0 z-30 pointer-events-none drop-shadow-md"
+              aria-label={`${discountPercent}% off`}
+            >
+              <div className="relative flex items-center">
+                <span className="bg-[#E30613] text-white text-[11px] sm:text-xs lg:text-sm font-black tabular-nums leading-none pl-2 pr-1.5 sm:pl-2.5 sm:pr-2 py-1.5 sm:py-2">
+                  {discountPercent}%
+                </span>
+                {/* Arrow tip pointing right */}
+                <span
+                  className="block w-0 h-0 border-y-[12px] sm:border-y-[14px] border-y-transparent border-l-[10px] sm:border-l-[12px] border-l-[#E30613]"
+                  aria-hidden
+                />
+              </div>
+            </div>
+          )}
+
           {product.isPreOrder && (
-            <span className="absolute top-1.5 left-1.5 sm:top-2 sm:left-2 z-20 bg-[#E30613] text-white text-[8px] lg:text-[9px] font-black uppercase tracking-wider px-1.5 py-0.5 lg:px-2 lg:py-1 rounded-md shadow-sm">
+            <span
+              className={`absolute z-20 bg-[#0A0A0A] text-white text-[8px] lg:text-[9px] font-black uppercase tracking-wider px-1.5 py-0.5 lg:px-2 lg:py-1 rounded-md shadow-sm ${
+                discountPercent > 0
+                  ? 'top-12 left-1.5 sm:top-14 sm:left-2'
+                  : 'top-1.5 left-1.5 sm:top-2 sm:left-2'
+              }`}
+            >
               Pre-Order
             </span>
           )}
@@ -209,9 +239,14 @@ export const ProductCard: React.FC<ProductCardProps> = ({
               {formatPrice(salePrice)}
             </span>
             {showDiscount && originalPrice > salePrice ? (
-              <span className="text-[10px] sm:text-xs text-[#555555] line-through font-bold tabular-nums">
-                {formatPrice(originalPrice)}
-              </span>
+              <>
+                <span className="text-[10px] sm:text-xs text-[#555555] line-through font-bold tabular-nums">
+                  {formatPrice(originalPrice)}
+                </span>
+                <span className="text-[9px] sm:text-[10px] font-black uppercase tracking-wide text-[#E30613]">
+                  {discountPercent}% OFF
+                </span>
+              </>
             ) : null}
           </div>
         </div>

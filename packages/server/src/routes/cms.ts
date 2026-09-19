@@ -336,6 +336,12 @@ cmsRouter.get("/homepage", async (_req, res) => {
           clubShowcase: Array.isArray((settings as { clubShowcase?: unknown }).clubShowcase)
             ? (settings as { clubShowcase: unknown[] }).clubShowcase
             : undefined,
+          communityGallery:
+            settings &&
+            (settings as { communityGallery?: unknown }).communityGallery &&
+            typeof (settings as { communityGallery?: unknown }).communityGallery === "object"
+              ? (settings as { communityGallery: unknown }).communityGallery
+              : undefined,
         }
       : null;
 
@@ -541,6 +547,28 @@ cmsRouter.put("/settings", requirePermission("can_manage_system_settings"), asyn
           )
           .optional()
           .nullable(),
+        communityGallery: z
+          .object({
+            title: z.string().optional(),
+            membersLabel: z.string().optional(),
+            subtitle: z.string().optional(),
+            facebookUrl: z.string().optional(),
+            enabled: z.boolean().optional(),
+            images: z
+              .array(
+                z.object({
+                  id: z.string().min(1),
+                  imageUrl: z.string().min(1),
+                  title: z.string().optional(),
+                  status: z.enum(["Active", "Inactive"]).optional(),
+                  sortOrder: z.coerce.number().int().optional(),
+                  size: z.enum(["sm", "lg"]).optional(),
+                }),
+              )
+              .optional(),
+          })
+          .optional()
+          .nullable(),
         customSizeCharts: z.any().optional().nullable(),
       })
       .strict();
@@ -571,6 +599,33 @@ cmsRouter.put("/settings", requirePermission("can_manage_system_settings"), asyn
           status: item.status === "Inactive" ? "Inactive" : "Active",
         }))
         .filter((item) => item.name);
+    }
+
+    if (body.communityGallery !== undefined) {
+      const raw = body.communityGallery;
+      const images = Array.isArray(raw?.images) ? raw.images : [];
+      updateData.communityGallery = {
+        title: String(raw?.title || "JOIN THE VANSKAP COMMUNITY").trim(),
+        membersLabel: String(raw?.membersLabel || "+6,783").trim(),
+        subtitle: String(raw?.subtitle || "Members Since 2024.").trim(),
+        facebookUrl: String(
+          raw?.facebookUrl ||
+            "https://www.facebook.com/share/g/1DpkyuqPAh/?mibextid=wwXIfr",
+        ).trim(),
+        enabled: raw?.enabled === false ? false : true,
+        images: images
+          .map((item, index) => ({
+            id: String(item.id || `community-${index + 1}`).trim(),
+            imageUrl: String(item.imageUrl || "").trim(),
+            title: String(item.title || "").trim() || undefined,
+            status: item.status === "Inactive" ? "Inactive" : "Active",
+            sortOrder: Number.isFinite(Number(item.sortOrder))
+              ? Number(item.sortOrder)
+              : index,
+            ...(item.size === "sm" || item.size === "lg" ? { size: item.size } : {}),
+          }))
+          .filter((item) => item.imageUrl),
+      };
     }
 
     if (body.customSizeCharts !== undefined) {
@@ -712,6 +767,100 @@ cmsRouter.put(
       return res.status(400).json({
         success: false,
         error: { message: "Failed to publish tournament patches" },
+      });
+    }
+  },
+);
+
+const communityGalleryImageSchema = z.object({
+  id: z.string().min(1),
+  imageUrl: z.string().min(1),
+  title: z.string().optional(),
+  status: z.enum(["Active", "Inactive"]).optional(),
+  sortOrder: z.coerce.number().int().optional(),
+  size: z.enum(["sm", "lg"]).optional(),
+});
+
+/** Homepage Community Gallery — Admin / Content Manager can publish (not Super Admin only). */
+cmsRouter.put(
+  "/community-gallery",
+  requireAnyPermission("can_manage_content", "can_manage_system_settings"),
+  async (req: AuthedRequest, res) => {
+    try {
+      const body = z
+        .object({
+          communityGallery: z.object({
+            title: z.string().optional(),
+            membersLabel: z.string().optional(),
+            subtitle: z.string().optional(),
+            facebookUrl: z.string().optional(),
+            enabled: z.boolean().optional(),
+            images: z.array(communityGalleryImageSchema).optional(),
+          }),
+        })
+        .parse(req.body || {});
+
+      const raw = body.communityGallery;
+      const images = Array.isArray(raw.images) ? raw.images : [];
+      const communityGallery = {
+        title: String(raw.title || "JOIN THE VANSKAP COMMUNITY").trim(),
+        membersLabel: String(raw.membersLabel || "+6,783").trim(),
+        subtitle: String(raw.subtitle || "Members Since 2024.").trim(),
+        facebookUrl: String(
+          raw.facebookUrl ||
+            "https://www.facebook.com/share/g/1DpkyuqPAh/?mibextid=wwXIfr",
+        ).trim(),
+        enabled: raw.enabled === false ? false : true,
+        images: images
+          .map((item, index) => ({
+            id: String(item.id || `community-${index + 1}`).trim(),
+            imageUrl: String(item.imageUrl || "").trim(),
+            title: String(item.title || "").trim() || undefined,
+            status: item.status === "Inactive" ? "Inactive" : "Active",
+            sortOrder: Number.isFinite(Number(item.sortOrder))
+              ? Number(item.sortOrder)
+              : index,
+            ...(item.size === "sm" || item.size === "lg" ? { size: item.size } : {}),
+          }))
+          .filter((item) => item.imageUrl),
+      };
+
+      if (communityGallery.images.length === 0) {
+        return res.status(400).json({
+          success: false,
+          error: { message: "Add at least one community image before publishing." },
+        });
+      }
+
+      const settings = await prisma.storeSettings.upsert({
+        where: { id: "default" },
+        update: { communityGallery },
+        create: {
+          id: "default",
+          logoText: "Epic Vanskap",
+          footerAbout: "",
+          footerCopyright: `© ${new Date().getFullYear()} Epic Vanskap`,
+          communityGallery,
+        },
+      });
+
+      return res.json({
+        success: true,
+        data: {
+          communityGallery: settings.communityGallery ?? communityGallery,
+        },
+      });
+    } catch (error) {
+      if (error instanceof z.ZodError) {
+        return res.status(400).json({
+          success: false,
+          error: { message: error.issues[0]?.message || "Invalid community gallery" },
+        });
+      }
+      console.error("[PUT /cms/community-gallery]", error);
+      return res.status(400).json({
+        success: false,
+        error: { message: "Failed to publish community gallery" },
       });
     }
   },

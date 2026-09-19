@@ -1,5 +1,5 @@
 type BrandWordmarkProps = {
-  /** Full brand string, e.g. "Epic Vanskap" or "Epic Vanskap" */
+  /** Full brand string, e.g. "Epic Vanskap" */
   text?: string;
   className?: string;
   /** Extra classes on each word span (size overrides, etc.) */
@@ -12,7 +12,7 @@ type BrandWordmarkProps = {
 
 /**
  * Official wordmark: EPIC (red) + VANSKAP (black), bold uppercase sans.
- * Matches the storefront lockup used in header / footer / admin.
+ * Matches the storefront lockup — mark shine lives on BrandMark.
  */
 export function BrandWordmark({
   text = 'Epic Vanskap',

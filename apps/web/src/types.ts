@@ -430,6 +430,28 @@ export interface ClubConfigItem {
   status: 'Active' | 'Inactive';
 }
 
+export interface CommunityGalleryImage {
+  id: string;
+  imageUrl: string;
+  title?: string;
+  status: 'Active' | 'Inactive';
+  sortOrder: number;
+  /** Optional focal size — center tiles tend to be `lg` */
+  size?: 'sm' | 'lg';
+}
+
+export interface CommunityGalleryConfig {
+  title: string;
+  /** e.g. +6,783 */
+  membersLabel: string;
+  /** e.g. Members Since 2024. */
+  subtitle: string;
+  facebookUrl: string;
+  /** When false, homepage hides the whole section */
+  enabled?: boolean;
+  images: CommunityGalleryImage[];
+}
+
 export interface AppConfig {
   logoText: string;
   logoSubtext: string;
@@ -443,6 +465,8 @@ export interface AppConfig {
     instagram?: string;
     tiktok?: string;
   };
+  /** Homepage “Join the Vanskap Community” gallery */
+  communityGallery?: CommunityGalleryConfig;
   currencySymbol: string;
   currencyCode: string;
   exchangeRate: number;

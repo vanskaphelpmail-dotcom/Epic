@@ -121,8 +121,9 @@ h1, h2, h3, h4, h5, h6, .font-sans.font-black, .font-display {
   }
 }
 
-/* Brand lockup — EPIC (red) + VANSKAP (black), bold uppercase */
+/* Brand lockup — EPIC (red) + VANSKAP (black), bold uppercase — colors/layout fixed */
 .brand-logo-lockup {
+  position: relative;
   letter-spacing: -0.02em;
   gap: 0.35rem;
   padding: 0.15rem 0.2rem 0.15rem 0;
@@ -137,14 +138,13 @@ h1, h2, h3, h4, h5, h6, .font-sans.font-black, .font-display {
   letter-spacing: -0.01em;
 }
 
-/* Official wordmark colors (matches logo artwork) */
+/* Official wordmark colors — do not change */
 .brand-word-epic,
 .brand-word-jersey {
   color: #E30613;
   background: none;
   -webkit-background-clip: unset;
   background-clip: unset;
-  animation: none;
 }
 
 .brand-word-vanskap,
@@ -157,6 +157,75 @@ h1, h2, h3, h4, h5, h6, .font-sans.font-black, .font-display {
   color: #ffffff !important;
 }
 
+/* Red geometric mark — framed like official lockup + shiny sweep */
+.brand-mark {
+  position: relative;
+  isolation: isolate;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.brand-mark-framed {
+  padding: 0.28rem;
+  border-radius: 0.55rem;
+  background: #ffffff;
+  border: 1px solid #E5E5E5;
+  box-shadow: 0 1px 2px rgba(10, 10, 10, 0.04);
+  overflow: hidden;
+}
+
+.brand-mark-pressed {
+  transform: scale(0.97);
+}
+
+.brand-mark-shine {
+  position: absolute;
+  inset: -20%;
+  pointer-events: none;
+  z-index: 2;
+  background: linear-gradient(
+    115deg,
+    transparent 0%,
+    transparent 38%,
+    rgba(255, 255, 255, 0) 42%,
+    rgba(255, 255, 255, 0.85) 50%,
+    rgba(255, 180, 180, 0.45) 54%,
+    rgba(255, 255, 255, 0) 62%,
+    transparent 100%
+  );
+  transform: translateX(-130%) skewX(-16deg);
+  animation: brandMarkShine 2.8s ease-in-out infinite;
+  mix-blend-mode: screen;
+}
+
+.brand-mark-img {
+  transition: transform 0.2s ease;
+}
+
+.brand-mark:hover .brand-mark-img {
+  transform: scale(1.03);
+}
+
+@keyframes brandMarkShine {
+  0%, 18% {
+    transform: translateX(-130%) skewX(-16deg);
+    opacity: 0;
+  }
+  28% {
+    opacity: 1;
+  }
+  52% {
+    transform: translateX(130%) skewX(-16deg);
+    opacity: 0.95;
+  }
+  65%, 100% {
+    transform: translateX(150%) skewX(-16deg);
+    opacity: 0;
+  }
+}
+
+/* Optional short region badge (e.g. BD) */
 .brand-badge-bd {
   position: relative;
   isolation: isolate;
@@ -174,16 +243,13 @@ h1, h2, h3, h4, h5, h6, .font-sans.font-black, .font-display {
   line-height: 1;
   padding: 0.38rem 0.7rem;
   border-radius: 9999px;
-  color: #ffffff !important;
-  background: linear-gradient(180deg, #e30613 0%, #c10510 100%) !important;
-  border: 1.5px solid #9a040c;
+  color: #8B0008 !important;
+  background: #ffffff !important;
+  border: 1.5px solid #E30613;
   box-shadow:
-    0 0 0 1px rgba(227, 6, 19, 0.12),
-    0 1px 0 rgba(255, 255, 255, 0.2) inset,
-    0 4px 14px rgba(227, 6, 19, 0.28);
-  text-shadow: none;
-  backdrop-filter: blur(10px);
-  -webkit-backdrop-filter: blur(10px);
+    0 0 0 1px rgba(227, 6, 19, 0.08),
+    0 0 10px rgba(227, 6, 19, 0.4),
+    0 0 22px rgba(227, 6, 19, 0.22);
   transform: translateZ(0);
   z-index: 1;
 }
@@ -201,12 +267,12 @@ h1, h2, h3, h4, h5, h6, .font-sans.font-black, .font-display {
   border-radius: inherit;
   pointer-events: none;
   z-index: 0;
-  background:
-    linear-gradient(135deg, rgba(255, 255, 255, 0.35) 0%, rgba(255, 255, 255, 0.08) 28%, transparent 52%),
-    linear-gradient(315deg, rgba(255, 255, 255, 0.2) 0%, transparent 35%);
-  box-shadow:
-    inset 0 0 0 1px rgba(255, 255, 255, 0.2),
-    inset 0 0 0 2px rgba(0, 0, 0, 0.15);
+  background: linear-gradient(
+    135deg,
+    rgba(255, 255, 255, 0.85) 0%,
+    rgba(255, 255, 255, 0.25) 30%,
+    transparent 55%
+  );
 }
 
 .brand-badge-bd::after {
@@ -222,30 +288,12 @@ h1, h2, h3, h4, h5, h6, .font-sans.font-black, .font-display {
     105deg,
     transparent 0%,
     rgba(255, 255, 255, 0) 35%,
-    rgba(255, 255, 255, 0.55) 50%,
+    rgba(255, 255, 255, 0.65) 50%,
     rgba(255, 255, 255, 0) 65%,
     transparent 100%
   );
   transform: skewX(-18deg) translateX(-120%);
-  animation: brandBadgeShine 2.8s ease-in-out infinite;
-}
-
-@keyframes brandBadgeShine {
-  0%, 18% {
-    transform: skewX(-18deg) translateX(-120%);
-    opacity: 0;
-  }
-  28% {
-    opacity: 1;
-  }
-  55% {
-    transform: skewX(-18deg) translateX(280%);
-    opacity: 0.85;
-  }
-  70%, 100% {
-    transform: skewX(-18deg) translateX(320%);
-    opacity: 0;
-  }
+  animation: brandMarkShine 2.8s ease-in-out infinite;
 }
 
 @media (min-width: 768px) {
@@ -259,9 +307,15 @@ h1, h2, h3, h4, h5, h6, .font-sans.font-black, .font-display {
     padding: 0.42rem 0.8rem;
     margin-left: 0.55rem;
   }
+
+  .brand-mark-framed {
+    padding: 0.32rem;
+    border-radius: 0.65rem;
+  }
 }
 
 @media (prefers-reduced-motion: reduce) {
+  .brand-mark-shine,
   .brand-badge-bd::after {
     animation: none;
     opacity: 0;

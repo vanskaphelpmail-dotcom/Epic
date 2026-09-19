@@ -24,7 +24,6 @@ export const REMOVED_HOMEPAGE_SECTION_IDS = new Set([
   'shop-by-club',
   'shop-by-international-team',
   'newsletter',
-  'community-gallery',
 ]);
 
 /**
@@ -115,6 +114,60 @@ export function ensureAllJerseysSection(sections: PageSection[]): PageSection[] 
   return sections.filter((s) => s.id !== 'all-jerseys');
 }
 
+const COMMUNITY_GALLERY_SECTION: PageSection = {
+  id: 'community-gallery',
+  name: 'Community Gallery',
+  visible: true,
+  bgColor: 'bg-transparent',
+  padding: 'py-14',
+  margin: 'my-0',
+  title: 'JOIN THE VANSKAP COMMUNITY',
+  subtitle: '+6,783 Members Since 2024.',
+  status: 'active',
+};
+
+function isPremierLeagueProductRow(s: PageSection): boolean {
+  if (!isProductRowSection(s)) return false;
+  const cat = resolveSectionCategory(s) || '';
+  const blob = `${s.id} ${s.title || ''} ${s.name || ''} ${cat}`;
+  return /premier\s*league|\bepl\b/i.test(blob);
+}
+
+/** Keep Community Gallery directly after the Premier League product row. */
+export function ensureCommunityGalleryAfterPremierLeague(sections: PageSection[]): PageSection[] {
+  const existing = sections.find((s) => s.id === 'community-gallery');
+  const section: PageSection = {
+    ...COMMUNITY_GALLERY_SECTION,
+    ...(existing || {}),
+    id: 'community-gallery',
+    // Always on for storefront — disable via communityGallery.enabled in settings
+    visible: true,
+    status: 'active',
+    bgColor: 'bg-white',
+    padding: 'py-14',
+    margin: 'my-0',
+    title: existing?.title || COMMUNITY_GALLERY_SECTION.title,
+    subtitle: existing?.subtitle || COMMUNITY_GALLERY_SECTION.subtitle,
+  };
+
+  const without = sections.filter((s) => s.id !== 'community-gallery');
+  const premierIdx = without.findIndex(isPremierLeagueProductRow);
+  if (premierIdx >= 0) {
+    return [
+      ...without.slice(0, premierIdx + 1),
+      section,
+      ...without.slice(premierIdx + 1),
+    ];
+  }
+  const insertAt = without.findIndex(
+    (s) => s.id === 'store-locations' || s.id === 'newsletter' || s.id === 'clearance',
+  );
+  if (insertAt >= 0) {
+    return [...without.slice(0, insertAt), section, ...without.slice(insertAt)];
+  }
+  return [...without, section];
+}
+
 export function normalizeHomepageSections(sections: PageSection[]): PageSection[] {
   const seen = new Set<string>();
   const filtered = sections.filter((s) => {
@@ -129,7 +182,9 @@ export function normalizeHomepageSections(sections: PageSection[]): PageSection[
     bgColor: 'bg-transparent',
   }));
   return ensureCatalogSectionAtBottom(
-    ensureAllJerseysSection(ensureJerseyHomepageOrder(darkened)),
+    ensureCommunityGalleryAfterPremierLeague(
+      ensureAllJerseysSection(ensureJerseyHomepageOrder(darkened)),
+    ),
   );
 }
 
@@ -724,6 +779,7 @@ export function ensureHomepageRowsForCategories(
     'hero-slider',
     'trending-searches',
     'daily-deals',
+    'community-gallery',
     'store-locations',
   ]);
 

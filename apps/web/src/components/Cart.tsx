@@ -4,6 +4,12 @@ import { CartItem } from '../types';
 import { getSelectedBadgeLabels } from '../lib/productAddons';
 import { JerseyRenderer } from './JerseyRenderer';
 import { getProductImageSrc } from '../lib/productImage';
+import {
+  getProductDiscountPercent,
+  getProductListPrice,
+  getProductSalePrice,
+  hasProductDiscount,
+} from '../lib/productPricing';
 
 interface CartProps {
   cart: CartItem[];
@@ -31,7 +37,8 @@ export const Cart: React.FC<CartProps> = ({ cart, setCart, onCheckout, onBackToC
   };
 
   // Coupons disabled — pricing is subtotal + shipping only
-  const subtotal = cart.reduce((sum, item) => sum + item.product.price * item.quantity, 0);
+  const lineUnit = (item: CartItem) => getProductSalePrice(item.product);
+  const subtotal = cart.reduce((sum, item) => sum + lineUnit(item) * item.quantity, 0);
   const shippingCost = subtotal >= 150 || subtotal === 0 ? 0 : 15;
   const grandTotal = subtotal + shippingCost;
 
@@ -42,9 +49,9 @@ export const Cart: React.FC<CartProps> = ({ cart, setCart, onCheckout, onBackToC
           <ShoppingCart size={32} />
         </div>
         <div className="space-y-2">
-          <h1 className="text-2xl font-black uppercase tracking-tight">Your Jersey Bag is Empty</h1>
+          <h1 className="text-2xl font-black uppercase tracking-tight">Your Jersey Cart is Empty</h1>
           <p className="text-[#555555] text-sm max-w-md mx-auto leading-relaxed">
-            There are currently no vintage items inside your bag. Explore our historical collections and secure a piece of football legacy today.
+            There are currently no vintage items inside your cart. Explore our historical collections and secure a piece of football legacy today.
           </p>
         </div>
         <button
@@ -180,11 +187,19 @@ export const Cart: React.FC<CartProps> = ({ cart, setCart, onCheckout, onBackToC
                   {/* Price */}
                   <div className="text-right">
                     <p className="text-sm font-black text-[#555555]">
-                      {formatPrice(item.product.price * item.quantity)}
+                      {formatPrice(lineUnit(item) * item.quantity)}
                     </p>
                     <p className="text-[10px] text-[#555555] font-mono">
-                      {formatPrice(item.product.price)} each
+                      {formatPrice(lineUnit(item))} each
                     </p>
+                    {hasProductDiscount(item.product) && (
+                      <p className="text-[9px] text-[#E30613] font-black">
+                        <span className="line-through text-[#555555] font-bold mr-1">
+                          {formatPrice(getProductListPrice(item.product))}
+                        </span>
+                        {getProductDiscountPercent(item.product)}% OFF
+                      </p>
+                    )}
                   </div>
 
                   {/* Remove Button */}

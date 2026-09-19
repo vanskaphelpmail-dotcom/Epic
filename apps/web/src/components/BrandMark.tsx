@@ -15,14 +15,16 @@ type BrandMarkProps = {
    */
   tone?: BrandMarkTone;
   /**
-   * Header: press → red, release → black. No background plate.
+   * Header: press → brighter, release → red. Keep red mark look by default.
    */
   interactive?: boolean;
+  /** Soft white rounded plate behind the mark (matches official lockup). */
+  framed?: boolean;
   onToneChange?: (tone: BrandMarkTone) => void;
 };
 
-/** Transparent master art (red mark, no plate). Black/white via CSS filter. */
-const MARK_SRC = '/epic-vanskap-mark-red.png?v=3';
+/** Official red geometric mark (second reference image). */
+const MARK_SRC = '/epic-vanskap-mark-red.png?v=4';
 
 function filterForTone(tone: BrandMarkTone): string {
   if (tone === 'red') return 'none';
@@ -30,32 +32,35 @@ function filterForTone(tone: BrandMarkTone): string {
   return 'brightness(0)';
 }
 
-/** Epic Vanskap mark — transparent bg; press for red when interactive. */
+/** Epic Vanskap mark — red icon with continuous shiny sweep. */
 export function BrandMark({
   className = '',
   imgClassName = 'w-8 h-8 sm:w-9 sm:h-9',
-  tone = 'black',
+  tone = 'red',
   interactive = false,
+  framed = true,
+  bare = false,
   onToneChange,
 }: BrandMarkProps) {
   const [pressed, setPressed] = useState(false);
+  const showFrame = framed && !bare;
 
   const setPress = useCallback(
     (next: boolean) => {
       setPressed(next);
-      if (interactive) onToneChange?.(next ? 'red' : 'black');
+      if (interactive) onToneChange?.(next ? 'red' : 'red');
     },
     [interactive, onToneChange],
   );
 
-  const activeTone: BrandMarkTone = interactive ? (pressed ? 'red' : 'black') : tone;
+  // Storefront lockup stays red (matches official artwork)
+  const activeTone: BrandMarkTone = tone === 'white' || tone === 'black' ? tone : 'red';
 
   return (
     <div
       role={interactive ? 'button' : undefined}
       tabIndex={interactive ? 0 : undefined}
       aria-label={interactive ? 'Epic Vanskap logo' : undefined}
-      title={interactive ? 'Hold for red' : undefined}
       onPointerDown={
         interactive
           ? (e) => {
@@ -88,16 +93,16 @@ export function BrandMark({
             }
           : undefined
       }
-      className={`brand-mark flex-shrink-0 bg-transparent p-0 m-0 border-0 shadow-none outline-none ${
-        interactive ? 'cursor-pointer select-none' : ''
-      } ${className}`}
-      style={{ background: 'transparent' }}
+      className={`brand-mark flex-shrink-0 outline-none ${
+        showFrame ? 'brand-mark-framed' : 'bg-transparent p-0 m-0 border-0 shadow-none'
+      } ${interactive ? 'cursor-pointer select-none' : ''} ${pressed ? 'brand-mark-pressed' : ''} ${className}`}
     >
+      <span className="brand-mark-shine" aria-hidden />
       <img
         src={MARK_SRC}
         alt="Epic Vanskap"
-        className={`block object-contain bg-transparent transition-[filter] duration-150 ease-out ${imgClassName}`}
-        style={{ filter: filterForTone(activeTone), background: 'transparent' }}
+        className={`brand-mark-img relative z-[1] block object-contain bg-transparent ${imgClassName}`}
+        style={{ filter: filterForTone(activeTone) }}
         width={36}
         height={36}
         draggable={false}

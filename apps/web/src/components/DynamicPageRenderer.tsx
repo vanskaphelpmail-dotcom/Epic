@@ -12,6 +12,8 @@ import { navigateFromCmsUrl } from '../lib/navigateFromCmsUrl';
 import { isBannerLive, isHeroBannerType } from '../lib/bannerVisibility';
 import { flyProductToCart } from '../lib/flyToCart';
 import { getProductsForHomepageSection, isCatalogAssignedProduct, isProductRowSection, isRemovedHomepageCategory, normalizeHomepageSections, resolveSectionCategory } from '../lib/homepageSections';
+import { CommunityGallerySection } from './CommunityGallerySection';
+import { getActiveCommunityImages, normalizeCommunityGallery } from '../lib/communityGallery';
 import { buildCatalogSearchKeywords, productMatchesSearchQuery, productMatchesNationalTeam } from '../lib/catalogSearch';
 import { DEFAULT_FALLBACK_SIZES } from '../lib/productSizes';
 import {
@@ -309,7 +311,6 @@ export const DynamicPageRenderer: React.FC<DynamicPageRendererProps> = ({
           section.id === 'newsletter' ||
           section.id === 'live-auction' ||
           section.id === 'testimonials' ||
-          section.id === 'community-gallery' ||
           section.id === 'latest-products' ||
           section.id === 'best-sellers' ||
           section.id === 'current-season' ||
@@ -337,9 +338,8 @@ export const DynamicPageRenderer: React.FC<DynamicPageRendererProps> = ({
         if (section.id === 'shop-by-league' && leagueItems.length === 0) return null;
         if (section.id === 'daily-deals' && (!dailyDealEnabled || flashDeals.length === 0)) return null;
         if (section.id === 'community-gallery') {
-          const galleryItems = catalogProducts.filter((p) => p.isFeatured || p.isBestSeller).slice(0, 4);
-          const fallback = galleryItems.length > 0 ? galleryItems : catalogProducts.slice(0, 4);
-          if (fallback.length === 0) return null;
+          const gallery = normalizeCommunityGallery(appConfig.communityGallery);
+          if (gallery.enabled === false || getActiveCommunityImages(gallery).length === 0) return null;
         }
         if (section.id === 'trending-searches' && trendingKeywords.length === 0) return null;
 
@@ -374,7 +374,9 @@ export const DynamicPageRenderer: React.FC<DynamicPageRendererProps> = ({
               ? `hidden lg:block ${safeBg} ${section.padding} ${section.margin} ${getAnimationClass(section.animation)} transition-all duration-300 relative`
               : compactShopIds.has(section.id)
                 ? `bg-transparent pt-3 pb-5 sm:pt-8 sm:pb-10 lg:py-10 my-0 ${getAnimationClass(section.animation)} transition-all duration-300 relative`
-                : `${safeBg} ${section.padding} ${section.margin} ${getAnimationClass(section.animation)} transition-all duration-300 relative`;
+                : section.id === 'community-gallery'
+                  ? `bg-white py-12 sm:py-16 my-0 ${getAnimationClass(section.animation)} transition-all duration-300 relative`
+                  : `${safeBg} ${section.padding} ${section.margin} ${getAnimationClass(section.animation)} transition-all duration-300 relative`;
         const headingColor = 'text-[#0A0A0A]';
         const subColor = 'text-[#555555]';
 
@@ -884,44 +886,13 @@ export const DynamicPageRenderer: React.FC<DynamicPageRendererProps> = ({
             {/* 15. SHOP BY LEGENDS — removed */}
             {section.id === 'shop-by-legends' && null}
 
-            {/* 16. COMMUNITY GALLERY — jersey showcase banners */}
+            {/* 16. COMMUNITY GALLERY — Join the Vanskap Community */}
             {section.id === 'community-gallery' && (
-              <div className="max-w-7xl mx-auto px-4 sm:px-6 space-y-8">
-                <div className="text-center space-y-2">
-                  <h2 className={`text-xl md:text-2xl font-black uppercase tracking-tight ${headingColor}`}>{section.title || 'COLLECTORS IN DHAKA'}</h2>
-                  <p className={`text-xs font-mono ${subColor}`}>{section.subtitle || 'Verified kits unboxed by Bailey Road collectors'}</p>
-                </div>
-                <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-                  {(
-                    (() => {
-                      const featured = catalogProducts.filter((p) => p.isFeatured || p.isBestSeller).slice(0, 4);
-                      return featured.length > 0 ? featured : catalogProducts.slice(0, 4);
-                    })()
-                  ).map((prod, idx) => (
-                    <button
-                      key={prod.id}
-                      type="button"
-                      onClick={() => onSelectProduct(prod)}
-                      className="bg-white border border-[#E5E5E5] rounded-2xl overflow-hidden relative group shadow-sm text-left cursor-pointer hover:border-[#E30613] hover:-translate-y-1 transition-all"
-                    >
-                      <div className="h-48 w-full bg-gradient-to-b from-[#F8F8F7] to-white flex items-center justify-center p-4 relative overflow-hidden">
-                        <div className="absolute inset-0 opacity-30 bg-[radial-gradient(circle_at_30%_20%,rgba(227,6,19,0.15),transparent_55%)]" />
-                        <div className="relative z-10 w-full max-w-[140px] transform group-hover:scale-105 transition-transform duration-300">
-                          <JerseyRenderer productId={prod.id} uploadedImage={prod.uploadedImage} imageKey={prod.image} />
-                        </div>
-                      </div>
-                      <div className="px-3 py-3 border-t border-[#E5E5E5] space-y-1">
-                        <span className="text-[9px] font-mono font-black text-[#555555] uppercase tracking-wider">
-                          {prod.brand} • Bailey Road #{idx + 1}
-                        </span>
-                        <h4 className="text-[11px] font-black text-[#0A0A0A] uppercase leading-snug line-clamp-2">
-                          {prod.name}
-                        </h4>
-                      </div>
-                    </button>
-                  ))}
-                </div>
-              </div>
+              <CommunityGallerySection
+                config={appConfig.communityGallery}
+                headingFallback={section.title}
+                subtitleFallback={section.subtitle}
+              />
             )}
 
             {/* 17. TESTIMONIALS */}

@@ -6,6 +6,7 @@ import html2canvas from 'html2canvas';
 import { PRODUCTS, CUSTOMER_REVIEWS, SELLER_REQUESTS } from './data/storeData';
 import { DEFAULT_LEAGUES } from './data/leaguesData';
 import { DEFAULT_CLUBS, normalizeClubShowcase } from './data/clubsData';
+import { DEFAULT_COMMUNITY_GALLERY, normalizeCommunityGallery } from './lib/communityGallery';
 import { Product, CartItem, SellerRequest, Order, CarouselSlide, User, AppConfig } from './types';
 import {
   api,
@@ -24,6 +25,7 @@ import {
   ensureHomepageRowsForCategories,
   normalizeHomepageSections,
 } from './lib/homepageSections';
+import { normalizeProductPricing } from './lib/productPricing';
 import { clearNavState, loadNavState, saveNavState } from './lib/navPersistence';
 import {
   ensureSpaHistoryBoot,
@@ -282,6 +284,10 @@ const DEFAULT_APP_CONFIG: AppConfig = {
   bkashPartialAmountBdt: 300,
   leagues: DEFAULT_LEAGUES,
   clubs: DEFAULT_CLUBS.map((c) => ({ ...c })),
+  communityGallery: {
+    ...DEFAULT_COMMUNITY_GALLERY,
+    images: DEFAULT_COMMUNITY_GALLERY.images.map((img) => ({ ...img })),
+  },
   tournamentPatches: [
     { id: 'patch-wc26', label: 'WC 26', priceBdt: 100 },
     { id: 'patch-ucl', label: 'UCL', priceBdt: 100 },
@@ -310,6 +316,8 @@ const DEFAULT_APP_CONFIG: AppConfig = {
     { id: 'product-row-la-liga', name: 'La Liga Row', visible: true, bgColor: 'bg-transparent', padding: 'py-12', margin: 'my-0', title: 'LA LIGA', subtitle: 'Shop La Liga — curated picks for collectors', status: 'active', sectionType: 'product-row', productCategory: 'La Liga', buttonText: 'VIEW ALL', buttonUrl: 'listing', maxProducts: 4 },
     { id: 'product-row-world-cup', name: 'World Cup Row', visible: true, bgColor: 'bg-transparent', padding: 'py-12', margin: 'my-0', title: 'WORLD CUP', subtitle: 'National team World Cup kits & vault classics', status: 'active', sectionType: 'product-row', productCategory: 'World Cup', buttonText: 'VIEW ALL', buttonUrl: 'listing', maxProducts: 4 },
     { id: 'player-edition', name: 'Player Edition Row', visible: true, bgColor: 'bg-transparent', padding: 'py-12', margin: 'my-0', title: 'PLAYER EDITION', subtitle: 'Slim-fit match issue quality kits', status: 'active', sectionType: 'product-row', productCategory: 'Player Edition', buttonText: 'VIEW ALL', buttonUrl: 'listing', maxProducts: 4 },
+    { id: 'product-row-premier-league', name: 'Premier League Row', visible: true, bgColor: 'bg-transparent', padding: 'py-12', margin: 'my-0', title: 'PREMIER LEAGUE', subtitle: 'Shop Premier League — curated picks for collectors', status: 'active', sectionType: 'product-row', productCategory: 'Premier League', buttonText: 'VIEW ALL', buttonUrl: 'listing', maxProducts: 4 },
+    { id: 'community-gallery', name: 'Community Gallery', visible: true, bgColor: 'bg-white', padding: 'py-14', margin: 'my-0', title: 'JOIN THE VANSKAP COMMUNITY', subtitle: '+6,783 Members Since 2024.', status: 'active' },
     { id: 'customised-kit', name: 'Customised Kit Row', visible: true, bgColor: 'bg-transparent', padding: 'py-12', margin: 'my-0', title: 'CUSTOMISED KIT', subtitle: 'Custom printed kits with full size guide', status: 'active', sectionType: 'product-row', productCategory: 'Customised Kit', buttonText: 'VIEW ALL', buttonUrl: 'listing', maxProducts: 4 },
     { id: 'clearance', name: 'Catalog Row', visible: true, bgColor: 'bg-transparent', padding: 'py-12', margin: 'my-0', title: 'CATALOG', subtitle: 'Browse the full Catalog collection', status: 'active', sectionType: 'product-row', productCategory: 'Clearance', buttonText: 'VIEW CATALOG', buttonUrl: 'listing', maxProducts: 4 },
     { id: 'store-locations', name: 'Physical Store Maps', visible: true, bgColor: 'bg-transparent', padding: 'py-12', margin: 'my-0', title: 'PHYSICAL OUTLET POINTS', subtitle: 'Visit us for physical sizing and authentications', status: 'active' }
@@ -930,6 +938,7 @@ export default function App() {
               categoryItems: cfg.categoryItems,
               tournamentPatches: cfg.tournamentPatches || [],
               clubShowcase: normalizeClubShowcase(cfg.clubs),
+              communityGallery: normalizeCommunityGallery(cfg.communityGallery),
               customSizeCharts: cfg.customSizeCharts || [],
             })
             .catch((err) => {
@@ -1014,7 +1023,8 @@ export default function App() {
 
   /** Replace storefront catalog with the server snapshot (never keep deleted/local orphans). */
   const replaceCatalog = (incoming: Product[]) => {
-    setProducts(Array.isArray(incoming) ? incoming : []);
+    const list = Array.isArray(incoming) ? incoming.map((p) => normalizeProductPricing(p)) : [];
+    setProducts(list);
   };
 
   /** Merge helper for rare offline/local edits — API mode always replaces. */
@@ -1196,6 +1206,17 @@ export default function App() {
                   );
                 } else if (!next.clubs?.length) {
                   next.clubs = DEFAULT_CLUBS.map((c) => ({ ...c }));
+                }
+                if (
+                  settings &&
+                  (settings as { communityGallery?: unknown }).communityGallery &&
+                  typeof (settings as { communityGallery?: unknown }).communityGallery === 'object'
+                ) {
+                  next.communityGallery = normalizeCommunityGallery(
+                    (settings as { communityGallery: unknown }).communityGallery,
+                  );
+                } else if (!next.communityGallery?.images?.length) {
+                  next.communityGallery = normalizeCommunityGallery(null);
                 }
                 if (Array.isArray((settings as { customSizeCharts?: unknown }).customSizeCharts)) {
                   next.customSizeCharts = (settings as { customSizeCharts: AppConfig['customSizeCharts'] })
@@ -1968,8 +1989,8 @@ export default function App() {
     handleAddToCart(item);
     toast(
       product.isPreOrder
-        ? `Pre-ordered ${product.name} (Size ${standardSize}) — in your bag`
-        : `Added ${product.name} (Size ${standardSize}) to your bag`,
+        ? `Pre-ordered ${product.name} (Size ${standardSize}) — in your cart`
+        : `Added ${product.name} (Size ${standardSize}) to your cart`,
       'success',
     );
   };
@@ -2703,7 +2724,7 @@ export default function App() {
           />
         )}
 
-        {/* ROUTE 4: SHOPPING BAG */}
+        {/* ROUTE 4: SHOPPING CART */}
         {currentPage === 'cart' && (
           <Cart
             cart={cart}
