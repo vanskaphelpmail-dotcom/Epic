@@ -15,6 +15,7 @@ import {
   DEFAULT_CUSTOMER_FEEDBACK_GALLERY,
   normalizeCustomerFeedbackGallery,
 } from '../lib/customerFeedbackGallery';
+import { normalizeHomepageSections } from '../lib/homepageSections';
 import {
   uploadStoreImage,
   isLikelyImageFile,
@@ -53,13 +54,18 @@ function cleanGallery(draft: CustomerFeedbackGalleryConfig): CustomerFeedbackGal
     enabled: draft.enabled !== false,
     images: draft.images
       .filter((img) => !!img.imageUrl?.trim())
-      .map((img, i) => ({
-        ...img,
-        imageUrl: img.imageUrl.trim(),
-        title: (img.title || '').trim() || undefined,
-        status: img.status === 'Inactive' ? 'Inactive' : 'Active',
-        sortOrder: i,
-      })),
+      .map((img, i) => {
+        const title = (img.title || '').trim();
+        const size = img.size === 'sm' || img.size === 'lg' ? img.size : undefined;
+        return {
+          id: img.id || `feedback-${i + 1}`,
+          imageUrl: img.imageUrl.trim(),
+          ...(title ? { title } : {}),
+          status: img.status === 'Inactive' ? 'Inactive' : 'Active',
+          sortOrder: i,
+          ...(size ? { size } : {}),
+        };
+      }),
   });
 }
 
@@ -158,13 +164,30 @@ export const CustomerFeedbackGalleryPanel: React.FC<CustomerFeedbackGalleryPanel
         toast('Staff sign-in required to publish.', 'error');
         return false;
       }
-      const saved = await api.updateCustomerFeedbackGallery(cleaned);
+      let saved: { customerFeedbackGallery?: unknown };
+      try {
+        saved = await api.updateCustomerFeedbackGallery(cleaned);
+      } catch (primaryErr) {
+        try {
+          const viaSettings = await api.updateCmsSettings({
+            customerFeedbackGallery: cleaned,
+          });
+          saved = {
+            customerFeedbackGallery:
+              (viaSettings as { customerFeedbackGallery?: unknown })?.customerFeedbackGallery ??
+              cleaned,
+          };
+        } catch {
+          throw primaryErr;
+        }
+      }
       const published = normalizeCustomerFeedbackGallery(
         (saved as { customerFeedbackGallery?: unknown })?.customerFeedbackGallery ?? cleaned,
       );
       onUpdateConfig((prev) => ({
         ...prev,
         customerFeedbackGallery: published,
+        homepageSections: normalizeHomepageSections(prev.homepageSections || []),
       }));
       setDraft(published);
       setDirty(false);
@@ -175,6 +198,7 @@ export const CustomerFeedbackGalleryPanel: React.FC<CustomerFeedbackGalleryPanel
     onUpdateConfig((prev) => ({
       ...prev,
       customerFeedbackGallery: cleaned,
+      homepageSections: normalizeHomepageSections(prev.homepageSections || []),
     }));
     setDraft(cleaned);
     setDirty(false);
@@ -202,8 +226,8 @@ export const CustomerFeedbackGalleryPanel: React.FC<CustomerFeedbackGalleryPanel
       });
       toast('Image uploaded — publishing…', 'success');
       setSaving(true);
-      await persistGallery(next, true);
-      toast('Image live on storefront', 'success');
+      const ok = await persistGallery(next, true);
+      if (ok) toast('Image live on storefront', 'success');
     } catch (err) {
       toast(formatUploadError(err), 'error');
     } finally {

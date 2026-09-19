@@ -578,23 +578,12 @@ cmsRouter.put("/settings", requirePermission("can_manage_system_settings"), asyn
           .nullable(),
         customerFeedbackGallery: z
           .object({
-            title: z.string().optional(),
-            membersLabel: z.string().optional(),
-            subtitle: z.string().optional(),
-            facebookUrl: z.string().optional(),
+            title: z.string().optional().nullable(),
+            membersLabel: z.string().optional().nullable(),
+            subtitle: z.string().optional().nullable(),
+            facebookUrl: z.string().optional().nullable(),
             enabled: z.boolean().optional(),
-            images: z
-              .array(
-                z.object({
-                  id: z.string().min(1),
-                  imageUrl: z.string().min(1),
-                  title: z.string().optional(),
-                  status: z.enum(["Active", "Inactive"]).optional(),
-                  sortOrder: z.coerce.number().int().optional(),
-                  size: z.enum(["sm", "lg"]).optional(),
-                }),
-              )
-              .optional(),
+            images: z.array(z.any()).optional(),
           })
           .optional()
           .nullable(),
@@ -632,8 +621,7 @@ cmsRouter.put("/settings", requirePermission("can_manage_system_settings"), asyn
 
     if (body.communityGallery !== undefined) {
       const raw = body.communityGallery;
-      const images = Array.isArray(raw?.images) ? raw.images : [];
-      updateData.communityGallery = {
+      updateData.communityGallery = toJsonValue({
         title: String(raw?.title || "JOIN THE VANSKAP COMMUNITY").trim(),
         membersLabel: String(raw?.membersLabel || "+6,783").trim(),
         subtitle: String(raw?.subtitle || "Members Since 2024.").trim(),
@@ -642,43 +630,26 @@ cmsRouter.put("/settings", requirePermission("can_manage_system_settings"), asyn
             "https://www.facebook.com/share/g/1DpkyuqPAh/?mibextid=wwXIfr",
         ).trim(),
         enabled: raw?.enabled === false ? false : true,
-        images: images
-          .map((item, index) => ({
-            id: String(item.id || `community-${index + 1}`).trim(),
-            imageUrl: String(item.imageUrl || "").trim(),
-            title: String(item.title || "").trim() || undefined,
-            status: item.status === "Inactive" ? "Inactive" : "Active",
-            sortOrder: Number.isFinite(Number(item.sortOrder))
-              ? Number(item.sortOrder)
-              : index,
-            ...(item.size === "sm" || item.size === "lg" ? { size: item.size } : {}),
-          }))
-          .filter((item) => item.imageUrl),
-      };
+        images: normalizeGalleryImages(
+          (raw?.images as GalleryImageInput[] | undefined) || [],
+          "community",
+        ),
+      });
     }
 
     if (body.customerFeedbackGallery !== undefined) {
       const raw = body.customerFeedbackGallery;
-      const images = Array.isArray(raw?.images) ? raw.images : [];
-      updateData.customerFeedbackGallery = {
+      updateData.customerFeedbackGallery = toJsonValue({
         title: String(raw?.title || "CUSTOMERS FEEDBACK").trim(),
         membersLabel: String(raw?.membersLabel || "").trim(),
         subtitle: String(raw?.subtitle || "Real photos from verified buyers").trim(),
         facebookUrl: String(raw?.facebookUrl || "").trim(),
         enabled: raw?.enabled === false ? false : true,
-        images: images
-          .map((item, index) => ({
-            id: String(item.id || `feedback-${index + 1}`).trim(),
-            imageUrl: String(item.imageUrl || "").trim(),
-            title: String(item.title || "").trim() || undefined,
-            status: item.status === "Inactive" ? "Inactive" : "Active",
-            sortOrder: Number.isFinite(Number(item.sortOrder))
-              ? Number(item.sortOrder)
-              : index,
-            ...(item.size === "sm" || item.size === "lg" ? { size: item.size } : {}),
-          }))
-          .filter((item) => item.imageUrl),
-      };
+        images: normalizeGalleryImages(
+          (raw?.images as GalleryImageInput[] | undefined) || [],
+          "feedback",
+        ),
+      });
     }
 
     if (body.customSizeCharts !== undefined) {
@@ -828,11 +799,110 @@ cmsRouter.put(
 const communityGalleryImageSchema = z.object({
   id: z.string().min(1),
   imageUrl: z.string().min(1),
-  title: z.string().optional(),
+  title: z.string().optional().nullable(),
   status: z.enum(["Active", "Inactive"]).optional(),
   sortOrder: z.coerce.number().int().optional(),
-  size: z.enum(["sm", "lg"]).optional(),
+  // Empty / unknown sizes are common from drafts — ignore instead of 400
+  size: z.union([z.enum(["sm", "lg"]), z.literal(""), z.null()]).optional(),
 });
+
+/** Prisma Json columns reject nested `undefined` — strip before write. */
+function toJsonValue<T>(value: T): T {
+  return JSON.parse(JSON.stringify(value)) as T;
+}
+
+type GalleryImageInput = {
+  id?: unknown;
+  imageUrl?: unknown;
+  title?: unknown;
+  status?: unknown;
+  sortOrder?: unknown;
+  size?: unknown;
+};
+
+function normalizeGalleryImages(
+  images: GalleryImageInput[] | undefined,
+  idPrefix: string,
+): Array<{
+  id: string;
+  imageUrl: string;
+  title?: string;
+  status: "Active" | "Inactive";
+  sortOrder: number;
+  size?: "sm" | "lg";
+}> {
+  const list = Array.isArray(images) ? images : [];
+  return list
+    .map((item, index) => {
+      const imageUrl = String(item?.imageUrl || "").trim();
+      if (!imageUrl) return null;
+      const title = String(item?.title || "").trim();
+      const sizeRaw = String(item?.size || "").toLowerCase();
+      const size =
+        sizeRaw === "sm" || sizeRaw === "small"
+          ? ("sm" as const)
+          : sizeRaw === "lg" || sizeRaw === "large"
+            ? ("lg" as const)
+            : undefined;
+      return {
+        id: String(item?.id || `${idPrefix}-${index + 1}`).trim() || `${idPrefix}-${index + 1}`,
+        imageUrl,
+        ...(title ? { title } : {}),
+        status: item?.status === "Inactive" ? ("Inactive" as const) : ("Active" as const),
+        sortOrder: Number.isFinite(Number(item?.sortOrder)) ? Number(item.sortOrder) : index,
+        ...(size ? { size } : {}),
+      };
+    })
+    .filter(Boolean) as Array<{
+    id: string;
+    imageUrl: string;
+    title?: string;
+    status: "Active" | "Inactive";
+    sortOrder: number;
+    size?: "sm" | "lg";
+  }>;
+}
+
+async function upsertStoreGalleryJson(
+  column: "communityGallery" | "customerFeedbackGallery",
+  gallery: Record<string, unknown>,
+) {
+  const payload = toJsonValue(gallery);
+  try {
+    return await prisma.storeSettings.upsert({
+      where: { id: "default" },
+      update: { [column]: payload },
+      create: {
+        id: "default",
+        logoText: "Epic Vanskap",
+        footerAbout: "",
+        footerCopyright: `© ${new Date().getFullYear()} Epic Vanskap`,
+        [column]: payload,
+      },
+    });
+  } catch (err) {
+    // Column missing on older Neon / Prisma client mismatch — ensure + raw write
+    console.error(`[cms] prisma upsert ${column} failed, falling back to SQL:`, err);
+    await prisma.$executeRawUnsafe(
+      `ALTER TABLE "store_settings" ADD COLUMN IF NOT EXISTS "${column}" JSONB`,
+    );
+    const json = JSON.stringify(payload);
+    const updated = await prisma.$executeRawUnsafe(
+      `UPDATE "store_settings" SET "${column}" = $1::jsonb, "updatedAt" = NOW() WHERE id = 'default'`,
+      json,
+    );
+    if (!updated) {
+      await prisma.$executeRawUnsafe(
+        `INSERT INTO "store_settings" (id, "logoText", "footerAbout", "footerCopyright", "${column}", "updatedAt")
+         VALUES ('default', 'Epic Vanskap', '', $1, $2::jsonb, NOW())
+         ON CONFLICT (id) DO UPDATE SET "${column}" = EXCLUDED."${column}", "updatedAt" = NOW()`,
+        `© ${new Date().getFullYear()} Epic Vanskap`,
+        json,
+      );
+    }
+    return prisma.storeSettings.findUnique({ where: { id: "default" } });
+  }
+}
 
 /** Homepage Community Gallery — Admin / Content Manager can publish (not Super Admin only). */
 cmsRouter.put(
@@ -854,7 +924,6 @@ cmsRouter.put(
         .parse(req.body || {});
 
       const raw = body.communityGallery;
-      const images = Array.isArray(raw.images) ? raw.images : [];
       const communityGallery = {
         title: String(raw.title || "JOIN THE VANSKAP COMMUNITY").trim(),
         membersLabel: String(raw.membersLabel || "+6,783").trim(),
@@ -864,18 +933,7 @@ cmsRouter.put(
             "https://www.facebook.com/share/g/1DpkyuqPAh/?mibextid=wwXIfr",
         ).trim(),
         enabled: raw.enabled === false ? false : true,
-        images: images
-          .map((item, index) => ({
-            id: String(item.id || `community-${index + 1}`).trim(),
-            imageUrl: String(item.imageUrl || "").trim(),
-            title: String(item.title || "").trim() || undefined,
-            status: item.status === "Inactive" ? "Inactive" : "Active",
-            sortOrder: Number.isFinite(Number(item.sortOrder))
-              ? Number(item.sortOrder)
-              : index,
-            ...(item.size === "sm" || item.size === "lg" ? { size: item.size } : {}),
-          }))
-          .filter((item) => item.imageUrl),
+        images: normalizeGalleryImages(raw.images as GalleryImageInput[] | undefined, "community"),
       };
 
       if (communityGallery.images.length === 0) {
@@ -885,22 +943,12 @@ cmsRouter.put(
         });
       }
 
-      const settings = await prisma.storeSettings.upsert({
-        where: { id: "default" },
-        update: { communityGallery },
-        create: {
-          id: "default",
-          logoText: "Epic Vanskap",
-          footerAbout: "",
-          footerCopyright: `© ${new Date().getFullYear()} Epic Vanskap`,
-          communityGallery,
-        },
-      });
+      const settings = await upsertStoreGalleryJson("communityGallery", communityGallery);
 
       return res.json({
         success: true,
         data: {
-          communityGallery: settings.communityGallery ?? communityGallery,
+          communityGallery: settings?.communityGallery ?? communityGallery,
         },
       });
     } catch (error) {
@@ -911,9 +959,10 @@ cmsRouter.put(
         });
       }
       console.error("[PUT /cms/community-gallery]", error);
+      const detail = error instanceof Error ? error.message : "Failed to publish community gallery";
       return res.status(400).json({
         success: false,
-        error: { message: "Failed to publish community gallery" },
+        error: { message: detail.slice(0, 240) || "Failed to publish community gallery" },
       });
     }
   },
@@ -928,36 +977,28 @@ cmsRouter.put(
       const body = z
         .object({
           customerFeedbackGallery: z.object({
-            title: z.string().optional(),
-            membersLabel: z.string().optional(),
-            subtitle: z.string().optional(),
-            facebookUrl: z.string().optional(),
+            title: z.string().optional().nullable(),
+            membersLabel: z.string().optional().nullable(),
+            subtitle: z.string().optional().nullable(),
+            facebookUrl: z.string().optional().nullable(),
             enabled: z.boolean().optional(),
-            images: z.array(communityGalleryImageSchema).optional(),
+            // Accept any image drafts — blanks / bad sizes are filtered in normalizeGalleryImages
+            images: z.array(z.any()).optional(),
           }),
         })
         .parse(req.body || {});
 
       const raw = body.customerFeedbackGallery;
-      const images = Array.isArray(raw.images) ? raw.images : [];
       const customerFeedbackGallery = {
         title: String(raw.title || "CUSTOMERS FEEDBACK").trim(),
         membersLabel: String(raw.membersLabel || "").trim(),
         subtitle: String(raw.subtitle || "Real photos from verified buyers").trim(),
         facebookUrl: String(raw.facebookUrl || "").trim(),
         enabled: raw.enabled === false ? false : true,
-        images: images
-          .map((item, index) => ({
-            id: String(item.id || `feedback-${index + 1}`).trim(),
-            imageUrl: String(item.imageUrl || "").trim(),
-            title: String(item.title || "").trim() || undefined,
-            status: item.status === "Inactive" ? "Inactive" : "Active",
-            sortOrder: Number.isFinite(Number(item.sortOrder))
-              ? Number(item.sortOrder)
-              : index,
-            ...(item.size === "sm" || item.size === "lg" ? { size: item.size } : {}),
-          }))
-          .filter((item) => item.imageUrl),
+        images: normalizeGalleryImages(
+          raw.images as GalleryImageInput[] | undefined,
+          "feedback",
+        ),
       };
 
       if (customerFeedbackGallery.images.length === 0) {
@@ -967,36 +1008,82 @@ cmsRouter.put(
         });
       }
 
-      const settings = await prisma.storeSettings.upsert({
-        where: { id: "default" },
-        update: { customerFeedbackGallery },
-        create: {
-          id: "default",
-          logoText: "Epic Vanskap",
-          footerAbout: "",
-          footerCopyright: `© ${new Date().getFullYear()} Epic Vanskap`,
-          customerFeedbackGallery,
-        },
-      });
+      const settings = await upsertStoreGalleryJson(
+        "customerFeedbackGallery",
+        customerFeedbackGallery,
+      );
+
+      // Keep homepage section ordered immediately before Physical Outlets
+      try {
+        const outlets = await prisma.pageSection.findFirst({
+          where: { isHomepage: true, sectionKey: "store-locations" },
+          select: { sortOrder: true },
+        });
+        const existing = await prisma.pageSection.findFirst({
+          where: { isHomepage: true, sectionKey: "customer-feedback-gallery" },
+        });
+        const sortOrder =
+          typeof outlets?.sortOrder === "number" ? Math.max(0, outlets.sortOrder - 1) : 90;
+        if (existing) {
+          await prisma.pageSection.update({
+            where: { id: existing.id },
+            data: {
+              name: "Customers Feedback",
+              visible: true,
+              status: "ACTIVE",
+              title: customerFeedbackGallery.title,
+              subtitle: customerFeedbackGallery.subtitle,
+              bgColor: "bg-white",
+              padding: "py-14",
+              margin: "my-0",
+              sortOrder,
+            },
+          });
+        } else {
+          await prisma.pageSection.create({
+            data: {
+              sectionKey: "customer-feedback-gallery",
+              name: "Customers Feedback",
+              visible: true,
+              status: "ACTIVE",
+              isHomepage: true,
+              title: customerFeedbackGallery.title,
+              subtitle: customerFeedbackGallery.subtitle,
+              bgColor: "bg-white",
+              padding: "py-14",
+              margin: "my-0",
+              sortOrder,
+            },
+          });
+        }
+      } catch (sectionErr) {
+        console.warn("[PUT /cms/customer-feedback-gallery] homepage section sync:", sectionErr);
+      }
 
       return res.json({
         success: true,
         data: {
           customerFeedbackGallery:
-            settings.customerFeedbackGallery ?? customerFeedbackGallery,
+            settings?.customerFeedbackGallery ?? customerFeedbackGallery,
         },
       });
     } catch (error) {
       if (error instanceof z.ZodError) {
         return res.status(400).json({
           success: false,
-          error: { message: error.issues[0]?.message || "Invalid customers feedback gallery" },
+          error: {
+            message: error.issues[0]?.message || "Invalid customers feedback gallery",
+          },
         });
       }
       console.error("[PUT /cms/customer-feedback-gallery]", error);
+      const detail =
+        error instanceof Error ? error.message : "Failed to publish customers feedback gallery";
       return res.status(400).json({
         success: false,
-        error: { message: "Failed to publish customers feedback gallery" },
+        error: {
+          message: detail.slice(0, 240) || "Failed to publish customers feedback gallery",
+        },
       });
     }
   },
