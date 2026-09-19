@@ -3182,7 +3182,7 @@ export default function App() {
           {currentPage === 'about' ? (
             <div
               id="section-journey-gallery"
-              className="bg-white w-full max-w-[100vw] min-w-0 overflow-x-hidden"
+              className="bg-white w-full max-w-[100vw] min-w-0 overflow-x-hidden pt-10 sm:pt-14 md:pt-16"
             >
               <CustomerFeedbackGallerySection
                 config={appConfig.journeyGallery}
