@@ -2562,7 +2562,13 @@ export default function App() {
       <div className="flex w-full min-w-0 flex-1">
         <div className="flex-1 min-w-0 flex flex-col w-full">
       {/* MAIN BODY DISPLAY — pb for fixed mobile bottom nav (storefront only) */}
-      <main className={`flex-grow w-full min-w-0 overflow-x-hidden ${isAdminShell ? '' : 'pb-[calc(5.25rem+env(safe-area-inset-bottom,0px))] lg:pb-0'}`}>
+      <main className={`flex-grow w-full min-w-0 overflow-x-hidden ${
+        isAdminShell
+          ? ''
+          : currentPage === 'about'
+            ? 'pb-0'
+            : 'pb-[calc(5.25rem+env(safe-area-inset-bottom,0px))] lg:pb-0'
+      }`}>
         
         {/* Secret admin portal — login or panel only (no storefront UI) */}
         {isAdminShell && (
@@ -3182,7 +3188,7 @@ export default function App() {
           {currentPage === 'about' ? (
             <div
               id="section-journey-gallery"
-              className="bg-white w-full max-w-[100vw] min-w-0 overflow-x-hidden pt-10 sm:pt-14 md:pt-16"
+              className="bg-white w-full max-w-[100vw] min-w-0 overflow-x-hidden pt-4 sm:pt-6"
             >
               <CustomerFeedbackGallerySection
                 config={appConfig.journeyGallery}

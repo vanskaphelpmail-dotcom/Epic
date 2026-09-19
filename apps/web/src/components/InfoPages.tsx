@@ -51,7 +51,7 @@ export const InfoPages: React.FC<InfoPagesProps> = ({ pageType, onBack, brandNam
   ];
 
   return (
-    <section className="bg-[#0a0a0a] text-white py-12 px-6 md:px-12 max-w-4xl mx-auto min-h-screen">
+    <section className={`bg-[#0a0a0a] text-white py-12 px-6 md:px-12 max-w-4xl mx-auto ${pageType === 'about' ? 'min-h-0 pb-8' : 'min-h-screen'}`}>
       
       <button
         onClick={onBack}
