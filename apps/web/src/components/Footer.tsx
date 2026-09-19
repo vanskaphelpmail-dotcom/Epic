@@ -28,9 +28,11 @@ interface FooterProps {
   currentPage: string;
   setCurrentPage: (page: string) => void;
   appConfig: AppConfig;
+  /** Less vertical padding (About page). */
+  compact?: boolean;
 }
 
-export const Footer: React.FC<FooterProps> = ({ currentPage, setCurrentPage, appConfig }) => {
+export const Footer: React.FC<FooterProps> = ({ currentPage, setCurrentPage, appConfig, compact = false }) => {
   const renderNavIcon = (iconName?: string, size = 13) => {
     switch (iconName) {
       case 'Shirt': return <Shirt size={size} />;
@@ -87,7 +89,13 @@ export const Footer: React.FC<FooterProps> = ({ currentPage, setCurrentPage, app
     <footer className="bg-[#F8F8F7] text-[#0A0A0A] border-t border-[#E5E5E5] w-full min-w-0 overflow-x-hidden">
       
       {/* Main Multi-Column Footer Grid */}
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 md:px-12 py-10 sm:py-16 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8 sm:gap-12 text-xs">
+      <div
+        className={`max-w-7xl mx-auto px-4 sm:px-6 md:px-12 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 text-xs ${
+          compact
+            ? 'py-6 sm:py-8 gap-6 sm:gap-8'
+            : 'py-10 sm:py-16 gap-8 sm:gap-12'
+        }`}
+      >
         
         {/* Brand Information Column */}
         <div className="space-y-4">
@@ -244,7 +252,11 @@ export const Footer: React.FC<FooterProps> = ({ currentPage, setCurrentPage, app
       </div>
 
       {/* Trademark Legal Bar */}
-      <div className="bg-white py-6 border-t border-[#E5E5E5] text-center text-[10px] text-[#0A0A0A]/60 tracking-wider uppercase font-mono px-6">
+      <div
+        className={`bg-white border-t border-[#E5E5E5] text-center text-[10px] text-[#0A0A0A]/60 tracking-wider uppercase font-mono px-6 ${
+          compact ? 'py-4' : 'py-6'
+        }`}
+      >
         <p>{appConfig.footerCopyright}</p>
         <p className="mt-1 text-[#0A0A0A]/40">This platform has NO affiliation with Nike, Adidas, Umbro, or FIFA. All designs are completely original vectors.</p>
       </div>

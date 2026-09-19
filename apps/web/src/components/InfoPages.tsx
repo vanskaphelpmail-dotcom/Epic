@@ -51,12 +51,25 @@ export const InfoPages: React.FC<InfoPagesProps> = ({ pageType, onBack, brandNam
   ];
 
   return (
-    <section className={`bg-[#0a0a0a] text-white py-12 px-6 md:px-12 max-w-4xl mx-auto ${pageType === 'about' ? 'min-h-0 pb-8' : 'min-h-screen'}`}>
+    <section
+      className={
+        pageType === 'about'
+          ? 'bg-[#0a0a0a] text-white w-full min-w-0'
+          : 'bg-[#0a0a0a] text-white py-12 px-6 md:px-12 max-w-4xl mx-auto min-h-screen'
+      }
+    >
+      <div
+        className={
+          pageType === 'about'
+            ? 'max-w-4xl mx-auto w-full px-4 sm:px-6 md:px-12 pt-8 sm:pt-10 md:pt-12 pb-6 sm:pb-8 md:pb-10'
+            : undefined
+        }
+      >
       
       <button
         onClick={onBack}
         type="button"
-        className="inline-flex items-center gap-2 mb-10 px-4 py-2.5 rounded-xl bg-zinc-900 border border-zinc-700 text-white hover:border-red-600 hover:bg-zinc-800 text-sm font-black uppercase tracking-wide cursor-pointer transition-colors shadow-sm"
+        className="inline-flex items-center gap-2 mb-8 sm:mb-10 px-4 py-2.5 rounded-xl bg-zinc-900 border border-zinc-700 text-white hover:border-red-600 hover:bg-zinc-800 text-sm font-black uppercase tracking-wide cursor-pointer transition-colors shadow-sm"
       >
         <span className="text-red-500" aria-hidden>
           ←
@@ -320,6 +333,8 @@ export const InfoPages: React.FC<InfoPagesProps> = ({ pageType, onBack, brandNam
           </p>
         </div>
       )}
+
+      </div>
 
     </section>
   );

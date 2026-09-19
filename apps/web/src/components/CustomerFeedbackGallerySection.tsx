@@ -13,6 +13,8 @@ interface CustomerFeedbackGallerySectionProps {
   config?: CustomerFeedbackGalleryConfig | null;
   headingFallback?: string;
   subtitleFallback?: string;
+  /** Tighter vertical rhythm (About / Journey). */
+  compact?: boolean;
 }
 
 /**
@@ -22,6 +24,7 @@ export const CustomerFeedbackGallerySection: React.FC<CustomerFeedbackGallerySec
   config,
   headingFallback,
   subtitleFallback,
+  compact = false,
 }) => {
   const gallery = useMemo(() => normalizeCustomerFeedbackGallery(config), [config]);
   const images = useMemo(() => getActiveCustomerFeedbackImages(gallery), [gallery]);
@@ -142,13 +145,13 @@ export const CustomerFeedbackGallerySection: React.FC<CustomerFeedbackGallerySec
 
     let raf = 0;
     let last = performance.now();
-    // Fast continuous drift — club-flag style, never idle
+    // Steady continuous drift — readable, not rushed
     const speed =
       typeof window !== 'undefined' && window.innerWidth < 640
-        ? 220
+        ? 120
         : typeof window !== 'undefined' && window.innerWidth < 1024
-          ? 260
-          : 300;
+          ? 145
+          : 165;
 
     const tick = (now: number) => {
       const dt = Math.min(32, now - last);
@@ -243,13 +246,29 @@ export const CustomerFeedbackGallerySection: React.FC<CustomerFeedbackGallerySec
   const shellClassName =
     'block w-full min-w-0 text-[#0A0A0A] no-underline outline-none focus-visible:ring-2 focus-visible:ring-[#0A0A0A]/25 focus-visible:ring-offset-2';
   const galleryInner = (
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 pt-1 sm:pt-2 space-y-6 sm:space-y-10">
-          <div className="text-center space-y-1.5 sm:space-y-3 px-1">
-            <h2 className="text-[1.05rem] leading-tight sm:text-2xl md:text-3xl font-black uppercase tracking-tight text-[#0A0A0A]">
+        <div
+          className={`max-w-7xl mx-auto px-4 sm:px-6 ${
+            compact
+              ? 'pt-0 space-y-4 sm:space-y-5'
+              : 'pt-1 sm:pt-2 space-y-6 sm:space-y-10'
+          }`}
+        >
+          <div className={`text-center px-1 ${compact ? 'space-y-1 sm:space-y-2' : 'space-y-1.5 sm:space-y-3'}`}>
+            <h2
+              className={`font-black uppercase tracking-tight text-[#0A0A0A] leading-tight ${
+                compact
+                  ? 'text-base sm:text-xl md:text-2xl'
+                  : 'text-[1.05rem] sm:text-2xl md:text-3xl'
+              }`}
+            >
               {title}
             </h2>
             {subtitle ? (
-              <p className="text-xs sm:text-base text-[#555555] font-medium tracking-wide">
+              <p
+                className={`text-[#555555] font-medium tracking-wide ${
+                  compact ? 'text-[11px] sm:text-sm' : 'text-xs sm:text-base'
+                }`}
+              >
                 {subtitle}
               </p>
             ) : null}
@@ -318,7 +337,13 @@ export const CustomerFeedbackGallerySection: React.FC<CustomerFeedbackGallerySec
         <div className={shellClassName}>{galleryInner}</div>
       )}
 
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 pb-[max(0.5rem,env(safe-area-inset-bottom))] pt-6 sm:pt-10">
+      <div
+        className={`max-w-7xl mx-auto px-4 sm:px-6 ${
+          compact
+            ? 'pt-3 sm:pt-4 pb-2 sm:pb-3'
+            : 'pb-[max(0.5rem,env(safe-area-inset-bottom))] pt-6 sm:pt-10'
+        }`}
+      >
         <div
           className="flex justify-center items-center gap-2.5 sm:gap-2"
           role="tablist"

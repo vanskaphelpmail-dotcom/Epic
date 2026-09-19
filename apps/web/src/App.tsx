@@ -2530,7 +2530,11 @@ export default function App() {
   const isAdminShell = currentPage === 'admin' || currentPage === 'auth';
 
   return (
-    <div className={`min-h-screen w-full min-w-0 overflow-x-hidden bg-transparent text-[#0A0A0A] selection:bg-[#E30613] selection:text-white storefront-shell flex flex-col justify-between`}>
+    <div
+      className={`min-h-screen w-full min-w-0 overflow-x-hidden bg-transparent text-[#0A0A0A] selection:bg-[#E30613] selection:text-white storefront-shell flex flex-col ${
+        currentPage === 'about' ? 'justify-start' : 'justify-between'
+      }`}
+    >
       <UiFeedbackHost />
 
       {/* Storefront chrome — hidden on secret admin portal */}
@@ -2562,12 +2566,12 @@ export default function App() {
       <div className="flex w-full min-w-0 flex-1">
         <div className="flex-1 min-w-0 flex flex-col w-full">
       {/* MAIN BODY DISPLAY — pb for fixed mobile bottom nav (storefront only) */}
-      <main className={`flex-grow w-full min-w-0 overflow-x-hidden ${
+      <main className={`w-full min-w-0 overflow-x-hidden ${
         isAdminShell
           ? ''
           : currentPage === 'about'
-            ? 'pb-0'
-            : 'pb-[calc(5.25rem+env(safe-area-inset-bottom,0px))] lg:pb-0'
+            ? 'pb-0 grow-0'
+            : 'flex-grow pb-[calc(5.25rem+env(safe-area-inset-bottom,0px))] lg:pb-0'
       }`}>
         
         {/* Secret admin portal — login or panel only (no storefront UI) */}
@@ -3188,12 +3192,13 @@ export default function App() {
           {currentPage === 'about' ? (
             <div
               id="section-journey-gallery"
-              className="bg-white w-full max-w-[100vw] min-w-0 overflow-x-hidden pt-4 sm:pt-6"
+              className="bg-white w-full max-w-[100vw] min-w-0 overflow-x-hidden pt-8 sm:pt-10 md:pt-12 pb-1 sm:pb-2"
             >
               <CustomerFeedbackGallerySection
                 config={appConfig.journeyGallery}
                 headingFallback="JOURNEY WE MAKE EPIC VANSKAP"
                 subtitleFallback="Five Friends. One Dream. One Vanskap."
+                compact
               />
             </div>
           ) : (
@@ -3261,8 +3266,19 @@ export default function App() {
           )}
 
           {/* Embedded Brand Footer — extra space above fixed mobile bottom nav */}
-          <div className="pb-20 lg:pb-0">
-            <Footer currentPage={currentPage} setCurrentPage={setCurrentPageNav} appConfig={appConfig} />
+          <div
+            className={
+              currentPage === 'about'
+                ? 'pb-[calc(4.75rem+env(safe-area-inset-bottom,0px))] lg:pb-0'
+                : 'pb-20 lg:pb-0'
+            }
+          >
+            <Footer
+              currentPage={currentPage}
+              setCurrentPage={setCurrentPageNav}
+              appConfig={appConfig}
+              compact={currentPage === 'about'}
+            />
           </div>
         </>
       )}
