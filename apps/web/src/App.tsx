@@ -949,9 +949,14 @@ export default function App() {
               tournamentPatches: cfg.tournamentPatches || [],
               clubShowcase: normalizeClubShowcase(cfg.clubs),
               communityGallery: normalizeCommunityGallery(cfg.communityGallery),
-              customerFeedbackGallery: normalizeCustomerFeedbackGallery(
-                cfg.customerFeedbackGallery,
-              ),
+              // Never wipe a published gallery with an empty client draft
+              ...(normalizeCustomerFeedbackGallery(cfg.customerFeedbackGallery).images.length > 0
+                ? {
+                    customerFeedbackGallery: normalizeCustomerFeedbackGallery(
+                      cfg.customerFeedbackGallery,
+                    ),
+                  }
+                : {}),
               customSizeCharts: cfg.customSizeCharts || [],
             })
             .catch((err) => {

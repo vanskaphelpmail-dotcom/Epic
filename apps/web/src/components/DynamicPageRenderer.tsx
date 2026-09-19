@@ -343,11 +343,10 @@ export const DynamicPageRenderer: React.FC<DynamicPageRendererProps> = ({
           const gallery = normalizeCommunityGallery(appConfig.communityGallery);
           if (gallery.enabled === false || getActiveCommunityImages(gallery).length === 0) return null;
         }
+        // Customers Feedback is forced immediately before Outlets (see store-locations).
+        // Skip the CMS row here to avoid duplicates / order races with Catalog.
         if (section.id === 'customer-feedback-gallery') {
-          const gallery = normalizeCustomerFeedbackGallery(appConfig.customerFeedbackGallery);
-          if (gallery.enabled === false || getActiveCustomerFeedbackImages(gallery).length === 0) {
-            return null;
-          }
+          return null;
         }
         if (section.id === 'trending-searches' && trendingKeywords.length === 0) return null;
 
@@ -908,13 +907,7 @@ export const DynamicPageRenderer: React.FC<DynamicPageRendererProps> = ({
               />
             )}
 
-            {section.id === 'customer-feedback-gallery' && (
-              <CustomerFeedbackGallerySection
-                config={appConfig.customerFeedbackGallery}
-                headingFallback={section.title}
-                subtitleFallback={section.subtitle}
-              />
-            )}
+            {/* Customers Feedback — rendered only immediately before Outlets below */}
 
             {/* 17. TESTIMONIALS — removed; Customers Feedback gallery replaces this */}
             {section.id === 'testimonials' && null}
@@ -980,36 +973,61 @@ export const DynamicPageRenderer: React.FC<DynamicPageRendererProps> = ({
             {/* 20. NEWSLETTER — customer signup removed */}
             {section.id === 'newsletter' && null}
 
-            {/* 21. STORE LOCATIONS */}
+            {/* 21. CUSTOMERS FEEDBACK (always immediately before Outlets) + STORE LOCATIONS */}
             {section.id === 'store-locations' && (
-              <div className="max-w-7xl mx-auto px-4 sm:px-6 space-y-8">
-                <div className="text-center space-y-2">
-                  <h2 className={`text-xl md:text-2xl font-black uppercase tracking-tight ${headingColor}`}>{section.title || 'VISIT OUR OUTLET VAULTS'}</h2>
-                  <p className={`text-xs font-mono ${subColor}`}>{section.subtitle || 'Stop by for sizing configurations and physically authenticated checks'}</p>
-                </div>
-                <div className={`grid grid-cols-1 ${(appConfig.footerLocations?.length || 0) > 1 ? 'md:grid-cols-2 max-w-4xl' : 'max-w-xl'} mx-auto gap-6`}>
-                  {(appConfig.footerLocations?.length
-                    ? appConfig.footerLocations
-                    : []
-                  ).map((loc) => (
-                    <div key={`${loc.city}-${loc.address}`} className="bg-white border border-[#E5E5E5] p-6 rounded-2xl space-y-3 shadow-sm relative">
-                      <span className="absolute top-4 right-4 text-[#555555]"><MapPin size={20} /></span>
-                      <h4 className="text-xs font-black text-[#0A0A0A] uppercase">{loc.city || 'Outlet'}</h4>
-                      <p className="text-[11px] text-[#555555] leading-relaxed font-sans">{loc.address}</p>
-                      <div className="text-[9px] font-mono text-[#555555] space-y-1 pt-2 border-t border-[#E5E5E5]">
-                        {loc.hours ? <span className="block">HOURS: {loc.hours}</span> : null}
-                        {loc.phone ? <span className="block">TELEPHONE: {loc.phone}</span> : null}
-                        {loc.email ? <span className="block">EMAIL: {loc.email}</span> : null}
-                      </div>
+              <>
+                {(() => {
+                  const feedback = normalizeCustomerFeedbackGallery(
+                    appConfig.customerFeedbackGallery,
+                  );
+                  if (
+                    feedback.enabled === false ||
+                    getActiveCustomerFeedbackImages(feedback).length === 0
+                  ) {
+                    return null;
+                  }
+                  return (
+                    <div
+                      id="section-customer-feedback-gallery"
+                      className="bg-white py-8 sm:py-12 md:py-16 my-0 overflow-x-hidden w-full"
+                    >
+                      <CustomerFeedbackGallerySection
+                        config={feedback}
+                        headingFallback="CUSTOMERS FEEDBACK"
+                        subtitleFallback="Real photos from verified buyers"
+                      />
                     </div>
-                  ))}
-                  {!appConfig.footerLocations?.length ? (
-                    <p className="text-center text-xs text-[#555555] font-mono col-span-full">
-                      Outlet details coming soon — check back shortly.
-                    </p>
-                  ) : null}
+                  );
+                })()}
+                <div className="max-w-7xl mx-auto px-4 sm:px-6 space-y-8">
+                  <div className="text-center space-y-2">
+                    <h2 className={`text-xl md:text-2xl font-black uppercase tracking-tight ${headingColor}`}>{section.title || 'VISIT OUR OUTLET VAULTS'}</h2>
+                    <p className={`text-xs font-mono ${subColor}`}>{section.subtitle || 'Stop by for sizing configurations and physically authenticated checks'}</p>
+                  </div>
+                  <div className={`grid grid-cols-1 ${(appConfig.footerLocations?.length || 0) > 1 ? 'md:grid-cols-2 max-w-4xl' : 'max-w-xl'} mx-auto gap-6`}>
+                    {(appConfig.footerLocations?.length
+                      ? appConfig.footerLocations
+                      : []
+                    ).map((loc) => (
+                      <div key={`${loc.city}-${loc.address}`} className="bg-white border border-[#E5E5E5] p-6 rounded-2xl space-y-3 shadow-sm relative">
+                        <span className="absolute top-4 right-4 text-[#555555]"><MapPin size={20} /></span>
+                        <h4 className="text-xs font-black text-[#0A0A0A] uppercase">{loc.city || 'Outlet'}</h4>
+                        <p className="text-[11px] text-[#555555] leading-relaxed font-sans">{loc.address}</p>
+                        <div className="text-[9px] font-mono text-[#555555] space-y-1 pt-2 border-t border-[#E5E5E5]">
+                          {loc.hours ? <span className="block">HOURS: {loc.hours}</span> : null}
+                          {loc.phone ? <span className="block">TELEPHONE: {loc.phone}</span> : null}
+                          {loc.email ? <span className="block">EMAIL: {loc.email}</span> : null}
+                        </div>
+                      </div>
+                    ))}
+                    {!appConfig.footerLocations?.length ? (
+                      <p className="text-center text-xs text-[#555555] font-mono col-span-full">
+                        Outlet details coming soon — check back shortly.
+                      </p>
+                    ) : null}
+                  </div>
                 </div>
-              </div>
+              </>
             )}
 
           </div>

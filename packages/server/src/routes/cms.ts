@@ -639,7 +639,7 @@ cmsRouter.put("/settings", requirePermission("can_manage_system_settings"), asyn
 
     if (body.customerFeedbackGallery !== undefined) {
       const raw = body.customerFeedbackGallery;
-      updateData.customerFeedbackGallery = toJsonValue({
+      const normalized = toJsonValue({
         title: String(raw?.title || "CUSTOMERS FEEDBACK").trim(),
         membersLabel: String(raw?.membersLabel || "").trim(),
         subtitle: String(raw?.subtitle || "Real photos from verified buyers").trim(),
@@ -649,7 +649,22 @@ cmsRouter.put("/settings", requirePermission("can_manage_system_settings"), asyn
           (raw?.images as GalleryImageInput[] | undefined) || [],
           "feedback",
         ),
-      });
+      }) as { images?: unknown[] };
+      // Stale admin clients must not wipe a published gallery with an empty payload
+      if (!normalized.images?.length) {
+        const existing = await prisma.storeSettings.findUnique({
+          where: { id: "default" },
+          select: { customerFeedbackGallery: true },
+        });
+        const prev = existing?.customerFeedbackGallery as { images?: unknown[] } | null;
+        if (Array.isArray(prev?.images) && prev.images.length > 0) {
+          delete updateData.customerFeedbackGallery;
+        } else {
+          updateData.customerFeedbackGallery = normalized;
+        }
+      } else {
+        updateData.customerFeedbackGallery = normalized;
+      }
     }
 
     if (body.customSizeCharts !== undefined) {

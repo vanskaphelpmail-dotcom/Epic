@@ -272,7 +272,7 @@ export const CustomerFeedbackGalleryPanel: React.FC<CustomerFeedbackGalleryPanel
           <button
             type="button"
             onClick={() => void publish()}
-            disabled={saving || !dirty}
+            disabled={saving}
             className="inline-flex items-center gap-1.5 px-4 py-2 rounded-xl bg-zinc-950 text-white text-[10px] font-black uppercase tracking-wider disabled:opacity-50 cursor-pointer hover:bg-black"
           >
             <Save size={13} />

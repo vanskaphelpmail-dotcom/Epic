@@ -225,10 +225,26 @@ export function normalizeHomepageSections(sections: PageSection[]): PageSection[
     // Storefront is light — never keep dark CMS section paints
     bgColor: 'bg-transparent',
   }));
+  const withOutlets = darkened.some((s) => s.id === 'store-locations')
+    ? darkened
+    : [
+        ...darkened,
+        {
+          id: 'store-locations',
+          name: 'Physical Store Maps',
+          visible: true,
+          bgColor: 'bg-transparent',
+          padding: 'py-12',
+          margin: 'my-0',
+          title: 'PHYSICAL OUTLET POINTS',
+          subtitle: 'Visit us for physical sizing and authentications',
+          status: 'active' as const,
+        },
+      ];
   return ensureCustomerFeedbackBeforeStoreLocations(
     ensureCatalogSectionAtBottom(
       ensureCommunityGalleryAfterPremierLeague(
-        ensureAllJerseysSection(ensureJerseyHomepageOrder(darkened)),
+        ensureAllJerseysSection(ensureJerseyHomepageOrder(withOutlets)),
       ),
     ),
   );
