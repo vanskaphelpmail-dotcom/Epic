@@ -7,6 +7,7 @@ import { ProductManager } from './ProductManager';
 import { TournamentPatchesPanel } from './TournamentPatchesPanel';
 import { CommunityGalleryPanel } from './CommunityGalleryPanel';
 import { CustomerFeedbackGalleryPanel } from './CustomerFeedbackGalleryPanel';
+import { JourneyGalleryPanel } from './JourneyGalleryPanel';
 import { SizeChartsPanel } from './SizeChartsPanel';
 import { TEAMS_LIST, RIVALRY_PRESETS, TeamItem } from '../data/teamsData';
 import { DEFAULT_LEAGUES } from '../data/leaguesData';
@@ -1514,6 +1515,7 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({
         { id: 'homepage-builder', label: 'Homepage', icon: Layers },
         { id: 'community-gallery', label: 'Community Gallery', icon: Users },
         { id: 'customer-feedback-gallery', label: 'Customers Feedback', icon: Star },
+        { id: 'journey-gallery', label: 'Journey we make Epic Vanskap', icon: Sparkles },
         { id: 'page-builder', label: 'Pages', icon: FileText },
         { id: 'menu-builder', label: 'Navigation', icon: Compass },
         { id: 'mega-menu', label: 'Mega Menu', icon: Grid },
@@ -1541,6 +1543,7 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({
     if (activeSidebarTab === 'tournament-patches') return 'Patches';
     if (activeSidebarTab === 'community-gallery') return 'Community Gallery';
     if (activeSidebarTab === 'customer-feedback-gallery') return 'Customers Feedback';
+    if (activeSidebarTab === 'journey-gallery') return 'Journey we make Epic Vanskap';
     if (activeSidebarTab === 'size-charts') return 'Size Charts';
     if (activeSidebarTab === 'product-management') return 'Product';
     return activeModuleLabel;
@@ -3399,6 +3402,16 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({
       {activeSidebarTab === 'customer-feedback-gallery' && (
         <div className="space-y-4 animate-fadeIn">
           <CustomerFeedbackGalleryPanel
+            appConfig={appConfig}
+            onUpdateConfig={onUpdateConfig}
+            onRequireStaffLogin={onRequireStaffLogin}
+          />
+        </div>
+      )}
+
+      {activeSidebarTab === 'journey-gallery' && (
+        <div className="space-y-4 animate-fadeIn">
+          <JourneyGalleryPanel
             appConfig={appConfig}
             onUpdateConfig={onUpdateConfig}
             onRequireStaffLogin={onRequireStaffLogin}
@@ -5591,7 +5604,7 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({
       )}
 
       {/* 28 EXTENDED DYNAMIC CMS MODULE PANELS */}
-      {!['dashboard', 'inventory', 'tournament-patches', 'community-gallery', 'customer-feedback-gallery', 'size-charts', 'seller-requests', 'homepage-builder', 'coupons', 'brand-customizer'].includes(activeSidebarTab) && (
+      {!['dashboard', 'inventory', 'tournament-patches', 'community-gallery', 'customer-feedback-gallery', 'journey-gallery', 'size-charts', 'seller-requests', 'homepage-builder', 'coupons', 'brand-customizer'].includes(activeSidebarTab) && (
         <div className="bg-white border border-emerald-100 p-6 rounded-3xl space-y-8 animate-fadeIn">
           
           {/* MODULE: analytics */}

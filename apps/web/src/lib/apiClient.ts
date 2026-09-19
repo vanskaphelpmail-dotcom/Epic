@@ -351,6 +351,11 @@ export const api = {
       method: "PUT",
       body: JSON.stringify({ customerFeedbackGallery }),
     }),
+  updateJourneyGallery: (journeyGallery: unknown) =>
+    request<{ journeyGallery: unknown }>("/api/cms/journey-gallery", {
+      method: "PUT",
+      body: JSON.stringify({ journeyGallery }),
+    }),
 
   listBanners: () => request<{ items: any[] }>("/api/cms/banners"),
   createBanner: (body: unknown) =>

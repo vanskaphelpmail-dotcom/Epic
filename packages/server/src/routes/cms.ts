@@ -313,6 +313,24 @@ cmsRouter.get("/homepage", async (_req, res) => {
       }
     }
 
+    let journeyGallery =
+      settings &&
+      (settings as { journeyGallery?: unknown }).journeyGallery &&
+      typeof (settings as { journeyGallery?: unknown }).journeyGallery === "object"
+        ? (settings as { journeyGallery: unknown }).journeyGallery
+        : null;
+    if (!journeyGallery) {
+      try {
+        const rows = await prisma.$queryRaw<
+          Array<{ journeyGallery: unknown }>
+        >`SELECT "journeyGallery" FROM "store_settings" WHERE id = 'default' LIMIT 1`;
+        const raw = rows?.[0]?.journeyGallery;
+        if (raw && typeof raw === "object") journeyGallery = raw;
+      } catch (err) {
+        console.warn("[GET /cms/homepage] journeyGallery SQL fallback:", err);
+      }
+    }
+
     const normalizedSettings = settings
       ? {
           ...settings,
@@ -363,6 +381,7 @@ cmsRouter.get("/homepage", async (_req, res) => {
               ? (settings as { communityGallery: unknown }).communityGallery
               : undefined,
           customerFeedbackGallery: customerFeedbackGallery || undefined,
+          journeyGallery: journeyGallery || undefined,
         }
       : null;
 
@@ -601,6 +620,17 @@ cmsRouter.put("/settings", requirePermission("can_manage_system_settings"), asyn
           })
           .optional()
           .nullable(),
+        journeyGallery: z
+          .object({
+            title: z.string().optional().nullable(),
+            membersLabel: z.string().optional().nullable(),
+            subtitle: z.string().optional().nullable(),
+            facebookUrl: z.string().optional().nullable(),
+            enabled: z.boolean().optional(),
+            images: z.array(z.any()).optional(),
+          })
+          .optional()
+          .nullable(),
         customSizeCharts: z.any().optional().nullable(),
       })
       .strict();
@@ -678,6 +708,37 @@ cmsRouter.put("/settings", requirePermission("can_manage_system_settings"), asyn
         }
       } else {
         updateData.customerFeedbackGallery = normalized;
+      }
+    }
+
+    if (body.journeyGallery !== undefined) {
+      const raw = body.journeyGallery;
+      const normalized = toJsonValue({
+        title: String(raw?.title || "JOURNEY WE MAKE EPIC VANSKAP").trim(),
+        membersLabel: String(raw?.membersLabel || "").trim(),
+        subtitle: String(
+          raw?.subtitle || "Five Friends. One Dream. One Vanskap.",
+        ).trim(),
+        facebookUrl: String(raw?.facebookUrl || "").trim(),
+        enabled: raw?.enabled === false ? false : true,
+        images: normalizeGalleryImages(
+          (raw?.images as GalleryImageInput[] | undefined) || [],
+          "journey",
+        ),
+      }) as { images?: unknown[] };
+      if (!normalized.images?.length) {
+        const existing = await prisma.storeSettings.findUnique({
+          where: { id: "default" },
+          select: { journeyGallery: true },
+        });
+        const prev = existing?.journeyGallery as { images?: unknown[] } | null;
+        if (Array.isArray(prev?.images) && prev.images.length > 0) {
+          delete updateData.journeyGallery;
+        } else {
+          updateData.journeyGallery = normalized;
+        }
+      } else {
+        updateData.journeyGallery = normalized;
       }
     }
 
@@ -893,7 +954,7 @@ function normalizeGalleryImages(
 }
 
 async function upsertStoreGalleryJson(
-  column: "communityGallery" | "customerFeedbackGallery",
+  column: "communityGallery" | "customerFeedbackGallery" | "journeyGallery",
   gallery: Record<string, unknown>,
 ) {
   const payload = toJsonValue(gallery);
@@ -1112,6 +1173,77 @@ cmsRouter.put(
         success: false,
         error: {
           message: detail.slice(0, 240) || "Failed to publish customers feedback gallery",
+        },
+      });
+    }
+  },
+);
+
+/** About page Journey gallery — Admin / Content Manager can publish. */
+cmsRouter.put(
+  "/journey-gallery",
+  requireAnyPermission("can_manage_content", "can_manage_system_settings"),
+  async (req: AuthedRequest, res) => {
+    try {
+      const body = z
+        .object({
+          journeyGallery: z.object({
+            title: z.string().optional().nullable(),
+            membersLabel: z.string().optional().nullable(),
+            subtitle: z.string().optional().nullable(),
+            facebookUrl: z.string().optional().nullable(),
+            enabled: z.boolean().optional(),
+            images: z.array(z.any()).optional(),
+          }),
+        })
+        .parse(req.body || {});
+
+      const raw = body.journeyGallery;
+      const journeyGallery = {
+        title: String(raw.title || "JOURNEY WE MAKE EPIC VANSKAP").trim(),
+        membersLabel: String(raw.membersLabel || "").trim(),
+        subtitle: String(
+          raw.subtitle || "Five Friends. One Dream. One Vanskap.",
+        ).trim(),
+        facebookUrl: String(raw.facebookUrl || "").trim(),
+        enabled: raw.enabled === false ? false : true,
+        images: normalizeGalleryImages(
+          raw.images as GalleryImageInput[] | undefined,
+          "journey",
+        ),
+      };
+
+      if (journeyGallery.images.length === 0) {
+        return res.status(400).json({
+          success: false,
+          error: { message: "Add at least one journey image before publishing." },
+        });
+      }
+
+      const settings = await upsertStoreGalleryJson("journeyGallery", journeyGallery);
+
+      return res.json({
+        success: true,
+        data: {
+          journeyGallery: settings?.journeyGallery ?? journeyGallery,
+        },
+      });
+    } catch (error) {
+      if (error instanceof z.ZodError) {
+        return res.status(400).json({
+          success: false,
+          error: {
+            message: error.issues[0]?.message || "Invalid journey gallery",
+          },
+        });
+      }
+      console.error("[PUT /cms/journey-gallery]", error);
+      const detail =
+        error instanceof Error ? error.message : "Failed to publish journey gallery";
+      return res.status(400).json({
+        success: false,
+        error: {
+          message: detail.slice(0, 240) || "Failed to publish journey gallery",
         },
       });
     }

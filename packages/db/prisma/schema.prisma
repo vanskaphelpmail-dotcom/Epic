@@ -786,6 +786,8 @@ model StoreSettings {
   communityGallery   Json?
   /// Customers feedback gallery: { title, membersLabel, subtitle, facebookUrl, images[] }
   customerFeedbackGallery Json?
+  /// About page “Journey we make Epic Vanskap” story gallery (same shape as feedback)
+  journeyGallery         Json?
   updatedAt          DateTime @updatedAt
 
   @@map("store_settings")

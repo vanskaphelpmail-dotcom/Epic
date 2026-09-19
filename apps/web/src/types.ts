@@ -469,6 +469,8 @@ export interface AppConfig {
   communityGallery?: CommunityGalleryConfig;
   /** Storefront “Customers Feedback” image gallery (all pages, before Outlets) */
   customerFeedbackGallery?: CommunityGalleryConfig;
+  /** About page “Journey we make Epic Vanskap” story gallery */
+  journeyGallery?: CommunityGalleryConfig;
   currencySymbol: string;
   currencyCode: string;
   exchangeRate: number;

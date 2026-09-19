@@ -11,6 +11,10 @@ import {
   DEFAULT_CUSTOMER_FEEDBACK_GALLERY,
   normalizeCustomerFeedbackGallery,
 } from './lib/customerFeedbackGallery';
+import {
+  DEFAULT_JOURNEY_GALLERY,
+  normalizeJourneyGallery,
+} from './lib/journeyGallery';
 import { Product, CartItem, SellerRequest, Order, CarouselSlide, User, AppConfig } from './types';
 import {
   api,
@@ -295,6 +299,10 @@ const DEFAULT_APP_CONFIG: AppConfig = {
   },
   customerFeedbackGallery: {
     ...DEFAULT_CUSTOMER_FEEDBACK_GALLERY,
+    images: [],
+  },
+  journeyGallery: {
+    ...DEFAULT_JOURNEY_GALLERY,
     images: [],
   },
   tournamentPatches: [
@@ -957,6 +965,11 @@ export default function App() {
                     ),
                   }
                 : {}),
+              ...(normalizeJourneyGallery(cfg.journeyGallery).images.length > 0
+                ? {
+                    journeyGallery: normalizeJourneyGallery(cfg.journeyGallery),
+                  }
+                : {}),
               customSizeCharts: cfg.customSizeCharts || [],
             })
             .catch((err) => {
@@ -1246,6 +1259,16 @@ export default function App() {
                   );
                 } else if (!next.customerFeedbackGallery) {
                   next.customerFeedbackGallery = normalizeCustomerFeedbackGallery(null);
+                }
+                if (
+                  (settings as { journeyGallery?: unknown }).journeyGallery &&
+                  typeof (settings as { journeyGallery?: unknown }).journeyGallery === 'object'
+                ) {
+                  next.journeyGallery = normalizeJourneyGallery(
+                    (settings as { journeyGallery: unknown }).journeyGallery,
+                  );
+                } else if (!next.journeyGallery) {
+                  next.journeyGallery = normalizeJourneyGallery(null);
                 }
                 if (Array.isArray((settings as { customSizeCharts?: unknown }).customSizeCharts)) {
                   next.customSizeCharts = (settings as { customSizeCharts: AppConfig['customSizeCharts'] })
@@ -3155,13 +3178,26 @@ export default function App() {
 
       {!isAdminShell && (
         <>
-          {/* Customers Feedback — every storefront page, immediately before Outlets on home */}
-          <div
-            id="section-customer-feedback-gallery"
-            className="bg-white w-full max-w-[100vw] min-w-0 overflow-x-hidden"
-          >
-            <CustomerFeedbackGallerySection config={appConfig.customerFeedbackGallery} />
-          </div>
+          {/* About page: Journey gallery. All other pages: Customers Feedback. */}
+          {currentPage === 'about' ? (
+            <div
+              id="section-journey-gallery"
+              className="bg-white w-full max-w-[100vw] min-w-0 overflow-x-hidden"
+            >
+              <CustomerFeedbackGallerySection
+                config={appConfig.journeyGallery}
+                headingFallback="JOURNEY WE MAKE EPIC VANSKAP"
+                subtitleFallback="Five Friends. One Dream. One Vanskap."
+              />
+            </div>
+          ) : (
+            <div
+              id="section-customer-feedback-gallery"
+              className="bg-white w-full max-w-[100vw] min-w-0 overflow-x-hidden"
+            >
+              <CustomerFeedbackGallerySection config={appConfig.customerFeedbackGallery} />
+            </div>
+          )}
 
           {/* Physical Outlets — home only (was a homepage CMS section) */}
           {currentPage === 'home' && (
