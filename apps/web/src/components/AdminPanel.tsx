@@ -39,6 +39,11 @@ import {
   usesManualProductSelection,
 } from '../lib/homepageSections';
 import {
+  getActiveCustomerFeedbackImages,
+  normalizeCustomerFeedbackGallery,
+} from '../lib/customerFeedbackGallery';
+import { getActiveCommunityImages, normalizeCommunityGallery } from '../lib/communityGallery';
+import {
   normalizeDailyDealItems,
   suggestCompareAtPrice,
   suggestDealPrice,
@@ -1481,8 +1486,6 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({
         { id: 'inventory', label: 'Inventory', icon: Box },
         { id: 'tournament-patches', label: 'Patches', icon: Award },
         { id: 'size-charts', label: 'Size Charts', icon: Ruler },
-        { id: 'community-gallery', label: 'Community Section', icon: Image },
-        { id: 'customer-feedback-gallery', label: 'Customers Feedback', icon: Star },
       ],
     },
     {
@@ -1509,6 +1512,8 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({
       collapsible: true,
       items: [
         { id: 'homepage-builder', label: 'Homepage', icon: Layers },
+        { id: 'community-gallery', label: 'Community Gallery', icon: Users },
+        { id: 'customer-feedback-gallery', label: 'Customers Feedback', icon: Star },
         { id: 'page-builder', label: 'Pages', icon: FileText },
         { id: 'menu-builder', label: 'Navigation', icon: Compass },
         { id: 'mega-menu', label: 'Mega Menu', icon: Grid },
@@ -1534,7 +1539,7 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({
     if (activeSidebarTab === 'sales') return 'Invoice List';
     if (activeSidebarTab === 'inventory') return 'Inventory';
     if (activeSidebarTab === 'tournament-patches') return 'Patches';
-    if (activeSidebarTab === 'community-gallery') return 'Community Section';
+    if (activeSidebarTab === 'community-gallery') return 'Community Gallery';
     if (activeSidebarTab === 'customer-feedback-gallery') return 'Customers Feedback';
     if (activeSidebarTab === 'size-charts') return 'Size Charts';
     if (activeSidebarTab === 'product-management') return 'Product';
@@ -3480,6 +3485,100 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({
 
       {activeSidebarTab === 'homepage-builder' && (
         <div className="space-y-6 animate-fadeIn">
+          {/* Gallery strips — Community + Customers Feedback */}
+          <div className="bg-white border border-emerald-100 rounded-2xl p-5 sm:p-6 space-y-4">
+            <div>
+              <h3 className="text-base font-bold uppercase text-emerald-950">Homepage Image Galleries</h3>
+              <p className="text-[11px] text-emerald-800 font-mono mt-0.5">
+                Control Community Gallery and Customers Feedback on the storefront. Upload images from each panel —
+                Customers Feedback appears before Outlets on the homepage and on all other pages.
+              </p>
+            </div>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+              {(() => {
+                const community = normalizeCommunityGallery(appConfig.communityGallery);
+                const communityCount = getActiveCommunityImages(community).length;
+                const feedback = normalizeCustomerFeedbackGallery(appConfig.customerFeedbackGallery);
+                const feedbackCount = getActiveCustomerFeedbackImages(feedback).length;
+                return (
+                  <>
+                    <div className="rounded-xl border border-emerald-100 bg-emerald-50/40 p-4 space-y-3">
+                      <div className="flex items-start justify-between gap-2">
+                        <div>
+                          <p className="text-xs font-black uppercase text-emerald-950">Community Gallery</p>
+                          <p className="text-[10px] text-emerald-700 font-mono mt-0.5">
+                            {communityCount} active image{communityCount === 1 ? '' : 's'}
+                            {community.enabled === false ? ' · hidden' : ''}
+                          </p>
+                        </div>
+                        <button
+                          type="button"
+                          onClick={() => {
+                            const next = {
+                              ...community,
+                              enabled: community.enabled === false,
+                            };
+                            onUpdateConfig({ ...appConfig, communityGallery: next });
+                          }}
+                          className={`text-[10px] font-black uppercase px-3 py-1.5 rounded-full cursor-pointer shrink-0 ${
+                            community.enabled !== false
+                              ? 'bg-emerald-600 text-white'
+                              : 'bg-slate-200 text-slate-600'
+                          }`}
+                        >
+                          {community.enabled !== false ? 'On homepage' : 'Hidden'}
+                        </button>
+                      </div>
+                      <button
+                        type="button"
+                        onClick={() => selectAdminModule('community-gallery')}
+                        className="w-full text-[10px] font-black uppercase tracking-wider py-2.5 rounded-xl bg-zinc-950 text-white cursor-pointer hover:bg-black"
+                      >
+                        Manage Community images
+                      </button>
+                    </div>
+                    <div className="rounded-xl border border-amber-200 bg-amber-50/50 p-4 space-y-3">
+                      <div className="flex items-start justify-between gap-2">
+                        <div>
+                          <p className="text-xs font-black uppercase text-emerald-950">Customers Feedback</p>
+                          <p className="text-[10px] text-emerald-700 font-mono mt-0.5">
+                            {feedbackCount} active image{feedbackCount === 1 ? '' : 's'}
+                            {feedback.enabled === false ? ' · hidden' : ''}
+                            {feedbackCount === 0 ? ' · upload to show on site' : ''}
+                          </p>
+                        </div>
+                        <button
+                          type="button"
+                          onClick={() => {
+                            const next = {
+                              ...feedback,
+                              enabled: feedback.enabled === false,
+                            };
+                            onUpdateConfig({ ...appConfig, customerFeedbackGallery: next });
+                          }}
+                          className={`text-[10px] font-black uppercase px-3 py-1.5 rounded-full cursor-pointer shrink-0 ${
+                            feedback.enabled !== false
+                              ? 'bg-amber-500 text-white'
+                              : 'bg-slate-200 text-slate-600'
+                          }`}
+                        >
+                          {feedback.enabled !== false ? 'On storefront' : 'Hidden'}
+                        </button>
+                      </div>
+                      <button
+                        type="button"
+                        onClick={() => selectAdminModule('customer-feedback-gallery')}
+                        className="w-full text-[10px] font-black uppercase tracking-wider py-2.5 rounded-xl bg-zinc-950 text-white cursor-pointer hover:bg-black"
+                      >
+                        Manage Feedback images
+                      </button>
+                    </div>
+                  </>
+                );
+              })()}
+            </div>
+          </div>
+
           {/* Homepage Product Row Sections */}
           <div className="bg-emerald-50/40 border border-emerald-100 rounded-2xl p-6 space-y-5">
             <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-emerald-100 pb-4">

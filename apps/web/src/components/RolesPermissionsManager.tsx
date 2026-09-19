@@ -179,7 +179,8 @@ export const STAFF_ROLE_DEFINITIONS: StaffRoleDefinition[] = [
     badgeColor: 'bg-emerald-100 text-emerald-900 border-emerald-200',
     allowedTabs: [
       'analytics', 'product-management', 'inventory', 'orders', 
-      'customers', 'coupons', 'reviews', 'blogs', 'gallery', 'homepage-builder'
+      'customers', 'coupons', 'reviews', 'blogs', 'gallery', 'homepage-builder',
+      'community-gallery', 'customer-feedback-gallery',
     ],
     defaultPermissions: [
       'manage_products', 'manage_orders', 'manage_inventory', 
@@ -224,7 +225,8 @@ export const STAFF_ROLE_DEFINITIONS: StaffRoleDefinition[] = [
     badgeColor: 'bg-pink-100 text-pink-900 border-pink-200',
     allowedTabs: [
       'homepage-builder', 'hero-slider', 'announcement-bar', 'page-builder', 
-      'menu-builder', 'mega-menu', 'blogs', 'gallery', 'videos'
+      'menu-builder', 'mega-menu', 'blogs', 'gallery', 'videos',
+      'community-gallery', 'customer-feedback-gallery',
     ],
     defaultPermissions: ['manage_content', 'manage_banners', 'manage_blogs', 'manage_pages', 'manage_gallery'],
     defaultFlags: DEFAULT_ROLE_ACCESS_FLAGS['Content Manager']
