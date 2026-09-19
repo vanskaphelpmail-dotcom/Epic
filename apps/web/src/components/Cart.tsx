@@ -63,7 +63,7 @@ export const Cart: React.FC<CartProps> = ({ cart, setCart, onCheckout, onBackToC
       
       <div className="flex justify-between items-end border-b border-[#E5E5E5] pb-4 mb-8">
         <div>
-          <h1 className="text-3xl font-black uppercase tracking-tight text-[#0A0A0A]">Shopping Bag</h1>
+          <h1 className="text-3xl font-black uppercase tracking-tight text-[#0A0A0A]">Checkout Section</h1>
         </div>
         <button
           onClick={onBackToCatalog}
