@@ -136,13 +136,13 @@ export const CommunityGallerySection: React.FC<CommunityGallerySectionProps> = (
 
     let raf = 0;
     let last = performance.now();
-    // Faster continuous drift — still readable (~1.5–2s per card)
+    // Faster continuous drift — still readable
     const speed =
       typeof window !== 'undefined' && window.innerWidth < 640
-        ? 78
+        ? 120
         : typeof window !== 'undefined' && window.innerWidth < 1024
-          ? 90
-          : 105;
+          ? 140
+          : 160;
 
     const tick = (now: number) => {
       const dt = Math.min(32, now - last);
@@ -271,11 +271,11 @@ export const CommunityGallerySection: React.FC<CommunityGallerySectionProps> = (
             onPointerUp={endDrag}
             onPointerCancel={endDrag}
           >
-            {/* Height follows tallest image — no fixed min-height / gray shells */}
-            <div className="flex items-end w-full min-w-0">
+            {/* Height follows tallest image — cards vertically centered */}
+            <div className="flex items-center w-full min-w-0">
               <div
                 ref={trackRef}
-                className="flex items-end gap-2 sm:gap-3.5 will-change-transform [backface-visibility:hidden]"
+                className="flex items-center gap-2 sm:gap-3.5 will-change-transform [backface-visibility:hidden]"
                 style={{ transform: 'translate3d(0,0,0)' }}
               >
                 {loopImages.map((img, index) => {
@@ -293,7 +293,7 @@ export const CommunityGallerySection: React.FC<CommunityGallerySectionProps> = (
                       <img
                         src={img.imageUrl}
                         alt={img.title || 'Vanskap community member'}
-                        className="pointer-events-none block w-full !h-auto max-h-none object-cover align-bottom"
+                        className="pointer-events-none block w-full !h-auto max-h-none object-cover align-middle"
                         loading={index < 6 ? 'eager' : 'lazy'}
                         decoding="async"
                         draggable={false}
