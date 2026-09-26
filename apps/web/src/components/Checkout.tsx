@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { ShieldCheck, ArrowLeft, Truck, ClipboardCheck, AlertCircle, MapPin, ShoppingBag, Trash2, Info, Check } from 'lucide-react';
+import { ShieldCheck, ArrowLeft, Truck, ClipboardCheck, AlertCircle, MapPin, ShoppingBag, Trash2, Check } from 'lucide-react';
 import { CartItem, Order, AppConfig, User as UserType } from '../types';
 import { BkashPaymentPanel, BKASH_DEFAULT_NUMBER, BKASH_PARTIAL_DEFAULT_BDT, type MobileWalletProvider } from './BkashPaymentPanel';
 import {
@@ -317,7 +317,9 @@ export const Checkout: React.FC<CheckoutProps> = ({
       }
     }
 
-    const trackingID = `CFJ-BK-${Math.floor(100000 + Math.random() * 900000)}`;
+    const trackingID = `EPIC-${new Date().toISOString().slice(0, 10).replace(/-/g, '')}-${Math.floor(
+      Math.random() * 9000 + 1000,
+    )}`;
     const newOrder: Order = attachBkashFields({
       id: `ORD-${Math.floor(1000 + Math.random() * 9000)}`,
       date: new Date().toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' }),
@@ -991,13 +993,6 @@ export const Checkout: React.FC<CheckoutProps> = ({
             </div>
           </div>
 
-          {/* Delivery Note */}
-          <div className="bg-[#F8F8F7] border-2 border-[#E5E5E5] p-4 rounded-xl text-[10px] text-[#555555] flex gap-2.5">
-            <Info size={14} className="text-[#555555] flex-shrink-0 mt-0.5" />
-            <p className="leading-relaxed font-semibold">
-              Every package is chemically sanitized and sealed inside historical vacuum-sealed cases with certificates of origin. Sourced for real fans.
-            </p>
-          </div>
         </div>
 
       </div>

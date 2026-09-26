@@ -329,11 +329,11 @@ const DEFAULT_APP_CONFIG: AppConfig = {
     { id: 'live-auction', name: 'Bidding & Live Auctions', visible: false, bgColor: 'bg-transparent', padding: 'py-12', margin: 'my-0', status: 'inactive' },
     { id: 'daily-deals', name: 'Daily Deals Countdown', visible: false, bgColor: 'bg-transparent', padding: 'py-12', margin: 'my-4', title: 'LIMITED DAILY DEAL DECK', subtitle: '24-hour flash sale on ultra rare collectibles', status: 'inactive' },
     { id: 'featured-collection', name: 'Featured Collection Row', visible: true, bgColor: 'bg-transparent', padding: 'py-12', margin: 'my-0', title: 'VERIFIED FEATURED CLASSICS', subtitle: 'Curated 1-of-1 historic collectibles', status: 'active', sectionType: 'product-row', productCategory: 'Featured', buttonText: 'VIEW ALL', buttonUrl: 'listing', maxProducts: 4 },
-    { id: 'retro-collection', name: 'Retro Collection Row', visible: true, bgColor: 'bg-transparent', padding: 'py-12', margin: 'my-0', title: 'RETRO', subtitle: 'Rare 80s, 90s & 2000s vintage reissues', status: 'active', sectionType: 'product-row', productCategory: 'Retro', buttonText: 'VIEW ALL', buttonUrl: 'listing', maxProducts: 4 },
     { id: 'product-row-la-liga', name: 'La Liga Row', visible: true, bgColor: 'bg-transparent', padding: 'py-12', margin: 'my-0', title: 'LA LIGA', subtitle: 'Shop La Liga — curated picks for collectors', status: 'active', sectionType: 'product-row', productCategory: 'La Liga', buttonText: 'VIEW ALL', buttonUrl: 'listing', maxProducts: 4 },
+    { id: 'product-row-premier-league', name: 'Premier League Row', visible: true, bgColor: 'bg-transparent', padding: 'py-12', margin: 'my-0', title: 'PREMIER LEAGUE', subtitle: 'Shop Premier League — curated picks for collectors', status: 'active', sectionType: 'product-row', productCategory: 'Premier League', buttonText: 'VIEW ALL', buttonUrl: 'listing', maxProducts: 4 },
+    { id: 'retro-collection', name: 'Retro Collection Row', visible: true, bgColor: 'bg-transparent', padding: 'py-12', margin: 'my-0', title: 'RETRO', subtitle: 'Rare 80s, 90s & 2000s vintage reissues', status: 'active', sectionType: 'product-row', productCategory: 'Retro', buttonText: 'VIEW ALL', buttonUrl: 'listing', maxProducts: 4 },
     { id: 'product-row-world-cup', name: 'World Cup Row', visible: true, bgColor: 'bg-transparent', padding: 'py-12', margin: 'my-0', title: 'WORLD CUP', subtitle: 'National team World Cup kits & vault classics', status: 'active', sectionType: 'product-row', productCategory: 'World Cup', buttonText: 'VIEW ALL', buttonUrl: 'listing', maxProducts: 4 },
     { id: 'player-edition', name: 'Player Edition Row', visible: true, bgColor: 'bg-transparent', padding: 'py-12', margin: 'my-0', title: 'PLAYER EDITION', subtitle: 'Slim-fit match issue quality kits', status: 'active', sectionType: 'product-row', productCategory: 'Player Edition', buttonText: 'VIEW ALL', buttonUrl: 'listing', maxProducts: 4 },
-    { id: 'product-row-premier-league', name: 'Premier League Row', visible: true, bgColor: 'bg-transparent', padding: 'py-12', margin: 'my-0', title: 'PREMIER LEAGUE', subtitle: 'Shop Premier League — curated picks for collectors', status: 'active', sectionType: 'product-row', productCategory: 'Premier League', buttonText: 'VIEW ALL', buttonUrl: 'listing', maxProducts: 4 },
     { id: 'community-gallery', name: 'Community Gallery', visible: true, bgColor: 'bg-white', padding: 'py-14', margin: 'my-0', title: 'JOIN THE VANSKAP COMMUNITY', subtitle: '+6,783 Members Since 2024.', status: 'active' },
     { id: 'customised-kit', name: 'Customised Kit Row', visible: true, bgColor: 'bg-transparent', padding: 'py-12', margin: 'my-0', title: 'CUSTOMISED KIT', subtitle: 'Custom printed kits with full size guide', status: 'active', sectionType: 'product-row', productCategory: 'Customised Kit', buttonText: 'VIEW ALL', buttonUrl: 'listing', maxProducts: 4 },
     { id: 'clearance', name: 'Catalog Row', visible: true, bgColor: 'bg-transparent', padding: 'py-12', margin: 'my-0', title: 'CATALOG', subtitle: 'Browse the full Catalog collection', status: 'active', sectionType: 'product-row', productCategory: 'Clearance', buttonText: 'VIEW CATALOG', buttonUrl: 'listing', maxProducts: 4 },
@@ -626,12 +626,11 @@ const DEFAULT_APP_CONFIG: AppConfig = {
     { id: 'nav-mega-item-8', name: 'Brazil', placement: 'Mega Menu', parentId: 'nav-mega-cat-3', icon: 'Globe', order: 2, url: 'Brazil', status: 'Active' },
 
     // Footer Menu Items
-    { id: 'nav-footer-1', name: 'Sell Your Shirts', placement: 'Footer Menu', parentId: null, icon: 'ShieldCheck', order: 1, url: 'seller', status: 'Active' },
-    { id: 'nav-footer-2', name: 'Frequently Asked Questions', placement: 'Footer Menu', parentId: null, icon: 'HelpCircle', order: 2, url: 'faq', status: 'Active' },
-    { id: 'nav-footer-3', name: 'About Epic Vanskap', placement: 'Footer Menu', parentId: null, icon: 'Globe', order: 3, url: 'about', status: 'Active' },
-    { id: 'nav-footer-4', name: 'Contact Store', placement: 'Footer Menu', parentId: null, icon: 'Phone', order: 4, url: 'contact', status: 'Active' },
-    { id: 'nav-footer-5', name: 'Customer Authenticity Guarantee', placement: 'Footer Menu', parentId: null, icon: 'Award', order: 5, url: 'authenticity', status: 'Active' },
-    { id: 'nav-footer-6', name: 'My Wishlist', placement: 'Footer Menu', parentId: null, icon: 'Heart', order: 6, url: 'dashboard', status: 'Active' },
+    { id: 'nav-footer-2', name: 'Frequently Asked Questions', placement: 'Footer Menu', parentId: null, icon: 'HelpCircle', order: 1, url: 'faq', status: 'Active' },
+    { id: 'nav-footer-3', name: 'About Epic Vanskap', placement: 'Footer Menu', parentId: null, icon: 'Globe', order: 2, url: 'about', status: 'Active' },
+    { id: 'nav-footer-4', name: 'Contact Store', placement: 'Footer Menu', parentId: null, icon: 'Phone', order: 3, url: 'contact', status: 'Active' },
+    { id: 'nav-footer-5', name: 'Customer Authenticity Guarantee', placement: 'Footer Menu', parentId: null, icon: 'Award', order: 4, url: 'authenticity', status: 'Active' },
+    { id: 'nav-footer-6', name: 'My Wishlist', placement: 'Footer Menu', parentId: null, icon: 'Heart', order: 5, url: 'dashboard', status: 'Active' },
   ]
 };
 
@@ -2441,6 +2440,14 @@ export default function App() {
         (a, b) =>
           scoreProductForSearch(b, searchQuery) - scoreProductForSearch(a, searchQuery),
       );
+    } else {
+      // Default (featured / category browse): newest uploads first — never A–Z by name
+      result.sort((a, b) => {
+        const tb = Date.parse(String(b.createdAt || b.updatedAt || '')) || 0;
+        const ta = Date.parse(String(a.createdAt || a.updatedAt || '')) || 0;
+        if (tb !== ta) return tb - ta;
+        return String(b.id || '').localeCompare(String(a.id || ''));
+      });
     }
 
     return result;

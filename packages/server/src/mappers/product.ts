@@ -154,6 +154,8 @@ export function toSpaProduct(
     status: statusMap[p.status],
     isArchived: p.status === "ARCHIVED",
     isTrashed: p.status === "TRASHED",
+    createdAt: p.createdAt instanceof Date ? p.createdAt.toISOString() : p.createdAt ? String(p.createdAt) : undefined,
+    updatedAt: p.updatedAt instanceof Date ? p.updatedAt.toISOString() : p.updatedAt ? String(p.updatedAt) : undefined,
   };
 }
 

@@ -96,6 +96,10 @@ export interface Product {
   status?: 'Active' | 'Draft' | 'Archived' | 'Trashed';
   isArchived?: boolean;
   isTrashed?: boolean;
+  /** ISO timestamp when the product was first created / uploaded */
+  createdAt?: string;
+  /** ISO timestamp of last product update */
+  updatedAt?: string;
 }
 
 export interface StockLog {
@@ -248,7 +252,7 @@ export interface OrderTimelineEvent {
 
 export interface Order {
   id: string;
-  /** Human-facing reference e.g. JAB-20260919-1234 */
+  /** Human-facing reference e.g. EPIC-20260919-1234 */
   orderNumber?: string;
   date: string;
   createdAt?: string;

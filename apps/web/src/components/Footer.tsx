@@ -11,16 +11,21 @@ const DEFAULT_SOCIAL = {
   tiktok: 'https://www.tiktok.com/@epic_vanskap?_r=1&_t=ZS-99rOqRbSjx7',
 };
 
+/** Outline TikTok mark — stroke style to match Lucide Facebook / Instagram. */
 const TikTokIcon: React.FC<{ size?: number; className?: string }> = ({ size = 18, className }) => (
   <svg
     width={size}
     height={size}
     viewBox="0 0 24 24"
-    fill="currentColor"
+    fill="none"
+    stroke="currentColor"
+    strokeWidth="2"
+    strokeLinecap="round"
+    strokeLinejoin="round"
     aria-hidden
     className={className}
   >
-    <path d="M19.59 6.69a4.83 4.83 0 0 1-3.77-4.25V2h-3.45v13.67a2.89 2.89 0 0 1-2.88 2.5 2.89 2.89 0 0 1-2.89-2.89 2.89 2.89 0 0 1 2.89-2.89c.28 0 .54.04.79.1v-3.5a6.37 6.37 0 0 0-.79-.05A6.34 6.34 0 0 0 3.15 15.3 6.34 6.34 0 0 0 9.49 21.64a6.34 6.34 0 0 0 6.34-6.34V8.77a8.19 8.19 0 0 0 4.76 1.52V6.84a4.84 4.84 0 0 1-.99-.15z" />
+    <path d="M9 12a4 4 0 1 0 4 4V4a5 5 0 0 0 5 5" />
   </svg>
 );
 
@@ -82,7 +87,12 @@ export const Footer: React.FC<FooterProps> = ({ currentPage, setCurrentPage, app
   };
 
   const footerMenuItems = (appConfig?.menuItems || [])
-    .filter(m => m.placement === 'Footer Menu' && (m.status === 'Active' || m.status === 'active'))
+    .filter(
+      (m) =>
+        m.placement === 'Footer Menu' &&
+        (m.status === 'Active' || m.status === 'active') &&
+        !/seller|sell\s*your/i.test(`${m.url || ''} ${m.name || ''}`),
+    )
     .sort((a, b) => a.order - b.order);
 
   return (
@@ -191,11 +201,6 @@ export const Footer: React.FC<FooterProps> = ({ currentPage, setCurrentPage, app
               ))
             ) : (
               <>
-                <li>
-                  <button onClick={() => setCurrentPage('seller')} className="hover:text-[#E30613] text-left transition-colors hover:underline">
-                    Sell Your Shirts (Submit Details)
-                  </button>
-                </li>
                 <li>
                   <button onClick={() => setCurrentPage('faq')} className="hover:text-[#E30613] text-left transition-colors hover:underline">
                     Frequently Asked Questions (FAQ)

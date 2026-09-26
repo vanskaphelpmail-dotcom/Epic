@@ -133,7 +133,25 @@ function isPremierLeagueProductRow(s: PageSection): boolean {
   return /premier\s*league|\bepl\b/i.test(blob);
 }
 
-/** Keep Community Gallery directly after the Premier League product row. */
+const PREMIER_LEAGUE_SECTION: PageSection = {
+  id: 'product-row-premier-league',
+  name: 'Premier League Row',
+  visible: true,
+  bgColor: 'bg-transparent',
+  padding: 'py-12',
+  margin: 'my-0',
+  title: 'PREMIER LEAGUE',
+  subtitle: 'Shop Premier League — curated picks for collectors',
+  status: 'active',
+  sectionType: 'product-row',
+  productCategory: 'Premier League',
+  productSelectionMode: 'category',
+  buttonText: 'VIEW ALL',
+  buttonUrl: 'listing',
+  maxProducts: 4,
+};
+
+/** Keep Community Gallery after the Retro row (so La Liga → Premier → Retro stay first). */
 export function ensureCommunityGalleryAfterPremierLeague(sections: PageSection[]): PageSection[] {
   const existing = sections.find((s) => s.id === 'community-gallery');
   const section: PageSection = {
@@ -151,12 +169,16 @@ export function ensureCommunityGalleryAfterPremierLeague(sections: PageSection[]
   };
 
   const without = sections.filter((s) => s.id !== 'community-gallery');
+  const retroIdx = without.findIndex((s) => s.id === 'retro-collection' || isRetroSection(s));
   const premierIdx = without.findIndex(isPremierLeagueProductRow);
-  if (premierIdx >= 0) {
+  const laLigaIdx = without.findIndex(isLaLigaSection);
+  const anchorIdx =
+    retroIdx >= 0 ? retroIdx : premierIdx >= 0 ? premierIdx : laLigaIdx;
+  if (anchorIdx >= 0) {
     return [
-      ...without.slice(0, premierIdx + 1),
+      ...without.slice(0, anchorIdx + 1),
       section,
-      ...without.slice(premierIdx + 1),
+      ...without.slice(anchorIdx + 1),
     ];
   }
   const insertAt = without.findIndex(
@@ -320,25 +342,31 @@ const PLAYER_EDITION_SECTION: PageSection = {
   maxProducts: 4,
 };
 
-/** Canonical jersey browsing block order on the homepage. */
+/** Canonical leading jersey rows on the homepage: La Liga → Premier League → Retro.
+ *  All other product rows keep their CMS / sync order after this block.
+ */
 export const JERSEY_HOMEPAGE_SECTION_IDS = [
-  'retro-collection',
   'product-row-la-liga',
-  'product-row-world-cup',
-  'player-edition',
+  'product-row-premier-league',
+  'retro-collection',
 ] as const;
 
 const JERSEY_SECTION_DEFAULTS: Record<string, PageSection> = {
-  'retro-collection': RETRO_SECTION,
   'product-row-la-liga': LA_LIGA_SECTION,
-  'product-row-world-cup': WORLD_CUP_SECTION,
-  'player-edition': PLAYER_EDITION_SECTION,
+  'product-row-premier-league': PREMIER_LEAGUE_SECTION,
+  'retro-collection': RETRO_SECTION,
 };
 
 function isLaLigaSection(s: PageSection): boolean {
   if (s.id === 'product-row-la-liga' || s.id === 'la-liga') return true;
   const cat = resolveSectionCategory(s) || '';
   return storefrontLabelsMatch(cat, 'La Liga') || /la\s*liga/i.test(s.title || s.name || '');
+}
+
+function isRetroSection(s: PageSection): boolean {
+  if (s.id === 'retro-collection' || s.id === 'retro') return true;
+  const cat = resolveSectionCategory(s) || '';
+  return storefrontLabelsMatch(cat, 'Retro') || /^retro\b/i.test(s.title || s.name || '');
 }
 
 function isWorldCupProductRow(s: PageSection): boolean {
@@ -357,6 +385,10 @@ function pickJerseySection(sections: PageSection[], id: string): PageSection {
   let existing: PageSection | undefined;
   if (id === 'product-row-la-liga') {
     existing = sections.find(isLaLigaSection);
+  } else if (id === 'product-row-premier-league') {
+    existing = sections.find(isPremierLeagueProductRow);
+  } else if (id === 'retro-collection') {
+    existing = sections.find(isRetroSection);
   } else if (id === 'product-row-world-cup') {
     existing = sections.find(isWorldCupProductRow);
   } else {
@@ -387,8 +419,9 @@ function pickJerseySection(sections: PageSection[], id: string): PageSection {
 }
 
 /**
- * Keep the main jersey sections in this fixed order after hero / trending / featured:
- * Retro → La Liga → World Cup → Player Edition
+ * Keep the leading jersey sections in this fixed order after hero / trending / featured:
+ * La Liga → Premier League → Retro
+ * Remaining rows (World Cup, Player Edition, synced categories, etc.) keep their sync order.
  */
 export function ensureJerseyHomepageOrder(sections: PageSection[]): PageSection[] {
   const jerseyIds = new Set<string>(JERSEY_HOMEPAGE_SECTION_IDS);
@@ -397,7 +430,8 @@ export function ensureJerseyHomepageOrder(sections: PageSection[]): PageSection[
   const rest = sections.filter((s) => {
     if (jerseyIds.has(s.id)) return false;
     if (isLaLigaSection(s)) return false;
-    if (isWorldCupProductRow(s)) return false;
+    if (isPremierLeagueProductRow(s)) return false;
+    if (isRetroSection(s)) return false;
     return true;
   });
 
@@ -524,13 +558,19 @@ export function usesManualProductSelection(section: PageSection): boolean {
   );
 }
 
-function sortByCategoryRow(a: Product, b: Product): number {
-  const ra = Number(a.categoryRow);
-  const rb = Number(b.categoryRow);
-  const aN = Number.isFinite(ra) && ra > 0 ? ra : 9999;
-  const bN = Number.isFinite(rb) && rb > 0 ? rb : 9999;
-  if (aN !== bN) return aN - bN;
-  return String(a.name || '').localeCompare(String(b.name || ''));
+/** Newest upload first — never alphabetical by product name. */
+function productUploadTimeMs(p: Product): number {
+  const raw = String(p.createdAt || p.updatedAt || '').trim();
+  if (!raw) return 0;
+  const t = Date.parse(raw);
+  return Number.isFinite(t) ? t : 0;
+}
+
+function sortByNewestUpload(a: Product, b: Product): number {
+  const diff = productUploadTimeMs(b) - productUploadTimeMs(a);
+  if (diff !== 0) return diff;
+  // Stable tie-break without using display name
+  return String(b.id || '').localeCompare(String(a.id || ''));
 }
 
 const CLUB_LEAGUE_LABELS = [
@@ -737,14 +777,14 @@ export function getProductsForHomepageSection(section: PageSection, products: Pr
   // Catalog page products → Catalog row (bottom)
   if (isCatalogRow) {
     if (catalogProducts.length > 0) {
-      return [...catalogProducts].sort(sortByCategoryRow).slice(0, max);
+      return [...catalogProducts].sort(sortByNewestUpload).slice(0, max);
     }
     return [];
   }
 
   // All Jerseys — every active kit as ProductCards (no Catalog exclusion, no low cap)
   if (section.id === 'all-jerseys') {
-    return [...activeProducts].sort(sortByCategoryRow);
+    return [...activeProducts].sort(sortByNewestUpload);
   }
 
   // Latest Workshop Drops — removed; never fill with random stock
@@ -758,17 +798,17 @@ export function getProductsForHomepageSection(section: PageSection, products: Pr
     if (isRemovedHomepageCategory(cat)) return [];
     const byCategory = mainPool
       .filter((p) => productMatchesHomepageCategory(p, cat))
-      .sort(sortByCategoryRow);
+      .sort(sortByNewestUpload);
     // Strict: empty category rows stay empty (renderer hides them)
     return byCategory.slice(0, max);
   }
 
   if (section.id === 'featured-collection') {
-    const featured = mainPool.filter((p) => p.isFeatured).sort(sortByCategoryRow);
+    const featured = mainPool.filter((p) => p.isFeatured).sort(sortByNewestUpload);
     return featured.slice(0, max);
   }
   if (section.id === 'best-sellers') {
-    const best = mainPool.filter((p) => p.isBestSeller).sort(sortByCategoryRow);
+    const best = mainPool.filter((p) => p.isBestSeller).sort(sortByNewestUpload);
     return best.slice(0, max);
   }
 

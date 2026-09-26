@@ -316,7 +316,7 @@ ordersRouter.post("/", optionalAuth, async (req: AuthedRequest, res) => {
     const deliveryCharge =
       body.deliveryRegion === "inside" ? insideFee : outsideFee;
     const total = subtotal + deliveryCharge;
-    const orderNumber = `JAB-${new Date().toISOString().slice(0, 10).replace(/-/g, "")}-${Math.floor(
+    const orderNumber = `EPIC-${new Date().toISOString().slice(0, 10).replace(/-/g, "")}-${Math.floor(
       Math.random() * 9000 + 1000,
     )}`;
 
