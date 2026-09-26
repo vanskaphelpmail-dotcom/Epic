@@ -400,7 +400,7 @@ export const CustomerDashboard: React.FC<CustomerDashboardProps> = ({
                     No orders yet. When you place an order, it will show up here with tracking.
                   </p>
                   <button
-                    onClick={() => setCurrentPage('listing')}
+                    onClick={() => setCurrentPage('home')}
                     type="button"
                     className="inline-flex items-center justify-center gap-2 bg-[#0A0A0A] hover:bg-black text-white text-sm font-black uppercase tracking-wide px-6 py-3 rounded-xl cursor-pointer transition-colors min-h-11 w-full sm:w-auto"
                   >
@@ -518,7 +518,7 @@ export const CustomerDashboard: React.FC<CustomerDashboardProps> = ({
                     No jerseys saved yet. Browse the catalog and tap the heart to add favorites.
                   </p>
                   <button
-                    onClick={() => setCurrentPage('listing')}
+                    onClick={() => setCurrentPage('home')}
                     type="button"
                     className="inline-flex items-center justify-center gap-2 bg-[#0A0A0A] hover:bg-black text-white text-sm font-black uppercase tracking-wide px-6 py-3 rounded-xl cursor-pointer transition-colors min-h-11 w-full sm:w-auto"
                   >

@@ -120,14 +120,25 @@ export const Footer: React.FC<FooterProps> = ({ currentPage, setCurrentPage, app
     ) {
       return;
     }
+    // Absolute site root / homepage URLs → spa home
+    if (
+      normalized === '/' ||
+      normalized === 'home' ||
+      /^https?:\/\/(www\.)?epicvanskap\.com\/?$/i.test(url.trim())
+    ) {
+      setCurrentPage('home');
+      return;
+    }
     if (url.startsWith('#')) {
       const anchor = url.replace('#', '');
       if (['seller', 'faq', 'about', 'contact', 'dashboard', 'authenticity', 'privacy', 'refund', 'terms', 'shipping'].includes(anchor)) {
         setCurrentPage(anchor);
+      } else if (anchor === 'home' || anchor === '') {
+        setCurrentPage('home');
       } else if (anchor === 'listing' || anchor === 'shop') {
         setCurrentPage('listing');
       } else {
-        setCurrentPage(anchor || 'listing');
+        setCurrentPage(anchor || 'home');
       }
     } else if (['seller', 'faq', 'about', 'contact', 'dashboard', 'authenticity', 'privacy', 'refund', 'terms', 'shipping', 'home', 'listing'].includes(url.toLowerCase())) {
       setCurrentPage(url.toLowerCase());

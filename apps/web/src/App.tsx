@@ -2797,7 +2797,7 @@ export default function App() {
             cart={cart}
             setCart={setCart}
             onCheckout={() => goToCheckout()}
-            onBackToCatalog={() => goToPage('listing')}
+            onBackToCatalog={() => goToPage('home')}
             formatPrice={formatPrice}
           />
         )}
@@ -2809,7 +2809,7 @@ export default function App() {
             setCart={setCart}
             onOrderSuccess={handleOrderSuccess}
             onBackToCart={() => goToPage('cart')}
-            onBackToCatalog={() => goToPage('listing')}
+            onBackToCatalog={() => goToPage('home')}
             onSignIn={() => {
               setCheckoutLoginRequired(true);
               goToPage('login');
@@ -3129,7 +3129,7 @@ export default function App() {
               <button
                 onClick={() => {
                   setLastPlacedOrder(null);
-                  goToPage('listing');
+                  goToPage('home');
                 }}
                 className="flex-1 bg-zinc-950 hover:bg-zinc-800 text-white font-extrabold text-sm uppercase tracking-wide py-3.5 rounded-xl cursor-pointer transition-all flex items-center justify-center gap-2"
               >
@@ -3183,7 +3183,7 @@ export default function App() {
             currentPage === 'shipping') && (
           <InfoPages
             pageType={currentPage}
-            onBack={() => goToPage('listing')}
+            onBack={() => goToPage('home')}
             brandName={getShopBrandName(appConfig.logoText)}
             outlets={appConfig.footerLocations}
           />
