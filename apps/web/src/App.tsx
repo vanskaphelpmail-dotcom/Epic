@@ -72,6 +72,7 @@ import {
   resolveStorefrontPage,
 } from './lib/storefrontPages';
 import { productMatchesSearchQuery, scoreProductForSearch } from './lib/catalogSearch';
+import { getRelatedJerseys } from './lib/relatedJerseys';
 import { isRenderableImageSrc } from './lib/productImage';
 import { ListingFiltersBar } from './components/ListingFiltersBar';
 import { Header } from './components/Header';
@@ -2497,15 +2498,11 @@ export default function App() {
     };
   }, [products, appConfig.clubs]);
 
-  // Compute related items for Details screen
-  const relatedJerseys = useMemo(() => {
-    if (!selectedProduct) return [];
-    return products.filter(
-      (p) =>
-        p.id !== selectedProduct.id &&
-        (p.brand === selectedProduct.brand || p.category === selectedProduct.category)
-    );
-  }, [products, selectedProduct]);
+  // Related Jerseys — team → edition → season → league scoring (not brand/category)
+  const relatedJerseys = useMemo(
+    () => getRelatedJerseys(selectedProduct, products),
+    [products, selectedProduct],
+  );
 
   // Reset all catalog filters
   const resetFilters = () => {
@@ -2529,9 +2526,10 @@ export default function App() {
   };
 
   const formatPrice = (amount: number): string => {
-    // Catalog/order amounts are already in store currency (BDT). No ৳ symbol.
+    // Catalog/order amounts are already in store currency (BDT).
     const value = Math.round(Number(amount) || 0);
-    return value.toLocaleString();
+    const symbol = (appConfig.currencySymbol || '৳').trim() || '৳';
+    return `${symbol}${value.toLocaleString('en-BD')}`;
   };
 
   const isAdminShell = currentPage === 'admin' || currentPage === 'auth';
@@ -2779,7 +2777,7 @@ export default function App() {
           <ProductDetails
             key={selectedProduct.id}
             product={selectedProduct}
-            onBackToCatalog={() => goToPage('listing')}
+            onBackToCatalog={() => goToPage('home')}
             onAddToCart={handleAddToCart}
             onOrderNow={handleOrderNow}
             onAddToWishlist={handleToggleWishlist}
@@ -2988,7 +2986,7 @@ export default function App() {
                   </div>
                   <div className="flex justify-between border-b border-zinc-200 pb-2">
                     <span className="font-bold">Delivery Charge:</span>
-                    <span className="font-black text-zinc-950">{lastPlacedOrder.deliveryCharge || (lastPlacedOrder.deliveryRegion === 'inside' ? 70 : 130)}</span>
+                    <span className="font-black text-zinc-950">{formatPrice(lastPlacedOrder.deliveryCharge || (lastPlacedOrder.deliveryRegion === 'inside' ? 70 : 130))}</span>
                   </div>
                   <div className="flex justify-between border-b border-zinc-200 pb-2">
                     <span className="font-bold">Order Total:</span>
@@ -2999,7 +2997,7 @@ export default function App() {
                       <div className="flex justify-between border-b border-zinc-200 pb-2 text-[10px] text-zinc-500">
                         <span className="font-bold">Advance rate:</span>
                         <span className="font-mono font-black text-zinc-700">
-                          {(appConfig.bkashPartialAmountBdt ?? 300).toLocaleString('en-BD')} ×{' '}
+                          {formatPrice(appConfig.bkashPartialAmountBdt ?? 300)} ×{' '}
                           {lastPlacedOrder.items.reduce((s, i) => s + (i.quantity || 0), 0)}{' '}
                           jersey
                           {lastPlacedOrder.items.reduce((s, i) => s + (i.quantity || 0), 0) === 1

@@ -1,5 +1,5 @@
 import React, { useEffect, useRef, useState } from 'react';
-import { Heart, Share2, Star, CheckCircle, ShieldAlert, ShoppingCart, ArrowLeft, ArrowRight, ShieldCheck, Zap, Ruler, ChevronDown, ChevronLeft, ChevronRight, X, Trophy } from 'lucide-react';
+import { Heart, Share2, Star, CheckCircle, ShieldAlert, ShoppingCart, ArrowLeft, ArrowRight, ShieldCheck, Zap, ChevronDown, ChevronLeft, ChevronRight, X, Trophy } from 'lucide-react';
 import { Product, CartItem, ProductBadgeOption } from '../types';
 import { JerseyRenderer } from './JerseyRenderer';
 import { isRenderableImageSrc } from '../lib/productImage';
@@ -14,6 +14,31 @@ import {
 } from '../lib/productAddons';
 import { toast } from './UiFeedback';
 import { flyProductToCart } from '../lib/flyToCart';
+
+/** Size-guide mark: tape + chart grid — reads clearly as a measurement dropdown. */
+const SizeGuideIcon: React.FC<{ size?: number; className?: string }> = ({
+  size = 20,
+  className,
+}) => (
+  <svg
+    width={size}
+    height={size}
+    viewBox="0 0 24 24"
+    fill="none"
+    stroke="currentColor"
+    strokeWidth="1.75"
+    strokeLinecap="round"
+    strokeLinejoin="round"
+    aria-hidden
+    className={className}
+  >
+    <rect x="3" y="4" width="18" height="16" rx="2.5" />
+    <path d="M3 9h18" />
+    <path d="M9 9v11" />
+    <path d="M15 9v11" />
+    <path d="M7 6.5h1.2M11.4 6.5h1.2M15.8 6.5h1.2" />
+  </svg>
+);
 
 interface ProductDetailsProps {
   product: Product;
@@ -491,19 +516,49 @@ export const ProductDetails: React.FC<ProductDetailsProps> = ({
                   type="button"
                   onClick={() => setMeasurementOpen((o) => !o)}
                   aria-expanded={measurementOpen}
-                  className="w-full sm:w-auto inline-flex items-center justify-between gap-2 px-4 py-2.5 rounded-xl border border-[#E5E5E5] bg-[#F8F8F7] text-[#0A0A0A] text-[11px] font-bold uppercase tracking-wider hover:border-[#E30613] hover:text-[#0A0A0A] transition-colors cursor-pointer"
+                  aria-controls={`measurement-panel-${product.id}`}
+                  className={`w-full inline-flex items-center justify-between gap-3 px-3.5 py-3 rounded-2xl border border-[#0A0A0A] text-left transition-all cursor-pointer ${
+                    measurementOpen
+                      ? 'bg-white shadow-[0_1px_3px_rgba(10,10,10,0.08)]'
+                      : 'bg-white hover:shadow-[0_1px_3px_rgba(10,10,10,0.06)]'
+                  }`}
                 >
-                  <span className="inline-flex items-center gap-1.5">
-                    <Ruler size={13} aria-hidden />
-                    Measurement Chart{sizeCharts.length > 1 ? `s (${sizeCharts.length})` : ''}
+                  <span className="inline-flex items-center gap-3 min-w-0">
+                    <span
+                      className={`shrink-0 inline-flex h-10 w-10 items-center justify-center rounded-xl ${
+                        measurementOpen
+                          ? 'bg-[#E30613] text-white'
+                          : 'bg-[#FFF1F2] text-[#E30613]'
+                      }`}
+                    >
+                      <SizeGuideIcon size={20} />
+                    </span>
+                    <span className="min-w-0">
+                      <span className="block text-[11px] sm:text-xs font-black uppercase tracking-wider text-[#0A0A0A]">
+                        Measurement Chart
+                        {sizeCharts.length > 1 ? `s (${sizeCharts.length})` : ''}
+                      </span>
+                      <span className="block mt-0.5 text-[10px] sm:text-[11px] font-medium text-[#555555] normal-case tracking-normal">
+                        {measurementOpen ? 'Tap to hide size guide' : 'Tap to view chest & length sizes'}
+                      </span>
+                    </span>
                   </span>
-                  <ChevronDown
-                    size={14}
-                    className={`shrink-0 transition-transform ${measurementOpen ? 'rotate-180' : ''}`}
-                  />
+                  <span
+                    className={`shrink-0 inline-flex h-8 w-8 items-center justify-center rounded-full border border-[#0A0A0A] transition-all ${
+                      measurementOpen
+                        ? 'bg-[#E30613] text-white rotate-180'
+                        : 'bg-[#F8F8F7] text-[#0A0A0A]'
+                    }`}
+                    aria-hidden
+                  >
+                    <ChevronDown size={16} strokeWidth={2.5} />
+                  </span>
                 </button>
                 {measurementOpen && (
-                  <div className="space-y-2 w-full animate-fadeIn">
+                  <div
+                    id={`measurement-panel-${product.id}`}
+                    className="space-y-2 w-full animate-fadeIn"
+                  >
                     {sizeCharts.length > 1 && (
                       <div className="flex flex-wrap gap-1.5">
                         {sizeCharts.map((c) => (

@@ -161,8 +161,8 @@ export const InfoPages: React.FC<InfoPagesProps> = ({ pageType, onBack, brandNam
             </p>
           </div>
 
-          <div className="rounded-2xl border border-[#E30613] bg-[#E30613] p-6 md:p-8 space-y-4 text-white shadow-lg shadow-red-950/30">
-            <p className="text-[10px] font-mono font-black uppercase tracking-[0.2em] text-white/80">
+          <div className="rounded-2xl border border-zinc-800 bg-zinc-900/80 p-6 md:p-8 space-y-4 text-white shadow-lg shadow-black/20">
+            <p className="text-[10px] font-mono font-black uppercase tracking-[0.2em] text-[#E30613]">
               Our Motto
             </p>
             <h2 className="text-xl md:text-2xl font-black uppercase tracking-tight text-white">

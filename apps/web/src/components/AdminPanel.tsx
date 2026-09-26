@@ -4885,7 +4885,7 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({
                           >
                             {products.map((p) => (
                               <option key={p.id} value={p.id} className="bg-white text-emerald-950">
-                                {p.name} (${p.price})
+                                {p.name} ({formatPrice(p.price)})
                               </option>
                             ))}
                           </select>

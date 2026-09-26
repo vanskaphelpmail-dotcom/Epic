@@ -61,14 +61,8 @@ export function PosInvoice({ open, order, formatPrice, shop, onClose }: Props) {
       ? Number((order as { amountPaid?: number }).amountPaid) || 0
       : Number(order.total) || 0;
 
-  // Invoice amounts: numbers only (no ৳ / currency symbol)
-  const money = (n: number) => {
-    const raw = formatPrice(Number(n) || 0);
-    return String(raw)
-      .replace(/৳/g, '')
-      .replace(/^(BDT|Tk\.?|tk\.?)\s*/i, '')
-      .trim();
-  };
+  // Invoice amounts include ৳ so customers recognize Bangladeshi Taka
+  const money = (n: number) => formatPrice(Number(n) || 0);
 
   const handlePrint = () => {
     document.body.classList.add(PRINT_BODY_CLASS);

@@ -384,7 +384,7 @@ export const Checkout: React.FC<CheckoutProps> = ({
             <p className="text-xs text-[#555555] font-mono font-medium">
               {isPartialBkash
                 ? `Fill in delivery details, then send ${bkashSendAmountBdt} advance via bKash Send Money and submit your TrxID. Pay the rest on delivery.`
-                : `Fill in delivery details, then send the full order amount (${grandTotal.toLocaleString('en-BD')}) via bKash Send Money and submit your TrxID.`}
+                : `Fill in delivery details, then send the full order amount (${formatPrice(grandTotal)}) via bKash Send Money and submit your TrxID.`}
             </p>
           </div>
 
@@ -973,7 +973,7 @@ export const Checkout: React.FC<CheckoutProps> = ({
 
                 <p className="text-[10px] text-[#555555] font-medium leading-snug pt-1 border-t border-[#E5E5E5]">
                   {isPartialBkash
-                    ? `Send ${Math.round(bkashSendAmountBdt).toLocaleString('en-BD')} now (${partialAdvanceBreakdown}) — remaining ${Math.round(bkashDueOnDelivery).toLocaleString('en-BD')} collected when your order arrives.`
+                    ? `Send ${formatPrice(bkashSendAmountBdt)} now (${partialAdvanceBreakdown}) — remaining ${formatPrice(bkashDueOnDelivery)} collected when your order arrives.`
                     : `Send the full ${formatPrice(grandTotal)} via ${walletPaymentLabel} Send Money to complete this order.`}
                 </p>
               </div>

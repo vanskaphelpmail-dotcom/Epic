@@ -1,5 +1,5 @@
 import React from 'react';
-import { ShieldCheck, HelpCircle, Phone, Globe, Instagram, Facebook, Shirt, Trophy, Star, Flame, Sparkles, Tag, Box, Award, ShoppingBag, Compass, Heart, MapPin } from 'lucide-react';
+import { ShieldCheck, HelpCircle, Phone, Globe, Shirt, Trophy, Star, Flame, Sparkles, Tag, Box, Award, ShoppingBag, Compass, Heart, MapPin } from 'lucide-react';
 import { STORE_LOCATIONS } from '../data/storeData';
 import { AppConfig } from '../types';
 import { BrandMark } from './BrandMark';
@@ -11,21 +11,71 @@ const DEFAULT_SOCIAL = {
   tiktok: 'https://www.tiktok.com/@epic_vanskap?_r=1&_t=ZS-99rOqRbSjx7',
 };
 
-/** Outline TikTok mark — stroke style to match Lucide Facebook / Instagram. */
+/** Official Facebook blue mark (filled) — matches Lucide size. */
+const FacebookIcon: React.FC<{ size?: number; className?: string }> = ({ size = 18, className }) => (
+  <svg
+    width={size}
+    height={size}
+    viewBox="0 0 24 24"
+    fill="currentColor"
+    aria-hidden
+    className={className}
+  >
+    <path d="M14 13.5h2.5l1-4H14v-2c0-1.03 0-2 2-2h1.5V2.14c-.326-.043-1.557-.14-2.857-.14C11.928 2 10 3.657 10 6.7v2.8H7v4h3V22h4v-8.5z" />
+  </svg>
+);
+
+/** Instagram glyph with official brand gradient. */
+const InstagramIcon: React.FC<{ size?: number; className?: string }> = ({ size = 18, className }) => {
+  const gid = React.useId().replace(/:/g, '');
+  return (
+    <svg
+      width={size}
+      height={size}
+      viewBox="0 0 24 24"
+      aria-hidden
+      className={className}
+    >
+      <defs>
+        <linearGradient id={`ig-${gid}`} x1="0%" y1="100%" x2="100%" y2="0%">
+          <stop offset="0%" stopColor="#f58529" />
+          <stop offset="30%" stopColor="#feda77" />
+          <stop offset="50%" stopColor="#dd2a7b" />
+          <stop offset="70%" stopColor="#8134af" />
+          <stop offset="100%" stopColor="#515bd4" />
+        </linearGradient>
+      </defs>
+      <path
+        fill={`url(#ig-${gid})`}
+        d="M7.8 2h8.4C19.4 2 22 4.6 22 7.8v8.4a5.8 5.8 0 0 1-5.8 5.8H7.8C4.6 22 2 19.4 2 16.2V7.8A5.8 5.8 0 0 1 7.8 2m-.2 2A3.6 3.6 0 0 0 4 7.6v8.8A3.6 3.6 0 0 0 7.6 20h8.8a3.6 3.6 0 0 0 3.6-3.6V7.6A3.6 3.6 0 0 0 16.4 4H7.6m9.65 1.5a1.25 1.25 0 1 1 0 2.5 1.25 1.25 0 0 1 0-2.5M12 7a5 5 0 1 1 0 10 5 5 0 0 1 0-10m0 2a3 3 0 1 0 0 6 3 3 0 0 0 0-6z"
+      />
+    </svg>
+  );
+};
+
+/** TikTok mark — cyan / magenta offset + black (official brand treatment). */
 const TikTokIcon: React.FC<{ size?: number; className?: string }> = ({ size = 18, className }) => (
   <svg
     width={size}
     height={size}
     viewBox="0 0 24 24"
-    fill="none"
-    stroke="currentColor"
-    strokeWidth="2"
-    strokeLinecap="round"
-    strokeLinejoin="round"
     aria-hidden
     className={className}
   >
-    <path d="M9 12a4 4 0 1 0 4 4V4a5 5 0 0 0 5 5" />
+    <path
+      fill="#25F4EE"
+      d="M16.6 5.82s.51.5 0 0A4.278 4.278 0 0 1 15.54 3h-3.09v12.4a2.592 2.592 0 0 1-2.59 2.5c-1.42 0-2.6-1.16-2.6-2.6 0-1.72 1.66-3.01 3.37-2.48V9.66c-3.45-.46-6.47 2.22-6.47 5.64 0 3.33 2.76 5.7 5.69 5.7 3.14 0 5.69-2.55 5.69-5.7V9.01a7.4 7.4 0 0 0 4.3 1.38V7.3s-1.88.09-3.24-1.48z"
+      transform="translate(-0.6 0.5)"
+    />
+    <path
+      fill="#FE2C55"
+      d="M16.6 5.82s.51.5 0 0A4.278 4.278 0 0 1 15.54 3h-3.09v12.4a2.592 2.592 0 0 1-2.59 2.5c-1.42 0-2.6-1.16-2.6-2.6 0-1.72 1.66-3.01 3.37-2.48V9.66c-3.45-.46-6.47 2.22-6.47 5.64 0 3.33 2.76 5.7 5.69 5.7 3.14 0 5.69-2.55 5.69-5.7V9.01a7.4 7.4 0 0 0 4.3 1.38V7.3s-1.88.09-3.24-1.48z"
+      transform="translate(0.6 -0.5)"
+    />
+    <path
+      fill="#0A0A0A"
+      d="M16.6 5.82s.51.5 0 0A4.278 4.278 0 0 1 15.54 3h-3.09v12.4a2.592 2.592 0 0 1-2.59 2.5c-1.42 0-2.6-1.16-2.6-2.6 0-1.72 1.66-3.01 3.37-2.48V9.66c-3.45-.46-6.47 2.22-6.47 5.64 0 3.33 2.76 5.7 5.69 5.7 3.14 0 5.69-2.55 5.69-5.7V9.01a7.4 7.4 0 0 0 4.3 1.38V7.3s-1.88.09-3.24-1.48z"
+    />
   </svg>
 );
 
@@ -124,17 +174,44 @@ export const Footer: React.FC<FooterProps> = ({ currentPage, setCurrentPage, app
           <p className="text-[#0A0A0A]/70 leading-relaxed">
             {appConfig.footerAbout}
           </p>
-          <div className="flex gap-3 text-[#0A0A0A]/60">
+          <div className="flex gap-3 items-center">
             {(() => {
               const links = {
                 facebook: (appConfig.socialLinks?.facebook || DEFAULT_SOCIAL.facebook).trim(),
                 instagram: (appConfig.socialLinks?.instagram || DEFAULT_SOCIAL.instagram).trim(),
                 tiktok: (appConfig.socialLinks?.tiktok || DEFAULT_SOCIAL.tiktok).trim(),
               };
-              const items: { key: string; href: string; label: string; icon: React.ReactNode }[] = [
-                { key: 'facebook', href: links.facebook, label: 'Facebook', icon: <Facebook size={18} /> },
-                { key: 'instagram', href: links.instagram, label: 'Instagram', icon: <Instagram size={18} /> },
-                { key: 'tiktok', href: links.tiktok, label: 'TikTok', icon: <TikTokIcon size={18} /> },
+              const items: {
+                key: string;
+                href: string;
+                label: string;
+                icon: React.ReactNode;
+                className: string;
+              }[] = [
+                {
+                  key: 'facebook',
+                  href: links.facebook,
+                  label: 'Facebook',
+                  icon: <FacebookIcon size={18} />,
+                  className:
+                    'text-[#1877F2] hover:text-[#0C63D4] transition-colors duration-200',
+                },
+                {
+                  key: 'instagram',
+                  href: links.instagram,
+                  label: 'Instagram',
+                  icon: <InstagramIcon size={18} />,
+                  className:
+                    'opacity-100 hover:opacity-90 hover:scale-105 transition-all duration-200 origin-center',
+                },
+                {
+                  key: 'tiktok',
+                  href: links.tiktok,
+                  label: 'TikTok',
+                  icon: <TikTokIcon size={18} />,
+                  className:
+                    'opacity-100 hover:opacity-90 hover:scale-105 transition-all duration-200 origin-center',
+                },
               ];
               return items
                 .filter((i) => i.href && i.href !== '#')
@@ -146,7 +223,7 @@ export const Footer: React.FC<FooterProps> = ({ currentPage, setCurrentPage, app
                     rel="noopener noreferrer"
                     aria-label={i.label}
                     title={i.label}
-                    className="hover:text-[#E30613] transition-colors"
+                    className={`inline-flex items-center justify-center ${i.className}`}
                   >
                     {i.icon}
                   </a>

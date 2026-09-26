@@ -26,7 +26,7 @@ type BkashPaymentPanelProps = {
 };
 
 function formatBdtAmount(amount: number): string {
-  return Math.round(amount).toLocaleString('en-BD');
+  return `৳${Math.round(Number(amount) || 0).toLocaleString('en-BD')}`;
 }
 
 /** Manual bKash / Nagad Send Money (same personal number for both). */
@@ -46,7 +46,7 @@ export const BkashPaymentPanel: React.FC<BkashPaymentPanelProps> = ({
   walletProvider = 'bkash',
   onWalletProviderChange,
 }) => {
-  const amountLabel = Math.round(sendMoneyAmountBdt).toLocaleString('en-BD');
+  const amountLabel = formatBdtAmount(sendMoneyAmountBdt);
   const merchantNumber = personalNumber || BKASH_DEFAULT_NUMBER;
   const walletName = walletProvider === 'nagad' ? 'Nagad' : 'bKash';
 
@@ -90,7 +90,7 @@ export const BkashPaymentPanel: React.FC<BkashPaymentPanelProps> = ({
             </p>
             <p className="text-[11px] text-[#555555] leading-relaxed">
               অর্ডার নিশ্চিত করতে নিচের পরিমাণ{' '}
-              <strong className="text-[#0A0A0A]">{amountLabel} টাকা</strong>
+              <strong className="text-[#0A0A0A]">{amountLabel}</strong>
               {isPartialPayment ? ' (আংশিক এডভান্স)' : ''} bKash অথবা Nagad{' '}
               <strong className="text-[#0A0A0A]">Send Money</strong>-এর মাধ্যমে পাঠান।
             </p>
@@ -153,7 +153,7 @@ export const BkashPaymentPanel: React.FC<BkashPaymentPanelProps> = ({
               </li>
               <li>
                 নম্বর <strong className="font-mono text-[#0A0A0A]">{merchantNumber}</strong>-এ{' '}
-                <strong className="text-[#0A0A0A]">{amountLabel} টাকা</strong> পাঠান
+                <strong className="text-[#0A0A0A]">{amountLabel}</strong> পাঠান
                 {isPartialPayment ? ' (এডভান্স)' : ''}।
               </li>
               <li>পেমেন্ট সম্পন্ন হলে নিচে আপনার মোবাইল নম্বর ও Transaction ID (TrxID) লিখুন।</li>

@@ -196,7 +196,7 @@ export const BiddingSection: React.FC<BiddingSectionProps> = ({ onAddToCart, set
     if (formatPrice) {
       return formatPrice(val);
     }
-    return val.toLocaleString();
+    return `৳${Math.round(Number(val) || 0).toLocaleString('en-BD')}`;
   };
 
   const pad = (num: number) => String(num).padStart(2, '0');
