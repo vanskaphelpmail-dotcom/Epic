@@ -125,7 +125,7 @@ export function toSpaProduct(
       fit: p.fit || "Regular",
       sponsor: p.sponsor ?? undefined,
     },
-    category: p.category?.name || p.pageName || p.targetPage || undefined,
+    category: p.category?.name ?? undefined,
     categoryId: p.categoryId ?? undefined,
     categories: Array.isArray((p as { categories?: string[] }).categories)
       ? (p as { categories: string[] }).categories

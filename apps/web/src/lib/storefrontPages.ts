@@ -161,7 +161,8 @@ function isPrimaryLeagueLabel(value: string): boolean {
 
 /**
  * Product belongs on a nav / listing destination.
- * Matches Target Page / pageName, league, primary category, and multi-select categories[].
+ * When Categories (multi-select) are set, ONLY those labels control placement —
+ * league / club / targetPage alone must not mix the product into other pages.
  */
 export function productMatchesStorefrontFilter(
   product: Product,
@@ -172,6 +173,7 @@ export function productMatchesStorefrontFilter(
   const filterPage = resolveStorefrontPage(filter);
   const filterKey = norm(filter);
   const multiCats = getProductCategories(product);
+  const hasExplicitCats = multiCats.length > 0;
 
   const tagMatchesFilter = (tag: string): boolean => {
     if (!tag) return false;
@@ -182,9 +184,15 @@ export function productMatchesStorefrontFilter(
     return false;
   };
 
-  // Multi-select categories always count (Premier League can be secondary tag)
-  if (multiCats.some(tagMatchesFilter)) return true;
+  // Explicit admin Categories[] — sole source of truth (no league/target bleed)
+  if (hasExplicitCats) {
+    if (multiCats.some(tagMatchesFilter)) return true;
+    // Catalog flag without a Clearance category tick
+    if (filterPage?.id === 'Clearance' && product.isClearance) return true;
+    return false;
+  }
 
+  // Legacy products with no categories[] — Target Page / primary category only
   const explicit =
     resolveStorefrontPage(product.targetPage) ||
     resolveStorefrontPage(product.pageName);
@@ -198,7 +206,6 @@ export function productMatchesStorefrontFilter(
     ) {
       return true;
     }
-    // Do not hard-fail when explicit page differs — secondary categories already checked above
   }
 
   if (filterPage?.id === 'Other Leagues') {
@@ -211,13 +218,7 @@ export function productMatchesStorefrontFilter(
   }
 
   if (filterPage?.id === 'International Teams') {
-    const fields = [
-      product.league,
-      product.category,
-      product.country,
-      product.club,
-      ...multiCats,
-    ]
+    const fields = [product.league, product.category, product.country, product.club]
       .map((v) => String(v || '').trim())
       .filter(Boolean);
     return fields.some(
@@ -228,14 +229,11 @@ export function productMatchesStorefrontFilter(
   }
 
   if (filterPage && (PRIMARY_LEAGUE_IDS as readonly string[]).includes(filterPage.id)) {
-    const league = productLeagueLabel(product);
-    if (league && storefrontLabelsMatch(league, filterPage.id)) return true;
     const cat = String(product.category || '').trim();
     if (cat && storefrontLabelsMatch(cat, filterPage.id)) return true;
     return false;
   }
 
-  // No Target Page set — match category only (exact / alias)
   const cat = String(product.category || '').trim();
   if (cat && storefrontLabelsMatch(cat, filter)) return true;
   if (cat && !filterPage && norm(cat) === filterKey) return true;
@@ -282,8 +280,7 @@ const LISTING_CATEGORY_ALIASES: Record<string, string[]> = {
 
 /**
  * Listing sidebar / nav page filter.
- * Storefront nav pages use target-page + league rules;
- * other labels match category / categoryRow with aliases.
+ * Uses admin Categories[] only when set — never mixes via league or product name.
  */
 export function productMatchesListingCategory(
   product: Product,
@@ -291,25 +288,23 @@ export function productMatchesListingCategory(
 ): boolean {
   if (!filter || filter === 'All') return true;
 
-  // Nav destination pages — target-page + league + multi-select categories
+  // Nav destination pages — strict categories when assigned
   if (resolveStorefrontPage(filter)) {
     return productMatchesStorefrontFilter(product, filter);
   }
 
   const key = norm(filter);
   const aliases = new Set([key, ...(LISTING_CATEGORY_ALIASES[key] || [])]);
+  const multiCats = getProductCategories(product);
 
-  const fields = [
-    product.category,
-    product.pageName,
-    product.targetPage,
-    product.league,
-    ...getProductCategories(product),
-  ]
-    .map((v) => norm(String(v || '')))
-    .filter(Boolean);
+  const fields =
+    multiCats.length > 0
+      ? multiCats
+      : [product.category, product.pageName, product.targetPage].filter(Boolean);
 
-  for (const field of fields) {
+  for (const raw of fields) {
+    const field = norm(String(raw || ''));
+    if (!field) continue;
     if (aliases.has(field) || field === key) return true;
     if (storefrontLabelsMatch(field, filter)) return true;
   }

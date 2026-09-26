@@ -476,7 +476,8 @@ export function ensureCatalogSectionAtBottom(sections: PageSection[]): PageSecti
 /** Products assigned to Catalog / Clearance / Outlet — only belong in the Catalog homepage row. */
 export function isCatalogAssignedProduct(p: Product): boolean {
   if (p.isClearance) return true;
-  const fields = [p.category, p.pageName, p.targetPage, ...(getProductCategories(p) || [])].filter(
+  // Prefer explicit Categories[] — do not treat Target Page alone as Catalog
+  const fields = [...(getProductCategories(p) || []), p.category].filter(
     (v) => String(v || '').trim(),
   );
   return fields.some((v) => {
@@ -583,16 +584,9 @@ const CLUB_LEAGUE_LABELS = [
   'Saudi Pro League',
 ] as const;
 
-function productHasClubLeagueSignal(p: Product, productCats: string[]): boolean {
-  const fields = [
-    ...productCats,
-    p.category,
-    p.league,
-    p.targetPage,
-    p.pageName,
-  ]
-    .map((v) => String(v || '').trim())
-    .filter(Boolean);
+function productHasClubLeagueSignal(_p: Product, productCats: string[]): boolean {
+  // Only explicit category ticks — league / targetPage must not force club-league placement
+  const fields = productCats.map((v) => String(v || '').trim()).filter(Boolean);
   return fields.some((f) =>
     CLUB_LEAGUE_LABELS.some((league) => storefrontLabelsMatch(f, league)),
   );
@@ -603,23 +597,12 @@ function isWorldCupHomepageCategory(cat: string): boolean {
   return /^world\s*cup(\s*vault)?$/i.test(t) || storefrontLabelsMatch(t, 'World Cup');
 }
 
-/** Exact / literal World Cup signals — never treat "International Teams" alone as World Cup. */
+/** Exact / literal World Cup signals — only from admin Categories[]. */
 function productHasExplicitWorldCupSignal(p: Product, productCats: string[]): boolean {
-  const fields = [
-    ...productCats,
-    p.category,
-    p.league,
-    p.pageName,
-    p.targetPage,
-    ...(p.tags || []),
-  ]
+  const fields = [...productCats, p.category]
     .map((v) => String(v || '').trim())
     .filter(Boolean);
-  if (fields.some((f) => /world\s*cup/i.test(f))) return true;
-  if (/world\s*cup/i.test(p.name || '')) return true;
-  // National-team kit without a club league assignment
-  if (p.nationalTeam && !p.club && !productHasClubLeagueSignal(p, productCats)) return true;
-  return false;
+  return fields.some((f) => /world\s*cup/i.test(f));
 }
 
 /**
@@ -650,76 +633,31 @@ function homepageFieldMatchesCategory(field: string, cat: string): boolean {
       }
       return true;
     }
+    // Freeform aliases (Retro ↔ Legends) when neither side is a conflicting page pair
+    if (!pa && !pb) return true;
+    // Retro / Legends / Retro Store family
+    if (/retro|legends/i.test(a) && /retro|legends/i.test(b)) return true;
     return true;
   }
   return false;
 }
 
-/** Match homepage product-row category — club leagues never bleed into World Cup. */
+/** Match homepage product-row category — only admin Categories[] (no league/name mix). */
 export function productMatchesHomepageCategory(p: Product, cat: string): boolean {
   if (!cat?.trim()) return false;
   if (/^all(\s*jerseys)?$/i.test(cat.trim())) return true;
   const productCats = getProductCategories(p);
 
-  // World Cup homepage row: national / WC kits only — never club (La Liga, etc.) products
+  // World Cup homepage row: only products explicitly tagged World Cup
   if (isWorldCupHomepageCategory(cat)) {
     if (productHasClubLeagueSignal(p, productCats)) return false;
     return productHasExplicitWorldCupSignal(p, productCats);
   }
 
+  // Strict: only multi-select / primary category ticks
   if (productCats.some((c) => homepageFieldMatchesCategory(c, cat))) return true;
   if (homepageFieldMatchesCategory(p.category || '', cat)) return true;
-  if (homepageFieldMatchesCategory(p.targetPage || '', cat)) return true;
-  if (homepageFieldMatchesCategory(p.pageName || '', cat)) return true;
-  if (homepageFieldMatchesCategory(p.league || '', cat)) return true;
-  if (homepageFieldMatchesCategory(p.club || '', cat)) return true;
-  if (homepageFieldMatchesCategory(p.nationalTeam || '', cat)) return true;
-  if (homepageFieldMatchesCategory(p.country || '', cat)) return true;
-  if ((p.tags || []).some((t) => homepageFieldMatchesCategory(t, cat))) return true;
 
-  if (
-    storefrontLabelsMatch(cat, 'Retro') &&
-    (storefrontLabelsMatch(p.category || '', 'Legends') ||
-      storefrontLabelsMatch(p.targetPage || '', 'Legends') ||
-      storefrontLabelsMatch(p.pageName || '', 'Retro Store') ||
-      /retro/i.test(p.name || ''))
-  ) {
-    return true;
-  }
-  if (
-    storefrontLabelsMatch(cat, 'La Liga') &&
-    (homepageFieldMatchesCategory(p.targetPage || '', 'La Liga') ||
-      homepageFieldMatchesCategory(p.pageName || '', 'La Liga') ||
-      /la\s*liga/i.test(p.name || '') ||
-      /real madrid|barcelona|atletico|athletic club|sevilla|valencia/i.test(p.name || ''))
-  ) {
-    return true;
-  }
-  if (
-    storefrontLabelsMatch(cat, 'Premier League') &&
-    (/premier\s*league|\bepl\b/i.test(p.name || '') ||
-      /arsenal|chelsea|liverpool|manchester|tottenham|newcastle/i.test(p.name || ''))
-  ) {
-    return true;
-  }
-  if (
-    storefrontLabelsMatch(cat, 'Player Edition') &&
-    /player\s*(edition|version|fit)/i.test(p.name || '')
-  ) {
-    return true;
-  }
-  if (
-    storefrontLabelsMatch(cat, 'Fan Edition') &&
-    /fan\s*(edition|version|fit)/i.test(p.name || '')
-  ) {
-    return true;
-  }
-  if (
-    storefrontLabelsMatch(cat, 'Current Season') &&
-    /20\d{2}\s*\/\s*2\d|current\s*season/i.test(`${p.name || ''} ${p.season || ''}`)
-  ) {
-    return true;
-  }
   if (
     storefrontLabelsMatch(cat, 'Best Sellers') &&
     (p.isBestSeller || storefrontLabelsMatch(p.category || '', 'Best Sellers'))
@@ -740,12 +678,6 @@ export function productMatchesHomepageCategory(p: Product, cat: string): boolean
     return isCatalogAssignedProduct(p);
   }
 
-  // Fuzzy name includes — skip for short / ambiguous category tokens like "cup"
-  const catLower = cat.toLowerCase().trim();
-  if (catLower.length >= 4 && !/^world\s*cup/i.test(catLower)) {
-    const hay = [p.name, p.brand, ...(p.tags || [])].join(' ').toLowerCase();
-    if (hay.includes(catLower)) return true;
-  }
   return false;
 }
 
